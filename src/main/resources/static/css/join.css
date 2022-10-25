@@ -90,6 +90,28 @@ a:hover{
     width: 100%;
 }
 
+#emailTime {
+    width: 100%;
+}
+
+#emailTime > input {
+    width: 98%;
+    height: 30px;
+}
+
+#emailTime > span {
+    position: relative;
+    bottom: 27px;
+    right: 10px;
+}
+
+#Timer {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: right;
+}
+
 .join_email > input {
     width: 80%;
     height: 30px;
@@ -112,4 +134,48 @@ a:hover{
 }
 .title > span {
     font-size: 20px;
+}
+
+.agree {
+    display: block;
+    text-align: left;
+    margin-top: 50px;
+}
+
+/* 에러메시지 */
+.errorMsg {
+    display: inline-block;
+    width: 100%;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+}
+
+/* 버튼 */
+#btnGroup {
+    display: inline-flex;
+    justify-content: space-between;
+    width: 50%;
+    margin-top: 50px;
+}
+.btn{
+    width: 35%;
+    height: 40px;
+    border-style: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.cancel {
+    background-color: #818181;
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+}
+
+.confirm {
+    background-color: #EA3B20;
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
 }
