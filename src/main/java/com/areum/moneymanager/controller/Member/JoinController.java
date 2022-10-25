@@ -4,24 +4,24 @@ import com.areum.moneymanager.dto.ReqMemberDto;
 import com.areum.moneymanager.service.MailService;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
+import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-
-@Slf4j
 @Controller
 @RequestMapping("/join")
 public class JoinController {
 
     private final MemberService memberService;
     private final MailService mailService;
+    private static final Logger LOGGER = LogManager.getLogger(JoinController.class);
+
 
     @Autowired
     public JoinController(MemberServiceImpl memberService, MailService mailService) {
@@ -30,41 +30,40 @@ public class JoinController {
     }
 
     @GetMapping
-    public String joinView() {
-        log.info("[화면요청] 회원가입");
+    public String getJoinView() {
+        LOGGER.info("회원가입 화면 요청");
         return "/member/join";
     }
 
-    @PostMapping("/emailCodeCheck")
     @ResponseBody
-    public String emailCodeCheck(ReqMemberDto.Join member, String time, HttpServletRequest request ) {
-        log.info("[기능요청] 회원가입의 이메일({}) 인증코드 일치 확인 시간({})", member.getEmail(), time);
-
+    @PostMapping("/emailCodeCheck")
+    public String postEmailCodeCheck(ReqMemberDto.Join member, String time, HttpServletRequest request ) {
         HttpSession session = request.getSession();
         return mailService.emailCodeCheck(session, member.getEmail(), member.getCode(), time);
     }
 
-    @PostMapping("/idCheck")
     @ResponseBody
-    public int idCheck( ReqMemberDto.Join member ) {
-        log.info("[기능요청] 회원가입의 아이디({}) 중복확인",member.getId());
+    @PostMapping("/idCheck")
+    public int postIdCheck( ReqMemberDto.Join member ) {
         return memberService.idCheck(member.getId());
     }
 
-    @PostMapping("/nickNameCheck")
     @ResponseBody
-    public int nickNameCheck( ReqMemberDto.Join member ) {
-        log.info("[기능요청] 회원가입의 닉네임({}) 중복확인", member.getNickName());
+    @PostMapping("/nickNameCheck")
+    public int postNickNameCheck( ReqMemberDto.Join member ) {
         return memberService.nickNameCheck(member.getNickName());
     }
 
-    @PostMapping("/sendEmail")
     @ResponseBody
-    public void sendEmailCode(ReqMemberDto.Join member, HttpSession session) throws Exception {
-        log.info("[기능요청] 회원가입 이메일({}) 인증코드 전송", member.getEmail());
+    @PostMapping("/sendEmail")
+    public void postSendEmailCode(ReqMemberDto.Join member, HttpSession session) throws Exception {
 
         String code = mailService.sendMail(member.getEmail());
         session.setAttribute(""+member.getEmail() , code);
+    }
+
+    @PostMapping
+    public void postJoin() {
     }
 
 }
