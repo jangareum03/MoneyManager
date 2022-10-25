@@ -1,4 +1,4 @@
-package com.areum.moneymanager.service;
+package com.areum.moneymanager.service.member;
 
 
 public interface MemberService {

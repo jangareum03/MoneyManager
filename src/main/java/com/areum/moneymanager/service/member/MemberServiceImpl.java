@@ -1,4 +1,4 @@
-package com.areum.moneymanager.service;
+package com.areum.moneymanager.service.member;
 
 import com.areum.moneymanager.dao.MemberDao;
 import com.areum.moneymanager.dao.MemberDaoImpl;
@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 
-@Service
 @Slf4j
+@Service
 public class MemberServiceImpl implements MemberService {
 
     private final MemberDao memberDao;
