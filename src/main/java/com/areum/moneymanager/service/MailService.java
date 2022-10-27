@@ -1,5 +1,7 @@
 package com.areum.moneymanager.service;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -9,16 +11,19 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 @Service
 public class MailService {
-
-    @Autowired
     private JavaMailSender javaMailSender;
+
+    private final Logger LOGGER = LogManager.getLogger(MailService.class);
+
+    public MailService(JavaMailSender javaMailSender) {
+        this.javaMailSender = javaMailSender;
+    }
 
     //이메일 인증코드
     private final String emailKey = createCode();
@@ -90,9 +95,9 @@ public class MailService {
     //메일발송
     public String sendMail(String to) throws Exception {
         MimeMessage message = createEmailCode(to);
-
         javaMailSender.send(message);
 
+        LOGGER.debug("전송한 메일: {}, 인증코드: {}", to, emailKey);
         return emailKey;
     }
 }

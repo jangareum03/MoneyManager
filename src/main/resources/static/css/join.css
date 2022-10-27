@@ -105,11 +105,12 @@ a:hover{
     right: 10px;
 }
 
+/* 이메일 인증 시간 */
 #Timer {
-    display: block;
     font-size: 14px;
     font-weight: 800;
     text-align: right;
+    left: 200px;
 }
 
 .join_email > input {
@@ -131,6 +132,7 @@ a:hover{
     font-family: SEBANG_Gothic_Bold;
     font-size: 45px;
     margin-bottom: 60px;
+    cursor: pointer
 }
 .title > span {
     font-size: 20px;

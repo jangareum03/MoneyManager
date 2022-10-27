@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import com.areum.moneymanager.dao.MemberDaoImpl;
 import com.areum.moneymanager.entity.MemberInfo;
+import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
