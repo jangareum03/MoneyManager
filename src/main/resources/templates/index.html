@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -14,14 +14,18 @@
         돈매니저<br>
         <span>MoneyManager</span>
     </div>
-    <div id="inputGroup">
-        <input type="text" placeholder="아이디" class="input_id">
-        <input type="password" placeholder="비밀번호" class="input_pwd"><br>
-        <label><input type="checkbox">로그인 상태 유지</label><br>
-        <button class="defaultBtn">로그인</button>
-    </div>
+    <form method="post" th:action="@{/login}" th:object="${member}">
+        <div id="inputGroup">
+            <input type="text" placeholder="아이디" class="input_id" th:field="*{id}" maxlength="15"><br>
+            <input type="password" placeholder="비밀번호" class="input_pwd" th:field="*{pwd}" maxlength="20"><br>
+            <label><input type="checkbox">로그인 상태 유지</label><br>
+            <button class="defaultBtn">로그인</button><br>
+            <span th:errors="*{id}" th:style="${'color: red'}"></span>
+            <span th:errors="*{pwd}" th:style="${'color: red'}"></span>
+        </div>
+    </form>
     <div>
-        <a href="/join">회원가입</a>
+        <a th:href="@{/join}">회원가입</a>
         <a href=""> 계정찾기</a>
     </div>
 </div>

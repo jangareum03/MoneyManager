@@ -59,6 +59,14 @@ body{
     height: 100vh;
 }
 
+form {
+    width: 85%;
+    height: 50%;
+    background-color: rgba(57, 57, 57, 0.3);
+    border-radius: 30px;
+    margin: auto
+}
+
 a {
     text-decoration: none;
     font-size: 16px;
@@ -78,13 +86,6 @@ a:hover{
 .title {
     font-family: SEBANG_Gothic_Bold;
     font-size: 45px;
-}
-.title + div {
-    width: 85%;
-    height: 50%;
-    background-color: rgba(57, 57, 57, 0.3);
-    border-radius: 30px;
-    margin: auto
 }
 .title > span {
     font-size: 20px;

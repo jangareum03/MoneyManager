@@ -16,4 +16,8 @@ public interface MemberDao {
 
     //회원번호 찾기
     String selectMid( String mid );
+
+    //비밀번호 찾기
+    String selectPwd( String id );
+
 }

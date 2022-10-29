@@ -2,9 +2,11 @@ package com.areum.moneymanager.entity;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 @Builder
 @Getter
+@ToString
 public class MemberInfo {
     private String member_id;
     private String id;

@@ -11,6 +11,9 @@ public interface MemberService {
     //회원가입
     void joinMember( ReqMemberDto.Join joinDto, String mid ) throws Exception;
 
+    //로그인
+    int loginCheck( ReqMemberDto.Login loginDto );
+
     //회원번호 생성
     String makeMemberId( String id );
 

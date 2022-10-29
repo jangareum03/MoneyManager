@@ -49,6 +49,21 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    public int loginCheck( ReqMemberDto.Login loginDto ) {
+        String pwd = memberDao.selectPwd( loginDto.getId() );
+        LOGGER.debug("로그인 입력한 아이디({})와 비밀번호({})로 찾은 비밀번호: {}", loginDto.getId(), loginDto.getPwd(), pwd);
+
+        if( pwd.equals(loginDto.getPwd()) ) {
+            return 1;
+        }else{
+            if( pwd.equals("0") ) {
+                return 0;
+            }
+                return -1;
+        }
+    }
+
+    @Override
     public String makeMemberId( String id ) {
         String makeId = "UA";
 

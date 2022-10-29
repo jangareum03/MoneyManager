@@ -2,6 +2,9 @@ package com.areum.moneymanager.dao;
 
 import com.areum.moneymanager.entity.Member;
 import com.areum.moneymanager.entity.MemberInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.stereotype.Repository;
@@ -15,6 +18,7 @@ import java.sql.SQLException;
 public class MemberDaoImpl implements MemberDao {
 
     private final JdbcTemplate jdbcTemplate;
+    private final Logger LOGGER = LogManager.getLogger(MemberDaoImpl.class);
 
     public MemberDaoImpl( DataSource dataSource ) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
@@ -70,4 +74,18 @@ public class MemberDaoImpl implements MemberDao {
                 mid
         );
     }
+
+    @Override
+    public String selectPwd( String id) {
+        try{
+            return jdbcTemplate.queryForObject(
+                    "SELECT password FROM tb_member_info WHERE id=?",
+                    String.class,
+                    id
+            );
+        }catch (EmptyResultDataAccessException e){
+            return "0";
+        }
+    }
+
 }

@@ -3,6 +3,7 @@ package com.areum.moneymanager.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import com.areum.moneymanager.dao.MemberDaoImpl;
+import com.areum.moneymanager.dto.ReqMemberDto;
 import com.areum.moneymanager.entity.MemberInfo;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.junit.jupiter.api.DisplayName;
@@ -134,5 +135,38 @@ import java.util.stream.Stream;
 
         //then
         assertEquals("에러", mid);
+    }
+
+    @Test
+    @DisplayName("성공 - 특정회원의 비밀번호 찾기")
+    void loginSuccess(){
+        //given
+        when(memberDao.selectPwd("test01")).thenReturn("test01!!");
+        //when
+        int result = memberService.loginCheck(new ReqMemberDto.Login("test01", "test01!!"));
+        //then
+        assertEquals(1, result);
+    }
+
+    @Test
+    @DisplayName("실패 - 특정회원 비밀번호 다름")
+    void loginPwd(){
+        //given
+        when(memberDao.selectPwd("test01")).thenReturn("test01@@");
+        //when
+        int result = memberService.loginCheck(new ReqMemberDto.Login("test01", "test01!!"));
+        //then
+        assertEquals(0, result);
+    }
+
+    @Test
+    @DisplayName("실패 - 회원 아이디 없음")
+    void loginFail(){
+        //given
+        when(memberDao.selectPwd("test01")).thenReturn("");
+        //when
+        int result = memberService.loginCheck(new ReqMemberDto.Login("test01", "test01!!"));
+        //then
+        assertEquals(-1, result);
     }
 }
