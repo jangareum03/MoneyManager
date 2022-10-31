@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>아이디 찾기 : 돈매니저</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/find.css}">
+</head>
+<body>
+<div id="helpId">
+    <div class="title" onclick="location.href='/'">
+        계정찾기<br>
+        <span>돈 매니저</span>
+    </div>
+    <div class="content">
+        <div class="subTitle">아이디 찾기 결과</div>
+        <img id="errorImg" src="/image/error.png">
+        <div class="msg">
+            찾으시는 아이디는 존재하지 않습니다.<br>
+            다시 확인해주세요.
+        </div>
+    </div>
+    <div id="btnGroup">
+        <button type="button" class="btn" onclick="location.href='/'">로그인</button>
+        <button type="button" class="btn confirm" onclick="location.href='/helpId'">아이디찾기</button>
+    </div>
+</div>
+</body>
+</html>

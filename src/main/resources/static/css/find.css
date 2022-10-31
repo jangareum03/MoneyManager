@@ -49,7 +49,8 @@ table {
     border-collapse: collapse;
     border-spacing: 0;
 }
-/* 계정찾기 */
+
+/* 아아디 찾기 실패 */
 body{
     display: flex;
     justify-content: center;
@@ -57,7 +58,7 @@ body{
     height: 100vh;
 }
 
-#help {
+#helpId, #helpPwd {
     width: 800px;
     text-align: center;
 }
@@ -65,87 +66,58 @@ body{
 .title {
     font-family: SEBANG_Gothic_Bold;
     font-size: 45px;
-    margin-bottom: 60px;
+    margin-bottom: 80px;
     cursor: pointer
 }
 .title > span {
     font-size: 20px;
 }
 
-.menu {
-    display: inline-flex;
-    width: 100%;
-    height: 50px;
-}
-.menu > a {
-    display: inline-block;
-    position: relative;
-    width: 50%;
-    height: 100%;
-    text-align: center;
-    color: black;
-    cursor: pointer;
-}
-
-a:hover{
-    color: #0B3B78;
-}
-
-a > span {
-    display: block;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    font-size: 20px;
-    font-weight: 800;
-    top: 30%;
-}
-
-.choice {
-    border: 3px solid black;
-}
-
 .content {
     width: 100%;
-    height: 250px;
-    margin-top: -5px;
-    background-color: rgba(57, 57, 57, 0.3);
+    height: 300px;
 }
 
-.content > label {
-    display: inline-block;
-    width: 10%;
+.content > .msg {
     font-size: 18px;
+}
+
+.content > .msgOk {
     text-align: left;
+    font-size: 16px;
+    margin-top: 1%;
+    margin-left: 2%;
 }
 
-#input_name {
-    margin-top: 40px;
-}
-
-.content > input {
-    width: 40%;
-    height: 30px;
-    margin-top: 20px;
-}
-
-/* 버튼 */
-.btn{
-    width: 35%;
-    height: 40px;
-    border-style: none;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.confirm {
-    margin-top: 35px;
-    background-color: #EA3B20;
-    font-size: 15px;
-    font-weight: 700;
+.subTitle {
+    height: 12%;
+    padding-left: 10px;
+    padding-top: 12px;
+    font-size: 20px;
+    font-weight: 1000;
+    text-align: left;
+    background-color: #818181;
     color: white;
 }
 
+.subContent {
+    margin-top: 5%;
+}
+
+#point1 {
+    color: #EA3B20;
+    font-size: 28px;
+}
+
+#lastDate{
+    display: inline-block;
+    margin-top: 1%;
+    color: #8b8b8b;
+    font-size: 14px;
+}
+
+
+/* 버튼 */
 #btnGroup {
     display: inline-flex;
     justify-content: space-between;
@@ -154,6 +126,24 @@ a > span {
 }
 
 #btnGroup > button {
+    border-style: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+#aloneBtn {
+    display: inline-flex;
+    justify-content: center;
+    width: 50%;
+}
+
+#aloneBtn > button {
+    border-style: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.btn{
     width: 30%;
     height: 40px;
     color: white;
@@ -162,12 +152,13 @@ a > span {
     border-radius: 0px;
 }
 
-/* 에러메시지 */
-.errorMsg {
-    display: inline-block;
-    width: 100%;
-    font-size: 12px;
+.confirm {
+    background-color: #EA3B20;
     font-weight: 700;
-    text-align: left;
-    margin-left: 35%;
+}
+
+/* 아이콘 */
+#errorImg {
+    width: 20%;
+    margin-top: 1%;
 }

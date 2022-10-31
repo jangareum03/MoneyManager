@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>아이디 찾기 : 돈매니저</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/find.css}">
+</head>
+<body>
+<div id="helpId">
+    <div class="title" onclick="location.href='/'">
+        계정찾기<br>
+        <span>돈 매니저</span>
+    </div>
+    <div class="content">
+        <div class="subTitle">아이디 찾기 결과</div>
+        <div class="msg msgOk">
+            찾으시는 아이디는 아래와 같습니다.<br><br>
+            개인정보를 위해 아이디 일부는 *로 표시됩니다.<br>
+            아이디 전체를 알고 싶으시다면 고객센터에 문의해주세요.<br>
+        </div>
+        <div class="subContent">
+            찾으시는 아이디는 <span id="point1" th:text="${id}"></span> 입니다.<br>
+            <span id="lastDate">마지막 접속일: </span>
+        </div>
+    </div>
+    <div id="btnGroup">
+        <button type="button" class="btn" onclick="location.href='/'">로그인</button>
+        <button type="button" class="btn confirm" onclick="location.href='/helpPwd'">비밀번호찾기</button>
+    </div>
+</div>
+</body>
+</html>
