@@ -2,7 +2,6 @@ package com.areum.moneymanager.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -26,16 +25,19 @@ public class MailService {
     }
 
     //이메일 인증코드
-    private final String emailKey = createCode();
-
+    private String emailKey;
+    //임시 비밀번호
+    private String password;
     @Value("${spring.mail.email}")
     private String address;
 
-    //메일 내용 작성 및 설정
+    //인증코드 메일 내용 작성 및 설정
     public MimeMessage createEmailCode( String to ) throws MessagingException, UnsupportedEncodingException {
         MimeMessage message = javaMailSender.createMimeMessage();
         message.addRecipients(Message.RecipientType.TO, to);
         message.setSubject("[돈매니저] 회원가입 이메일 인증코드 보내드립니다.");
+
+        this.emailKey = createCode();
 
         String content = "<html><body>" +
                 "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>" +
@@ -48,6 +50,33 @@ public class MailService {
                 "</span><hr>" +
                 "고객님 본인이 요청하신 경우가 아니라면 고객센터로 문의하시길 바랍니다.<br>" +
                 "감사합니다.<br> 돈매니저 드림" +
+                "</body></html>";
+
+        message.setText(content, "UTF-8", "html");
+        message.setFrom(new InternetAddress(address, "돈매니저"));
+
+        return message;
+    }
+
+    //임시 비밀번호 메일 내용 작성
+    public MimeMessage createPassword( String to ) throws MessagingException, UnsupportedEncodingException {
+        MimeMessage message = javaMailSender.createMimeMessage();
+        message.addRecipients(Message.RecipientType.TO, to);
+        message.setSubject("[돈매니저] 임시 비밀번호 보내드립니다.");
+
+        this.password = createPassword();
+
+        String content = "<html><body>" +
+                "<meta http-equiv='Content-type' content='text/html; charset=utf-8'>" +
+                "<h1>임시 비밀번호</h1><br>" +
+                "안녕하세요. 돈매니저입니다.<br>" +
+                "요청하신 임시 비밀번호 보내드립니다. 해당 비밀번호로 로그인 해주시길 바랍니다.<br>" +
+                "<hr>" +
+                "임시 비밀번호    " + "<span style='font-weight: bold; color: #8DB48C'>" +
+                password +
+                "</span><hr>" +
+                "고객님 본인이 요청하신 경우가 아니라면 고객센터로 문의하시길 바랍니다.<br>" +
+                "감사하빈다.<br> 돈매니저 드림" +
                 "</body></html>";
 
         message.setText(content, "UTF-8", "html");
@@ -80,6 +109,30 @@ public class MailService {
         return code.toString();
     }
 
+    //임시 비밀번호 생성
+    private String createPassword() {
+        StringBuilder pwd = new StringBuilder();
+        Random random = new Random();
+
+        for( int i=0; i<8; i++ ) {
+            int index = random.nextInt(3);
+
+            switch ( index ) {
+                case 0:
+                    pwd.append( (char)((int)random.nextInt(26) + 97) );
+                    break;
+                case 1:
+                    pwd.append( (char)(int)(random.nextInt(26) + 65) );
+                    break;
+                case 2:
+                    pwd.append(random.nextInt(10));
+                    break;
+            }
+        }
+
+        return pwd.toString();
+    }
+
     //인증코드 확인
     public String emailCodeCheck(HttpSession session, String to, String userCode, String time) {
         String code = (String) session.getAttribute(""+ to);
@@ -93,11 +146,20 @@ public class MailService {
     }
 
     //메일발송
-    public String sendMail(String to) throws Exception {
-        MimeMessage message = createEmailCode(to);
+    public String sendMail(String to, String type) throws Exception {
+        MimeMessage message;
+
+        if( type.equals("email") ) {
+            message = createEmailCode(to);
+            LOGGER.debug("전송한 메일: {}, 인증코드: {}", to, emailKey);
+        }else{
+            message = createPassword(to);
+            LOGGER.debug("전송한 메일: {}, 임시비밀번호: {}", to, password);
+        }
+
         javaMailSender.send(message);
 
-        LOGGER.debug("전송한 메일: {}, 인증코드: {}", to, emailKey);
-        return emailKey;
+
+        return type.equals("email") ? emailKey : password;
     }
 }

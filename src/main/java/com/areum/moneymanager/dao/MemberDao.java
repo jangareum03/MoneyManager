@@ -9,13 +9,16 @@ import java.util.List;
 public interface MemberDao {
 
     //회원정보 추가
-    void insertMember( Member member, MemberInfo memberInfo, String mid ) throws Exception;
+    void insertMember( MemberInfo memberInfo, String mid ) throws Exception;
 
     //아이디 갯수
     Integer selectCountById( String id );
 
     //닉네임 갯수
     Integer selectCountByNickName( String nickName );
+
+    //이메일 찾기
+    ResMemberDto.FindPwd selectEmail( String name, String id );
 
     //아이디와 마지막 접속일 찾기
     ResMemberDto.FindId selectId(String name, String email );
@@ -26,4 +29,6 @@ public interface MemberDao {
     //비밀번호 찾기
     String selectPwd( String id );
 
+    //비밀번호 변경
+    void updatePwd( String id, String password );
 }

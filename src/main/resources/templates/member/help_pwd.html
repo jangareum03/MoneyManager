@@ -21,12 +21,12 @@
   <form method="post" th:action="@{/helpPwd/find}" th:object="${member}">
     <div class="content">
       <label for="input_name">이름</label>
-      <input type="text" id="input_name" placeholder="이름을 입력해주세요." maxlength="10" onblur="nameCheck()"><br>
+      <input type="text" id="input_name" name="name" placeholder="이름을 입력해주세요." maxlength="10" onblur="nameCheck()"><br>
       <span id="nameMsg" class="errorMsg"></span>
       <input type="hidden" id="nameResult" th:value="${'n'}" readonly>
 
       <label for="input_id">아이디</label>
-      <input type="text" id="input_id" placeholder="아이디를 입력해주세요." maxlength="15" onblur="idCheck()"><br>
+      <input type="text" id="input_id" name="id" placeholder="아이디를 입력해주세요." maxlength="15" onblur="idCheck()"><br>
       <span id="idMsg" class="errorMsg"></span>
       <input type="hidden" id="idResult" th:value="${'n'}" readonly>
 

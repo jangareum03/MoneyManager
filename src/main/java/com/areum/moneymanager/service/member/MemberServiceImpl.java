@@ -4,7 +4,6 @@ import com.areum.moneymanager.dao.MemberDao;
 import com.areum.moneymanager.dao.MemberDaoImpl;
 import com.areum.moneymanager.dto.ReqMemberDto;
 import com.areum.moneymanager.dto.ResMemberDto;
-import com.areum.moneymanager.entity.Member;
 import com.areum.moneymanager.entity.MemberInfo;
 import com.areum.moneymanager.mapper.MemberInfoMapper;
 import com.areum.moneymanager.mapper.MemberInfoMapperImpl;
@@ -14,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -36,11 +34,27 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public ResMemberDto.FindId findId(ReqMemberDto.FindId findIdDto) {
-        MemberInfo memberInfo = memberInfoMapper.toEntity(findIdDto);
-        LOGGER.debug("변경한 값: 이름({}), 이메일({})", memberInfo.getName(), memberInfo.getEmail());
+    public void changePwd(ReqMemberDto.FindPwd findPwdDto, String newPwd) {
+        MemberInfo memberInfo = memberInfoMapper.toEntity(findPwdDto);
 
-        return memberDao.selectId(memberInfo.getName(), memberInfo.getEmail());
+        memberDao.updatePwd( memberInfo.getId(), newPwd );
+        LOGGER.debug("임시 비밀번호 변경: {}", newPwd);
+    }
+
+    @Override
+    public ResMemberDto.FindId findId( ReqMemberDto.FindId findIdDto ) {
+        MemberInfo memberInfo = memberInfoMapper.toEntity(findIdDto);
+        LOGGER.debug("아이디 찾기 입력한 값: 이름({}), 이메일({})", memberInfo.getName(), memberInfo.getEmail());
+
+        return memberDao.selectId( memberInfo.getName(), memberInfo.getEmail() );
+    }
+
+    @Override
+    public ResMemberDto.FindPwd findPwd( ReqMemberDto.FindPwd findPwdDto ) {
+        MemberInfo memberInfo = memberInfoMapper.toEntity(findPwdDto);
+
+        LOGGER.debug("비밀번호 찾기 입력한 값: 이름({}), 아이디({})", memberInfo.getName(), memberInfo.getId());
+        return memberDao.selectEmail(memberInfo.getName(), memberInfo.getId() );
     }
 
     @Override
@@ -51,11 +65,9 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void joinMember( ReqMemberDto.Join joinDto, String mid ) throws Exception {
-
-        Member member = memberMapper.toEntity(joinDto);
         MemberInfo memberInfo = memberInfoMapper.toEntity(joinDto);
 
-        memberDao.insertMember( member, memberInfo, mid );
+        memberDao.insertMember( memberInfo, mid );
         LOGGER.debug("회원가입 완료 데이터: mid({}), id({}), pwd({}), name({}), nickName({}), email({}), gender({})",
                 mid, joinDto.getId(), joinDto.getPassword(), joinDto.getName(), joinDto.getNickName(), joinDto.getEmail(), joinDto.getGender());
     }

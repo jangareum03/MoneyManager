@@ -3,7 +3,6 @@ package com.areum.moneymanager.dto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
 
 @AllArgsConstructor
 @Getter
@@ -36,5 +35,13 @@ public class ReqMemberDto {
     public static class FindId {
         private String name;
         private String email;
+    }
+
+    //비밀번호 찾기
+    @Getter
+    @AllArgsConstructor
+    public static class FindPwd {
+        private String name;
+        private String id;
     }
 }

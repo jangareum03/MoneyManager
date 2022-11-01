@@ -58,7 +58,7 @@ public class JoinController {
     @ResponseBody
     @PostMapping("/sendEmail")
     public void postSendEmailCode(ReqMemberDto.Join member, HttpSession session) throws Exception {
-        String code = mailService.sendMail(member.getEmail());
+        String code = mailService.sendMail(member.getEmail(), "email");
         session.setAttribute(""+member.getEmail() , code);
 
         LOGGER.info("이메일 전송 완료");

@@ -6,8 +6,14 @@ import com.areum.moneymanager.dto.ResMemberDto;
 
 public interface MemberService {
 
+    //비밀번호 수정
+    void changePwd( ReqMemberDto.FindPwd findPwdDto, String newPwd );
+
     //아이디 찾기
     ResMemberDto.FindId findId(ReqMemberDto.FindId findIdDto );
+
+    //비밀번호 찾기
+    ResMemberDto.FindPwd findPwd( ReqMemberDto.FindPwd findPwdDto );
 
     //아이디중복확인
     int idCheck( String id );

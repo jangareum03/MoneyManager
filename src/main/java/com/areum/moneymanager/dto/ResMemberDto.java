@@ -2,8 +2,8 @@ package com.areum.moneymanager.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 
 @Getter
@@ -18,5 +18,10 @@ public class ResMemberDto {
         private Timestamp date;
     }
 
+    @Getter
+    @AllArgsConstructor
+    public static class FindPwd {
+        private String email;
+    }
 
 }

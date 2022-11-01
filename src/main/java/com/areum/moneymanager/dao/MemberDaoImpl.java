@@ -29,7 +29,7 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public void insertMember( Member member, MemberInfo memberInfo, String mid ) {
+    public void insertMember( MemberInfo memberInfo, String mid ) {
         jdbcTemplate.update(new PreparedStatementCreator() {
             @Override
             public PreparedStatement createPreparedStatement( Connection con ) throws SQLException {
@@ -71,10 +71,24 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
+    public ResMemberDto.FindPwd selectEmail( String name, String id ) {
+        try{
+            return jdbcTemplate.queryForObject(
+                    "SELECT email FROM tb_member_info WHERE name=? AND id=?",
+                    ResMemberDto.FindPwd.class,
+                    name, id
+            );
+        }catch (EmptyResultDataAccessException e) {
+            LOGGER.error("{} 발생! {}", e.getClass(), e.getStackTrace());
+            return null;
+        }
+    }
+
+    @Override
     public ResMemberDto.FindId selectId(String name, String email) {
         List<ResMemberDto.FindId> member = jdbcTemplate.query(
                 "SELECT tmi.id, tll.login_date" +
-                        " FROM TB_MEMBER_INFO tmi, TB_LOGIN_LOG tll" +
+                        " FROM tb_member_info tmi, tb_login_log tll" +
                         " WHERE tll.MEMBER_MID = tmi.MEMBER_MID" +
                         " AND tmi.NAME = ? AND tmi.EMAIL = ?" +
                         "ORDER BY tll.LOGIN_DATE DESC",
@@ -110,6 +124,14 @@ public class MemberDaoImpl implements MemberDao {
         }catch (EmptyResultDataAccessException e){
             return "0";
         }
+    }
+
+    @Override
+    public void updatePwd( String id, String password ) {
+        jdbcTemplate.update(
+                "UPDATE tb_member_info SET password=? WHERE id=?",
+                password, id
+        );
     }
 
 }
