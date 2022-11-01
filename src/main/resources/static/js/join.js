@@ -91,7 +91,7 @@ function nameCheck() {
     let name = document.getElementById('inputName').value;
     let msg = document.getElementById('nameMsg');
     let result = document.getElementById('nameResult');
-    const pattern = /[^a-zA-Z0-9ㄱ-ㅎ가-힣]/g;
+    const pattern = /[^a-zA-Zㄱ-ㅎ가-힣]/g;
 
     msg.style.color = '#D71E1E';
     result.value = 'n';
@@ -163,10 +163,8 @@ function sendCode(){
                 msg.style.color = '#2A8D2A';
                 msg.innerHTML = '작성한 이메일로 인증코드 전송했습니다.';
 
-                CodeTimer();
-                setTimeout(function(){
-                    clearInterval(PLAYTIME);
-                },300000);
+                document.getElementById('inputEmailCode').disabled = false;
+                emailTimer();
             }else{
                 alert('통신 실패했습니다. 잠시 후 다시 시도해주세요.');
             }
@@ -176,6 +174,38 @@ function sendCode(){
     }else{
         msg.innerHTML = '이메일 형식에 맞게 입력해야 합니다.';
     }
+}
+
+//타이머
+let clock;
+function emailTimer() {
+    const Timer = document.getElementById('Timer');
+
+        let time = 300000;
+        let min = 5;
+        let sec = 60;
+
+        Timer.style.color = '#D71E1E';
+        Timer.innerHTML ="0" + min + " : 00";
+
+        time = time - 1000;
+        min = time / (60*1000);
+
+        clock = setInterval(function() {
+            if( sec > 0 ) {
+                    sec = sec - 1;
+                    if( sec < 10) {
+                        Timer.innerHTML = "0" + Math.floor(min) + " : 0" + sec;
+                    }else{
+                        Timer.innerHTML = "0" + Math.floor(min) + " : " + sec;
+                    }
+                }
+
+                if( sec === 0 ) {
+                    sec = 60;
+                    Timer.innerHTML = "0" + Math.floor(min) + " : 00";
+                }
+        }, 1000);
 }
 
 //인증코드값 체크
@@ -199,8 +229,9 @@ function emailCodeCheck() {
                 if( xhr.response == 'yes' ){
                     msg.style.color = '#2A8D2A';
                     msg.innerHTML = '이메일 인증 완료했습니다.';
-                    clearInterval(CodeTimer);
 
+                    clearInterval(clock);
+                    document.getElementById('inputEmailCode').disabled = true;
                     document.getElementById('emailResult').value = 'y';
                 }else if( xhr.response == 'no' ){
                     msg.style.color = '#D71E1E';
@@ -214,35 +245,6 @@ function emailCodeCheck() {
             }
         }
     }
-}
-
-//타이머
-function CodeTimer() {
-    const Timer = document.getElementById('Timer');
-    let time = 300000;
-    let min = 5;
-    let sec = 60;
-
-    Timer.style.color = '#D71E1E';
-    Timer.innerHTML ="0" + min + " : 00";
-
-    PLAYTIME = setInterval(function() {
-        time = time - 1000;
-        min = time / (60*1000);
-
-        if( sec > 0 ) {
-            sec = sec - 1;
-            if( sec < 10) {
-                Timer.innerHTML = "0" + Math.floor(min) + " : 0" + sec;
-            }else{
-                Timer.innerHTML = "0" + Math.floor(min) + " : " + sec;
-            }
-        }
-        if( sec === 0 ) {
-            sec = 60;
-            Timer.innerHTML = "0" + Math.floor(min) + " : 00";
-        }
-    }, 1000);
 }
 
 //회원가입 체크

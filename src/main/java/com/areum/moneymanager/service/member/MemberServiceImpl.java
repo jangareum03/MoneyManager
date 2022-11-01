@@ -3,14 +3,18 @@ package com.areum.moneymanager.service.member;
 import com.areum.moneymanager.dao.MemberDao;
 import com.areum.moneymanager.dao.MemberDaoImpl;
 import com.areum.moneymanager.dto.ReqMemberDto;
+import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.entity.Member;
 import com.areum.moneymanager.entity.MemberInfo;
+import com.areum.moneymanager.mapper.MemberInfoMapper;
 import com.areum.moneymanager.mapper.MemberInfoMapperImpl;
+import com.areum.moneymanager.mapper.MemberMapper;
 import com.areum.moneymanager.mapper.MemberMapperImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,8 +24,8 @@ import java.time.LocalDate;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberDao memberDao;
-    private final MemberMapperImpl memberMapper;
-    private final MemberInfoMapperImpl memberInfoMapper;
+    private final MemberMapper memberMapper;
+    private final MemberInfoMapper memberInfoMapper;
     private final Logger LOGGER = LogManager.getLogger(MemberServiceImpl.class);
 
     @Autowired
@@ -29,6 +33,14 @@ public class MemberServiceImpl implements MemberService {
         this.memberDao = memberDao;
         this.memberMapper = memberMapper;
         this.memberInfoMapper = memberInfoMapper;
+    }
+
+    @Override
+    public ResMemberDto.FindId findId(ReqMemberDto.FindId findIdDto) {
+        MemberInfo memberInfo = memberInfoMapper.toEntity(findIdDto);
+        LOGGER.debug("변경한 값: 이름({}), 이메일({})", memberInfo.getName(), memberInfo.getEmail());
+
+        return memberDao.selectId(memberInfo.getName(), memberInfo.getEmail());
     }
 
     @Override

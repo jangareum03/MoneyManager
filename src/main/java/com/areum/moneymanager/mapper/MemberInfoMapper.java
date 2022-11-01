@@ -8,9 +8,10 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface MemberInfoMapper {
 
-    MemberInfo toEntity(ReqMemberDto.Join member);
+    MemberInfo toEntity(ReqMemberDto.Join join);
     @Mapping(source = "pwd", target = "password")
     MemberInfo toEntity(ReqMemberDto.Login login);
+    MemberInfo toEntity(ReqMemberDto.FindId findId);
 
     ReqMemberDto.Join toReqJoinDTO(MemberInfo memberInfo);
     @Mapping(source = "password", target = "pwd")

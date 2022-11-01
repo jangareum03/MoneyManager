@@ -1,4 +1,4 @@
-package com.areum.moneymanager.controller.Member;
+package com.areum.moneymanager.controller.member;
 
 import com.areum.moneymanager.dto.ReqMemberDto;
 import com.areum.moneymanager.service.MailService;

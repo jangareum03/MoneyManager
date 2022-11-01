@@ -2,8 +2,12 @@ package com.areum.moneymanager.service.member;
 
 
 import com.areum.moneymanager.dto.ReqMemberDto;
+import com.areum.moneymanager.dto.ResMemberDto;
 
 public interface MemberService {
+
+    //아이디 찾기
+    ResMemberDto.FindId findId(ReqMemberDto.FindId findIdDto );
 
     //아이디중복확인
     int idCheck( String id );
@@ -19,6 +23,4 @@ public interface MemberService {
 
     //닉네임중복확인
     int nickNameCheck( String nickName );
-
-
 }

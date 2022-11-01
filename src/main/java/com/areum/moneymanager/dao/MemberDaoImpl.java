@@ -1,5 +1,6 @@
 package com.areum.moneymanager.dao;
 
+import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.entity.Member;
 import com.areum.moneymanager.entity.MemberInfo;
 import org.apache.logging.log4j.LogManager;
@@ -7,12 +8,15 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 @Repository
 public class MemberDaoImpl implements MemberDao {
@@ -65,6 +69,26 @@ public class MemberDaoImpl implements MemberDao {
                 nickName
         );
     }
+
+    @Override
+    public ResMemberDto.FindId selectId(String name, String email) {
+        List<ResMemberDto.FindId> member = jdbcTemplate.query(
+                "SELECT tmi.id, tll.login_date" +
+                        " FROM TB_MEMBER_INFO tmi, TB_LOGIN_LOG tll" +
+                        " WHERE tll.MEMBER_MID = tmi.MEMBER_MID" +
+                        " AND tmi.NAME = ? AND tmi.EMAIL = ?" +
+                        "ORDER BY tll.LOGIN_DATE DESC",
+                new RowMapper<ResMemberDto.FindId>() {
+                    @Override
+                    public ResMemberDto.FindId mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return new ResMemberDto.FindId(rs.getString(1), rs.getTimestamp(2));
+                    }
+                },
+                name, email
+        );
+        return member.isEmpty() ? null : member.get(0);
+    }
+
 
     @Override
     public String selectMid( String mid ) {
