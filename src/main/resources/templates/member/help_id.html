@@ -23,14 +23,14 @@
             <label for="input_name">이름</label>
             <input type="text" id="input_name" name="name" placeholder="이름을 입력해주세요." maxlength="10" onblur="nameCheck()"><br>
             <span id="nameMsg" class="errorMsg"></span>
-            <input type="hidden" id="nameResult" th:value="${'n'}" readonly>
+            <input type="hidden" id="nameResult" value="n" readonly>
 
             <label for="input_email">이메일</label>
             <input type="text" id="input_email" name="email" placeholder="이메일을 입력해주세요." onblur="emailCheck()"><br>
             <span id="emailMsg" class="errorMsg"></span>
-            <input type="hidden" id="emailResult" th:value="${'n'}" readonly>
+            <input type="hidden" id="emailResult" value="n" readonly>
 
-            <button class="btn confirm" >아이디 찾기</button>
+            <button class="btn confirm" onclick="return helpId()">아이디 찾기</button>
         </div>
     </form>
     <div id="btnGroup">
