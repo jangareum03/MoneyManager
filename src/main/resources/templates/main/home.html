@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>메인 : 돈매니저</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <!-- js -->
+    <script src="/js/home.js"></script>
+</head>
+<body>
+<nav th:replace="/include/menu.html :: menu"></nav>
+<div id="calendar">
+        <!-- 년도 -->
+        <div class="year">
+            <a>&lt;</a>
+            <span>[[${year}]]</span>년
+            <a>&gt;</a>
+        </div>
+        <!-- 출석테이블 -->
+        <div class="dateTable">
+            <table>
+                <th:block th:each="num: ${#numbers.sequence(1, lastDate+start%7==0 ? (lastDate+start) : ((((lastDate+start)/7)+1)*7) )}">
+                    <tr th:if="${numStat.index%7 == 0}"></tr>
+                    <td th:if="${num <= start || num > lastDate+start}">
+                        <span></span>
+                    </td>
+                    <td th:unless="${num <= start || num > lastDate+start}" th:style="${(num-start) == date ? 'border:5px solid #EA3B20; box-sizing: border-box' : ''}">
+                        <span th:if="${num-start < 10}" th:style="${(num-start) == date ? 'color:#EA3B20;' : 'color: #585858'}">0[[${num - start}]]</span>
+                        <span th:unless="${num-start < 10}" th:style="${(num-start) == date ? 'color:#EA3B20;' : 'color: #585858'}">[[${num - start}]]</span>
+                    </td>
+                </th:block>
+            </table>
+        </div>
+        <!-- 월 -->
+        <div class="month">
+            <th:block th:each="m : ${#numbers.sequence(1, 12)}">
+                <span th:style="${(m == month) ? 'color:#EA3B20' : 'color: #585858'}">
+                   <a> [[${m}]]월</a>
+                </span>
+            </th:block>
+        </div>
+</div>
+</body>
+</html>

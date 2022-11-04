@@ -114,6 +114,15 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
+    public String selectMid(String id, String password) {
+        return jdbcTemplate.queryForObject(
+                "SELECT member_mid FROM tb_member_info WHERE id=? AND password=?",
+                String.class,
+                id, password
+        );
+    }
+
+    @Override
     public String selectPwd( String id) {
         try{
             return jdbcTemplate.queryForObject(

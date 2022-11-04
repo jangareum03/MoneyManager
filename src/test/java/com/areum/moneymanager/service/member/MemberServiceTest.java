@@ -2,8 +2,8 @@ package com.areum.moneymanager.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import com.areum.moneymanager.dao.MemberDaoImpl;
-import com.areum.moneymanager.dto.ReqMemberDto;
+import com.areum.moneymanager.dao.MemberInfoDaoImpl;
+import com.areum.moneymanager.dto.ReqMemberInfoDto;
 import com.areum.moneymanager.entity.MemberInfo;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.SQLException;
 import java.util.stream.Stream;
 
 
@@ -26,10 +27,10 @@ import java.util.stream.Stream;
     private MemberServiceImpl memberService;
 
     @Mock
-    private MemberDaoImpl memberDao;
+    private MemberInfoDaoImpl memberDao;
 
     private MemberInfo createMember() {
-        return MemberInfo.builder().member_id("UAt10001")
+        return MemberInfo.builder().memberMid("UAt10001")
                 .id("test01")
                 .password("test01!!")
                 .name("테스트")
@@ -42,7 +43,7 @@ import java.util.stream.Stream;
 
     @DisplayName("중복된 아이디 확인")
     @Test
-    void idCheckTest() {
+    void idCheckTest() throws SQLException {
         //given
         String id = "test01";
         when(memberDao.selectCountById(id)).thenReturn(1);
@@ -59,7 +60,7 @@ import java.util.stream.Stream;
 
     @DisplayName("닉네임 중복 확인")
     @Test
-    void nickNameCheckTest() {
+    void nickNameCheckTest() throws SQLException {
         //given
         String nickName = "테스트";
         when(memberDao.selectCountByNickName(nickName)).thenReturn(1);
@@ -76,7 +77,7 @@ import java.util.stream.Stream;
 
     @DisplayName("회원번호 처음생성")
     @Test
-    void makeMemberIdFirst() {
+    void makeMemberIdFirst() throws SQLException {
         //given
         String id = "test01";
         when(memberDao.selectMid("UAt10")).thenReturn(null);
@@ -90,7 +91,7 @@ import java.util.stream.Stream;
 
     @DisplayName("회원번호 두번째 생성")
     @Test
-    void makeMemberIdSecond() {
+    void makeMemberIdSecond() throws SQLException {
         //given
         String id = "apple";
         when(memberDao.selectMid("UAa10")).thenReturn("UAa10001");
@@ -105,7 +106,7 @@ import java.util.stream.Stream;
     @DisplayName("회원번호 경계값 생성")
     @ParameterizedTest
     @MethodSource("mmiParam")
-    void makeMemberId(String mId, String returnValue, String id, String expected) {
+    void makeMemberId(String mId, String returnValue, String id, String expected) throws SQLException {
         //given
         when(memberDao.selectMid(mId)).thenReturn(returnValue);
 
@@ -125,7 +126,7 @@ import java.util.stream.Stream;
 
     @DisplayName("회원번호 생성불가")
     @Test
-    void makeMemberIdNo() {
+    void makeMemberIdNo() throws SQLException {
         //given
         String id = "Orange";
         when(memberDao.selectMid("UAO10")).thenReturn("UAO10999");
@@ -139,34 +140,35 @@ import java.util.stream.Stream;
 
     @Test
     @DisplayName("성공 - 특정회원의 비밀번호 찾기")
-    void loginSuccess(){
+    void loginSuccess() throws SQLException {
         //given
         when(memberDao.selectPwd("test01")).thenReturn("test01!!");
         //when
-        int result = memberService.loginCheck(new ReqMemberDto.Login("test01", "test01!!"));
+        int result = memberService.loginCheck(new ReqMemberInfoDto.Login("test01", "test01!!"));
         //then
         assertEquals(1, result);
     }
 
     @Test
     @DisplayName("실패 - 특정회원 비밀번호 다름")
-    void loginPwd(){
+    void loginPwd() throws SQLException {
         //given
         when(memberDao.selectPwd("test01")).thenReturn("test01@@");
         //when
-        int result = memberService.loginCheck(new ReqMemberDto.Login("test01", "test01!!"));
+        int result = memberService.loginCheck(new ReqMemberInfoDto.Login("test01", "test01!!"));
         //then
         assertEquals(0, result);
     }
 
     @Test
     @DisplayName("실패 - 회원 아이디 없음")
-    void loginFail(){
+    void loginFail() throws SQLException {
         //given
         when(memberDao.selectPwd("test01")).thenReturn("");
         //when
-        int result = memberService.loginCheck(new ReqMemberDto.Login("test01", "test01!!"));
+        int result = memberService.loginCheck(new ReqMemberInfoDto.Login("test01", "test01!!"));
         //then
         assertEquals(-1, result);
     }
+
 }

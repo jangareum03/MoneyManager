@@ -44,4 +44,10 @@ public class ReqMemberDto {
         private String name;
         private String id;
     }
+
+    @Getter
+    @Builder
+    public static class Member{
+        private String mid;
+    }
 }
