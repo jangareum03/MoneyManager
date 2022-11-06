@@ -1,6 +1,10 @@
 package com.areum.moneymanager.controller.member;
 
-import com.areum.moneymanager.dto.ReqMemberDto;
+
+import com.areum.moneymanager.dto.ReqMemberInfoDto;
+import com.areum.moneymanager.dto.ResHomeDto;
+import com.areum.moneymanager.service.main.HomeService;
+import com.areum.moneymanager.service.main.HomeServiceImpl;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.apache.logging.log4j.LogManager;
@@ -12,25 +16,35 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpSession;
+import java.time.LocalDate;
+import java.time.temporal.ChronoField;
+import java.util.List;
 
 @Controller
 public class MemberController {
 
-    private MemberService memberService;
+    private final MemberService memberService;
+    private final HomeService homeService;
     private final Logger LOGGER = LogManager.getLogger(MemberController.class);
 
     @Autowired
-    public MemberController(MemberServiceImpl memberService) {
+    public MemberController( MemberServiceImpl memberService, HomeServiceImpl homeService ) {
         this.memberService = memberService;
+        this.homeService = homeService;
     }
 
     @GetMapping("/")
-    public String getLoginView( @ModelAttribute("member") ReqMemberDto.Login member ){
+    public String getLoginView( @ModelAttribute("member") ReqMemberInfoDto.Login member ){
         return "index";
     }
 
     @PostMapping("/login")
-    public String postLogin( @ModelAttribute("member") ReqMemberDto.Login member, BindingResult bindingResult ) {
+    public ModelAndView postLogin(@ModelAttribute("member") ReqMemberInfoDto.Login member, BindingResult bindingResult, HttpSession session) throws Exception {
+        ModelAndView mav = new ModelAndView();
+
         if( !StringUtils.hasText(member.getId()) ) {
             bindingResult.rejectValue("id", "noInput");
         }else if( !StringUtils.hasText(member.getPwd()) ) {
@@ -45,10 +59,33 @@ public class MemberController {
         }
 
         if( bindingResult.hasErrors() ) {
-            return "index";
+            mav.setViewName("index");
         }else{
-            return "/service/home";
+            String mid = memberService.findMid(member);
+            session.setAttribute("mid", mid);
+
+            LocalDate today = LocalDate.now();
+            LocalDate startDate = LocalDate.of(today.getYear(), today.getMonthValue(), 1);
+
+            //달력값 계산
+            int start = startDate.get(ChronoField.DAY_OF_WEEK) == 7 ? 0 : startDate.get(ChronoField.DAY_OF_WEEK);
+            int rows = (today.lengthOfMonth() + start);
+            if( rows%7 == 0 ) {
+                rows /= 7;
+            }else{
+                rows = (rows/7) + 1;
+            }
+
+            mav.addObject("year", today.getYear());
+            mav.addObject("month", today.getMonthValue());
+            mav.addObject("start", start);
+            mav.addObject("end", today.lengthOfMonth());
+            mav.addObject("today", today.getDayOfMonth());
+            mav.addObject("rows", rows);
+            mav.setViewName("/main/home");
         }
 
+        return mav;
     }
+
 }

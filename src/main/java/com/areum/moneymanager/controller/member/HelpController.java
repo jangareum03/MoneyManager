@@ -1,7 +1,7 @@
 package com.areum.moneymanager.controller.member;
 
-import com.areum.moneymanager.dto.ReqMemberDto;
-import com.areum.moneymanager.dto.ResMemberDto;
+import com.areum.moneymanager.dto.ReqMemberInfoDto;
+import com.areum.moneymanager.dto.ResMemberInfoDto;
 import com.areum.moneymanager.service.MailService;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
@@ -10,15 +10,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
-
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 
 @Controller
 public class HelpController {
 
-    private MemberService memberService;
-    private MailService mailService;
+    private final MemberService memberService;
+    private final MailService mailService;
 
     @Autowired
     public HelpController( MemberServiceImpl memberService, MailService mailService ) {
@@ -37,10 +35,10 @@ public class HelpController {
     }
 
     @PostMapping("/helpId/find")
-    public ModelAndView postFindIdView( ReqMemberDto.FindId findId ) {
+    public ModelAndView postFindIdView( ReqMemberInfoDto.FindId findId ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
-        ResMemberDto.FindId member = memberService.findId(findId);
+        ResMemberInfoDto.FindId member = memberService.findId(findId);
         if(member == null) {
             mav.setViewName("/member/find_id_error");
         }else{
@@ -54,10 +52,10 @@ public class HelpController {
     }
 
     @PostMapping("/helpPwd/find")
-    public ModelAndView postFindPwdView( ReqMemberDto.FindPwd findPwd ) throws Exception {
+    public ModelAndView postFindPwdView( ReqMemberInfoDto.FindPwd findPwd ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
-        ResMemberDto.FindPwd member = memberService.findPwd(findPwd);
+        ResMemberInfoDto.FindPwd member = memberService.findPwd(findPwd);
         if( member == null ) {
             mav.setViewName("/member/find_pwd_error");
         }else{
