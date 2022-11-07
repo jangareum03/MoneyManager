@@ -31,6 +31,13 @@ public class HomeServiceImpl implements HomeService {
         this.attendanceMapper = attendanceMapper;
     }
 
+    private static final int POINT = 5;
+
+    @Override
+    public void addPoint( String mid ) throws Exception {
+        attendanceDao.updatePoint(mid, POINT);
+    }
+
     @Override
     public List<ResHomeDto.AttendCheck> confirmAttend(String mid, int year, int month, int lastDate ) throws SQLException {
         ReqHomeDto.AttendCheck date;
