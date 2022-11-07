@@ -23,4 +23,5 @@ public class ReqHomeDto {
         private String startDate;
         private String endDate;
     }
+
 }

@@ -8,26 +8,32 @@
     <!-- js -->
     <script th:inline="javascript">
     function attendCheck(date) {
-        let last = ([[${attendList}]].length != 0) ? [[${attendList}]][0].date : 0;
         let today = new Date().getDate();
 
         if( date == today ){
-            if( last == date ) {
-                alert('오늘 출석은 이미 완료했습니다. 내일 다시 해주세요!');
-            }else{
-                alert(today);
-                let xhr = new XMLHttpRequest();
-                xhr.open('GET', '/home/attendCheck', true);
-                xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
-                xhr.send();
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', '/home/attendOne', true);
+            xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
+            xhr.send();
 
-                xhr.onload = function() {
-                    if( xhr.status == 200 ) {
-                        alert('출석 완료 했습니다.');
-                        let img = document.getElementsByClassName('tableImg')[today+1];
-                        img.style.visibility = 'visible';
+            xhr.onload = function() {
+                if( xhr.status == 200 ){
+                    if( xhr.response == date ) {
+                        alert('오늘 출석은 이미 완료했습니다. 내일 다시 해주세요!');
                     }else{
-                        alert('통신 실패했습니다. 잠시 후 다시 시도해주세요.');
+                        xhr.open('GET', '/home/attendCheck', true);
+                        xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
+                        xhr.send();
+
+                        xhr.onload = function() {
+                            if( xhr.status == 200 ) {
+                                alert('출석 완료 했습니다.');
+                                let img = document.getElementsByClassName('tableImg')[today+1];
+                                img.style.visibility = 'visible';
+                            }else{
+                                alert('통신 실패했습니다. 잠시 후 다시 시도해주세요.');
+                            }
+                        }
                     }
                 }
             }

@@ -4,12 +4,15 @@ import com.areum.moneymanager.dto.ReqHomeDto;
 import com.areum.moneymanager.dto.ResHomeDto;
 import com.areum.moneymanager.service.main.HomeService;
 import com.areum.moneymanager.service.main.HomeServiceImpl;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.temporal.ChronoField;
@@ -33,8 +36,18 @@ public class HomeController {
         homeService.toAttend(mid);
     }
 
+    @GetMapping("/attendOne")
+    @ResponseBody
+    public String getAttendList( HttpSession session ) throws Exception {
+        String mid = session.getAttribute("mid").toString();
+        LocalDate date = LocalDate.now();
+
+        List<ResHomeDto.AttendCheck> attendCheckList = homeService.confirmAttend(mid, date.getYear(), date.getMonthValue(), date.lengthOfMonth() );
+        return attendCheckList.get(0).getDate();
+    }
+
     @GetMapping("/moveCal")
-    public ModelAndView getMoveCalendar(ReqHomeDto.MoveDate moveDate, HttpSession session) throws Exception {
+    public ModelAndView getMoveCalendar( ReqHomeDto.MoveDate moveDate, HttpSession session ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
         //달력값 계산

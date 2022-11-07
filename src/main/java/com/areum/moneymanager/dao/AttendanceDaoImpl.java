@@ -25,8 +25,8 @@ public class AttendanceDaoImpl implements AttendanceDao {
     }
 
     @Override
-    public void insertAttend(String mid, String today) throws SQLException {
-        jdbcTemplate.update(
+    public int insertAttend(String mid, String today) throws SQLException {
+        return jdbcTemplate.update(
                 new PreparedStatementCreator() {
                     @Override
                     public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
@@ -47,7 +47,7 @@ public class AttendanceDaoImpl implements AttendanceDao {
                         + "FROM tb_attendance "
                         + "WHERE member_id=? "
                         + "AND check_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD')"
-                        + "ORDER BY check_date ASC",
+                        + "ORDER BY check_date DESC",
                 new RowMapper<Attendance>() {
                     @Override
                     public Attendance mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -55,6 +55,13 @@ public class AttendanceDaoImpl implements AttendanceDao {
                     }
                 },
                 date.getMid(), date.getStartDate(), date.getEndDate()
+        );
+    }
+
+    @Override
+    public void updatePoint(String mid, int point) throws SQLException {
+        jdbcTemplate.update(
+                "UPDATE tb_member_info SET point + ? WHERE member_mid=?"
         );
     }
 }

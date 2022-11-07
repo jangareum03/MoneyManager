@@ -10,6 +10,6 @@ public interface HomeService {
     List<ResHomeDto.AttendCheck> confirmAttend(String mid, int year, int month, int lastDate ) throws Exception;
 
     //출석하기
-    void toAttend( String mid ) throws Exception;
+    int toAttend( String mid ) throws Exception;
 
 }

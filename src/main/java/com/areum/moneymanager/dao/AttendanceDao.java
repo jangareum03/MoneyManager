@@ -8,7 +8,13 @@ import java.util.List;
 
 public interface AttendanceDao {
 
+    //출석하기
+    int insertAttend( String mid, String today ) throws SQLException;
+
     //출석날짜 리스트 출력
-    List<Attendance> selectAttendDateList(ReqHomeDto.AttendCheck date) throws SQLException;
+    List<Attendance> selectAttendDateList( ReqHomeDto.AttendCheck date ) throws SQLException;
+
+    //출석 포인트 수정
+    void updatePoint( String mid, int point ) throws SQLException;
 
 }

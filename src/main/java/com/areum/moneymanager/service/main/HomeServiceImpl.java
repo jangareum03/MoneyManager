@@ -45,10 +45,10 @@ public class HomeServiceImpl implements HomeService {
     }
 
     @Override
-    public void toAttend(String mid) throws Exception {
+    public int toAttend( String mid ) throws Exception {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        attendanceDao.insertAttend( mid, today );
+        return attendanceDao.insertAttend( mid, today );
     }
 
 }
