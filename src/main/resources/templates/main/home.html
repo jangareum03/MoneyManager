@@ -8,28 +8,48 @@
     <!-- js -->
     <script th:inline="javascript">
     function attendCheck(date) {
-        let year = [[${year}]];
-        let month = [[${month}]];
+        let last = ([[${attendList}]].length != 0) ? [[${attendList}]][0].date : 0;
+        let today = new Date().getDate();
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '', true);
-        xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-        xhr.send('year=' + year + '&month=' + month + '&date=' + date);
-    }
+        if( date == today ){
+            if( last == date ) {
+                alert('오늘 출석은 이미 완료했습니다. 내일 다시 해주세요!');
+            }else{
+                alert(today);
+                let xhr = new XMLHttpRequest();
+                xhr.open('GET', '/home/attendCheck', true);
+                xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
+                xhr.send();
 
-    function attendList(){
-        let day = document.getElementsByClassName('day');
-        let today = [[${today}]];
-
-        for( let i=0; i<=31; i++) {
-            if( day[i].value == today ) {
-
+                xhr.onload = function() {
+                    if( xhr.status == 200 ) {
+                        alert('출석 완료 했습니다.');
+                        let img = document.getElementsByClassName('tableImg')[today+1];
+                        img.style.visibility = 'visible';
+                    }else{
+                        alert('통신 실패했습니다. 잠시 후 다시 시도해주세요.');
+                    }
+                }
             }
         }
     }
-    </script>
+
+    function attendList(){
+        let list = [[${attendList}]];
+        let start = [[${start}]] - 1;
+
+        for( let i=0; i<list.length; i++ ) {
+            for( let j=0; j<=[[${end}]]; j++ ) {
+                if( list[i].date == j ) {
+                    let img = document.getElementsByClassName('tableImg')[j+start];
+                    img.style.visibility = 'visible';
+                }
+            }
+        }
+    }
+ </script>
 </head>
-<body>
+<body onload="attendList()">
 <nav th:replace="/include/menu.html :: menu"></nav>
 <div id="calendar">
         <!-- 년도 -->
@@ -42,14 +62,15 @@
         <div id="dateTable">
             <table>
                 <tr th:each="row : ${#numbers.sequence(1, rows)}">
-                    <td th:each="col : ${#numbers.sequence(1, 7)}">
-                        <th:block th:with="date=${ ((col + (7-col)) * (row-1) + col) - start}">
-                            <span th:if="${ (date > 0) && (date <= end) }" th:style="${ date == today ? 'color:#EA3B20; border: 5px solid #EA3B20; height: 90%': ''}">
+                    <th:block th:each="col : ${#numbers.sequence(1, 7)}">
+                        <td th:with="date=${ ((col + (7-col)) * (row-1) + col) - start}" th:style="${ ((col + (7-col)) * (row-1) + col) - start == today} ? 'border: 5px solid #EA3B20; cursor: pointer' : '' " th:onclick="attendCheck([[${ ((col + (7-col)) * (row-1) + col) - start}]])">
+                            <span th:if="${ (date > 0) && (date <= end) }" th:style="${ date == today ? 'color:#EA3B20; top: 2px; left:4px': ''}">
                                 <th:block th:if="${date < 10}">0[[${date}]]</th:block>
                                 <th:block th:unless="${date < 10}">[[${date}]]</th:block>
                             </span>
-                        </th:block>
-                    </td>
+                            <img th:src="@{/image/cat.png}" class="tableImg" th:style="${ ((col + (7-col)) * (row-1) + col) - start == today} ? 'top:16px; left:18px' : '' ">
+                        </td>
+                    </th:block>
                 </tr>
             </table>
         </div>

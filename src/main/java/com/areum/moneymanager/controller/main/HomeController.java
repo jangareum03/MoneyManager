@@ -7,6 +7,7 @@ import com.areum.moneymanager.service.main.HomeServiceImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
@@ -22,6 +23,14 @@ public class HomeController {
 
     public HomeController(HomeServiceImpl homeService) {
         this.homeService = homeService;
+    }
+
+    @GetMapping("/attendCheck")
+    @ResponseBody
+    public void getAttendCheck( HttpSession session ) throws Exception {
+        String mid = session.getAttribute("mid").toString();
+
+        homeService.toAttend(mid);
     }
 
     @GetMapping("/moveCal")
@@ -56,5 +65,7 @@ public class HomeController {
 
         return mav;
     }
+
+
 
 }

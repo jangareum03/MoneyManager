@@ -5,10 +5,15 @@ import com.areum.moneymanager.dao.AttendanceDaoImpl;
 import com.areum.moneymanager.dto.ReqHomeDto;
 import com.areum.moneymanager.dto.ResHomeDto;
 import com.areum.moneymanager.mapper.AttendanceMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
@@ -17,6 +22,7 @@ public class HomeServiceImpl implements HomeService {
 
     private final AttendanceDao attendanceDao;
     private final AttendanceMapper attendanceMapper;
+    private final Logger logger = LogManager.getLogger(HomeServiceImpl.class);
 
 
     @Autowired
@@ -36,6 +42,13 @@ public class HomeServiceImpl implements HomeService {
 
 
         return attendanceMapper.toResAttendDto(attendanceDao.selectAttendDateList(date));
+    }
+
+    @Override
+    public void toAttend(String mid) throws Exception {
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+        attendanceDao.insertAttend( mid, today );
     }
 
 }

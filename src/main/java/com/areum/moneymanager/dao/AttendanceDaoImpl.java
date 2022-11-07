@@ -4,21 +4,40 @@ package com.areum.moneymanager.dao;
 import com.areum.moneymanager.dto.ReqHomeDto;
 import com.areum.moneymanager.entity.Attendance;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class AttendanceDaoImpl implements AttendanceDao{
+public class AttendanceDaoImpl implements AttendanceDao {
 
     private final JdbcTemplate jdbcTemplate;
 
     public AttendanceDaoImpl( DataSource dataSource ){
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    @Override
+    public void insertAttend(String mid, String today) throws SQLException {
+        jdbcTemplate.update(
+                new PreparedStatementCreator() {
+                    @Override
+                    public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+                        PreparedStatement pstmt = con.prepareStatement("INSERT INTO tb_attendance VALUES(seq_attendance.NEXTVAL, ?, TO_DATE(?, 'YYYYMMDD'))");
+                        pstmt.setString(1, mid);
+                        pstmt.setString(2, today);
+
+                        return pstmt;
+                    }
+                }
+        );
     }
 
     @Override

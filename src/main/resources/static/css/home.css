@@ -59,7 +59,7 @@ body{
     font-family: 'Pretendard-Regular';
 }
 
-a, li, td{
+a, li{
     cursor: pointer;
 }
 
@@ -172,7 +172,8 @@ nav{
     width: 100px;
     height: 100px;
     position: relative;
-    background-color: #FFEDBA;
+    background-color: #FFE498;
+    cursor: default;
 }
 #dateTable span {
     position: absolute;
