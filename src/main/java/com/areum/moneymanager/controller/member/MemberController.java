@@ -64,10 +64,10 @@ public class MemberController {
             String mid = memberService.findMid(member);
             session.setAttribute("mid", mid);
 
+            //달력값 계산
             LocalDate today = LocalDate.now();
             LocalDate startDate = LocalDate.of(today.getYear(), today.getMonthValue(), 1);
 
-            //달력값 계산
             int start = startDate.get(ChronoField.DAY_OF_WEEK) == 7 ? 0 : startDate.get(ChronoField.DAY_OF_WEEK);
             int rows = (today.lengthOfMonth() + start);
             if( rows%7 == 0 ) {
@@ -76,12 +76,16 @@ public class MemberController {
                 rows = (rows/7) + 1;
             }
 
+            //회원 출석 리스트 받기
+            List<ResHomeDto.AttendCheck> attendList = homeService.confirmAttend(mid, today.getYear(), today.getMonthValue(), today.lengthOfMonth());
+
             mav.addObject("year", today.getYear());
             mav.addObject("month", today.getMonthValue());
             mav.addObject("start", start);
             mav.addObject("end", today.lengthOfMonth());
             mav.addObject("today", today.getDayOfMonth());
             mav.addObject("rows", rows);
+            mav.addObject("attendList", attendList);
             mav.setViewName("/main/home");
         }
 
