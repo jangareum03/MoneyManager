@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>작성하기 : 돈매니저</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/write.css}">
+</head>
+<body>
+<nav th:replace="/include/menu.html :: menu"></nav>
+<div id="write">
+    <div class="content">
+        <div class="title" onclick="location.href='/write'">
+            작성하기<br>
+        </div>
+        <div class="type">
+            <span>아래에서 수입/지출 중 하나를 선택해주세요.</span><br>
+            <div class="typeBtn">
+                <input type="radio" id="typeIn" name="subMenu" value="in" checked><label for="typeIn"></label>
+                <input type="radio" id="typeOut" name="subMenu" value="out"> <label for="typeOut"></label>
+            </div>
+        </div>
+        <div>
+            <span>작성할 날짜를 선택해주세요.</span><br>
+            <div>
+                <select>
+                    <option value="">2022</option>
+                    <option value="">2021</option>
+                </select>
+                <select>
+                    <option th:each="month : ${#numbers.sequence(1, 12)}" th:value="${month}">
+                        [[${month}]]
+                    </option>
+                </select>
+                <select>
+                    <option th:each="date : ${#numbers.sequence(1, 31)}" th:value="${date}">
+                        [[${date}]]
+                    </option>
+                </select>
+            </div>
+            <div>
+
+            </div>
+        </div>
+        <div id="aloneBtn">
+            <button type="button" class="confirm" onclick="location.href='/'">선택완료</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
