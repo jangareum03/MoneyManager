@@ -169,8 +169,12 @@ nav{
 }
 
 /* 수입/지출 선택 영역 */
-.type label:disabled, select:disabled {
+.type label:disabled {
     opacity: 0.5;
+}
+
+select:enabled {
+    color: #EA3B20;
 }
 
 .type input {
