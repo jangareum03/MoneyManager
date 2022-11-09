@@ -55,11 +55,6 @@ table {
     border-collapse: collapse;
     border-spacing: 0;
 }
-select {
-    -moz-appearance: none;
-    -webkit-appearance: none;
-    appearance: none;
-}
 
 /* 홈 */
 body{
@@ -148,10 +143,10 @@ nav{
     text-align: center;
 }
 
-.content{
+.content, #wContent{
     width: 80%;
     height: 80%;
-    margin: 8% auto;
+    margin: 5% auto;
 }
 .content div {
     margin-bottom: 60px;
@@ -171,10 +166,6 @@ nav{
 /* 수입/지출 선택 영역 */
 .type label:disabled {
     opacity: 0.5;
-}
-
-select:enabled {
-    color: #EA3B20;
 }
 
 .type input {
@@ -237,7 +228,16 @@ select:enabled {
 }
 
 /* 날짜선택 */
-select {
+#selectYear:enabled, #selectMonth:enabled, #selectDate:enabled {
+    color: #EA3B20;
+}
+
+#selectYear, #selectMonth, #selectDate {
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+#selectYear, #selectMonth, #selectDate {
     font-family: 'Pretendard-Regular';
     font-size: 1rem;
     font-weight: 400;
@@ -250,13 +250,13 @@ select {
     border-radius: 0.5em;
     box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.04);
 }
-select:hover {
+#selectYear:hover, #selectMonth:hover, #selectDate:hover {
     cursor: pointer;
     box-shadow: 0 0 1px 3px rgba(234, 59, 32, 0.7);
     box-shadow: 0 0 0 3px -moz-mac-focusring;
     color: #1E1E1E;
 }
-select:focus {
+#selectYear:focus, #selectMonth:focus, #selectDate:focus {
     border-color: #aaa;
     color: #1E1E1E;
     outline: none;
@@ -280,6 +280,86 @@ select:focus {
 
 .confirm {
     background-color: #EA3B20;
+    font-weight: 700;
+    color: white;
+}
+
+
+
+/* 수입 작성 */
+#wContent > .title {
+    font-family: SEBANG_Gothic_Bold;
+    font-size: 45px;
+    margin-bottom: 60px;
+}
+#wContent  span {
+    display: inline-block;
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #EA3B20;
+}
+
+.wMain {
+    display: flex;
+    flex-flow: column;
+    width: 80%;
+    height: 75%;
+    margin: 0 auto;
+    text-align: left;
+}
+.wArea {
+    display: inline-flex;
+    margin-bottom: 4.2%;
+}
+.write_title {
+    width: 150px;
+    font-weight: 800;
+}
+
+.fix > label {
+    margin-right: 10vw;
+}
+
+.wCategory, .wTitle, .wPrice {
+    height: 110%;
+}
+.wContent {
+    height: 30%;
+}
+.wTitle {
+    width: 75%
+}
+.wContent > textarea {
+    width: 75%;
+}
+
+.wArea img {
+    width: 80px;
+}
+
+/* 작성버튼 */
+#btnGroup {
+    display: inline-flex;
+    justify-content: space-between;
+    width: 50%;
+    margin-top: 50px;
+}
+.btn{
+    width: 35%;
+    height: 40px;
+    border-style: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.cancel {
+    background-color: #818181;
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+}
+.confirm {
+    background-color: #EA3B20;
+    font-size: 15px;
     font-weight: 700;
     color: white;
 }

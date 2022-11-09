@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 
 @Controller
@@ -29,13 +30,15 @@ public class WriteController {
     @PostMapping
     public ModelAndView getWriteStep2View( String mode, String year, String month, String date ) throws Exception {
         ModelAndView mav = new ModelAndView();
+        LocalDate localDate = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(date));
+
 
         mav.addObject("year", year);
         mav.addObject("month", month);
         mav.addObject("date", date);
+        mav.addObject("formatDate", localDate.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 E요일")));
 
-
-        if( mode.equals("01") ) {
+        if( mode.equals("1") ) {
             mav.setViewName("/main/write_income");
         }else{
             mav.setViewName("/main/write_expend");

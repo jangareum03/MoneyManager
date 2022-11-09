@@ -1,4 +1,4 @@
-<nav xmlns:th="http://www.w3.org/1999/xhtml" th:fragment="menu">
+<nav xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" th:fragment="menu">
   <div id="menu_top">
     <div class="profile">
       <img src="/image/default.png">
@@ -11,8 +11,8 @@
   </div>
   <div id="menu_bottom">
     <ul>
-      <li class="liMenu"><a>홈</a></li>
-      <li class="liMenu"><a>작성하기</a></li>
+      <li class="liMenu"><a th:href="@{/home}">홈</a></li>
+      <li class="liMenu"><a th:href="@{/write}">작성하기</a></li>
       <li class="liMenu"><a>내역조회</a></li>
       <li class="liMenu"><a>마이페이지</a></li>
       <li class="liMenu"><a>공지사항</a></li>

@@ -1,10 +1,95 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>수출 작성 : 돈매니저</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/write.css}">
 </head>
 <body>
-[[${year}]]년 [[${month}]]월 [[${date}]]일
+<nav th:replace="/include/menu.html :: menu"></nav>
+<form id="write" enctype="multipart/form-data">
+    <div id="wContent">
+        <div class="title">
+            [[${formatDate}]]<br>
+            <span>지출</span>
+        </div>
+        <div class="wMain">
+            <div class="wArea fix">
+                <h3 class="write_title">
+                    <label>고정/변동</label>
+                </h3>
+                <label><input type="radio" name="fix" th:value="y"> 고정</label>
+                <label><input type="radio" name="fix" th:value="n" checked> 변동</label>
+            </div>
+
+            <div class="wArea">
+                <h3 class="write_title">
+                    <label>카테고리</label>
+                </h3>
+                <select name="categoryL" class="wCategory">
+                    <option th:value="${'00'}">선택없음</option>
+                    <option th:value="${'01'}">현금</option>
+                    <option th:value="${'02'}">카드</option>
+                    <option th:value="${'03'}">계좌</option>
+                </select>
+                <select name="categoryM" class="wCategory">
+                    <option th:value="${'00'}">선택없음</option>
+                    <option th:value="${01}">식비</option>
+                    <option th:value="${02}">교통</option>
+                    <option th:value="${03}">문화생활</option>
+                    <option th:value="${04}">미용패션</option>
+                    <option th:value="${05}">보험</option>
+                    <option th:value="${06}">교육</option>
+                    <option th:value="${07}">주거통신</option>
+                    <option th:value="${08}">의료</option>
+                    <option th:value="${09}">생활</option>
+                    <option th:value="${10}">기타</option>
+                </select>
+            </div>
+
+            <div class="wArea">
+                <h3 class="write_title">
+                    <label>제목</label>
+                </h3>
+                <input type="text" placeholder="제목을 입력해주세요." name="title" class="wTitle" maxlength="50">
+            </div>
+
+            <div class="wArea wContent">
+                <h3 class="write_title">
+                    <label>내용</label>
+                </h3>
+                <textarea cols="60" rows="5" placeholder="내용을 입력해주세요." name="content" maxlength="300"></textarea>
+            </div>
+
+            <div class="wArea">
+                <h3 class="write_title">
+                    <label>금액</label>
+                </h3>
+                <input type="number" placeholder="금액을 입력해주세요." name="price" class="wPrice">
+            </div>
+
+            <div class="wArea">
+                <h3 class="write_title">
+                    <label>사진</label>
+                </h3>
+                <label><input type="file" name="" th:style="${'display:none; cursor: pointer'}"><img src="/image/imageUnLock.png"/></label>
+                <label><input type="file" name="" th:style="${'display:none; disabled'}"><img src="/image/imageLock.png"/></label>
+                <label><input type="file" name="" th:style="${'display:none; disabled'}"><img src="/image/imageLock.png"/></label>
+            </div>
+
+            <div class="wArea">
+                <h3 class="write_title">
+                    <label>위치</label>
+                </h3>
+                <label>위치를 입력해주세요.</label>
+            </div>
+        </div>
+        <div id="btnGroup">
+            <button type="button" class="btn cancel"  onclick="history.back()">이전</button>
+            <button class="btn confirm" >완료</button>
+        </div>
+    </div>
+</form>
 </body>
 </html>
