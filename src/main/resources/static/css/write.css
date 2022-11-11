@@ -363,3 +363,23 @@ nav{
     font-weight: 700;
     color: white;
 }
+
+/* 지도 */
+img.map {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    bottom: 0.8vh;
+    padding-right: 10px;
+    cursor: pointer;
+}
+span#mapRoad {
+    font-size: 16px;
+    color: #1E1E1E;
+}
+span#mapAddr {
+    position: relative;
+    bottom: 10px;
+    font-size: 14px;
+    color: #6C6C6C;
+}

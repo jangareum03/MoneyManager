@@ -1,15 +1,4 @@
-function changeMonth(){
-    let yearList = document.getElementById('selectYear').value;
-    let monthList = document.getElementById('selectMonth').value;
-
-    const today = new Date();
-    if( yearList == today.getFullYear() ) {
-        for( let i=today.getMonth()+1; i<=12; i++ ) {
-            monthList.options[i].setAttribute('disabled', true);
-        }
-    }
-}
-
-function changeDate(){
-
+function openMapPop(){
+    let option = 'top=320, left=660, width=800, height=500, status=no, menubar=no, toolbar=no, resizable=no';
+    window.open('/write/map', '팝업', option);
 }

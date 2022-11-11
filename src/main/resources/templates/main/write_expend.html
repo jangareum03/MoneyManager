@@ -5,6 +5,8 @@
     <title>수출 작성 : 돈매니저</title>
     <!-- css -->
     <link rel="stylesheet" th:href="@{/css/write.css}">
+    <!-- js -->
+    <script th:src="@{/js/write.js}"></script>
 </head>
 <body>
 <nav th:replace="/include/menu.html :: menu"></nav>
@@ -21,6 +23,7 @@
                 </h3>
                 <label><input type="radio" name="fix" th:value="y"> 고정</label>
                 <label><input type="radio" name="fix" th:value="n" checked> 변동</label>
+
             </div>
 
             <div class="wArea">
@@ -82,7 +85,13 @@
                 <h3 class="write_title">
                     <label>위치</label>
                 </h3>
-                <label>위치를 입력해주세요.</label>
+                <img src="/image/location.png" class="map" onclick="openMapPop()">
+                <label id="mapInput">위치를 입력해주세요.</label>
+                <div id="location">
+                    <span id="mapName"></span><br>
+                    <span id="mapRoad"></span><br>
+                    <span id="mapAddr"></span>
+                </div>
             </div>
         </div>
         <div id="btnGroup">
