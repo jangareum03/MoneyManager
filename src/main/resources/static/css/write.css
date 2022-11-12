@@ -316,7 +316,7 @@ nav{
     font-weight: 800;
 }
 
-.fix > label {
+.fixs > label {
     margin-right: 10vw;
 }
 
@@ -334,7 +334,13 @@ nav{
 }
 
 .wArea img {
-    width: 80px;
+    width: 60px;
+    margin: 5px;
+}
+
+/* 고정여부 */
+#fixOption {
+    display: none;
 }
 
 /* 작성버튼 */

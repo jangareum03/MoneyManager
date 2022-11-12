@@ -17,12 +17,21 @@
                 <span>수입</span>
             </div>
             <div class="wMain">
-                <div class="wArea fix">
+                <div class="wArea fixs">
                     <h3 class="write_title">
                         <label>고정/변동</label>
                     </h3>
-                    <label><input type="radio" name="fix" th:value="y"> 고정</label>
-                    <label><input type="radio" name="fix" th:value="n" checked> 변동</label>
+                    <div th:style="${'display: inline-block;'}">
+                        <div th:onchange="showOption()">
+                            <label><input type="radio" name="fix" id="fix" th:value="${'y'}"> 고정</label>
+                            <label><input type="radio" name="fix" th:value="${'n'}" checked> 변동</label>
+                        </div>
+                        <div id="fixOption" th:style="${'padding-top: 20px;'}">
+                            <label><input type="radio" name="fixOption" class="fixCycle" th:value="y">일년</label>
+                            <label><input type="radio" name="fixOption" class="fixCycle" th:value="m">한달</label>
+                            <label><input type="radio" name="fixOption" class="fixCycle" th:value="w">일주일</label>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="wArea">
@@ -61,16 +70,32 @@
                     <h3 class="write_title">
                         <label>금액</label>
                     </h3>
-                    <input type="number" placeholder="금액을 입력해주세요." name="price" class="wPrice">
+                    <input type="text" placeholder="금액을 입력해주세요." name="price" class="wPrice" th:onkeyup="checkPrice( this )">
                 </div>
 
                 <div class="wArea">
                     <h3 class="write_title">
                         <label>사진</label>
                     </h3>
-                    <label><input type="file" name="" th:style="${'display:none; cursor: pointer'}"><img src="/image/imageUnLock.png"/></label>
-                    <label><input type="file" name="" th:style="${'display:none; disabled'}"><img src="/image/imageLock.png"/></label>
-                    <label><input type="file" name="" th:style="${'display:none; disabled'}"><img src="/image/imageLock.png"/></label>
+                    <label><input type="file" name="" th:style="${'display:none;'}" class="img"><img src="/image/imageUnLock.png" id="img0" th:style="${'cursor: pointer'}"/></label>
+                    <label><input type="file" name="" th:style="${'display:none;'}" class="img"><img src="/image/imageLock.png" id="img1"/></label>
+                    <label><input type="file" name="" th:style="${'display:none;'}" class="img"><img src="/image/imageLock.png" id="img2"/></label>
+                    <script>
+                        let img = document.querySelectorAll('.img');
+                        for( let i=0; i < img.length; i++ ) {
+                            img[i].addEventListener("change", function() {
+                                if( this.files && this.files[0] ) {
+                                    let reader = new FileReader();
+                                    reader.onload = function(e) {
+                                        document.getElementById('img' + i).src = e.target.result;
+                                    };
+                                    reader.readAsDataURL(this.files[0]);
+                                } else{
+                                    document.getElementById('img' + i).src = '/image/imageUnLock.png';
+                                }
+                            });
+                        }
+                    </script>
                 </div>
 
                 <div class="wArea">
