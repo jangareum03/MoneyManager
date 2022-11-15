@@ -61,7 +61,7 @@ public class AttendanceDaoImpl implements AttendanceDao {
     @Override
     public void updatePoint(String mid, int point) throws SQLException {
         jdbcTemplate.update(
-                "UPDATE tb_member_info SET point = point + ? WHERE member_mid=?",
+                "UPDATE tb_member_info SET point = point + ? WHERE member_id=?",
                 point, mid
         );
     }

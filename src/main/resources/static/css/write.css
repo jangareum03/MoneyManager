@@ -379,11 +379,11 @@ img.map {
     padding-right: 10px;
     cursor: pointer;
 }
-span#mapRoad {
+span#locationRoad {
     font-size: 16px;
     color: #1E1E1E;
 }
-span#mapAddr {
+span#locationAddr {
     position: relative;
     bottom: 10px;
     font-size: 14px;

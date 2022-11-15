@@ -258,9 +258,12 @@ function removeAllChildNods(el) {
 
 //검색 항목 onclick 이벤트 처리
 function saveLocation( name, roadAddr, addr ) {
-    opener.document.getElementById('mapName').innerHTML = name;
-    opener.document.getElementById('mapRoad').innerHTML = roadAddr;
-    opener.document.getElementById('mapAddr').innerHTML = addr;
+    opener.document.getElementById('locationName').innerHTML = name;
+    opener.document.getElementById('mapName').value = name;
+    opener.document.getElementById('locationRoad').innerHTML = roadAddr;
+    opener.document.getElementById('mapRoad').value = roadAddr;
+    opener.document.getElementById('locationAddr').innerHTML = addr;
+    opener.document.getElementById('mapAddr').value = addr;
     opener.document.getElementById('mapInput').innerHTML = '';
 
     window.close();

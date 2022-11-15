@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>수출 작성 : 돈매니저</title>
+    <title>지출 작성 : 돈매니저</title>
     <!-- css -->
     <link rel="stylesheet" th:href="@{/css/write.css}">
     <!-- js -->
@@ -10,14 +10,15 @@
 </head>
 <body>
 <nav th:replace="/include/menu.html :: menu"></nav>
-<form id="write" enctype="multipart/form-data">
+<form id="write" enctype="multipart/form-data" method="post" th:action="@{/write/accountBook}">
     <div id="wContent">
         <div class="title">
             [[${formatDate}]]<br>
+            <input type="hidden" name="accountDate" th:value="${accountDate}">
             <span>지출</span>
         </div>
         <div class="wMain">
-            <div class="wArea fix">
+            <div class="wArea fixs">
                 <h3 class="write_title">
                     <label>고정/변동</label>
                 </h3>
@@ -38,25 +39,18 @@
                 <h3 class="write_title">
                     <label>카테고리</label>
                 </h3>
-                <select name="categoryL" class="wCategory">
+                <select name="categoryM" class="wCategory" id="categoryL" onchange="changeCategory( this )">
                     <option th:value="${'00'}">선택없음</option>
-                    <option th:value="${'01'}">현금</option>
-                    <option th:value="${'02'}">카드</option>
-                    <option th:value="${'03'}">계좌</option>
+                    <option th:value="${'020100'}">식비</option>
+                    <option th:value="${'020200'}">교통</option>
+                    <option th:value="${'020300'}">문화생활</option>
+                    <option th:value="${'020400'}">미용패션</option>
+                    <option th:value="${'020500'}">교육</option>
+                    <option th:value="${'020600'}">주거통신</option>
+                    <option th:value="${'020700'}">의료</option>
+                    <option th:value="${'020800'}">기타</option>
                 </select>
-                <select name="categoryM" class="wCategory">
-                    <option th:value="${'00'}">선택없음</option>
-                    <option th:value="${01}">식비</option>
-                    <option th:value="${02}">교통</option>
-                    <option th:value="${03}">문화생활</option>
-                    <option th:value="${04}">미용패션</option>
-                    <option th:value="${05}">보험</option>
-                    <option th:value="${06}">교육</option>
-                    <option th:value="${07}">주거통신</option>
-                    <option th:value="${08}">의료</option>
-                    <option th:value="${09}">생활</option>
-                    <option th:value="${10}">기타</option>
-                </select>
+                <input type="hidden" name="category" id="category">
             </div>
 
             <div class="wArea">
@@ -78,15 +72,23 @@
                     <label>금액</label>
                 </h3>
                 <input type="text" placeholder="금액을 입력해주세요." name="price" class="wPrice" th:onkeyup="checkPrice( this )">
+                <select name="priceType" class="wCategory" id="priceType">
+                    <option th:value="${''}">선택없음</option>
+                    <option th:value="${'ca'}">현금</option>
+                    <option th:value="${'de'}">체크카드</option>
+                    <option th:value="${'cr'}">신용카드</option>
+                    <option th:value="${'ba'}">계좌이체</option>
+                </select>
             </div>
 
             <div class="wArea">
                 <h3 class="write_title">
                     <label>사진</label>
                 </h3>
-                <label><input type="file" name="" th:style="${'display:none;'}" class="img"><img src="/image/imageUnLock.png" id="img0" th:style="${'cursor: pointer'}"/></label>
-                <label><input type="file" name="" th:style="${'display:none;'}" class="img"><img src="/image/imageLock.png" id="img1"/></label>
-                <label><input type="file" name="" th:style="${'display:none;'}" class="img"><img src="/image/imageLock.png" id="img2"/></label>
+                <th:block th:each="num : ${#numbers.sequence(1, 3)}">
+                    <label th:if="${num <= maxImage}"><input type="file" name="images" th:style="${'display:none;'}" class="img" accept=".gif, .jpg, .png"><img src="/image/imageUnLock.png" th:id="${'img' + (num-1)}" th:style="${'cursor: pointer'}"/></label>
+                    <label th:style="${'pointer-events: none;'}" th:unless="${num <= maxImage}"><input type="file" name="images" th:style="${'display:none;'}" class="img"><img src="/image/imageLock.png" th:id="${'img' + (num-1)}"/></label>
+                </th:block>
                 <script>
                         let img = document.querySelectorAll('.img');
                         for( let i=0; i < img.length; i++ ) {
@@ -112,15 +114,15 @@
                 <img src="/image/location.png" class="map" onclick="openMapPop()">
                 <label id="mapInput">위치를 입력해주세요.</label>
                 <div id="location">
-                    <span id="mapName"></span><br>
-                    <span id="mapRoad"></span><br>
-                    <span id="mapAddr"></span>
+                    <span  id="locationName"></span><input type="hidden" name="mapName" id="mapName"><br>
+                    <span id="locationRoad"></span><input type="hidden" name="mapRoad" id="mapRoad" ><br>
+                    <span id="locationAddr"></span><input type="hidden" id="mapAddr" name="mapAddr">
                 </div>
             </div>
         </div>
         <div id="btnGroup">
             <button type="button" class="btn cancel"  onclick="history.back()">이전</button>
-            <button class="btn confirm" >완료</button>
+            <button class="btn confirm" th:onclick="return writeCheck()">완료</button>
         </div>
     </div>
 </form>

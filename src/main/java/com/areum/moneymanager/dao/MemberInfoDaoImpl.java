@@ -1,7 +1,5 @@
 package com.areum.moneymanager.dao;
 
-import com.areum.moneymanager.dto.ResMemberDto;
-import com.areum.moneymanager.entity.Member;
 import com.areum.moneymanager.entity.MemberInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,23 +20,23 @@ import java.util.List;
 public class MemberDaoImpl implements MemberDao {
 
     private final JdbcTemplate jdbcTemplate;
-    private final Logger LOGGER = LogManager.getLogger(MemberDaoImpl.class);
+    private final Logger Logger = LogManager.getLogger(MemberDaoImpl.class);
 
-    public MemberDaoImpl( DataSource dataSource ) {
+    public MemberDaoImpl(DataSource dataSource ) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     @Override
-    public void insertMember( MemberInfo memberInfo, String mid ) {
+    public void insertMember( MemberInfo memberInfo ) throws SQLException {
         jdbcTemplate.update(new PreparedStatementCreator() {
             @Override
-            public PreparedStatement createPreparedStatement( Connection con ) throws SQLException {
+            public PreparedStatement createPreparedStatement(Connection con ) throws SQLException {
                 PreparedStatement pstmt = con.prepareStatement(
                         "INSERT ALL INTO tb_member(mid, type) VALUES(?,'A') "
                                 + "INTO tb_member_info(member_mid, id, password, name, nickname, gender, email) VALUES(?, ?, ?, ?, ?, ?, ?)"
                                 + "SELECT * FROM dual");
-                pstmt.setString(1, mid);
-                pstmt.setString(2, mid);
+                pstmt.setString(1, memberInfo.getMemberMid());
+                pstmt.setString(2, memberInfo.getMemberMid());
                 pstmt.setString(3, memberInfo.getId());
                 pstmt.setString(4, memberInfo.getPassword());
                 pstmt.setString(5, memberInfo.getName());
@@ -52,7 +50,7 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public Integer selectCountById( String id ) {
+    public Integer selectCountById( String id ) throws SQLException {
         return jdbcTemplate.queryForObject(
                 "SELECT COUNT(id) FROM tb_member_info WHERE id=?",
                 Integer.class,
@@ -62,7 +60,7 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public Integer selectCountByNickName( String nickName ) {
+    public Integer selectCountByNickName( String nickName ) throws SQLException {
         return jdbcTemplate.queryForObject(
                 "SELECT COUNT(nickname) FROM tb_member_info WHERE nickname=?",
                 Integer.class,
@@ -71,31 +69,30 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public ResMemberDto.FindPwd selectEmail( String name, String id ) {
+    public MemberInfo selectEmail( String name, String id ) throws SQLException {
         try{
             return jdbcTemplate.queryForObject(
                     "SELECT email FROM tb_member_info WHERE name=? AND id=?",
-                    ResMemberDto.FindPwd.class,
+                    MemberInfo.class,
                     name, id
             );
         }catch (EmptyResultDataAccessException e) {
-            LOGGER.error("{} 발생! {}", e.getClass(), e.getStackTrace());
+            Logger.error("요청한 이름({})과 아이디({})에 해당하는 이메일이 없어 에러 발생하여 강제로 null 반환", name, id);
             return null;
         }
     }
 
     @Override
-    public ResMemberDto.FindId selectId(String name, String email) {
-        List<ResMemberDto.FindId> member = jdbcTemplate.query(
-                "SELECT tmi.id, tll.login_date" +
-                        " FROM tb_member_info tmi, tb_login_log tll" +
-                        " WHERE tll.MEMBER_MID = tmi.MEMBER_MID" +
-                        " AND tmi.NAME = ? AND tmi.EMAIL = ?" +
-                        "ORDER BY tll.LOGIN_DATE DESC",
-                new RowMapper<ResMemberDto.FindId>() {
+    public MemberInfo selectId(String name, String email) {
+        List<MemberInfo> member = jdbcTemplate.query(
+                "SELECT id, last_login_date "
+                            + "FROM tb_member_info "
+                            + "WHERE name = ? "
+                            +  "AND email = ?",
+                new RowMapper<MemberInfo>() {
                     @Override
-                    public ResMemberDto.FindId mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return new ResMemberDto.FindId(rs.getString(1), rs.getTimestamp(2));
+                    public MemberInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return MemberInfo.builder().id(rs.getString(1)).lastLoginDate(rs.getDate(2)).build();
                     }
                 },
                 name, email
@@ -105,7 +102,7 @@ public class MemberDaoImpl implements MemberDao {
 
 
     @Override
-    public String selectMid( String mid ) {
+    public String selectMid( String mid ) throws SQLException {
         return jdbcTemplate.queryForObject(
                 "SELECT mid FROM tb_member WHERE mid LIKE '%' || ? || '%'",
                 String.class,
@@ -114,16 +111,16 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public String selectMid(String id, String password) {
-        return jdbcTemplate.queryForObject(
-                "SELECT member_mid FROM tb_member_info WHERE id=? AND password=?",
-                String.class,
-                id, password
-        );
+    public String selectMid( String id, String password ) throws SQLException {
+            return jdbcTemplate.queryForObject(
+                    "SELECT member_mid FROM tb_member_info WHERE id=? AND password=?",
+                    String.class,
+                    id, password
+            );
     }
 
     @Override
-    public String selectPwd( String id) {
+    public String selectPwd( String id) throws SQLException {
         try{
             return jdbcTemplate.queryForObject(
                     "SELECT password FROM tb_member_info WHERE id=?",
@@ -131,12 +128,13 @@ public class MemberDaoImpl implements MemberDao {
                     id
             );
         }catch (EmptyResultDataAccessException e){
+            Logger.error("요청한 아이디({})에 해당하는 비밀번호가 없어서 에러 발생하여 강제로 0 반환", id);
             return "0";
         }
     }
 
     @Override
-    public void updatePwd( String id, String password ) {
+    public void updatePwd( String id, String password ) throws SQLException {
         jdbcTemplate.update(
                 "UPDATE tb_member_info SET password=? WHERE id=?",
                 password, id
