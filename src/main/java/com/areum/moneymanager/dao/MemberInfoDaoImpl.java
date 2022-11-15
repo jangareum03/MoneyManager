@@ -17,12 +17,12 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class MemberDaoImpl implements MemberDao {
+public class MemberInfoDaoImpl implements MemberInfoDao {
 
     private final JdbcTemplate jdbcTemplate;
-    private final Logger Logger = LogManager.getLogger(MemberDaoImpl.class);
+    private final Logger Logger = LogManager.getLogger(MemberInfoDaoImpl.class);
 
-    public MemberDaoImpl(DataSource dataSource ) {
+    public MemberInfoDaoImpl(DataSource dataSource ) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
@@ -32,11 +32,11 @@ public class MemberDaoImpl implements MemberDao {
             @Override
             public PreparedStatement createPreparedStatement(Connection con ) throws SQLException {
                 PreparedStatement pstmt = con.prepareStatement(
-                        "INSERT ALL INTO tb_member(mid, type) VALUES(?,'A') "
-                                + "INTO tb_member_info(member_mid, id, password, name, nickname, gender, email) VALUES(?, ?, ?, ?, ?, ?, ?)"
+                        "INSERT ALL INTO tb_member(id, type) VALUES(?,'A') "
+                                + "INTO tb_member_info(member_id, id, password, name, nickname, gender, email) VALUES(?, ?, ?, ?, ?, ?, ?)"
                                 + "SELECT * FROM dual");
-                pstmt.setString(1, memberInfo.getMemberMid());
-                pstmt.setString(2, memberInfo.getMemberMid());
+                pstmt.setString(1, memberInfo.getMemberId());
+                pstmt.setString(2, memberInfo.getMemberId());
                 pstmt.setString(3, memberInfo.getId());
                 pstmt.setString(4, memberInfo.getPassword());
                 pstmt.setString(5, memberInfo.getName());
@@ -104,7 +104,7 @@ public class MemberDaoImpl implements MemberDao {
     @Override
     public String selectMid( String mid ) throws SQLException {
         return jdbcTemplate.queryForObject(
-                "SELECT mid FROM tb_member WHERE mid LIKE '%' || ? || '%'",
+                "SELECT id FROM tb_member WHERE id LIKE '%' || ? || '%'",
                 String.class,
                 mid
         );
@@ -113,7 +113,7 @@ public class MemberDaoImpl implements MemberDao {
     @Override
     public String selectMid( String id, String password ) throws SQLException {
             return jdbcTemplate.queryForObject(
-                    "SELECT member_mid FROM tb_member_info WHERE id=? AND password=?",
+                    "SELECT member_id FROM tb_member_info WHERE id=? AND password=?",
                     String.class,
                     id, password
             );

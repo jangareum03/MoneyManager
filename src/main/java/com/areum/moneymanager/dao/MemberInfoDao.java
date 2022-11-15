@@ -3,8 +3,9 @@ package com.areum.moneymanager.dao;
 import com.areum.moneymanager.entity.MemberInfo;
 
 import java.sql.SQLException;
+import java.util.List;
 
-public interface MemberDao {
+public interface MemberInfoDao {
 
     //회원정보 추가
     void insertMember( MemberInfo memberInfo ) throws SQLException;

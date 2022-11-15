@@ -1,6 +1,6 @@
 package com.areum.moneymanager.controller.member;
 
-import com.areum.moneymanager.dto.ReqMemberDto;
+import com.areum.moneymanager.dto.ReqMemberInfoDto;
 import com.areum.moneymanager.service.MailService;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.sql.SQLException;
 
 @Controller
 @RequestMapping("/join")
@@ -34,7 +35,7 @@ public class JoinController {
 
     @ResponseBody
     @PostMapping("/emailCodeCheck")
-    public String postEmailCodeCheck(ReqMemberDto.Join member, String time, HttpServletRequest request ) {
+    public String postEmailCodeCheck(ReqMemberInfoDto.Join member, String time, HttpServletRequest request ) {
         LOGGER.info("이메일 인증코드 확인");
         HttpSession session = request.getSession();
 
@@ -43,21 +44,21 @@ public class JoinController {
 
     @ResponseBody
     @PostMapping("/idCheck")
-    public int postIdCheck( ReqMemberDto.Join member ) {
+    public int postIdCheck( ReqMemberInfoDto.Join member ) throws Exception {
         LOGGER.info("아이디 중복 확인");
         return memberService.idCheck(member.getId());
     }
 
     @ResponseBody
     @PostMapping("/nickNameCheck")
-    public int postNickNameCheck( ReqMemberDto.Join member ) {
+    public int postNickNameCheck( ReqMemberInfoDto.Join member ) throws Exception {
         LOGGER.info("닉네임 중복 확인");
         return memberService.nickNameCheck(member.getNickName());
     }
 
     @ResponseBody
     @PostMapping("/sendEmail")
-    public void postSendEmailCode(ReqMemberDto.Join member, HttpSession session) throws Exception {
+    public void postSendEmailCode(ReqMemberInfoDto.Join member, HttpSession session) throws Exception {
         String code = mailService.sendMail(member.getEmail(), "email");
         session.setAttribute(""+member.getEmail() , code);
 
@@ -65,10 +66,8 @@ public class JoinController {
     }
 
     @PostMapping
-    public String postJoin( @ModelAttribute("member") ReqMemberDto.Join member ) throws Exception {
-        String mid = memberService.makeMemberId(member.getId());
-
-        memberService.joinMember( member, mid );
+    public String postJoin( @ModelAttribute("member") ReqMemberInfoDto.Join member ) throws Exception {
+        memberService.joinMember( member );
         LOGGER.info("회원가입 완료");
 
         return "index";

@@ -8,7 +8,7 @@ import java.sql.Date;
 @Builder
 @Getter
 public class LoginLog {
-    private int id;
+    private Long id;
     private String member_mid;
     private String browser;
     private String ip;

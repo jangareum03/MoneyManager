@@ -1,4 +1,4 @@
-package com.areum.moneymanager.service.main;
+package com.areum.moneymanager.service.member.main;
 
 import com.areum.moneymanager.dto.ResHomeDto;
 

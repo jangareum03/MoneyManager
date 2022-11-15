@@ -35,7 +35,7 @@
                      filePattern="logs/error/error.%d{yyyy-MM-dd}.log">
             <PatternLayout pattern="${fileLayout}" />
             <!--LevelRangeFilter필터를 사용할때에 단일 level의 필터만 허용한다. -->
-            <LevelRangeFilter minLevel="WARN" maxLevel="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+            <LevelRangeFilter minLevel="ERROR" maxLevel="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="20 MB" />
             </Policies>
@@ -45,8 +45,6 @@
                 </Delete>
             </DefaultRolloverstrategy>
         </RollingFile>
-
-
     </Appenders>
 
     <!--TRACE > DEBUG > INFO > WARN > ERROR > FATAL -->
@@ -55,10 +53,16 @@
         <!-- 스프링 프레임워크에서 찍는건 level을 info로 설정 -->
         <logger name="com.areum.moneymanager" level="info" additivity="false" >
             <AppenderRef ref="console" />
+            <AppenderRef ref="error" />
         </logger>
 
         <logger name="com.areum.moneymanager.service" level="debug" additivity="false">
             <AppenderRef ref="console"/>
+            <AppenderRef ref="error"/>
+        </logger>
+
+        <logger name="com.areum.moneymanager.dao" level="debug" additivity="false">
+            <AppenderRef ref="error"/>
         </logger>
 
         <!-- ROOT logger-->

@@ -1,13 +1,11 @@
-package com.areum.moneymanager.service.main;
+package com.areum.moneymanager.service.member.main;
 
 import com.areum.moneymanager.dao.AttendanceDao;
 import com.areum.moneymanager.dao.AttendanceDaoImpl;
 import com.areum.moneymanager.dto.ReqHomeDto;
 import com.areum.moneymanager.dto.ResHomeDto;
-import com.areum.moneymanager.mapper.AttendanceMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
@@ -21,14 +19,11 @@ import java.util.List;
 public class HomeServiceImpl implements HomeService {
 
     private final AttendanceDao attendanceDao;
-    private final AttendanceMapper attendanceMapper;
     private final Logger logger = LogManager.getLogger(HomeServiceImpl.class);
 
 
-    @Autowired
-    public HomeServiceImpl( AttendanceDaoImpl attendanceDao, AttendanceMapper attendanceMapper ) {
+    public HomeServiceImpl( AttendanceDaoImpl attendanceDao) {
         this.attendanceDao = attendanceDao;
-        this.attendanceMapper = attendanceMapper;
     }
 
     private static final int POINT = 5;
@@ -48,7 +43,7 @@ public class HomeServiceImpl implements HomeService {
         }
 
 
-        return attendanceMapper.toResAttendDto(attendanceDao.selectAttendDateList(date));
+        return new ResHomeDto().toResAttendDto(attendanceDao.selectAttendDateList(date));
     }
 
     @Override

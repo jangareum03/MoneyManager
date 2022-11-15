@@ -1,32 +1,38 @@
 package com.areum.moneymanager.service.member;
 
 
-import com.areum.moneymanager.dto.ReqMemberDto;
-import com.areum.moneymanager.dto.ResMemberDto;
+import com.areum.moneymanager.dto.ReqMemberInfoDto;
+import com.areum.moneymanager.dto.ResMemberInfoDto;
+
+import java.sql.SQLException;
 
 public interface MemberService {
 
     //비밀번호 수정
-    void changePwd( ReqMemberDto.FindPwd findPwdDto, String newPwd );
+    void changePwd(ReqMemberInfoDto.FindPwd findPwdDto, String newPwd ) throws SQLException;
 
     //아이디 찾기
-    ResMemberDto.FindId findId(ReqMemberDto.FindId findIdDto );
+    ResMemberInfoDto.FindId findId(ReqMemberInfoDto.FindId findIdDto ) throws SQLException;
+
+    //회원번호 찾기
+    String findMid( ReqMemberInfoDto.Login loginDto ) throws SQLException;
 
     //비밀번호 찾기
-    ResMemberDto.FindPwd findPwd( ReqMemberDto.FindPwd findPwdDto );
+    ResMemberInfoDto.FindPwd findPwd(ReqMemberInfoDto.FindPwd findPwdDto ) throws SQLException;
 
     //아이디중복확인
-    int idCheck( String id );
+    int idCheck( String id ) throws SQLException;
 
     //회원가입
-    void joinMember( ReqMemberDto.Join joinDto, String mid ) throws Exception;
+    void joinMember( ReqMemberInfoDto.Join joinDto ) throws SQLException;
 
     //로그인
-    int loginCheck( ReqMemberDto.Login loginDto );
+    int loginCheck( ReqMemberInfoDto.Login loginDto ) throws SQLException;
 
     //회원번호 생성
-    String makeMemberId( String id );
+    String makeMemberId( String id ) throws SQLException;
 
     //닉네임중복확인
-    int nickNameCheck( String nickName );
+    int nickNameCheck( String nickName ) throws SQLException;
+
 }

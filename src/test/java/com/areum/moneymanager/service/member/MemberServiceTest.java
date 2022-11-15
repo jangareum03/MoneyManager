@@ -1,4 +1,4 @@
-package com.areum.moneymanager.service;
+package com.areum.moneymanager.service.member;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -30,7 +30,7 @@ import java.util.stream.Stream;
     private MemberInfoDaoImpl memberDao;
 
     private MemberInfo createMember() {
-        return MemberInfo.builder().memberMid("UAt10001")
+        return MemberInfo.builder().memberId("UAt10001")
                 .id("test01")
                 .password("test01!!")
                 .name("테스트")

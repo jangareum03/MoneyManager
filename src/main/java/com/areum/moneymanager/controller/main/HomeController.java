@@ -2,12 +2,11 @@ package com.areum.moneymanager.controller.main;
 
 import com.areum.moneymanager.dto.ReqHomeDto;
 import com.areum.moneymanager.dto.ResHomeDto;
-import com.areum.moneymanager.service.main.HomeService;
-import com.areum.moneymanager.service.main.HomeServiceImpl;
+import com.areum.moneymanager.service.member.main.HomeService;
+import com.areum.moneymanager.service.member.main.HomeServiceImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -42,7 +41,7 @@ public class HomeController {
         }
 
         //회원 출석 리스트 받기
-        String mid = session.getAttribute("mid").toString();
+        String mid = (String) session.getAttribute("mid");
         List<ResHomeDto.AttendCheck> attendList = homeService.confirmAttend(mid, today.getYear(), today.getMonthValue(), today.lengthOfMonth());
 
         mav.addObject("year", today.getYear());
@@ -60,7 +59,7 @@ public class HomeController {
     @GetMapping("/attendCheck")
     @ResponseBody
     public void getAttendCheck( HttpSession session ) throws Exception {
-        String mid = session.getAttribute("mid").toString();
+        String mid = (String) session.getAttribute("mid");
 
         int result = homeService.toAttend(mid);
         if( result == 1 ) {
@@ -71,7 +70,7 @@ public class HomeController {
     @GetMapping("/attendOne")
     @ResponseBody
     public String getAttendList( HttpSession session ) throws Exception {
-        String mid = session.getAttribute("mid").toString();
+        String mid = (String) session.getAttribute("mid");
         LocalDate date = LocalDate.now();
 
         List<ResHomeDto.AttendCheck> attendCheckList = homeService.confirmAttend(mid, date.getYear(), date.getMonthValue(), date.lengthOfMonth() );
