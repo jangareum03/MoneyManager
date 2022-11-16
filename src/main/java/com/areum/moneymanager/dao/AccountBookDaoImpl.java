@@ -1,18 +1,26 @@
 package com.areum.moneymanager.dao;
 
-import com.areum.moneymanager.dto.ReqAccountBookDto;
 import com.areum.moneymanager.entity.AccountBook;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.List;
 
 @Repository
 public class AccountBookDaoImpl implements AccountBookDao {
 
     private final JdbcTemplate jdbcTemplate;
+
+    //쿼리문
+    private final String SELECT_ACCOUNT_MONTH = "SELECT tc.NAME category, NVL(SUM(PRICE), 0) price " +
+                                                                                            "FROM TB_ACCOUNT_BOOK tab RIGHT JOIN " +
+                                                                                                    "(SELECT * FROM TB_CATEGORY WHERE PARENT_CODE = '020000')tc " +
+                                                                                                "ON tc.CODE = tab.CATEGORY_ID AND tab.MEMBER_ID = ? AND tab.ACCOUNT_DATE > TRUNC(SYSDATE, 'MM') AND tab.ACCOUNT_DATE < ADD_MONTHS(TRUNC(SYSDATE,'MM'), 1) " +
+                                                                                                "GROUP BY tc.NAME";
 
     public AccountBookDaoImpl( DataSource dataSource ){
         this.jdbcTemplate = new JdbcTemplate( dataSource );
@@ -47,6 +55,20 @@ public class AccountBookDaoImpl implements AccountBookDao {
                         return pstmt;
                     }
                 }
+        );
+    }
+
+    @Override
+    public List<AccountBook> selectAccountByMonth( String mid ) throws SQLException {
+        return jdbcTemplate.query(
+                SELECT_ACCOUNT_MONTH,
+                new RowMapper<AccountBook>() {
+                    @Override
+                    public AccountBook mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return AccountBook.builder().category_id(rs.getString("category")).price(rs.getInt("price")).build();
+                    }
+                },
+                mid
         );
     }
 

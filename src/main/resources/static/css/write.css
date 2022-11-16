@@ -211,7 +211,7 @@ nav{
     color: #aaa;
 }
 #typeOut:checked + label:before {
-    content: "수출";
+    content: "지출";
     display: inline-block;
     width: 100px;
     height: 40px;

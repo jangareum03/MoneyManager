@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>내역조회 : 돈매니저</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/chart.css}">
+    <!-- 구글 차트 -->
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script>
+        google.load('visualization','1',{
+            'packages' : ['corechart']
+        });
+
+        google.setOnLoadCallback(drawChart);
+        function drawChart() {
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', '/monthChart', false);
+            xhr.setRequestHeader('content-type', 'application/JSON');
+            xhr.send();
+
+            let jsonData = xhr.responseText;
+            console.log(jsonData);
+
+            let data = new google.visualization.DataTable(jsonData);
+            let chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+
+            chart.draw(data, {
+                title: "",
+                curveType: "function"
+            });
+        }
+    </script>
+</head>
+<body>
+<nav th:replace="/include/menu.html :: menu"></nav>
+<div id="chart">
+    <div id="chart_div"></div>
+</div>
+</body>
+</html>

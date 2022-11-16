@@ -40,4 +40,18 @@ public class ReqAccountBookDto {
                     .location_name(mapName).location(mapRoad).build();
         }
     }
+
+    @Builder
+    @Getter
+    public static class MonthChart{
+        private String category;
+        private String accountDate;
+
+        public AccountBook toEntity(){
+            return AccountBook.builder()
+                    .category_id(category)
+                    .account_date(accountDate)
+                    .build();
+        }
+    }
 }
