@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class ChartService {
+public class DetailService {
 
-    private final ServiceDao accountBookDao;
+    private final ServiceDao serviceDao;
 
-    public ChartService(ServiceDaoImpl accountBookDao ){
-        this.accountBookDao = accountBookDao;
+    public DetailService(ServiceDaoImpl serviceDao ){
+        this.serviceDao = serviceDao;
     }
 
     public JSONObject getJSONData(String mid) throws Exception {
@@ -59,11 +59,19 @@ public class ChartService {
     }
 
 
+    //월로 차트 표시
     public List<ResServiceDto.MonthChart> monthChartList(String mid ) throws Exception {
-        return new ResServiceDto().toResMonthChart(accountBookDao.selectGraphByMonth( mid ));
+        return new ResServiceDto().toResMonthChart(serviceDao.selectGraphByMonth( mid ));
     }
 
+    //월로 전체조회
+    public List<ResServiceDto.detailMonth> detailMonthList( String mid ) throws Exception {
+        return serviceDao.selectAllAccountByMonth(mid);
+    }
 
-
+    //월 가격 총합
+    public List<ResServiceDto.detailMonth> monthPrice( String mid ) throws Exception {
+        return serviceDao.selectAllPriceByMonth(mid);
+    }
 
 }

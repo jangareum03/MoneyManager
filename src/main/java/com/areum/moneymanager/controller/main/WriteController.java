@@ -1,16 +1,14 @@
 package com.areum.moneymanager.controller.main;
 
-import com.areum.moneymanager.dto.ReqAccountBookDto;
-import com.areum.moneymanager.service.ImageService;
-import com.areum.moneymanager.service.member.main.WriteService;
-import com.areum.moneymanager.service.member.main.WriteServiceImpl;
+import com.areum.moneymanager.dto.ReqServiceDto;
+import com.areum.moneymanager.service.main.ImageService;
+import com.areum.moneymanager.service.main.WriteService;
+import com.areum.moneymanager.service.main.WriteServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
@@ -51,7 +49,7 @@ public class WriteController {
     }
 
     @PostMapping("/accountBook")
-    public String postWrite(ReqAccountBookDto.Write write, HttpSession session ) throws Exception {
+    public String postWrite(ReqServiceDto.Write write, HttpSession session ) throws Exception {
         String mid = (String) session.getAttribute("mid");
 
         writeService.addAccountBook(write, mid);
