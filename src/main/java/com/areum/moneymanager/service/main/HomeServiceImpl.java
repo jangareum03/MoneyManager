@@ -21,7 +21,6 @@ public class HomeServiceImpl implements HomeService {
     private final MemberDao memberDao;
     private final Logger logger = LogManager.getLogger(HomeServiceImpl.class);
 
-
     public HomeServiceImpl( MemberDaoImpl memberDao) {
         this.memberDao = memberDao;
     }
@@ -29,12 +28,7 @@ public class HomeServiceImpl implements HomeService {
     private static final int POINT = 5;
 
     @Override
-    public void addPoint( String mid ) throws Exception {
-        memberDao.updatePoint(mid, POINT);
-    }
-
-    @Override
-    public List<ResMemberDto.AttendCheck> confirmAttend(String mid, int year, int month, int lastDate ) throws SQLException {
+    public List<ResMemberDto.AttendCheck> completeAttend(String mid, int year, int month, int lastDate ) throws SQLException {
         ReqMemberDto.AttendCheck date;
         if( month < 10 ) {
             date = ReqMemberDto.AttendCheck.builder().mid(mid).startDate(""+year+ "0" + month+"01").endDate(""+year+"0"+month+lastDate).build();
@@ -47,10 +41,17 @@ public class HomeServiceImpl implements HomeService {
     }
 
     @Override
-    public int toAttend( String mid ) throws Exception {
+    public int doAttend( String mid ) throws Exception {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
         return memberDao.insertAttend( mid, today );
     }
+
+    @Override
+    public void getPoint( String mid ) throws Exception {
+        memberDao.updatePoint(mid, POINT);
+    }
+
+
 
 }

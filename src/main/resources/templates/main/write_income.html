@@ -40,9 +40,7 @@
                     </h3>
                     <select name="categoryM" class="wCategory" id="categoryL" onchange="changeCategory( this )">
                         <option th:value="${'00'}">선택없음</option>
-                        <option th:value="${'010100'}">월급</option>
-                        <option th:value="${'010200'}">용돈</option>
-                        <option th:value="${'010300'}">알바</option>
+                            <option th:each="category : ${category}" th:value="${category.code}">[[${category.name}]]</option>
                     </select>
                     <input type="hidden" name="category" id="category">
                 </div>

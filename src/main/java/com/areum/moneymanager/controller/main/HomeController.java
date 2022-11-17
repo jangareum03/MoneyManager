@@ -42,7 +42,7 @@ public class HomeController {
 
         //회원 출석 리스트 받기
         String mid = (String) session.getAttribute("mid");
-        List<ResMemberDto.AttendCheck> attendList = homeService.confirmAttend(mid, today.getYear(), today.getMonthValue(), today.lengthOfMonth());
+        List<ResMemberDto.AttendCheck> attendList = homeService.completeAttend(mid, today.getYear(), today.getMonthValue(), today.lengthOfMonth());
 
         mav.addObject("year", today.getYear());
         mav.addObject("month", today.getMonthValue());
@@ -61,9 +61,9 @@ public class HomeController {
     public void getAttendCheck( HttpSession session ) throws Exception {
         String mid = (String) session.getAttribute("mid");
 
-        int result = homeService.toAttend(mid);
+        int result = homeService.doAttend(mid);
         if( result == 1 ) {
-            homeService.addPoint(mid);
+            homeService.getPoint(mid);
         }
     }
 
@@ -73,7 +73,7 @@ public class HomeController {
         String mid = (String) session.getAttribute("mid");
         LocalDate date = LocalDate.now();
 
-        List<ResMemberDto.AttendCheck> attendCheckList = homeService.confirmAttend(mid, date.getYear(), date.getMonthValue(), date.lengthOfMonth() );
+        List<ResMemberDto.AttendCheck> attendCheckList = homeService.completeAttend(mid, date.getYear(), date.getMonthValue(), date.lengthOfMonth() );
         return attendCheckList.get(0).getDate();
     }
 
@@ -97,7 +97,7 @@ public class HomeController {
         }
 
         //회원 출석 리스트 받기
-        List<ResMemberDto.AttendCheck> attendList = homeService.confirmAttend(session.getAttribute("mid").toString(), startDate.getYear(), startDate.getMonthValue(), startDate.lengthOfMonth());
+        List<ResMemberDto.AttendCheck> attendList = homeService.completeAttend(session.getAttribute("mid").toString(), startDate.getYear(), startDate.getMonthValue(), startDate.lengthOfMonth());
 
         mav.addObject("year", startDate.getYear());
         mav.addObject("month", startDate.getMonthValue());

@@ -1,6 +1,7 @@
 package com.areum.moneymanager.dto;
 
 import com.areum.moneymanager.entity.AccountBook;
+import com.areum.moneymanager.entity.Category;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,6 +10,7 @@ import java.util.List;
 
 public class ResServiceDto {
 
+    //월 차트
     @Builder
     @Getter
     public static class MonthChart{
@@ -41,6 +43,33 @@ public class ResServiceDto {
         private String title;
         private int price;
         private int totalPrice;
+    }
+
+    //수입 카테고리
+    @Builder
+    @Getter
+
+    public static class category {
+        private String name;
+        private String code;
+
+        public static List<category> toResIncomeCategory( List<Category> categoryList ){
+            List<category> resultList = new ArrayList<>(categoryList.size());
+
+            for( Category category : categoryList )  {
+                resultList.add( categoryEntityToDto(category) );
+            }
+
+            return resultList;
+        }
+
+        private static category categoryEntityToDto( Category category ) {
+            if( category == null ) {
+                return null;
+            }
+
+            return ResServiceDto.category.builder().name(category.getName()).code(category.getCode()).build();
+        }
     }
 
 }

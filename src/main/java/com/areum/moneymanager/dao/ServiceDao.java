@@ -2,6 +2,7 @@ package com.areum.moneymanager.dao;
 
 import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.entity.AccountBook;
+import com.areum.moneymanager.entity.Category;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -14,12 +15,16 @@ public interface ServiceDao {
     //월 전체내역 조회
     List<ResServiceDto.detailMonth> selectAllAccountByMonth( String mid ) throws SQLException;
 
-    //월 총합가격 조회
+    //월 전체/수입/지출가격 조회
     List<ResServiceDto.detailMonth> selectAllPriceByMonth( String mid ) throws SQLException;
 
-    //그래프 월 조회
+    //지출 카테고리 조회
+    List<Category> selectExpenditureCategory() throws SQLException;
+
+    //월 전채 그래프
     List<AccountBook> selectGraphByMonth( String mid ) throws SQLException;
 
-
+    //수입 카테고리 조회
+    List<Category> selectIncomeCategory() throws SQLException;
 
 }

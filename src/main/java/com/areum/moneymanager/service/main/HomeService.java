@@ -6,13 +6,13 @@ import java.util.List;
 
 public interface HomeService {
 
-    //출석체크 포인트 얻기
-    void addPoint( String mid ) throws Exception;
-
     //출석완료 리스트
-    List<ResMemberDto.AttendCheck> confirmAttend(String mid, int year, int month, int lastDate ) throws Exception;
+    List<ResMemberDto.AttendCheck> completeAttend(String mid, int year, int month, int lastDate ) throws Exception;
 
     //출석하기
-    int toAttend( String mid ) throws Exception;
+    int doAttend( String mid ) throws Exception;
+
+    //출석체크 포인트 얻기
+    void getPoint ( String mid ) throws Exception;
 
 }

@@ -2,6 +2,7 @@ package com.areum.moneymanager.dao;
 
 import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.entity.AccountBook;
+import com.areum.moneymanager.entity.Category;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -98,6 +99,21 @@ public class ServiceDaoImpl implements ServiceDao {
         );
     }
 
+    @Override
+    public List<Category> selectExpenditureCategory() throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT name, code " +
+                        "FROM tb_category " +
+                        "WHERE parent_code = '020000'",
+                new RowMapper<Category>() {
+                    @Override
+                    public Category mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return Category.builder().name(rs.getString("name")).code(rs.getString("code")).build();
+                    }
+                }
+        );
+    }
+
 
     @Override
     public List<AccountBook> selectGraphByMonth( String mid ) throws SQLException {
@@ -110,6 +126,21 @@ public class ServiceDaoImpl implements ServiceDao {
                     }
                 },
                 mid
+        );
+    }
+
+    @Override
+    public List<Category> selectIncomeCategory() throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT NAME, CODE " +
+                        "FROM   TB_CATEGORY " +
+                        "WHERE  PARENT_CODE = '010000'",
+                new RowMapper<Category>() {
+                    @Override
+                    public Category mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return Category.builder().name(rs.getString(1)).code(rs.getString(2)).build();
+                    }
+                }
         );
     }
 

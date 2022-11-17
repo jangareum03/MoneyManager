@@ -52,7 +52,7 @@ public class WriteController {
     public String postWrite(ReqServiceDto.Write write, HttpSession session ) throws Exception {
         String mid = (String) session.getAttribute("mid");
 
-        writeService.addAccountBook(write, mid);
+        writeService.writeAccountBook(write, mid);
         imageService.uploadImageFile( write, mid );
         return "redirect:/write";
     }
@@ -67,8 +67,10 @@ public class WriteController {
         mav.addObject("maxImage", 2);
 
         if( mode.equals("1") ) {
+            mav.addObject("category", writeService.getIncomeCategory());
             mav.setViewName("/main/write_income");
         }else{
+            mav.addObject("category", writeService.getExpenditureCategory());
             mav.setViewName("/main/write_expend");
         }
 

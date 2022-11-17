@@ -41,14 +41,7 @@
                 </h3>
                 <select name="categoryM" class="wCategory" id="categoryL" onchange="changeCategory( this )">
                     <option th:value="${'00'}">선택없음</option>
-                    <option th:value="${'020100'}">식비</option>
-                    <option th:value="${'020200'}">교통</option>
-                    <option th:value="${'020300'}">문화생활</option>
-                    <option th:value="${'020400'}">미용패션</option>
-                    <option th:value="${'020500'}">교육</option>
-                    <option th:value="${'020600'}">주거통신</option>
-                    <option th:value="${'020700'}">의료</option>
-                    <option th:value="${'020800'}">기타</option>
+                    <option th:each="category : ${category}" th:value="${category.code}">[[${category.name}]]</option>
                 </select>
                 <input type="hidden" name="category" id="category">
             </div>

@@ -31,14 +31,14 @@ public class ImageService {
 
         for( int i=0; i<write.getImages().size(); i++ ) {
             if( !write.getImages().get(i).isEmpty() ){
-                upload( write.getImages().get(i), write.getAccountDate(),  mid, i, mode);
+                saveImage( write.getImages().get(i), write.getAccountDate(),  mid, i, mode);
             }
         }
 
     }
 
     //사진저장
-    public void upload( MultipartFile file, String date, String mid, int index, String mode ) throws Exception {
+    public void saveImage( MultipartFile file, String date, String mid, int index, String mode ) throws Exception {
         File fileDir = makeFolder(mid, date);
 
         if( !fileDir.exists() ) {
