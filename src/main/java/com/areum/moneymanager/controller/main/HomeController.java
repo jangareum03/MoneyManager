@@ -1,9 +1,9 @@
 package com.areum.moneymanager.controller.main;
 
-import com.areum.moneymanager.dto.ReqHomeDto;
-import com.areum.moneymanager.dto.ResHomeDto;
-import com.areum.moneymanager.service.member.main.HomeService;
-import com.areum.moneymanager.service.member.main.HomeServiceImpl;
+import com.areum.moneymanager.dto.ReqServiceDto;
+import com.areum.moneymanager.dto.ResMemberDto;
+import com.areum.moneymanager.service.main.HomeService;
+import com.areum.moneymanager.service.main.HomeServiceImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,7 +42,7 @@ public class HomeController {
 
         //회원 출석 리스트 받기
         String mid = (String) session.getAttribute("mid");
-        List<ResHomeDto.AttendCheck> attendList = homeService.confirmAttend(mid, today.getYear(), today.getMonthValue(), today.lengthOfMonth());
+        List<ResMemberDto.AttendCheck> attendList = homeService.confirmAttend(mid, today.getYear(), today.getMonthValue(), today.lengthOfMonth());
 
         mav.addObject("year", today.getYear());
         mav.addObject("month", today.getMonthValue());
@@ -73,12 +73,12 @@ public class HomeController {
         String mid = (String) session.getAttribute("mid");
         LocalDate date = LocalDate.now();
 
-        List<ResHomeDto.AttendCheck> attendCheckList = homeService.confirmAttend(mid, date.getYear(), date.getMonthValue(), date.lengthOfMonth() );
+        List<ResMemberDto.AttendCheck> attendCheckList = homeService.confirmAttend(mid, date.getYear(), date.getMonthValue(), date.lengthOfMonth() );
         return attendCheckList.get(0).getDate();
     }
 
     @GetMapping("/moveCal")
-    public ModelAndView getMoveCalendar( ReqHomeDto.MoveDate moveDate, HttpSession session ) throws Exception {
+    public ModelAndView getMoveCalendar(ReqServiceDto.MoveDate moveDate, HttpSession session ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
         //달력값 계산
@@ -97,7 +97,7 @@ public class HomeController {
         }
 
         //회원 출석 리스트 받기
-        List<ResHomeDto.AttendCheck> attendList = homeService.confirmAttend(session.getAttribute("mid").toString(), startDate.getYear(), startDate.getMonthValue(), startDate.lengthOfMonth());
+        List<ResMemberDto.AttendCheck> attendList = homeService.confirmAttend(session.getAttribute("mid").toString(), startDate.getYear(), startDate.getMonthValue(), startDate.lengthOfMonth());
 
         mav.addObject("year", startDate.getYear());
         mav.addObject("month", startDate.getMonthValue());

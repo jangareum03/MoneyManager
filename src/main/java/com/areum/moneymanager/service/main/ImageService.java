@@ -1,6 +1,7 @@
-package com.areum.moneymanager.service;
+package com.areum.moneymanager.service.main;
 
-import com.areum.moneymanager.dto.ReqAccountBookDto;
+import com.areum.moneymanager.dto.ReqMemberDto;
+import com.areum.moneymanager.dto.ReqServiceDto;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class ImageService {
     }
 
     //사진 구분
-    public void uploadImageFile( ReqAccountBookDto.Write write, String mid ) throws Exception {
+    public void uploadImageFile(ReqServiceDto.Write write, String mid ) throws Exception {
         String mode = "out";
         if( write.getCategory().substring(0, 2).equals("01") ) {
             mode = "in";

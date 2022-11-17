@@ -36,6 +36,32 @@
 <nav th:replace="/include/menu.html :: menu"></nav>
 <div id="chart">
     <div id="chart_div"></div>
+    <div>
+        <select>
+            <option>전체</option>
+            <option>기간</option>
+            <option>수입/지출</option>
+            <option>금액</option>
+            <option>카테고리</option>
+        </select>
+        <button type="button">삭제</button>
+    </div>
+    <div>
+        <table>
+            <tr>
+                <th>선택</th>
+                <th>날짜</th>
+                <th>고정/변동</th>
+                <th>카테고리</th>
+                <th>제목</th>
+                <th>금액</th>
+            </tr>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
 </div>
 </body>
 </html>

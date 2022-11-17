@@ -1,5 +1,6 @@
 package com.areum.moneymanager.dao;
 
+import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.entity.AccountBook;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -11,7 +12,7 @@ import java.sql.*;
 import java.util.List;
 
 @Repository
-public class AccountBookDaoImpl implements AccountBookDao {
+public class ServiceDaoImpl implements ServiceDao {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -20,9 +21,10 @@ public class AccountBookDaoImpl implements AccountBookDao {
                                                                                             "FROM TB_ACCOUNT_BOOK tab RIGHT JOIN " +
                                                                                                     "(SELECT * FROM TB_CATEGORY WHERE PARENT_CODE = '020000')tc " +
                                                                                                 "ON tc.CODE = tab.CATEGORY_ID AND tab.MEMBER_ID = ? AND tab.ACCOUNT_DATE > TRUNC(SYSDATE, 'MM') AND tab.ACCOUNT_DATE < ADD_MONTHS(TRUNC(SYSDATE,'MM'), 1) " +
-                                                                                                "GROUP BY tc.NAME";
+                                                                                                "GROUP BY tc.CODE, tc.NAME " +
+                                                                                                "ORDER BY tc.CODE";
 
-    public AccountBookDaoImpl( DataSource dataSource ){
+    public ServiceDaoImpl(DataSource dataSource ){
         this.jdbcTemplate = new JdbcTemplate( dataSource );
     }
 
@@ -59,7 +61,46 @@ public class AccountBookDaoImpl implements AccountBookDao {
     }
 
     @Override
-    public List<AccountBook> selectAccountByMonth( String mid ) throws SQLException {
+    public List<ResServiceDto.detailMonth> selectAllAccountByMonth( String mid ) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT tab.ID, tab.ACCOUNT_DATE, tab.FIX, SUBSTR(tab.CATEGORY_ID, 0, 2) code, tc.NAME, tab.TITLE, tab.PRICE  " +
+                            "FROM TB_ACCOUNT_BOOK tab, TB_CATEGORY tc " +
+                            "WHERE MEMBER_ID = 'UAt10001' " +
+                            "AND tc.CODE = tab.CATEGORY_ID " +
+                            "AND ACCOUNT_DATE BETWEEN TO_DATE('20221101', 'YYYYMMDD') AND TO_DATE('20221130', 'YYYYMMDD') " +
+                            "ORDER BY 2 DESC",
+                new RowMapper<ResServiceDto.detailMonth>() {
+                    @Override
+                    public ResServiceDto.detailMonth mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.detailMonth.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix")).code(rs.getString("code"))
+                                .name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
+                    }
+                }
+        );
+    }
+
+    @Override
+    public List<ResServiceDto.detailMonth> selectAllPriceByMonth(String mid) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT SUM(PRICE) PRICE " +
+                        "FROM TB_ACCOUNT_BOOK " +
+                        "WHERE MEMBER_ID = ? " +
+                        "AND ACCOUNT_DATE BETWEEN TO_DATE('20221101', 'YYYYMMDD') AND TO_DATE('20221130', 'YYYYMMDD') " +
+                        "GROUP BY ROLLUP(SUBSTR(CATEGORY_ID, 0, 2)) " +
+                        "ORDER BY NVL(SUBSTR(CATEGORY_ID, 0, 2), '00')",
+                new RowMapper<ResServiceDto.detailMonth>() {
+                    @Override
+                    public ResServiceDto.detailMonth mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.detailMonth.builder().totalPrice(rs.getInt("price")).build();
+                    }
+                },
+                mid
+        );
+    }
+
+
+    @Override
+    public List<AccountBook> selectGraphByMonth( String mid ) throws SQLException {
         return jdbcTemplate.query(
                 SELECT_ACCOUNT_MONTH,
                 new RowMapper<AccountBook>() {

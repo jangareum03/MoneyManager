@@ -2,10 +2,9 @@ package com.areum.moneymanager.service.member;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import com.areum.moneymanager.dao.MemberInfoDaoImpl;
-import com.areum.moneymanager.dto.ReqMemberInfoDto;
+import com.areum.moneymanager.dao.MemberDaoImpl;
+import com.areum.moneymanager.dto.ReqMemberDto;
 import com.areum.moneymanager.entity.MemberInfo;
-import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +26,7 @@ import java.util.stream.Stream;
     private MemberServiceImpl memberService;
 
     @Mock
-    private MemberInfoDaoImpl memberDao;
+    private MemberDaoImpl memberDao;
 
     private MemberInfo createMember() {
         return MemberInfo.builder().memberId("UAt10001")
@@ -144,7 +143,7 @@ import java.util.stream.Stream;
         //given
         when(memberDao.selectPwd("test01")).thenReturn("test01!!");
         //when
-        int result = memberService.loginCheck(new ReqMemberInfoDto.Login("test01", "test01!!"));
+        int result = memberService.loginCheck(new ReqMemberDto.Login("test01", "test01!!"));
         //then
         assertEquals(1, result);
     }
@@ -155,7 +154,7 @@ import java.util.stream.Stream;
         //given
         when(memberDao.selectPwd("test01")).thenReturn("test01@@");
         //when
-        int result = memberService.loginCheck(new ReqMemberInfoDto.Login("test01", "test01!!"));
+        int result = memberService.loginCheck(new ReqMemberDto.Login("test01", "test01!!"));
         //then
         assertEquals(0, result);
     }
@@ -166,7 +165,7 @@ import java.util.stream.Stream;
         //given
         when(memberDao.selectPwd("test01")).thenReturn("");
         //when
-        int result = memberService.loginCheck(new ReqMemberInfoDto.Login("test01", "test01!!"));
+        int result = memberService.loginCheck(new ReqMemberDto.Login("test01", "test01!!"));
         //then
         assertEquals(-1, result);
     }

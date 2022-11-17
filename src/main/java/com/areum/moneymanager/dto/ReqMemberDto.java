@@ -5,10 +5,22 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-@Getter
-public class ReqMemberInfoDto {
 
-    private ReqMemberInfoDto(){}
+@Getter
+public class ReqMemberDto {
+
+    private ReqMemberDto(){}
+
+    //출석체크 확인
+    @Getter
+    @Builder
+    public static class AttendCheck{
+        private String mid;
+        private String startDate;
+        private String endDate;
+    }
+
+
 
     //회원가입
     @Getter
@@ -63,5 +75,7 @@ public class ReqMemberInfoDto {
             return MemberInfo.builder().name(name).id(id).build();
         }
     }
+
+
 
 }

@@ -1,9 +1,9 @@
 package com.areum.moneymanager.service.member;
 
-import com.areum.moneymanager.dao.MemberInfoDao;
-import com.areum.moneymanager.dao.MemberInfoDaoImpl;
-import com.areum.moneymanager.dto.ReqMemberInfoDto;
-import com.areum.moneymanager.dto.ResMemberInfoDto;
+import com.areum.moneymanager.dao.MemberDao;
+import com.areum.moneymanager.dao.MemberDaoImpl;
+import com.areum.moneymanager.dto.ReqMemberDto;
+import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.entity.MemberInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
@@ -17,16 +17,16 @@ import java.time.LocalDate;
 @Service
 public class MemberServiceImpl implements MemberService {
 
-    private final MemberInfoDao memberInfoDao;
+    private final MemberDao memberInfoDao;
     private final Logger LOGGER = LogManager.getLogger(MemberServiceImpl.class);
 
-    public MemberServiceImpl(MemberInfoDaoImpl memberDao) {
+    public MemberServiceImpl(MemberDaoImpl memberDao) {
         this.memberInfoDao = memberDao;
 
     }
 
     @Override
-    public void changePwd(ReqMemberInfoDto.FindPwd findPwdDto, String newPwd) throws SQLException {
+    public void changePwd(ReqMemberDto.FindPwd findPwdDto, String newPwd) throws SQLException {
         MemberInfo memberInfo = findPwdDto.toEntity();
 
         memberInfoDao.updatePwd( memberInfo.getId(), newPwd );
@@ -34,15 +34,15 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public ResMemberInfoDto.FindId findId(ReqMemberInfoDto.FindId findIdDto ) throws SQLException {
+    public ResMemberDto.FindId findId(ReqMemberDto.FindId findIdDto ) throws SQLException {
         MemberInfo memberInfo = findIdDto.toEntity();
         LOGGER.debug("아이디 찾기 입력한 값: 이름({}), 이메일({})", memberInfo.getName(), memberInfo.getEmail());
 
-        return ResMemberInfoDto.FindIdResponse( memberInfoDao.selectId( memberInfo.getName() , memberInfo.getEmail() ) );
+        return ResMemberDto.FindIdResponse( memberInfoDao.selectId( memberInfo.getName() , memberInfo.getEmail() ) );
     }
 
     @Override
-    public String findMid(ReqMemberInfoDto.Login loginDto) throws SQLException {
+    public String findMid(ReqMemberDto.Login loginDto) throws SQLException {
         MemberInfo memberInfo = loginDto.toEntity();
         LOGGER.debug("회원번호 요청한 아이디: {}, 비밀번호: {}", memberInfo.getId(), memberInfo.getPassword());
 
@@ -50,11 +50,11 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public ResMemberInfoDto.FindPwd findPwd( ReqMemberInfoDto.FindPwd findPwdDto ) throws SQLException {
+    public ResMemberDto.FindPwd findPwd(ReqMemberDto.FindPwd findPwdDto ) throws SQLException {
         MemberInfo memberInfo = findPwdDto.toEntity();
 
         LOGGER.debug("비밀번호 찾기 입력한 값: 이름({}), 아이디({})", memberInfo.getName(), memberInfo.getId());
-        return ResMemberInfoDto.FindPwdResponse( memberInfoDao.selectEmail(memberInfo.getName(), memberInfo.getId()) );
+        return ResMemberDto.FindPwdResponse( memberInfoDao.selectEmail(memberInfo.getName(), memberInfo.getId()) );
     }
 
     @Override
@@ -64,7 +64,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void joinMember( ReqMemberInfoDto.Join joinDto ) throws SQLException {
+    public void joinMember( ReqMemberDto.Join joinDto ) throws SQLException {
         String mid = makeMemberId(joinDto.getId());
         MemberInfo memberInfo = joinDto.toEntity(mid);
 
@@ -74,7 +74,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public int loginCheck( ReqMemberInfoDto.Login loginDto ) throws SQLException {
+    public int loginCheck( ReqMemberDto.Login loginDto ) throws SQLException {
         String pwd = memberInfoDao.selectPwd( loginDto.getId() );
         LOGGER.debug("로그인 입력한 아이디({})와 비밀번호({})로 찾은 비밀번호: {}", loginDto.getId(), loginDto.getPwd(), pwd);
 

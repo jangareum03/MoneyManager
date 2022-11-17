@@ -1,8 +1,8 @@
 package com.areum.moneymanager.controller.member;
 
-import com.areum.moneymanager.dto.ReqMemberInfoDto;
-import com.areum.moneymanager.dto.ResMemberInfoDto;
-import com.areum.moneymanager.service.MailService;
+import com.areum.moneymanager.dto.ReqMemberDto;
+import com.areum.moneymanager.dto.ResMemberDto;
+import com.areum.moneymanager.service.member.MailService;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,10 +35,10 @@ public class HelpController {
     }
 
     @PostMapping("/helpId/find")
-    public ModelAndView postFindIdView( ReqMemberInfoDto.FindId findId ) throws Exception {
+    public ModelAndView postFindIdView( ReqMemberDto.FindId findId ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
-        ResMemberInfoDto.FindId member = memberService.findId(findId);
+        ResMemberDto.FindId member = memberService.findId(findId);
         if(member == null) {
             mav.setViewName("/member/find_id_error");
         }else{
@@ -52,10 +52,10 @@ public class HelpController {
     }
 
     @PostMapping("/helpPwd/find")
-    public ModelAndView postFindPwdView( ReqMemberInfoDto.FindPwd findPwd ) throws Exception {
+    public ModelAndView postFindPwdView( ReqMemberDto.FindPwd findPwd ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
-        ResMemberInfoDto.FindPwd member = memberService.findPwd(findPwd);
+        ResMemberDto.FindPwd member = memberService.findPwd(findPwd);
         if( member == null ) {
             mav.setViewName("/member/find_pwd_error");
         }else{

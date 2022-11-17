@@ -1,7 +1,7 @@
 package com.areum.moneymanager.controller.member;
 
 
-import com.areum.moneymanager.dto.ReqMemberInfoDto;
+import com.areum.moneymanager.dto.ReqMemberDto;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.springframework.stereotype.Controller;
@@ -21,12 +21,12 @@ public class MemberController {
     }
 
     @GetMapping
-    public String getLoginView( @ModelAttribute("member") ReqMemberInfoDto.Login member ){
+    public String getLoginView( @ModelAttribute("member") ReqMemberDto.Login member ){
         return "index";
     }
 
     @PostMapping("/login")
-    public String postLogin(@ModelAttribute("member") ReqMemberInfoDto.Login member, BindingResult bindingResult, HttpSession session) throws Exception {
+    public String postLogin(@ModelAttribute("member") ReqMemberDto.Login member, BindingResult bindingResult, HttpSession session) throws Exception {
         if( !StringUtils.hasText(member.getId()) ) {
             bindingResult.rejectValue("id", "noInput");
         }else if( !StringUtils.hasText(member.getPwd()) ) {

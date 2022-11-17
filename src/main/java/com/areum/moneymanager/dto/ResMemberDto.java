@@ -1,5 +1,6 @@
 package com.areum.moneymanager.dto;
 
+import com.areum.moneymanager.entity.Attendance;
 import com.areum.moneymanager.entity.MemberInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,10 +8,37 @@ import lombok.Getter;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class ResMemberInfoDto {
+public class ResMemberDto {
+
+    //출석체크 확인
+    @Getter
+    @Builder
+    public static class AttendCheck{
+        private String date;
+    }
+
+    public List<AttendCheck> toResAttendDto(List<Attendance> list ) {
+        List<ResMemberDto.AttendCheck> attendCheckList =  new ArrayList<>(list.size());
+
+        for( Attendance attendance : list ) {
+            attendCheckList.add( attendanceToAttendCheck(attendance) );
+        }
+
+        return attendCheckList;
+    }
+
+    private ResMemberDto.AttendCheck attendanceToAttendCheck(Attendance attendance) {
+        if( attendance == null ) {
+            return null;
+        }
+
+        return ResMemberDto.AttendCheck.builder().date(attendance.getCheckDate().toString().substring(8)).build();
+    }
 
     //아이디 찾기
     @Getter
@@ -55,4 +83,7 @@ public class ResMemberInfoDto {
         private int date;
         private int maxDate;
     }
+
+
+
 }

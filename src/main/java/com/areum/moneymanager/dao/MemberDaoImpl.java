@@ -1,5 +1,7 @@
 package com.areum.moneymanager.dao;
 
+import com.areum.moneymanager.dto.ReqMemberDto;
+import com.areum.moneymanager.entity.Attendance;
 import com.areum.moneymanager.entity.MemberInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,13 +19,30 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class MemberInfoDaoImpl implements MemberInfoDao {
+public class MemberDaoImpl implements MemberDao {
 
     private final JdbcTemplate jdbcTemplate;
-    private final Logger Logger = LogManager.getLogger(MemberInfoDaoImpl.class);
+    private final Logger Logger = LogManager.getLogger(MemberDaoImpl.class);
 
-    public MemberInfoDaoImpl(DataSource dataSource ) {
+    public MemberDaoImpl(DataSource dataSource ) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+
+    @Override
+    public int insertAttend(String mid, String today) throws SQLException {
+        return jdbcTemplate.update(
+                new PreparedStatementCreator() {
+                    @Override
+                    public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+                        PreparedStatement pstmt = con.prepareStatement("INSERT INTO tb_attendance VALUES(seq_attendance.NEXTVAL, ?, TO_DATE(?, 'YYYYMMDD'))");
+                        pstmt.setString(1, mid);
+                        pstmt.setString(2, today);
+
+                        return pstmt;
+                    }
+                }
+        );
     }
 
     @Override
@@ -47,6 +66,24 @@ public class MemberInfoDaoImpl implements MemberInfoDao {
                 return pstmt;
             }
         });
+    }
+
+    @Override
+    public List<Attendance> selectAttendDateList(ReqMemberDto.AttendCheck date ) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT check_date "
+                        + "FROM tb_attendance "
+                        + "WHERE member_id=? "
+                        + "AND check_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD')"
+                        + "ORDER BY check_date DESC",
+                new RowMapper<Attendance>() {
+                    @Override
+                    public Attendance mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return Attendance.builder().checkDate(rs.getDate("check_date")).build();
+                    }
+                },
+                date.getMid(), date.getStartDate(), date.getEndDate()
+        );
     }
 
     @Override
@@ -131,6 +168,14 @@ public class MemberInfoDaoImpl implements MemberInfoDao {
             Logger.error("요청한 아이디({})에 해당하는 비밀번호가 없어서 에러 발생하여 강제로 0 반환", id);
             return "0";
         }
+    }
+
+    @Override
+    public void updatePoint(String mid, int point) throws SQLException {
+        jdbcTemplate.update(
+                "UPDATE tb_member_info SET point = point + ? WHERE member_id=?",
+                point, mid
+        );
     }
 
     @Override

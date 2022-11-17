@@ -1,6 +1,6 @@
-package com.areum.moneymanager.service.member.main;
+package com.areum.moneymanager.service.main;
 
-import com.areum.moneymanager.dto.ResHomeDto;
+import com.areum.moneymanager.dto.ResMemberDto;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ public interface HomeService {
     void addPoint( String mid ) throws Exception;
 
     //출석완료 리스트
-    List<ResHomeDto.AttendCheck> confirmAttend(String mid, int year, int month, int lastDate ) throws Exception;
+    List<ResMemberDto.AttendCheck> confirmAttend(String mid, int year, int month, int lastDate ) throws Exception;
 
     //출석하기
     int toAttend( String mid ) throws Exception;

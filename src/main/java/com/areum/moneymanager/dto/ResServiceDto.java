@@ -7,9 +7,7 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResAccountBookDto {
-
-    public ResAccountBookDto() {}
+public class ResServiceDto {
 
     @Builder
     @Getter
@@ -18,17 +16,31 @@ public class ResAccountBookDto {
         private int price;
     }
 
-    public List<ResAccountBookDto.MonthChart> toResMonthChart(List<AccountBook> accountBookList ){
-        List<ResAccountBookDto.MonthChart> resultList = new ArrayList<>(accountBookList.size());
+    public List<MonthChart> toResMonthChart(List<AccountBook> accountBookList ){
+        List<ResServiceDto.MonthChart> resultList = new ArrayList<>(accountBookList.size());
         for(AccountBook accountBook : accountBookList ) {
             resultList.add(
-                    ResAccountBookDto.MonthChart.builder()
+                    ResServiceDto.MonthChart.builder()
                             .category(accountBook.getCategory_id())
                             .price(accountBook.getPrice()).build()
             );
         }
 
         return resultList;
+    }
+
+    @Builder
+    @Getter
+    //내역조회(월) - 전체
+    public static class detailMonth {
+        private Long id;
+        private String date;
+        private String fix;
+        private String code;
+        private String name;
+        private String title;
+        private int price;
+        private int totalPrice;
     }
 
 }

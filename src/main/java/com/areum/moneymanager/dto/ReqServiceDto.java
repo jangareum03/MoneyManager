@@ -7,11 +7,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+public class ReqServiceDto {
 
-public class ReqAccountBookDto {
+    //날짜 이동
+    @Getter
+    @Builder
+    public static class MoveDate {
+        private int year;
+        private int month;
+    }
 
-    private ReqAccountBookDto() {}
-
+    //가계부 작성
     @Builder
     @Getter
     public static class Write {
@@ -41,17 +47,4 @@ public class ReqAccountBookDto {
         }
     }
 
-    @Builder
-    @Getter
-    public static class MonthChart{
-        private String category;
-        private String accountDate;
-
-        public AccountBook toEntity(){
-            return AccountBook.builder()
-                    .category_id(category)
-                    .account_date(accountDate)
-                    .build();
-        }
-    }
 }

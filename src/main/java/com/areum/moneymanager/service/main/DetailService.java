@@ -1,26 +1,25 @@
-package com.areum.moneymanager.service;
+package com.areum.moneymanager.service.main;
 
-import com.areum.moneymanager.dao.AccountBookDao;
-import com.areum.moneymanager.dao.AccountBookDaoImpl;
-import com.areum.moneymanager.dto.ResAccountBookDto;
+import com.areum.moneymanager.dao.ServiceDao;
+import com.areum.moneymanager.dao.ServiceDaoImpl;
+import com.areum.moneymanager.dto.ResServiceDto;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.util.List;
 
 @Service
 public class ChartService {
 
-    private final AccountBookDao accountBookDao;
+    private final ServiceDao accountBookDao;
 
-    public ChartService(AccountBookDaoImpl accountBookDao ){
+    public ChartService(ServiceDaoImpl accountBookDao ){
         this.accountBookDao = accountBookDao;
     }
 
     public JSONObject getJSONData(String mid) throws Exception {
-        List<ResAccountBookDto.MonthChart> list = monthChartList(mid);
+        List<ResServiceDto.MonthChart> list = monthChartList(mid);
 
         JSONObject data = new JSONObject();
 
@@ -37,7 +36,7 @@ public class ChartService {
         data.put("cols", title);
 
         JSONArray body = new JSONArray();
-        for( ResAccountBookDto.MonthChart dto : list ) {
+        for( ResServiceDto.MonthChart dto : list ) {
             JSONObject category = new JSONObject();
             category.put("v", dto.getCategory());
 
@@ -59,9 +58,12 @@ public class ChartService {
         return data;
     }
 
-    public List<ResAccountBookDto.MonthChart> monthChartList(String mid ) throws Exception {
-        return new ResAccountBookDto().toResMonthChart(accountBookDao.selectAccountByMonth( mid ));
+
+    public List<ResServiceDto.MonthChart> monthChartList(String mid ) throws Exception {
+        return new ResServiceDto().toResMonthChart(accountBookDao.selectGraphByMonth( mid ));
     }
+
+
 
 
 }

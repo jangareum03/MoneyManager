@@ -1,4 +1,4 @@
-package com.areum.moneymanager.service;
+package com.areum.moneymanager.service.member;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
