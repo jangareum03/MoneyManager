@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class ReqServiceDto {
@@ -45,6 +46,17 @@ public class ReqServiceDto {
                     .image3(String.valueOf(images.get(2).getOriginalFilename()))
                     .location_name(mapName).location(mapRoad).build();
         }
+    }
+
+    //월 기준으로 검색
+    @Builder
+    @Getter
+    public  static class MonthSearch{
+        private String year;
+        private String month;
+        private String option;
+        private String title;
+        private String[] category;
     }
 
 }

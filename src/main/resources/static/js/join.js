@@ -15,8 +15,6 @@ function idCheck() {
     }else{
         let xhr = new XMLHttpRequest();
 
-        const data = {id : "test02"};
-
         xhr.open('POST', '/join/idCheck', true);
         xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
         xhr.send("id=" + id);

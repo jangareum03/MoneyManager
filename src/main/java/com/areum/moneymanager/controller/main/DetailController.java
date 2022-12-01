@@ -1,43 +1,72 @@
 package com.areum.moneymanager.controller.main;
 
-import com.areum.moneymanager.service.main.DetailService;
+import com.areum.moneymanager.dto.ReqServiceDto;
+import com.areum.moneymanager.dto.ResServiceDto;
+import com.areum.moneymanager.service.main.DetailServiceImpl;
+import com.areum.moneymanager.service.main.WriteService;
+import com.areum.moneymanager.service.main.WriteServiceImpl;
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @Controller
 public class DetailController {
 
-    private final DetailService detailService;
+    private final DetailServiceImpl detailService;
+    private final WriteService writeService;
 
-    public DetailController(DetailService detailService ) {
+    @Autowired
+    public DetailController(DetailServiceImpl detailService, WriteServiceImpl writeService ) {
         this.detailService = detailService;
+        this.writeService = writeService;
     }
 
-    @GetMapping("/detail")
-    public ModelAndView getChartView( HttpSession session ) throws Exception {
+    @RequestMapping( value = "/detailMonth", method = {RequestMethod.GET, RequestMethod.POST})
+    public ModelAndView getDetailMonthView(@RequestParam(defaultValue = "all")String mode, ReqServiceDto.MonthSearch monthSearch, HttpSession session, HttpServletRequest request ) throws Exception {
         ModelAndView mav = new ModelAndView();
-        String mid = (String)session.getAttribute("mid");
 
-        mav.addObject("date", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 MM월")));
-        mav.addObject("priceList", detailService.monthPrice(mid));
-        mav.addObject("list", detailService.detailMonthList( mid ));
-        mav.setViewName("/main/chart_month");
+        Map<String, Object> map = new HashMap<>();
+        //날짜 얻기
+        List<String> dateList = detailService.makeDate(monthSearch);
+        map.put("year", dateList.get(0));
+        map.put("month", dateList.get(1));
+        map.put("mode", mode);
+        map.put("option", monthSearch.getOption() == null ? null : monthSearch.getOption().replace(",", ""));
+        //카테고리 리스트 얻기
+        Map<String, List<ResServiceDto.category>> categoryMap = writeService.getCategory();
+        map.put("parent", categoryMap.get("parent"));
+        map.put("income", categoryMap.get("income"));
+        map.put("expend", categoryMap.get("expend"));
+        map.put("incomeCheck", monthSearch.getCategory() == null ? null : detailService.makeCategoryList( monthSearch.getCategory(), categoryMap.get("income").size()));
+        map.put("expendCheck", monthSearch.getCategory() == null ? null : detailService.makeCategoryList( monthSearch.getCategory(), categoryMap.get("expend").size()));
+        //월 가계부 리스트 및 가격 얻기
+        String mid = (String) session.getAttribute("mid");
+        Map<String, Object> accountMap = detailService.accountBookByMonth(mid, mode, monthSearch);
+        map.put("list", accountMap.get("list"));
+        map.put("totalPrice", accountMap.get("totalPrice"));
+        map.put("inPrice", accountMap.get("inPrice"));
+        map.put("outPrice", accountMap.get("outPrice"));
+
+        mav.addObject("map", map);
+        mav.setViewName("/main/detail_month");
         return mav;
     }
 
     @ResponseBody
-    @PostMapping("/monthChart")
+    @PostMapping("/detailMonthChart")
     public JSONObject  getMonthChart( HttpSession session ) throws Exception {
-        return detailService.getJSONData( (String)session.getAttribute("mid") );
+        return detailService.getJsonObject( (String)session.getAttribute("mid") );
     }
+
+
 
 }

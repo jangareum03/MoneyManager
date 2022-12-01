@@ -48,7 +48,6 @@ public class ResServiceDto {
     //수입 카테고리
     @Builder
     @Getter
-
     public static class category {
         private String name;
         private String code;

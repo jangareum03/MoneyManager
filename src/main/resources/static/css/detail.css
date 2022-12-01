@@ -155,6 +155,11 @@ nav{
     justify-content: space-between;
     margin-bottom: 20px;
 }
+.menu {
+    display: none;
+    position: absolute;
+    left: 38%
+}
 
 /* 그래프 */
 #chart {
@@ -174,34 +179,44 @@ nav{
     height: 35%;
     overflow: auto;
 }
+
+/* 스크롤바 안보이게 */
+#table_div {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+#table_div::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera*/
+}
+
 #table_div th,td {
     border-left: 1px solid #aaa;
     border-right: 1px solid #aaa;
     border-bottom: 1px solid #aaa;
 }
-.table_top {
+#table_top {
     position: sticky;
     top: 0px;
     height: 30px;
     background-color: #F9FC9A;
 }
-.table_top th:nth-child(1) {
+#table_top th:nth-child(1) {
     width: 3%;
 }
-.table_top th:nth-child(2) {
+#table_top th:nth-child(2) {
     width: 10%;
 }
-.table_top th:nth-child(3) {
+#table_top th:nth-child(3) {
     width: 8%;
 }
-.table_top th:nth-child(4) {
+#table_top th:nth-child(4) {
     width: 15%;
 }
-.table_top th:nth-child(6) {
+#table_top th:nth-child(6) {
     width: 20%;
 }
 
-.table_row {
+#table_body tr{
     height: 50px;
 }
 .table_bottom {
@@ -211,9 +226,11 @@ nav{
 }
 .table_bottom  th {
     background-color: #AEBFF7;
+    vertical-align: middle;
 }
 .table_bottom  td {
     background-color: #F9FAFF;
+    vertical-align: middle;
 }
 table {
     width: 100%;

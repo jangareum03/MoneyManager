@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -20,6 +22,17 @@ public class WriteServiceImpl implements WriteService {
     @Autowired
     public WriteServiceImpl( ServiceDaoImpl accountBookDao ) {
         this.accountBookDao = accountBookDao;
+    }
+
+    @Override
+    public Map<String, List<ResServiceDto.category>> getCategory() throws Exception {
+        Map<String, List<ResServiceDto.category>> resultMap = new HashMap<>();
+
+        resultMap.put("income", ResServiceDto.category.toResIncomeCategory( accountBookDao.selectIncomeCategory() ));
+        resultMap.put("expend", ResServiceDto.category.toResIncomeCategory( accountBookDao.selectExpenditureCategory() ));
+        resultMap.put("parent", ResServiceDto.category.toResIncomeCategory( accountBookDao.selectParentCategory() ));
+
+        return resultMap;
     }
 
     @Override
