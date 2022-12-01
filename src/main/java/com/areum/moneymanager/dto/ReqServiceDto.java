@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public class ReqServiceDto {
@@ -57,6 +56,13 @@ public class ReqServiceDto {
         private String option;
         private String title;
         private String[] category;
+    }
+
+    //가계부 삭제
+    @Builder
+    @Getter
+    public static class DeleteAccount{
+        private Long[] id;
     }
 
 }

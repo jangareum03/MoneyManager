@@ -31,6 +31,14 @@ public class ServiceDaoImpl implements ServiceDao {
 
 
     @Override
+    public void deleteAccountBook( String mid, String deleteQuery ) throws SQLException {
+        jdbcTemplate.update(
+                String.valueOf("DELETE FROM tb_account_book WHERE member_id=? " + deleteQuery),
+                mid
+        );
+    }
+
+    @Override
     public void insertAccountBook(AccountBook accountBook, String mid ) throws SQLException {
         jdbcTemplate.update(
                 new PreparedStatementCreator() {

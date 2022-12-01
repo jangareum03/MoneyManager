@@ -9,6 +9,9 @@ import java.util.List;
 
 public interface ServiceDao {
 
+    //가계부 삭제
+    void deleteAccountBook( String mid, String deleteQuery ) throws SQLException;
+
     //가계부 등록
     void insertAccountBook(AccountBook accountBook, String mid ) throws SQLException;
 

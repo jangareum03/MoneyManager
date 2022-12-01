@@ -67,6 +67,12 @@ public class DetailController {
         return detailService.getJsonObject( (String)session.getAttribute("mid") );
     }
 
+    @PostMapping("/deleteAccount")
+    public String postDelete( ReqServiceDto.DeleteAccount deleteAccount, HttpSession session ) throws Exception {
+        detailService.deleteAccountBook( (String)session.getAttribute("mid"), deleteAccount );
+
+        return "redirect:/detailMonth";
+    }
 
 
 }

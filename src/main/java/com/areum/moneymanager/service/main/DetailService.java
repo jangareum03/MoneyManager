@@ -9,16 +9,19 @@ import java.util.Map;
 public interface DetailService {
 
     //월 기준으로 가계부 조회
-    public Map<String, Object> accountBookByMonth(String mid, String mode, ReqServiceDto.MonthSearch monthSearch) throws Exception;
+    Map<String, Object> accountBookByMonth(String mid, String mode, ReqServiceDto.MonthSearch monthSearch) throws Exception;
+
+    //가계부 삭제
+    void deleteAccountBook( String mid, ReqServiceDto.DeleteAccount deleteAccount ) throws Exception;
 
     //JSON 객체 생성
-    public JSONObject getJsonObject(String mid) throws Exception;
+    JSONObject getJsonObject(String mid) throws Exception;
 
     //날짜 만들기
-    public List<String> makeDate(ReqServiceDto.MonthSearch monthSearch) throws Exception;
+    List<String> makeDate(ReqServiceDto.MonthSearch monthSearch) throws Exception;
 
     //카테고리 리스트 만들기
-    public String[] makeCategoryList( String[] category, int size ) throws Exception;
+    String[] makeCategoryList( String[] category, int size ) throws Exception;
 
 
 

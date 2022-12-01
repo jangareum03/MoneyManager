@@ -8,13 +8,14 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 
 @Service
-public class DetailServiceImpl implements DetailService{
+public class DetailServiceImpl implements DetailService {
 
     private final ServiceDao serviceDao;
     private LocalDate localDate;
@@ -48,9 +49,9 @@ public class DetailServiceImpl implements DetailService{
                 break;
             case "inCategory":
             case "outCategory":
-                if( monthSearch.getCategory() == null || monthSearch.getCategory().length == 0 ) {
+                if (monthSearch.getCategory() == null || monthSearch.getCategory().length == 0) {
                     resultMap.put("list", serviceDao.selectMonthAccount(mid, startDate, endDate));
-                }else{
+                } else {
                     String category = makeCategorySQL(monthSearch.getCategory());
                     resultMap.put("list", serviceDao.selectMonthByCategory(mid, startDate, endDate, category));
                 }
@@ -63,6 +64,13 @@ public class DetailServiceImpl implements DetailService{
 
         return resultMap;
     }
+
+    @Override
+    public void deleteAccountBook(String mid, ReqServiceDto.DeleteAccount deleteAccount) throws Exception {
+        String sql = makeDeleteSQL(deleteAccount.getId());
+        serviceDao.deleteAccountBook(mid, sql);
+    }
+
 
     //월 기준으로 그래프 조회
     private List<ResServiceDto.MonthChart> graphByMonth(String mid) throws Exception {
@@ -140,10 +148,10 @@ public class DetailServiceImpl implements DetailService{
         return sql.toString();
     }
 
-    public String[] makeCategoryList( String[] category, int size ) throws Exception {
+    public String[] makeCategoryList(String[] category, int size) throws Exception {
         String[] result = new String[size];
 
-        for( int i=0; i< result.length; i++ ) {
+        for (int i = 0; i < result.length; i++) {
             for (String s : category) {
                 if (s.substring(3, 4).equals(i + 1 + "")) {
                     result[i] = s;
@@ -152,6 +160,21 @@ public class DetailServiceImpl implements DetailService{
         }
 
         return result;
-
     }
+
+    private String makeDeleteSQL(Long[] id) throws Exception {
+        StringBuilder sql = new StringBuilder("AND id IN (");
+
+        for (int i = 0; i < id.length; i++) {
+            sql.append("'").append(id[i]).append("'");
+
+            if (i != (id.length - 1)) {
+                sql.append(",");
+            }
+        }
+
+        sql.append(")");
+        return sql.toString();
+    }
+
 }

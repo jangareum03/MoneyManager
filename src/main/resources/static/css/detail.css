@@ -152,10 +152,13 @@ nav{
 /* 검색메뉴 */
 #menu {
     display: flex;
+}
+#searchMenu {
+    display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
 }
-.menu {
+#searchMenu .menu {
     display: none;
     position: absolute;
     left: 38%
@@ -174,22 +177,22 @@ nav{
 }
 
 /* 표 */
-#table_div {
+#table_form {
     width: 100%;
     height: 35%;
     overflow: auto;
 }
 
 /* 스크롤바 안보이게 */
-#table_div {
+#table_form {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
 }
-#table_div::-webkit-scrollbar {
+#table_form::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera*/
 }
 
-#table_div th,td {
+#table_form th,td {
     border-left: 1px solid #aaa;
     border-right: 1px solid #aaa;
     border-bottom: 1px solid #aaa;

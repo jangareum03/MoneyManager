@@ -39,37 +39,39 @@
             <span th:text="${map['month']} < 10 ? ${map['year']} + '년 0' + ${map['month']} + '월' : ${map['year']} + '년 ' + ${map['month']} + '월'"></span>
         </div>
         <div id="chart_div"></div>
-        <form id="menu" method="post" th:action="@{/detailMonth}">
-            <select name="mode"  id="mode" th:onchange="onChangeMode(this)">
-                <option th:value="${'all'}" th:selected="${map['mode']} == 'all'">전체</option>
-                <option th:value="${'inout'}" th:selected="${map['mode']} == 'inout'">수입/지출</option>
-                <option th:value="${'title'}" th:selected="${map['mode']} == 'title'">제목</option>
-                <option th:value="${'inCategory'}" th:selected="${map['mode']} == 'inCategory'">수입 카테고리</option>
-                <option th:value="${'outCategory'}" th:selected="${map['mode']} == 'outCategory'">지출 카테고리</option>
-            </select>
-                <div class="menu" th:style="${map['mode'] == 'inout' ? 'display: block' : 'display: none'}">
-                    <label th:each="category : ${map['parent']}">
-                        <input type="radio" th:value="${category.code}" name="option" th:onclick="document.getElementById('menu').submit()" th:checked="${category.code == map['option']}">[[${category.name}]]
-                    </label>
-                </div>
-                <div class="menu" th:style="${map['mode'] == 'title' ? 'display: block' : 'display: none'}">
-                    <input type="text" placeholder="제목을 입력해주세요." class="mode" name="title">
-                    <button type="button" th:onclick="document.getElementById('menu').submit()">검색</button>
-                </div>
-                <div class="menu" th:style="${map['mode'] == 'inCategory' ? 'display:block' : 'display:none'}">
-                    <label th:each="category : ${map['income']}">
-                            <input type="checkbox" th:value="${category.code}" class="inMode" name="category" th:checked="${map['incomeCheck'] != null && map['incomeCheck'][categoryStat.index] == category.code }" th:onclick="document.getElementById('menu').submit()">
-                            [[${category.name}]]
-                    </label>
-                </div>
-                <div class="menu" th:style="${map['mode'] == 'outCategory' ? 'display:block' : 'display: none'}">
-                    <label th:each="category : ${map['expend']}">
-                        <input type="checkbox" th:value="${category.code}" class="exMode" name="category" th:checked="${map['expendCheck'] != null && map['expendCheck'][categoryStat.index] == category.code}" th:onclick="document.getElementById('menu').submit()">
-                        [[${category.name}]]</label>
-                </div>
-            <button type="button">삭제</button>
-        </form>
-        <div id="table_div">
+        <div id="searchMenu">
+            <form id="menu" method="post" th:action="@{/detailMonth}">
+                <select name="mode"  id="mode" th:onchange="onChangeMode(this)">
+                    <option th:value="${'all'}" th:selected="${map['mode']} == 'all'">전체</option>
+                    <option th:value="${'inout'}" th:selected="${map['mode']} == 'inout'">수입/지출</option>
+                    <option th:value="${'title'}" th:selected="${map['mode']} == 'title'">제목</option>
+                    <option th:value="${'inCategory'}" th:selected="${map['mode']} == 'inCategory'">수입 카테고리</option>
+                    <option th:value="${'outCategory'}" th:selected="${map['mode']} == 'outCategory'">지출 카테고리</option>
+                </select>
+                    <div class="menu" th:style="${map['mode'] == 'inout' ? 'display: block' : 'display: none'}">
+                        <label th:each="category : ${map['parent']}">
+                            <input type="radio" th:value="${category.code}" name="option" th:onclick="document.getElementById('menu').submit()" th:checked="${category.code == map['option']}">[[${category.name}]]
+                        </label>
+                    </div>
+                    <div class="menu" th:style="${map['mode'] == 'title' ? 'display: block' : 'display: none'}">
+                        <input type="text" placeholder="제목을 입력해주세요." class="mode" name="title">
+                        <button type="button" th:onclick="document.getElementById('menu').submit()">검색</button>
+                    </div>
+                    <div class="menu" th:style="${map['mode'] == 'inCategory' ? 'display:block' : 'display:none'}">
+                        <label th:each="category : ${map['income']}">
+                                <input type="checkbox" th:value="${category.code}" class="inMode" name="category" th:checked="${map['incomeCheck'] != null && map['incomeCheck'][categoryStat.index] == category.code }" th:onclick="document.getElementById('menu').submit()">
+                                [[${category.name}]]
+                        </label>
+                    </div>
+                    <div class="menu" th:style="${map['mode'] == 'outCategory' ? 'display:block' : 'display: none'}">
+                        <label th:each="category : ${map['expend']}">
+                            <input type="checkbox" th:value="${category.code}" class="exMode" name="category" th:checked="${map['expendCheck'] != null && map['expendCheck'][categoryStat.index] == category.code}" th:onclick="document.getElementById('menu').submit()">
+                            [[${category.name}]]</label>
+                    </div>
+            </form>
+            <button type="button" th:onclick="deleteCheck()">삭제</button>
+        </div>
+        <form method="post" th:action="@{/deleteAccount}" id="table_form">
             <table>
                 <tbody id="table_top">
                     <tr>
@@ -86,7 +88,7 @@
                         <td colspan="6" th:style="${'vertical-align: middle'}">내역이 없습니다. 등록해주세요!</td>
                     </tr>
                     <tr th:each="list : ${map['list']}" th:unless="${#lists.size(map['list'])}  == 0">
-                        <td><input type="checkbox"><input type="hidden" th:value="${list.id}"></td>
+                        <td><input type="checkbox" name="id" th:value="${list.id}"></td>
                         <td>[[${list.date}]]</td>
                         <td th:text="${list.fix == 'y' ? '고정' : '변동'}"></td>
                         <td>[[${list.name}]]</td>
@@ -95,7 +97,7 @@
                     </tr>
                 </tbody>
             </table>
-        </div>
+        </form>
         <div>
             <table>
                 <tr class="table_bottom">

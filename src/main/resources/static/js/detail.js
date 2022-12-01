@@ -29,11 +29,33 @@ function onChangeMode( input ) {
     }
 }
 
+//카테고리 체크박스 해제
 function checkBoxDisabled( category ){
     for( i=0; i<category.length; i++ ) {
         if(category[i].checked){
             category[i].checked = false;
         }
+    }
+}
+
+//내역 삭제 시 체크박스 확인
+function deleteCheck(){
+    let check = document.getElementsByName('id');
+    let isCheck = true;
+
+    for(i=0; i<check.length; i++) {
+        if( check[i].checked == true ) {
+            isCheck = false;
+            break;
+        }
+    }
+
+    if( isCheck ) {
+        alert('삭제할 내역을 선택해주세요.');
+        return false;
+    }else{
+        let frm = document.getElementById('table_form');
+        frm.submit();
     }
 }
 
