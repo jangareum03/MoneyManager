@@ -59,5 +59,10 @@ function deleteCheck(){
     }
 }
 
+//팝업창 띄우기
+function win_open( page, name ){
+    window.open(page, name, "width=1000, height=600, left=500, top=200, toolbar=no, scrollbars=no, location=no, fullscreen=yes");
+}
+
 
 

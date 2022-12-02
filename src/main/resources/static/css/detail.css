@@ -137,6 +137,9 @@ nav{
 }
 
 /* 날짜 */
+.title {
+    cursor: pointer;
+}
 .title > span {
     font-family: SEBANG_Gothic_Bold;
     font-size: 45px;

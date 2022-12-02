@@ -35,8 +35,11 @@
 <nav th:replace="/include/menu.html :: menu"></nav>
 <div id="chart">
     <div class="content">
-        <div class="title">
+        <div class="title" th:onclick="win_open('/datePopup', '날짜선택')">
             <span th:text="${map['month']} < 10 ? ${map['year']} + '년 0' + ${map['month']} + '월' : ${map['year']} + '년 ' + ${map['month']} + '월'"></span>
+            <form id="parentForm" method="post" th:action="@{/detailYear}">
+                <input type="hidden" name="year" id="year">
+            </form>
         </div>
         <div id="chart_div"></div>
         <div id="searchMenu">

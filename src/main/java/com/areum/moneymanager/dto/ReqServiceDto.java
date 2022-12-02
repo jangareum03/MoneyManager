@@ -65,4 +65,13 @@ public class ReqServiceDto {
         private Long[] id;
     }
 
+    //내역 날짜
+    @Builder
+    @Getter
+    public static class AccountDate{
+        private  String year;
+        private String month;
+        private String week;
+    }
+
 }

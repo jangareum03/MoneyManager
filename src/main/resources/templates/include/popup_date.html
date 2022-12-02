@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>날짜 선택</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+    <script>
+        function clickGo(){
+            let yearList = document.getElementsByName('year');
+            let monthList = document.getElementsByName('month');
+            let weekList = document.getElementsByName('week');
+            let yChecked = true;
+            let mChecked = true;
+            let wChecked =true;
+            let year;
+
+            for( i=0; i<yearList.length; i++ ) {
+                if( yearList[i].checked ) {
+                    year = yearList[i].value;
+                    yChecked = false;
+                }
+            }
+
+            if( yChecked ) {
+                alert('날짜를 선택해주세요.');
+                return false;
+            }else{
+                for( i=0; i<monthList.length; i++){
+                    if( monthList[i].checked ) {
+                        mChecked = false;
+                    }
+                }
+
+                for( i=0; i<weekList.length; i++){
+                    if( weekList[i].checked ) {
+                        wChecked = false;
+                    }
+                }
+
+                if( mChecked && wChecked  ) {
+                    //년만 선택됨
+                    opener.document.getElementById('year').value = year;
+                    opener.document.getElementById('parentForm').submit();
+                }else if( mChecked == true && wChecked == false ) {
+                    alert('월을 먼저 선택해주세요.');
+                    return false;
+                }
+
+                setTimeout(function() {
+                    window.close();
+                }, 100);
+            }
+        }
+    </script>
+</head>
+<body>
+<div id="popup">
+    <div id="title">날짜 선택</div>
+    <div class="dateArea">
+        <span>년</span>
+        <div>
+            <label th:each="y : ${#numbers.sequence( (year-4), year)}">
+                <input type="radio" name="year" th:value="${y}">[[${y}]]년
+            </label>
+        </div>
+    </div>
+    <div class="dateArea">
+        <span>월</span>
+        <div>
+            <label th:each="m : ${#numbers.sequence(1, 12)}">
+                <input type="radio" name="month" th:value="${m}">[[${m}]]월
+            </label>
+        </div>
+    </div>
+    <div class="dateArea">
+        <span>주</span>
+        <div>
+            <label th:each="w : ${#numbers.sequence(1, 5)}">
+                <input type="radio" name="week" th:value="${w}">[[${w}]]주
+            </label>
+        </div>
+    </div>
+    <div id="aloneBtn">
+        <button type="button" th:onclick="return clickGo()">확인</button>
+    </div>
+</div>
+</body>
+</html>

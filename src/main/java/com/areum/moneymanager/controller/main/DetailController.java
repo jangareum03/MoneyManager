@@ -5,6 +5,7 @@ import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.service.main.DetailServiceImpl;
 import com.areum.moneymanager.service.main.WriteService;
 import com.areum.moneymanager.service.main.WriteServiceImpl;
+import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,10 +63,32 @@ public class DetailController {
         return mav;
     }
 
+    @RequestMapping( value="/detailYear", method = {RequestMethod.GET, RequestMethod.POST})
+    public ModelAndView getDetailYearView( ReqServiceDto.AccountDate accountDate ) {
+        ModelAndView mav = new ModelAndView();
+
+        Map<String, Object> map = new HashMap<>();
+        //선택한 날짜
+        map.put("year", accountDate.getYear());
+
+        mav.addObject("map", map);
+        mav.setViewName("/main/detail_year");
+        return mav;
+    }
+
     @ResponseBody
     @PostMapping("/detailMonthChart")
     public JSONObject  getMonthChart( HttpSession session ) throws Exception {
         return detailService.getJsonObject( (String)session.getAttribute("mid") );
+    }
+
+    @GetMapping("/datePopup")
+    public ModelAndView getPopupView() {
+        ModelAndView mav = new ModelAndView();
+
+        mav.addObject("year", LocalDate.now().getYear());
+        mav.setViewName("/include/popup_date");
+        return mav;
     }
 
     @PostMapping("/deleteAccount")
@@ -73,6 +97,7 @@ public class DetailController {
 
         return "redirect:/detailMonth";
     }
+
 
 
 }
