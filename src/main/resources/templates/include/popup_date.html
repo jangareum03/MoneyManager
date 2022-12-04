@@ -41,6 +41,7 @@
                 if( mChecked && wChecked  ) {
                     //년만 선택됨
                     opener.document.getElementById('year').value = year;
+                    opener.document.getElementById('parentForm').action = '/detailYear';
                     opener.document.getElementById('parentForm').submit();
                 }else if( mChecked == true && wChecked == false ) {
                     alert('월을 먼저 선택해주세요.');

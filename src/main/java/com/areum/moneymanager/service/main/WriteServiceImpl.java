@@ -25,24 +25,24 @@ public class WriteServiceImpl implements WriteService {
     }
 
     @Override
-    public Map<String, List<ResServiceDto.category>> getCategory() throws Exception {
-        Map<String, List<ResServiceDto.category>> resultMap = new HashMap<>();
+    public Map<String, List<ResServiceDto.Category>> getCategory() throws Exception {
+        Map<String, List<ResServiceDto.Category>> resultMap = new HashMap<>();
 
-        resultMap.put("income", ResServiceDto.category.toResIncomeCategory( accountBookDao.selectIncomeCategory() ));
-        resultMap.put("expend", ResServiceDto.category.toResIncomeCategory( accountBookDao.selectExpenditureCategory() ));
-        resultMap.put("parent", ResServiceDto.category.toResIncomeCategory( accountBookDao.selectParentCategory() ));
+        resultMap.put("income", ResServiceDto.Category.toResIncomeCategory( accountBookDao.selectIncomeCategory() ));
+        resultMap.put("expend", ResServiceDto.Category.toResIncomeCategory( accountBookDao.selectExpenditureCategory() ));
+        resultMap.put("parent", ResServiceDto.Category.toResIncomeCategory( accountBookDao.selectParentCategory() ));
 
         return resultMap;
     }
 
     @Override
-    public List<ResServiceDto.category> getExpenditureCategory() throws Exception {
-        return ResServiceDto.category.toResIncomeCategory( accountBookDao.selectExpenditureCategory() );
+    public List<ResServiceDto.Category> getExpenditureCategory() throws Exception {
+        return ResServiceDto.Category.toResIncomeCategory( accountBookDao.selectExpenditureCategory() );
     }
 
     @Override
-    public List<ResServiceDto.category> getIncomeCategory() throws Exception {
-        return ResServiceDto.category.toResIncomeCategory( accountBookDao.selectIncomeCategory() );
+    public List<ResServiceDto.Category> getIncomeCategory() throws Exception {
+        return ResServiceDto.Category.toResIncomeCategory( accountBookDao.selectIncomeCategory() );
     }
 
     @Override

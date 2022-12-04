@@ -8,7 +8,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -25,43 +24,77 @@ public class DetailServiceImpl implements DetailService {
     }
 
 
-    public Map<String, Object> accountBookByMonth(String mid, String mode, ReqServiceDto.MonthSearch monthSearch) throws Exception {
+    public Map<String, Object> accountBookByMonth(String mid, String mode, ReqServiceDto.AccountSearch search ) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
 
         //날짜 설정
-        if (monthSearch.getYear() == null && monthSearch.getMonth() == null) {
+        if (search.getYear() == null && search.getMonth() == null) {
             localDate = LocalDate.now().withDayOfMonth(1);
         } else {
-            localDate = LocalDate.of(Integer.parseInt(monthSearch.getYear()), Integer.parseInt(monthSearch.getMonth()), 1);
+            localDate = LocalDate.of(Integer.parseInt(search.getYear()), Integer.parseInt(search.getMonth()), 1);
         }
         String startDate = localDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String endDate = localDate.withDayOfMonth(localDate.lengthOfMonth()).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
         switch (mode) {
-            case "all":
-                resultMap.put("list", serviceDao.selectMonthAccount(mid, startDate, endDate));
-                break;
             case "inout":
-                resultMap.put("list", serviceDao.selectMonthByParentCategory(mid, startDate, endDate, monthSearch.getOption().replaceAll(",", "")));
+                resultMap.put("list", serviceDao.selectAccountByParentCategory(mid, startDate, endDate, search.getOption().replaceAll(",", "")));
                 break;
             case "title":
-                resultMap.put("list", serviceDao.selectMonthByTitle(mid, startDate, endDate, monthSearch.getTitle()));
+                resultMap.put("list", serviceDao.selectAccountByTitle(mid, startDate, endDate, search.getTitle()));
                 break;
             case "inCategory":
             case "outCategory":
-                if (monthSearch.getCategory() == null || monthSearch.getCategory().length == 0) {
-                    resultMap.put("list", serviceDao.selectMonthAccount(mid, startDate, endDate));
+                if ( search.getCategory() == null || search.getCategory().length == 0 ) {
+                    resultMap.put("list", serviceDao.selectAllAccount(mid, startDate, endDate));
                 } else {
-                    String category = makeCategorySQL(monthSearch.getCategory());
-                    resultMap.put("list", serviceDao.selectMonthByCategory(mid, startDate, endDate, category));
+                    String category = makeCategorySQL(search.getCategory());
+                    resultMap.put("list", serviceDao.selectAccountByCategory(mid, startDate, endDate, category));
                 }
                 break;
+            case "all":
+            default:
+                resultMap.put("list", serviceDao.selectAllAccount(mid, startDate, endDate));
         }
 
-        resultMap.put("totalPrice", serviceDao.selectMonthTotalPrice(mid, startDate, endDate));
-        resultMap.put("inPrice", serviceDao.selectMonthPrice(mid, startDate, endDate, "01"));
-        resultMap.put("outPrice", serviceDao.selectMonthPrice(mid, startDate, endDate, "02"));
+        resultMap.put("inPrice", serviceDao.selectAccountPrice(mid, startDate, endDate, "01"));
+        resultMap.put("outPrice", serviceDao.selectAccountPrice(mid, startDate, endDate, "02"));
 
+        return resultMap;
+    }
+
+    @Override
+    public Map<String, Object> accountBookByYear(String mid, String mode, ReqServiceDto.AccountSearch search) throws Exception {
+        Map<String, Object> resultMap = new HashMap<>();
+
+        String startDate = search.getYear() + "0101";
+        String endDate = search.getYear() + "1231";
+        switch ( mode ) {
+            case "inout" :
+                resultMap.put("list", serviceDao.selectAccountByParentCategory( mid, startDate, endDate, search.getOption().replaceAll(",", "")));
+                break;
+            case "title" :
+                resultMap.put("list", serviceDao.selectAccountByTitle( mid, startDate, endDate, search.getTitle() ));
+                break;
+            case "inCategory":
+            case "outCategory":
+                if( search.getCategory() == null || search.getCategory().length == 0 ) {
+                    resultMap.put("list", serviceDao.selectAllAccount( mid, startDate, endDate ));
+                }else{
+                    String category = makeCategorySQL( search.getCategory() );
+                    resultMap.put("list", serviceDao.selectAccountByCategory( mid, startDate, endDate, category ));
+                }
+                break;
+            case "period":
+                resultMap.put("list", serviceDao.selectAllAccount( mid, search.getStart(), search.getEnd() ));
+                break;
+            case "all" :
+            default:
+                resultMap.put("list", serviceDao.selectAllAccount( mid, startDate, endDate ));
+        }
+
+        resultMap.put("inPrice", serviceDao.selectAccountPrice( mid, startDate, endDate, "01"));
+        resultMap.put("outPrice", serviceDao.selectAccountPrice( mid, startDate, endDate, "02" ));
         return resultMap;
     }
 
@@ -77,7 +110,8 @@ public class DetailServiceImpl implements DetailService {
         return new ResServiceDto().toResMonthChart(serviceDao.selectGraphByMonth(mid));
     }
 
-    public JSONObject getJsonObject(String mid) throws Exception {
+    //월 기준으로 json 얻기
+    public JSONObject getJsonMonth(String mid) throws Exception {
         List<ResServiceDto.MonthChart> list = graphByMonth(mid);
 
         JSONObject data = new JSONObject();
@@ -115,19 +149,67 @@ public class DetailServiceImpl implements DetailService {
         return data;
     }
 
-    public List<String> makeDate(ReqServiceDto.MonthSearch monthSearch) throws Exception {
+    //년 기준으로 json 얻기
+    @Override
+    public JSONObject getJsonYear( String mid, ReqServiceDto.AccountSearch search ) throws Exception {
+        List<ResServiceDto.YearChar> list = serviceDao.selectGraphByYear( mid , search);
+        JSONObject data = new JSONObject();
+
+        JSONObject col1 = new JSONObject();
+        col1.put("label", "월");
+        col1.put("type", "string");
+        JSONObject col2 = new JSONObject();
+        col2.put("label", "수입");
+        col2.put("type", "number");
+        JSONObject col3 = new JSONObject();
+        col3.put("label", "지출");
+        col3.put("type", "number");
+
+        JSONArray title = new JSONArray();
+        title.add(col1);
+        title.add(col2);
+        title.add(col3);
+        data.put("cols", title);
+
+        JSONArray body = new JSONArray();
+        for( ResServiceDto.YearChar dto : list ) {
+            JSONObject month = new JSONObject();
+            month.put("v", dto.getMonth() + "월");
+
+            JSONObject inPrice = new JSONObject();
+            inPrice.put("v", dto.getInPrice());
+
+            JSONObject outPrice = new JSONObject();
+            outPrice.put("v", dto.getOutPrice());
+
+            JSONArray row = new JSONArray();
+            row.add(month);
+            row.add(inPrice);
+            row.add(outPrice);
+
+            JSONObject cell = new JSONObject();
+            cell.put("c", row);
+            body.add(cell);
+        }
+
+        data.put("rows", body);
+        return data;
+    }
+
+
+    public List<String> makeDate(ReqServiceDto.AccountSearch search) throws Exception {
         List<String> result = new ArrayList<>();
 
 
-        if (monthSearch.getYear() == null && monthSearch.getMonth() == null) {
+        if (search.getYear() == null && search.getMonth() == null) {
             localDate = LocalDate.now();
 
             result.add(String.valueOf(localDate.getYear()));
             result.add(String.valueOf(localDate.getMonthValue()));
         } else {
-            localDate = LocalDate.of(Integer.parseInt(monthSearch.getYear()), Integer.parseInt(monthSearch.getMonth()), 1);
-            result.add(monthSearch.getYear());
-            result.add(monthSearch.getMonth());
+            localDate = LocalDate.of(Integer.parseInt(search.getYear()), Integer.parseInt(search.getMonth()), 1);
+            result.add(search.getYear());
+            result.add(search.getMonth());
         }
 
         return result;
@@ -177,4 +259,4 @@ public class DetailServiceImpl implements DetailService {
         return sql.toString();
     }
 
-}
+    }

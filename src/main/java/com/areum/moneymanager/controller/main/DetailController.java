@@ -33,28 +33,28 @@ public class DetailController {
     }
 
     @RequestMapping( value = "/detailMonth", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView getDetailMonthView(@RequestParam(defaultValue = "all")String mode, ReqServiceDto.MonthSearch monthSearch, HttpSession session, HttpServletRequest request ) throws Exception {
+    public ModelAndView getDetailMonthView(@RequestParam(defaultValue = "all")String mode, ReqServiceDto.AccountSearch search, HttpSession session, HttpServletRequest request ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
         Map<String, Object> map = new HashMap<>();
         //날짜 얻기
-        List<String> dateList = detailService.makeDate(monthSearch);
+        List<String> dateList = detailService.makeDate(search);
         map.put("year", dateList.get(0));
         map.put("month", dateList.get(1));
         map.put("mode", mode);
-        map.put("option", monthSearch.getOption() == null ? null : monthSearch.getOption().replace(",", ""));
+        map.put("option", search.getOption() == null ? null : search.getOption().replace(",", ""));
         //카테고리 리스트 얻기
-        Map<String, List<ResServiceDto.category>> categoryMap = writeService.getCategory();
+        Map<String, List<ResServiceDto.Category>> categoryMap = writeService.getCategory();
         map.put("parent", categoryMap.get("parent"));
         map.put("income", categoryMap.get("income"));
         map.put("expend", categoryMap.get("expend"));
-        map.put("incomeCheck", monthSearch.getCategory() == null ? null : detailService.makeCategoryList( monthSearch.getCategory(), categoryMap.get("income").size()));
-        map.put("expendCheck", monthSearch.getCategory() == null ? null : detailService.makeCategoryList( monthSearch.getCategory(), categoryMap.get("expend").size()));
+        map.put("incomeCheck", search.getCategory() == null ? null : detailService.makeCategoryList( search.getCategory(), categoryMap.get("income").size()));
+        map.put("expendCheck", search.getCategory() == null ? null : detailService.makeCategoryList( search.getCategory(), categoryMap.get("expend").size()));
         //월 가계부 리스트 및 가격 얻기
         String mid = (String) session.getAttribute("mid");
-        Map<String, Object> accountMap = detailService.accountBookByMonth(mid, mode, monthSearch);
+        Map<String, Object> accountMap = detailService.accountBookByMonth(mid, mode, search);
         map.put("list", accountMap.get("list"));
-        map.put("totalPrice", accountMap.get("totalPrice"));
+        map.put("totalPrice", (int) accountMap.get("inPrice") + (int) accountMap.get("outPrice"));
         map.put("inPrice", accountMap.get("inPrice"));
         map.put("outPrice", accountMap.get("outPrice"));
 
@@ -64,12 +64,31 @@ public class DetailController {
     }
 
     @RequestMapping( value="/detailYear", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView getDetailYearView( ReqServiceDto.AccountDate accountDate ) {
+    public ModelAndView getDetailYearView( @RequestParam(defaultValue = "all")String mode, ReqServiceDto.AccountSearch search, HttpSession session ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
         Map<String, Object> map = new HashMap<>();
         //선택한 날짜
-        map.put("year", accountDate.getYear());
+        map.put("year", search.getYear());
+        map.put("mode", mode);
+        map.put("option", search.getOption() == null ? null : search.getOption().replace(",", ""));
+        //카테고리 리스트 얻기
+        Map<String, List<ResServiceDto.Category>> categoryMap = writeService.getCategory();
+        map.put("parent", categoryMap.get("parent"));
+        map.put("income", categoryMap.get("income"));
+        map.put("expend", categoryMap.get("expend"));
+        map.put("incomeCheck", search.getCategory() == null ? null : detailService.makeCategoryList( search.getCategory(), categoryMap.get("income").size()));
+        map.put("expendCheck", search.getCategory() == null ? null : detailService.makeCategoryList( search.getCategory(), categoryMap.get("expend").size()));
+        //월 가계부 리스트 및 가격 얻기
+        String mid = (String) session.getAttribute("mid");
+        Map<String, Object> accountMap = detailService.accountBookByYear(mid, mode, search);
+        map.put("list", accountMap.get("list"));
+        map.put("totalPrice" , (int)accountMap.get("inPrice") + (int)accountMap.get("outPrice"));
+        map.put("inPrice", accountMap.get("inPrice"));
+        map.put("outPrice", accountMap.get("outPrice"));
+
+        //차트를 위한 session 저장
+        session.setAttribute("yearChart", search );
 
         mav.addObject("map", map);
         mav.setViewName("/main/detail_year");
@@ -79,7 +98,16 @@ public class DetailController {
     @ResponseBody
     @PostMapping("/detailMonthChart")
     public JSONObject  getMonthChart( HttpSession session ) throws Exception {
-        return detailService.getJsonObject( (String)session.getAttribute("mid") );
+        return detailService.getJsonMonth( (String)session.getAttribute("mid") );
+    }
+
+    @ResponseBody
+    @PostMapping("/detailYearChart")
+    public JSONObject getYearChart( HttpSession session ) throws Exception {
+        JSONObject result = detailService.getJsonYear( (String)session.getAttribute("mid"), (ReqServiceDto.AccountSearch) session.getAttribute("yearChart") );
+        session.removeAttribute("yearChart");
+
+        return result;
     }
 
     @GetMapping("/datePopup")

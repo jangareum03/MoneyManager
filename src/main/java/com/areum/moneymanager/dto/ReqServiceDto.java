@@ -47,14 +47,17 @@ public class ReqServiceDto {
         }
     }
 
-    //월 기준으로 검색
+    //가계부 검색
     @Builder
     @Getter
-    public  static class MonthSearch{
+    public  static class AccountSearch{
         private String year;
         private String month;
+        private String week;
         private String option;
         private String title;
+        private String start;
+        private String end;
         private String[] category;
     }
 
@@ -63,15 +66,6 @@ public class ReqServiceDto {
     @Getter
     public static class DeleteAccount{
         private Long[] id;
-    }
-
-    //내역 날짜
-    @Builder
-    @Getter
-    public static class AccountDate{
-        private  String year;
-        private String month;
-        private String week;
     }
 
 }

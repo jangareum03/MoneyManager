@@ -9,13 +9,13 @@ import java.util.Map;
 public interface WriteService {
 
     //카테고리 얻기
-    Map<String, List<ResServiceDto.category>> getCategory() throws Exception;
+    Map<String, List<ResServiceDto.Category>> getCategory() throws Exception;
 
     //지출 카테고리 얻기
-    List<ResServiceDto.category> getExpenditureCategory() throws Exception;
+    List<ResServiceDto.Category> getExpenditureCategory() throws Exception;
 
     //수입 카테고리 얻기
-    List<ResServiceDto.category> getIncomeCategory() throws Exception;
+    List<ResServiceDto.Category> getIncomeCategory() throws Exception;
 
     //가계부 등록
     void writeAccountBook(ReqServiceDto.Write write, String mid ) throws Exception;

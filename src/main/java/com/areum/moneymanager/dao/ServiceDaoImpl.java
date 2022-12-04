@@ -1,5 +1,6 @@
 package com.areum.moneymanager.dao;
 
+import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.entity.AccountBook;
 import com.areum.moneymanager.entity.Category;
@@ -18,12 +19,12 @@ public class ServiceDaoImpl implements ServiceDao {
     private final JdbcTemplate jdbcTemplate;
 
     //쿼리문
-    private static final String SELECT_ACCOUNT_MONTH = "SELECT tc.NAME category, NVL(SUM(PRICE), 0) price " +
-                                                                                            "FROM TB_ACCOUNT_BOOK tab RIGHT JOIN " +
-                                                                                                    "(SELECT * FROM TB_CATEGORY WHERE PARENT_CODE = '020000')tc " +
-                                                                                                "ON tc.CODE = tab.CATEGORY_ID AND tab.MEMBER_ID = ? AND tab.ACCOUNT_DATE >= TRUNC(SYSDATE, 'MM') AND tab.ACCOUNT_DATE < ADD_MONTHS(TRUNC(SYSDATE,'MM'), 1) " +
-                                                                                                "GROUP BY tc.CODE, tc.NAME " +
-                                                                                                "ORDER BY tc.CODE";
+    private static final String SELECT_ACCOUNT_MONTH = "SELECT tc.name category, NVL(SUM(price), 0) price " +
+                                                                                                        "FROM tb_account_book tab RIGHT JOIN " +
+                                                                                                            "(SELECT * FROM tb_category WHERE parent_code = '020000')tc " +
+                                                                                                            "ON tc.code = tab.category_id AND tab.member_id = ? AND tab.account_date >= TRUNC(SYSDATE, 'MM') AND tab.account_date < ADD_MONTHS(TRUNC(SYSDATE,'MM'), 1) " +
+                                                                                                "GROUP BY tc.code, tc.name " +
+                                                                                                "ORDER BY tc.code";
 
     public ServiceDaoImpl(DataSource dataSource ){
         this.jdbcTemplate = new JdbcTemplate( dataSource );
@@ -100,11 +101,38 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
+    public List<ResServiceDto.YearChar> selectGraphByYear(String mid, ReqServiceDto.AccountSearch search) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT basic.month, NVL(SUM(inTab.price), 0) inPrice, NVL(SUM(outTab.price), 0) outPrice " +
+                        "FROM (SELECT SUBSTR(account_date, 5,2) month, price " +
+                        "FROM tb_account_book tab " +
+                        "WHERE member_id = ? AND TO_CHAR(TO_DATE(account_date, 'YYYYMMDD'), 'YYYY') = ? " +
+                        "AND SUBSTR(category_id, 1,2) = '01') inTab" +
+                        ",(SELECT SUBSTR(account_date, 5,2) month, price " +
+                        "FROM tb_account_book tab  " +
+                        "WHERE member_id = ? AND TO_CHAR(TO_DATE(account_date, 'YYYYMMDD'), 'YYYY') = ? " +
+                        "AND SUBSTR(category_id, 1,2) = '02') outTab" +
+                        ",(SELECT TO_CHAR(ADD_MONTHS(TO_DATE('200001', 'YYYYMM'), LEVEL -1), 'MM') month " +
+                        "FROM DUAL CONNECT BY LEVEL <= 12) basic " +
+                        "WHERE basic.month = inTab.month(+) AND basic.month = outTab.month(+) " +
+                        "GROUP BY basic.month, inTab.month, outTab.month " +
+                        "ORDER BY 1",
+                new RowMapper<ResServiceDto.YearChar>() {
+                    @Override
+                    public ResServiceDto.YearChar mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.YearChar.builder().month(rs.getString("month")).inPrice(rs.getInt("inPrice")).outPrice(rs.getInt("outPrice")).build();
+                    }
+                },
+                mid, search.getYear(), mid, search.getYear()
+        );
+    }
+
+    @Override
     public List<Category> selectIncomeCategory() throws SQLException {
         return jdbcTemplate.query(
-                "SELECT NAME, CODE " +
-                        "FROM   TB_CATEGORY " +
-                        "WHERE  PARENT_CODE = '010000' " +
+                "SELECT name, code " +
+                        "FROM  tb_category " +
+                        "WHERE  parent_code = '010000' " +
                         "ORDER BY code",
                 new RowMapper<Category>() {
                     @Override
@@ -116,18 +144,18 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public List<ResServiceDto.detailMonth> selectMonthAccount( String mid, String startDate, String endDate ) throws SQLException {
+    public List<ResServiceDto.DetailList> selectAllAccount( String mid, String startDate, String endDate ) throws SQLException {
         return jdbcTemplate.query(
-                "SELECT tab.ID, tab.ACCOUNT_DATE, tab.FIX, SUBSTR(tab.CATEGORY_ID, 0, 2) code, tc.NAME, tab.TITLE, tab.PRICE  " +
-                            "FROM TB_ACCOUNT_BOOK tab, TB_CATEGORY tc " +
-                            "WHERE MEMBER_ID = ? " +
-                            "AND tc.CODE = tab.CATEGORY_ID " +
-                            "AND ACCOUNT_DATE BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
-                            "ORDER BY ACCOUNT_DATE DESC",
-                new RowMapper<ResServiceDto.detailMonth>() {
+                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
+                            "FROM tb_account_book tab, tb_category tc " +
+                            "WHERE member_id = ? " +
+                            "AND tc.code = tab.category_id " +
+                            "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
+                            "ORDER BY account_date DESC",
+                new RowMapper<ResServiceDto.DetailList>() {
                     @Override
-                    public ResServiceDto.detailMonth mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.detailMonth.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix")).code(rs.getString("code"))
+                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix")).code(rs.getString("code"))
                                 .name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
                     }
                 },
@@ -136,18 +164,18 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public List<ResServiceDto.detailMonth> selectMonthByParentCategory( String mid, String startDate, String endDate, String code ) throws SQLException {
+    public List<ResServiceDto.DetailList> selectAccountByParentCategory( String mid, String startDate, String endDate, String code ) throws SQLException {
         return jdbcTemplate.query(
-                "SELECT tab.ID, tab.ACCOUNT_DATE, tab.FIX, SUBSTR(tab.CATEGORY_ID, 0, 2) code, tc.NAME, tab.TITLE, tab.PRICE " +
-                        "FROM TB_ACCOUNT_BOOK tab, ( SELECT name,code FROM tb_category WHERE parent_code = ? ) tc " +
+                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
+                        "FROM tb_account_book tab, ( SELECT name,code FROM tb_category WHERE parent_code = ? ) tc " +
                         "WHERE member_id = ? " +
                         "AND tc.code = tab.category_id " +
                         "AND tab.account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
                         "ORDER BY account_date DESC",
-                new RowMapper<ResServiceDto.detailMonth>() {
+                new RowMapper<ResServiceDto.DetailList>() {
                     @Override
-                    public ResServiceDto.detailMonth mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.detailMonth.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
+                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
                                 .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
                     }
                 },
@@ -156,8 +184,9 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public List<ResServiceDto.detailMonth> selectMonthByCategory( String mid, String startDate, String endDate, String category ) throws SQLException {
-        StringBuilder query = new StringBuilder("SELECT tab.ID, tab.ACCOUNT_DATE, tab.FIX, SUBSTR(tab.CATEGORY_ID, 0, 2) code, tc.NAME, tab.TITLE, tab.PRICE " +
+    public List<ResServiceDto.DetailList> selectAccountByCategory( String mid, String startDate, String endDate, String category ) throws SQLException {
+        StringBuilder query = new StringBuilder(
+                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
                 "FROM tb_account_book tab, tb_category tc " +
                 "WHERE member_id=? AND tc.code = tab.category_id AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') "
         );
@@ -165,10 +194,10 @@ public class ServiceDaoImpl implements ServiceDao {
         query.append("ORDER BY account_date DESC");
         return jdbcTemplate.query(
                 query.toString(),
-                new RowMapper<ResServiceDto.detailMonth>() {
+                new RowMapper<ResServiceDto.DetailList>() {
                     @Override
-                    public ResServiceDto.detailMonth mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.detailMonth.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
+                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
                                 .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
                     }
                 },
@@ -177,19 +206,19 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public List<ResServiceDto.detailMonth> selectMonthByTitle(String mid, String startDate, String endDate, String title) throws SQLException {
+    public List<ResServiceDto.DetailList> selectAccountByTitle(String mid, String startDate, String endDate, String title) throws SQLException {
         return jdbcTemplate.query(
-                "SELECT tab.ID, tab.ACCOUNT_DATE, tab.FIX, SUBSTR(tab.CATEGORY_ID, 0, 2) code, tc.NAME, tab.TITLE, tab.PRICE " +
+                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
                         "FROM tb_account_book tab, tb_category tc " +
                         "WHERE member_id=? " +
                         "AND tc.code = tab.category_id " +
                         "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
                         "AND title LIKE ? " +
                         "ORDER BY account_date DESC",
-                new RowMapper<ResServiceDto.detailMonth>() {
+                new RowMapper<ResServiceDto.DetailList>() {
                     @Override
-                    public ResServiceDto.detailMonth mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.detailMonth.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
+                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
                                 .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
                     }
                 },
@@ -198,27 +227,15 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public Integer selectMonthPrice( String mid, String startDate, String endDate, String code ) throws SQLException {
+    public Integer selectAccountPrice( String mid, String startDate, String endDate, String code ) throws SQLException {
         return jdbcTemplate.queryForObject(
                 "SELECT NVL(SUM(price), 0) price " +
                             "FROM tb_account_book " +
                             "WHERE member_id = ? " +
-                            "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
-                            "AND SUBSTR(category_id, 0, 2) = ?",
+                                "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
+                                "AND SUBSTR(category_id, 0, 2) = ?",
                 Integer.class,
                 mid, startDate, endDate, code
-        );
-    }
-
-    @Override
-    public Integer selectMonthTotalPrice(String mid, String startDate, String endDate) throws SQLException {
-        return jdbcTemplate.queryForObject(
-                "SELECT NVL(SUM(price), 0) price " +
-                        "FROM tb_account_book " +
-                        "WHERE member_id = ? " +
-                        "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD')",
-                Integer.class,
-                mid, startDate, endDate
         );
     }
 
