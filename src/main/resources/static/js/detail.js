@@ -78,22 +78,22 @@ function dateCheck( target ){
     }
 }
 
-//기간 시작날짜와 종료날짜 입력 확인
+//기간 날짜 확인
 function periodCheck(){
     let start = document.getElementById('start').value;
     let end = document.getElementById('end').value;
 
     if( start == '' && end == '' ) {
         alert('검색할 날짜를 입력해주세요.');
+        document.getElementById('start').focus();
         return false;
     }else if( start == '' && end != '' ) {
         alert('시작날짜를 입력해주세요.');
-        return false;
-    }else if( start.length < 8 || end.length <8 ) {
-        alert('아래와 같은 형식으로 입력해주세요.\n(형식: 20220101)');
+        document.getElementById('start').focus();
         return false;
     }else if( start != '' && end == '' ) {
         alert('종료날짜를 입력해주세요.');
+        document.getElementById('end').focus();
         return false;
     }
 
