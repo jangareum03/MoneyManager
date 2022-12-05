@@ -5,7 +5,6 @@ import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.service.main.DetailServiceImpl;
 import com.areum.moneymanager.service.main.WriteService;
 import com.areum.moneymanager.service.main.WriteServiceImpl;
-import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -58,8 +57,22 @@ public class DetailController {
         map.put("inPrice", accountMap.get("inPrice"));
         map.put("outPrice", accountMap.get("outPrice"));
 
+        //차트를 위한 session 저장
+        session.setAttribute("monthChart", search);
+
         mav.addObject("map", map);
         mav.setViewName("/main/detail_month");
+        return mav;
+    }
+
+    @RequestMapping( value = "/detailWeek", method = {RequestMethod.GET, RequestMethod.POST})
+    public ModelAndView getDetailWeekView( @RequestParam(defaultValue = "all")String mode, ReqServiceDto.AccountSearch search, HttpSession session ) {
+        ModelAndView mav = new ModelAndView();
+
+        Map<String, Object> map = new HashMap<>();
+        //날짜 얻기
+
+
         return mav;
     }
 
@@ -98,7 +111,10 @@ public class DetailController {
     @ResponseBody
     @PostMapping("/detailMonthChart")
     public JSONObject  getMonthChart( HttpSession session ) throws Exception {
-        return detailService.getJsonMonth( (String)session.getAttribute("mid") );
+        JSONObject result = detailService.getJsonMonth( (String)session.getAttribute("mid"), (ReqServiceDto.AccountSearch)session.getAttribute("monthChart") );
+        session.removeAttribute("monthChart");
+
+        return  result;
     }
 
     @ResponseBody

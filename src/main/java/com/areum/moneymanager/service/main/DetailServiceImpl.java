@@ -106,13 +106,16 @@ public class DetailServiceImpl implements DetailService {
 
 
     //월 기준으로 그래프 조회
-    private List<ResServiceDto.MonthChart> graphByMonth(String mid) throws Exception {
-        return new ResServiceDto().toResMonthChart(serviceDao.selectGraphByMonth(mid));
+    private List<ResServiceDto.MonthChart> graphByMonth( String mid, ReqServiceDto.AccountSearch search ) throws Exception {
+        List<String> makeDate = makeDate(search);
+        String date = makeDate.get(0) + makeDate.get(1) + "01";
+
+        return new ResServiceDto().toResMonthChart( serviceDao.selectGraphByMonth( mid, date ) );
     }
 
     //월 기준으로 json 얻기
-    public JSONObject getJsonMonth(String mid) throws Exception {
-        List<ResServiceDto.MonthChart> list = graphByMonth(mid);
+    public JSONObject getJsonMonth( String mid, ReqServiceDto.AccountSearch search ) throws Exception {
+        List<ResServiceDto.MonthChart> list = graphByMonth( mid, search );
 
         JSONObject data = new JSONObject();
 
@@ -205,11 +208,16 @@ public class DetailServiceImpl implements DetailService {
             localDate = LocalDate.now();
 
             result.add(String.valueOf(localDate.getYear()));
-            result.add(String.valueOf(localDate.getMonthValue()));
         } else {
             localDate = LocalDate.of(Integer.parseInt(search.getYear()), Integer.parseInt(search.getMonth()), 1);
-            result.add(search.getYear());
-            result.add(search.getMonth());
+            result.add(String.valueOf(localDate.getYear()));
+        }
+
+        if( localDate.getMonthValue() < 10 ){
+            String month = String.valueOf(localDate.getMonthValue());
+            result.add("0" + month);
+        }else{
+            result.add(String.valueOf(localDate.getMonthValue()));
         }
 
         return result;

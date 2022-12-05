@@ -10,42 +10,52 @@
             let yearList = document.getElementsByName('year');
             let monthList = document.getElementsByName('month');
             let weekList = document.getElementsByName('week');
-            let yChecked = true;
-            let mChecked = true;
-            let wChecked =true;
-            let year;
+            let yChecked, mChecked, wChecked = false;
+            let year, month, week;
 
             for( i=0; i<yearList.length; i++ ) {
                 if( yearList[i].checked ) {
                     year = yearList[i].value;
-                    yChecked = false;
+                    yChecked = true;
                 }
             }
 
-            if( yChecked ) {
+            if( !yChecked ) {
                 alert('날짜를 선택해주세요.');
                 return false;
             }else{
                 for( i=0; i<monthList.length; i++){
                     if( monthList[i].checked ) {
-                        mChecked = false;
+                        month = monthList[i].value;
+                        mChecked = true;
                     }
                 }
 
                 for( i=0; i<weekList.length; i++){
                     if( weekList[i].checked ) {
-                        wChecked = false;
+                        week = weekList[i].value;
+                        wChecked = true;
                     }
                 }
 
-                if( mChecked && wChecked  ) {
+                if( !mChecked && !wChecked  ) {
                     //년만 선택됨
                     opener.document.getElementById('year').value = year;
                     opener.document.getElementById('parentForm').action = '/detailYear';
                     opener.document.getElementById('parentForm').submit();
-                }else if( mChecked == true && wChecked == false ) {
-                    alert('월을 먼저 선택해주세요.');
-                    return false;
+                }else if( mChecked && !wChecked ) {
+                     //년,월만 선택됨
+                    opener.document.getElementById('year').value = year;
+                    opener.document.getElementById('month').value = month;
+                    opener.document.getElementById('parentForm').action = '/detailMonth';
+                    opener.document.getElementById('parentForm').submit();
+                }else if( mChecked && wChecked ) {
+                    //년, 월, 주 모두 선택됨
+                    opener.document.getElementById('year').value = year;
+                    opener.document.getElementById('month').value = month;
+                    opener.document.getElementById('week').value = week;
+                    opener.document.getElementById('parentForm').action = '/detailWeek';
+                    opener.document.getElementById('parentForm').submit();
                 }
 
                 setTimeout(function() {

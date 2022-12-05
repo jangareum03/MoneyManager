@@ -36,16 +36,20 @@
 <div id="chart">
     <div class="content">
         <div class="title" th:onclick="win_open('/datePopup', '날짜선택')">
-            <span th:text="${map['month']} < 10 ? ${map['year']} + '년 0' + ${map['month']} + '월' : ${map['year']} + '년 ' + ${map['month']} + '월'"></span>
+            <span th:text="${map['year']} + '년 ' + ${map['month']} + '월'"></span>
             <form id="parentForm" method="post">
                 <input type="hidden" name="year" id="year">
+                <input type="hidden" name="month" id="month">
+                <input type="hidden" name="week" id="week">
             </form>
         </div>
         <div id="chart_div"></div>
         <!-- 검색 영역 -->
         <div id="searchMenu">
             <form id="menu" method="post" th:action="@{/detailMonth}">
-                <select name="mode"  id="mode" th:onchange="onChangeMode(this)">
+                <input type="hidden" name="year" th:value="${map['year']}">
+                <input type="hidden" name="month" th:value="${map['month']}">
+                <select name="mode"  id="mode" th:onchange="onChangeModeByMonth(this)">
                     <option th:value="${'all'}" th:selected="${map['mode']} == 'all'">전체</option>
                     <option th:value="${'inout'}" th:selected="${map['mode']} == 'inout'">수입/지출</option>
                     <option th:value="${'title'}" th:selected="${map['mode']} == 'title'">제목</option>

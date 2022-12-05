@@ -20,10 +20,10 @@ public interface ServiceDao {
     List<Category> selectExpenditureCategory() throws SQLException;
 
     //월 전체 그래프
-    List<AccountBook> selectGraphByMonth( String mid ) throws SQLException;
+    List<AccountBook> selectGraphByMonth( String mid, String date ) throws SQLException;
 
     //년 전체 그래프
-    List<ResServiceDto.YearChar> selectGraphByYear(String mid, ReqServiceDto.AccountSearch search ) throws SQLException;
+    List<ResServiceDto.YearChar> selectGraphByYear( String mid, ReqServiceDto.AccountSearch search ) throws SQLException;
 
     //수입 카테고리 조회
     List<Category> selectIncomeCategory() throws SQLException;

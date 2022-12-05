@@ -1,5 +1,37 @@
-//내역 검색영역 선택 동작
-function onChangeMode( input ) {
+//월 내역 검색영역 선택 동작
+function onChangeModeByMonth( input ) {
+    let mode = input.value;
+    let inout = document.getElementsByClassName('menu')[0];
+    let title = document.getElementsByClassName('menu')[1]
+    let inCategory = document.getElementsByClassName('menu')[2];
+    let outCategory = document.getElementsByClassName('menu')[3];
+
+    inout.style.display = 'none';
+    title.style.display = 'none';
+    inCategory.style.display = 'none';
+    outCategory.style.display = 'none';
+
+    if( mode == 'all' ) {
+        document.getElementById('menu').submit();
+    }else if( mode == 'inout' ) {
+        inout.style.display = 'block';
+    }else if( mode == 'title' ) {
+        title.style.display = 'block';
+    }else if( mode == 'inCategory' ) {
+        inCategory.style.display = 'block';
+
+        let category = document.getElementsByClassName('exMode');
+        checkBoxDisabled(category);
+    }else if( mode == 'outCategory' ) {
+        outCategory.style.display = 'block';
+
+        let category = document.getElementsByClassName('inMode');
+        checkBoxDisabled(category);
+    }
+}
+
+//년 내역 검색영역 선택 동작
+function onChangeModeByYear( input ) {
     let mode = input.value;
     let inout = document.getElementsByClassName('menu')[0];
     let title = document.getElementsByClassName('menu')[1];

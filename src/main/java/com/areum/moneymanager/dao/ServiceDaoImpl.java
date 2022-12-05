@@ -22,7 +22,7 @@ public class ServiceDaoImpl implements ServiceDao {
     private static final String SELECT_ACCOUNT_MONTH = "SELECT tc.name category, NVL(SUM(price), 0) price " +
                                                                                                         "FROM tb_account_book tab RIGHT JOIN " +
                                                                                                             "(SELECT * FROM tb_category WHERE parent_code = '020000')tc " +
-                                                                                                            "ON tc.code = tab.category_id AND tab.member_id = ? AND tab.account_date >= TRUNC(SYSDATE, 'MM') AND tab.account_date < ADD_MONTHS(TRUNC(SYSDATE,'MM'), 1) " +
+                                                                                                            "ON tc.code = tab.category_id AND tab.member_id = ? AND tab.account_date >= TRUNC(TO_DATE(?, 'YYYYMMDD'), 'MM') AND tab.account_date < ADD_MONTHS(TRUNC(TO_DATE(?, 'YYYYMMDD'),'MM'), 1) " +
                                                                                                 "GROUP BY tc.code, tc.name " +
                                                                                                 "ORDER BY tc.code";
 
@@ -87,7 +87,7 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public List<AccountBook> selectGraphByMonth( String mid ) throws SQLException {
+    public List<AccountBook> selectGraphByMonth( String mid, String date ) throws SQLException {
         return jdbcTemplate.query(
                 SELECT_ACCOUNT_MONTH,
                 new RowMapper<AccountBook>() {
@@ -96,7 +96,7 @@ public class ServiceDaoImpl implements ServiceDao {
                         return AccountBook.builder().category_id(rs.getString("category")).price(rs.getInt("price")).build();
                     }
                 },
-                mid
+                mid, date, date
         );
     }
 

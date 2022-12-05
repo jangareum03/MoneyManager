@@ -82,6 +82,8 @@
             <span>[[${map['year']}]]년</span>
             <form id="parentForm" method="post">
                 <input type="hidden" name="year" id="year">
+                <input type="hidden" name="month" id="month">
+                <input type="hidden" name="week" id="week">
             </form>
         </div>
         <div id="chart_div"></div>
@@ -89,7 +91,7 @@
         <div id="searchMenu">
             <form id="menu" method="post" th:action="@{/detailYear}">
                 <input type="hidden" name="year" th:value="${map['year']}">
-                <select name="mode"  id="mode" th:onchange="onChangeMode(this)">
+                <select name="mode"  id="mode" th:onchange="onChangeModeByYear(this)">
                     <option th:value="${'all'}" th:selected="${map['mode']} == 'all'">전체</option>
                     <option th:value="${'inout'}" th:selected="${map['mode']} == 'inout'">수입/지출</option>
                     <option th:value="${'title'}" th:selected="${map['mode']} == 'title'">제목</option>
