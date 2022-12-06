@@ -11,6 +11,9 @@ public interface DetailService {
     //월 기준으로 가계부 조회
     Map<String, Object> accountBookByMonth( String mid, String mode, ReqServiceDto.AccountSearch search ) throws Exception;
 
+    //주 기준으로 가계부 조회
+    Map<String, Object> accountBookByWeek( String mid, String mode, ReqServiceDto.AccountSearch search ) throws Exception;
+
     //년 기준으로 가계부 조회
     Map<String ,Object> accountBookByYear( String mid, String mode, ReqServiceDto.AccountSearch search ) throws Exception;
 
@@ -20,10 +23,15 @@ public interface DetailService {
     //JSON 객체 생성
     JSONObject getJsonMonth( String mid, ReqServiceDto.AccountSearch search ) throws Exception;
 
+    JSONObject getJsonWeek( String mid, ReqServiceDto.AccountSearch search ) throws Exception;
+
     JSONObject getJsonYear( String mid, ReqServiceDto.AccountSearch search ) throws Exception;
 
     //날짜 만들기
     List<String> makeDate( ReqServiceDto.AccountSearch search ) throws Exception;
+
+    //주에 해당하는 시작 및 종료날짜 만들기
+    List<String> makeDateByWeek( ReqServiceDto.AccountSearch search ) throws Exception;
 
     //카테고리 리스트 만들기
     String[] makeCategoryList( String[] category, int size ) throws Exception;

@@ -75,12 +75,19 @@ public class ResServiceDto {
     //년 차트
     @Builder
     @Getter
-    public static class YearChar{
+    public static class YearChart{
         private String month;
         private int inPrice;
         private int outPrice;
     }
 
+    @Builder
+    @Getter
+    public static class WeekChart{
+        private int week;
+        private int inPrice;
+        private int outPrice;
+    }
 
 
 }

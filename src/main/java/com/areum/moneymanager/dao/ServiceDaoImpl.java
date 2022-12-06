@@ -101,7 +101,52 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public List<ResServiceDto.YearChar> selectGraphByYear(String mid, ReqServiceDto.AccountSearch search) throws SQLException {
+    public List<ResServiceDto.WeekChart> selectGraphByWeek( String mid, String date ) throws SQLException {
+        return jdbcTemplate.query(
+            "WITH TEMP AS (" +
+                            "SELECT ROWNUM week, " +
+                                "CASE WHEN ROWNUM = 1 THEN firstday " +
+                                    "ELSE startweek + (LEVEL-2) * 7 END AS startweek, " +
+                                "CASE WHEN ROWNUM = 1 THEN endweek " +
+                                    "WHEN ROWNUM IN (4, 5) THEN " +
+                                        "(CASE WHEN endweek + (LEVEL-1) * 7 > lastday THEN lastday ELSE endweek + (LEVEL-1) * 7 END)" +
+                                    "ELSE endweek + (LEVEL-1) * 7 END AS endweek " +
+                            "FROM ( " +
+                                "SELECT firstday, lastday, firstday + step AS startweek, firstday + (step-1) AS endweek " +
+                                    "FROM ( " +
+                                        "SELECT TO_DATE(?, 'YYYYMMDD') firstday, " +
+                                                "LAST_DAY(TO_DATE(?, 'YYYYMMDD')) lastday, " +
+                                                "CASE WHEN 7 - TO_CHAR(TO_DATE(?, 'YYYYMMDD')- 1, 'D') = 0 THEN 7 " +
+                                                    "ELSE 7 - TO_CHAR(TO_DATE(?, 'YYYYMMDD')- 1, 'D') END AS step " +
+                                            "FROM DUAL) " +
+                                    ") " +
+                                    "WHERE ROWNUM < 6 " +
+                                    "CONNECT BY LEVEL <= lastday - firstday " +
+                        ") " +
+                        "SELECT week, " +
+                            "(SELECT NVL(SUM(price), 0) " +
+                                "FROM TB_ACCOUNT_BOOK tab " +
+                                "WHERE member_id = ? AND SUBSTR(category_id, 1, 2) = '01' " +
+                                    "AND account_date BETWEEN TO_DATE(TO_CHAR(startweek, 'YYYYMMDD'), 'YYYYMMDD') AND TO_DATE(TO_CHAR(endweek, 'YYYYMMDD'), 'YYYYMMDD') " +
+                            ") AS inPrice, " +
+                            "(SELECT NVL(SUM(price), 0) " +
+                                "FROM TB_ACCOUNT_BOOK tab " +
+                                "WHERE member_id = ? AND SUBSTR(category_id, 1, 2) = '02' " +
+                                    "AND account_date BETWEEN TO_DATE(TO_CHAR(startweek, 'YYYYMMDD'), 'YYYYMMDD') AND TO_DATE(TO_CHAR(endweek, 'YYYYMMDD'), 'YYYYMMDD') " +
+                            ") AS outPrice " +
+                        "FROM TEMP",
+                new RowMapper<ResServiceDto.WeekChart>() {
+                    @Override
+                    public ResServiceDto.WeekChart mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.WeekChart.builder().week(rs.getInt("week")).inPrice(rs.getInt("inPrice")).outPrice(rs.getInt("outPrice")).build();
+                    }
+                },
+                date, date, date, date, mid, mid
+        );
+    }
+
+    @Override
+    public List<ResServiceDto.YearChart> selectGraphByYear(String mid, ReqServiceDto.AccountSearch search) throws SQLException {
         return jdbcTemplate.query(
                 "SELECT basic.month, NVL(SUM(inTab.price), 0) inPrice, NVL(SUM(outTab.price), 0) outPrice " +
                         "FROM (SELECT SUBSTR(account_date, 5,2) month, price " +
@@ -117,10 +162,10 @@ public class ServiceDaoImpl implements ServiceDao {
                         "WHERE basic.month = inTab.month(+) AND basic.month = outTab.month(+) " +
                         "GROUP BY basic.month, inTab.month, outTab.month " +
                         "ORDER BY 1",
-                new RowMapper<ResServiceDto.YearChar>() {
+                new RowMapper<ResServiceDto.YearChart>() {
                     @Override
-                    public ResServiceDto.YearChar mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.YearChar.builder().month(rs.getString("month")).inPrice(rs.getInt("inPrice")).outPrice(rs.getInt("outPrice")).build();
+                    public ResServiceDto.YearChart mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.YearChart.builder().month(rs.getString("month")).inPrice(rs.getInt("inPrice")).outPrice(rs.getInt("outPrice")).build();
                     }
                 },
                 mid, search.getYear(), mid, search.getYear()

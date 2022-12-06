@@ -22,8 +22,11 @@ public interface ServiceDao {
     //월 전체 그래프
     List<AccountBook> selectGraphByMonth( String mid, String date ) throws SQLException;
 
+    //주 전체 그래프
+    List<ResServiceDto.WeekChart> selectGraphByWeek( String mid, String date ) throws SQLException;
+
     //년 전체 그래프
-    List<ResServiceDto.YearChar> selectGraphByYear( String mid, ReqServiceDto.AccountSearch search ) throws SQLException;
+    List<ResServiceDto.YearChart> selectGraphByYear( String mid, ReqServiceDto.AccountSearch search ) throws SQLException;
 
     //수입 카테고리 조회
     List<Category> selectIncomeCategory() throws SQLException;

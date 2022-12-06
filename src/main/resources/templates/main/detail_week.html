@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>내역조회 : 돈매니저</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/detail.css}">
+    <!-- js -->
+    <script th:src="@{/js/detail.js}"></script>
+    <!-- 구글 차트 -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+        google.charts.load('current', {packages: ['corechart', 'bar']});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '/detailWeekChart', false);
+            xhr.setRequestHeader('content-type', 'application/json');
+            xhr.send();
+
+            let data = new google.visualization.DataTable( xhr.response );
+
+            let option = {
+                'title' : '',
+                'colors' : ['#FF3939', '#207E37']
+            }
+
+            let chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+            chart.draw(data, option);
+        }
+    </script>
+</head>
+<body>
+<nav th:replace="/include/menu.html :: menu"></nav>
+<div id="chart">
+    <div class="content">
+        <div class="title" th:onclick="win_open('/datePopup', '날짜선택')">
+            <span th:text="${map['year']} + '년 ' + ${map['month']} + '월 ' + ${map['week']} + '주'"></span>
+            <form id="parentForm" method="post">
+                <input type="hidden" name="year" id="year">
+                <input type="hidden" name="month" id="month">
+                <input type="hidden" name="week" id="week">
+            </form>
+        </div>
+        <div id="chart_div"></div>
+        <!-- 검색 영역 -->
+        <div id="searchMenu">
+            <form id="menu" method="post" th:action="@{/detailWeek}">
+                <input type="hidden" name="year" th:value="${map['year']}">
+                <input type="hidden" name="month" th:value="${map['month']}">
+                <input type="hidden" name="week" th:value="${map['week']}">
+                <select name="mode"  id="mode" th:onchange="onChangeModeByMonth(this)">
+                    <option th:value="${'all'}" th:selected="${map['mode']} == 'all'">전체</option>
+                    <option th:value="${'inout'}" th:selected="${map['mode']} == 'inout'">수입/지출</option>
+                    <option th:value="${'title'}" th:selected="${map['mode']} == 'title'">제목</option>
+                    <option th:value="${'inCategory'}" th:selected="${map['mode']} == 'inCategory'">수입 카테고리</option>
+                    <option th:value="${'outCategory'}" th:selected="${map['mode']} == 'outCategory'">지출 카테고리</option>
+                </select>
+                    <div class="menu" th:style="${map['mode'] == 'inout' ? 'display: block' : 'display: none'}">
+                        <label th:each="category : ${map['parent']}">
+                            <input type="radio" th:value="${category.code}" name="option" th:onclick="document.getElementById('menu').submit()" th:checked="${category.code == map['option']}">[[${category.name}]]
+                        </label>
+                    </div>
+                    <div class="menu" th:style="${map['mode'] == 'title' ? 'display: block' : 'display: none'}">
+                        <input type="text" placeholder="제목을 입력해주세요." class="mode" name="title">
+                        <button type="button" th:onclick="document.getElementById('menu').submit()">검색</button>
+                    </div>
+                    <div class="menu" th:style="${map['mode'] == 'inCategory' ? 'display:block' : 'display:none'}">
+                        <label th:each="category : ${map['income']}">
+                                <input type="checkbox" th:value="${category.code}" class="inMode" name="category" th:checked="${map['incomeCheck'] != null && map['incomeCheck'][categoryStat.index] == category.code }" th:onclick="document.getElementById('menu').submit()">
+                                [[${category.name}]]
+                        </label>
+                    </div>
+                    <div class="menu" th:style="${map['mode'] == 'outCategory' ? 'display:block' : 'display: none'}">
+                        <label th:each="category : ${map['expend']}">
+                            <input type="checkbox" th:value="${category.code}" class="exMode" name="category" th:checked="${map['expendCheck'] != null && map['expendCheck'][categoryStat.index] == category.code}" th:onclick="document.getElementById('menu').submit()">
+                            [[${category.name}]]</label>
+                    </div>
+            </form>
+            <button type="button" th:onclick="deleteCheck()">삭제</button>
+        </div>
+        <form method="post" th:action="@{/deleteAccount}" id="table_form">
+            <table>
+                <tbody id="table_top">
+                    <tr>
+                        <th>선택</th>
+                        <th>날짜</th>
+                        <th>고정/변동</th>
+                        <th>카테고리</th>
+                        <th>제목</th>
+                        <th>금액</th>
+                    </tr>
+                </tbody>
+                <tbody id="table_body">
+                    <tr  th:if="${#lists.size(map['list'])}  == 0">
+                        <td colspan="6" th:style="${'vertical-align: middle'}">내역이 없습니다. 등록해주세요!</td>
+                    </tr>
+                    <tr th:each="list : ${map['list']}" th:unless="${#lists.size(map['list'])}  == 0">
+                        <td><input type="checkbox" name="id" th:value="${list.id}"></td>
+                        <td>[[${list.date}]]</td>
+                        <td th:text="${list.fix == 'y' ? '고정' : '변동'}"></td>
+                        <td>[[${list.name}]]</td>
+                        <td>[[${list.title}]]</td>
+                        <td th:text="${list.code == '01' ? '+ ' + #numbers.formatInteger(list.price, 3, 'COMMA') : '- ' + #numbers.formatInteger(list.price, 3, 'COMMA')}" th:style="${list.code == '01' ? 'color: #3960FF;' : 'color: #FF3939;'}">[[${list.price}]]</td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+        <div>
+            <table>
+                <tr class="table_bottom">
+                    <th>전체</th>
+                    <td th:text="${map['totalPrice'] == 0 ? '0원' : #numbers.formatInteger(map['totalPrice'], 3, 'COMMA') + '원'}">[[${map['totalPrice']}]]</td>
+                    <th>수입</th>
+                    <td th:text="${map['inPrice'] == 0 ? '0원' : #numbers.formatInteger(map['inPrice'], 3, 'COMMA') + '원'}">[[${map['inPrice']}]]</td>
+                    <th>지출</th>
+                    <td th:text="${map['outPrice'] == 0 ? '0원' : #numbers.formatInteger(map['outPrice'], 3, 'COMMA') + '원'}">[[${map['outPrice']}]]</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

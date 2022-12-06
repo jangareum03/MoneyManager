@@ -66,13 +66,37 @@ public class DetailController {
     }
 
     @RequestMapping( value = "/detailWeek", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView getDetailWeekView( @RequestParam(defaultValue = "all")String mode, ReqServiceDto.AccountSearch search, HttpSession session ) {
+    public ModelAndView getDetailWeekView( @RequestParam(defaultValue = "all")String mode, ReqServiceDto.AccountSearch search, HttpSession session ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
         Map<String, Object> map = new HashMap<>();
-        //날짜 얻기
+        //선택한 날짜
+        List<String> dateList = detailService.makeDate( search );
+        map.put("year", dateList.get(0));
+        map.put("month", dateList.get(1));
+        map.put("week", search.getWeek());
+        map.put("mode", mode);
+        map.put("option", search.getOption() == null ? null : search.getOption().replace(",", ""));
+        //카테고리 리스트 얻기
+        Map<String, List<ResServiceDto.Category>> categoryMap = writeService.getCategory();
+        map.put("parent", categoryMap.get("parent"));
+        map.put("income", categoryMap.get("income"));
+        map.put("expend", categoryMap.get("expend"));
+        map.put("incomeCheck", search.getCategory() == null ? null : detailService.makeCategoryList( search.getCategory(), categoryMap.get("income").size()));
+        map.put("expendCheck", search.getCategory() == null ? null : detailService.makeCategoryList( search.getCategory(), categoryMap.get("expend").size()));
+        //주 가계부 리스트 및 가격 얻기
+        String mid = (String) session.getAttribute("mid");
+        Map<String, Object> accountMap = detailService.accountBookByWeek(mid, mode, search);
+        map.put("list", accountMap.get("list"));
+        map.put("totalPrice", (int) accountMap.get("inPrice") + (int) accountMap.get("outPrice"));
+        map.put("inPrice", accountMap.get("inPrice"));
+        map.put("outPrice", accountMap.get("outPrice"));
 
+        mav.addObject("map", map);
+        mav.setViewName("/main/detail_week");
 
+        //차트를 위한 session 저장
+        session.setAttribute("weekChart", search);
         return mav;
     }
 
@@ -115,6 +139,15 @@ public class DetailController {
         session.removeAttribute("monthChart");
 
         return  result;
+    }
+
+    @ResponseBody
+    @PostMapping("/detailWeekChart")
+    public JSONObject getWeekChart( HttpSession session ) throws Exception {
+        JSONObject result = detailService.getJsonWeek( (String)session.getAttribute("mid"), (ReqServiceDto.AccountSearch)session.getAttribute("weekChart") );
+        session.removeAttribute("weekChart");
+
+        return result;
     }
 
     @ResponseBody
