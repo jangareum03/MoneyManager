@@ -21,7 +21,7 @@
             }
 
             if( !yChecked ) {
-                alert('날짜를 선택해주세요.');
+                alert('년도를 선택해주세요.');
                 return false;
             }else{
                 for( i=0; i<monthList.length; i++){
@@ -56,6 +56,9 @@
                     opener.document.getElementById('week').value = week;
                     opener.document.getElementById('type').value = 'w';
                     opener.document.getElementById('parentForm').submit();
+                }else{
+                    alert('월을 선택해주세요.');
+                    return false;
                 }
 
                 setTimeout(function() {

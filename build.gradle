@@ -33,17 +33,21 @@ dependencies {
 	implementation 'org.mapstruct:mapstruct:1.4.2.Final'
 	/* SMTP */
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '2.7.1'
+	/* file */
+	implementation 'commons-io:commons-io:2.11.0'
 	/* jUnit */
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
 	testImplementation 'org.mockito:mockito-core:4.8.0'
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+	/* json */
+	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
 	/* log */
-	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+	/*implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 	configurations {
 		all {
 			exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
 		}
-	}
+	}*/
 }
 
 tasks.named('test') {

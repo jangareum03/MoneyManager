@@ -64,7 +64,7 @@ public class WriteController {
 
         mav.addObject("accountDate", localDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         mav.addObject("formatDate", localDate.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 E요일")));
-        mav.addObject("maxImage", 2);
+        mav.addObject("maxImage", 1);
 
         if( mode.equals("1") ) {
             mav.addObject("category", writeService.getIncomeCategory());
