@@ -41,20 +41,20 @@
                 if( !mChecked && !wChecked  ) {
                     //년만 선택됨
                     opener.document.getElementById('year').value = year;
-                    opener.document.getElementById('parentForm').action = '/detailYear';
+                    opener.document.getElementById('type').value = 'y';
                     opener.document.getElementById('parentForm').submit();
                 }else if( mChecked && !wChecked ) {
                      //년,월만 선택됨
                     opener.document.getElementById('year').value = year;
                     opener.document.getElementById('month').value = month;
-                    opener.document.getElementById('parentForm').action = '/detailMonth';
+                    opener.document.getElementById('type').value = 'm';
                     opener.document.getElementById('parentForm').submit();
                 }else if( mChecked && wChecked ) {
                     //년, 월, 주 모두 선택됨
                     opener.document.getElementById('year').value = year;
                     opener.document.getElementById('month').value = month;
                     opener.document.getElementById('week').value = week;
-                    opener.document.getElementById('parentForm').action = '/detailWeek';
+                    opener.document.getElementById('type').value = 'w';
                     opener.document.getElementById('parentForm').submit();
                 }
 

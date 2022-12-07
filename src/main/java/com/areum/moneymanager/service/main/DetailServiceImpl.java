@@ -141,6 +141,17 @@ public class DetailServiceImpl implements DetailService {
         serviceDao.deleteAccountBook(mid, sql);
     }
 
+    @Override
+    public JSONObject getJsonObject( String mid, String type, ReqServiceDto.AccountSearch search ) throws Exception {
+        if( "y".equals(type) ) {
+            return getJsonYear( mid, search );
+        }else if( "w".equals(type) ) {
+            return getJsonWeek( mid, search );
+        }else{
+            return getJsonMonth( mid, search );
+        }
+    }
+
     private int findEndDay( int start ) {
         switch ( start ) {
             case 1:
@@ -160,10 +171,9 @@ public class DetailServiceImpl implements DetailService {
         }
     }
 
-
     //월 기준으로 json 얻기
-    public JSONObject getJsonMonth(String mid, ReqServiceDto.AccountSearch search) throws Exception {
-        List<ResServiceDto.MonthChart> list = graphByMonth(mid, search);
+    private JSONObject getJsonMonth(String mid, ReqServiceDto.AccountSearch search) throws Exception {
+        List<ResServiceDto.MonthChart> list = graphByMonth( mid, search );
 
         JSONObject data = new JSONObject();
 
@@ -201,8 +211,7 @@ public class DetailServiceImpl implements DetailService {
     }
 
     //주 기준으로 json 얻기
-    @Override
-    public JSONObject getJsonWeek(String mid, ReqServiceDto.AccountSearch search) throws Exception {
+    private JSONObject getJsonWeek(String mid, ReqServiceDto.AccountSearch search) throws Exception {
         List<ResServiceDto.WeekChart> list = graphByWeek( mid, search );
         JSONObject data = new JSONObject();
 
@@ -249,8 +258,7 @@ public class DetailServiceImpl implements DetailService {
     }
 
     //년 기준으로 json 얻기
-    @Override
-    public JSONObject getJsonYear(String mid, ReqServiceDto.AccountSearch search) throws Exception {
+    private JSONObject getJsonYear(String mid, ReqServiceDto.AccountSearch search) throws Exception {
         List<ResServiceDto.YearChart> list = serviceDao.selectGraphByYear(mid, search);
         JSONObject data = new JSONObject();
 
@@ -341,7 +349,7 @@ public class DetailServiceImpl implements DetailService {
         return sql.toString();
     }
 
-    public List<String> makeDate(ReqServiceDto.AccountSearch search) throws Exception {
+    public List<String> makeDate( ReqServiceDto.AccountSearch search ) throws Exception {
         List<String> result = new ArrayList<>();
 
 
@@ -380,18 +388,23 @@ public class DetailServiceImpl implements DetailService {
         int start = 1;
         int end = start + findEndDay( localDate.get(ChronoField.DAY_OF_WEEK) );
 
-        if( search.getWeek().equals("2") ) {
-            start = (end+1);
-            end += 7;
-        }else if( search.getWeek().equals("3") ) {
-            start = (end+1) + 7;
-            end += (7*2);
-        }else if( search.getWeek().equals("4") ) {
-            start = (end+1) + 14;
-            end += (7*3);
-        }else if( search.getWeek().equals("5") ) {
-            start = (end+1) + 21;
-            end += (7*4);
+        switch (search.getWeek()) {
+            case "2":
+                start = (end + 1);
+                end += 7;
+                break;
+            case "3":
+                start = (end + 1) + 7;
+                end += (7 * 2);
+                break;
+            case "4":
+                start = (end + 1) + 14;
+                end += (7 * 3);
+                break;
+            case "5":
+                start = (end + 1) + 21;
+                end += (7 * 4);
+                break;
         }
 
         //10보다 작은수 0붙이기

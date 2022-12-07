@@ -21,11 +21,7 @@ public interface DetailService {
     void deleteAccountBook( String mid, ReqServiceDto.DeleteAccount deleteAccount ) throws Exception;
 
     //JSON 객체 생성
-    JSONObject getJsonMonth( String mid, ReqServiceDto.AccountSearch search ) throws Exception;
-
-    JSONObject getJsonWeek( String mid, ReqServiceDto.AccountSearch search ) throws Exception;
-
-    JSONObject getJsonYear( String mid, ReqServiceDto.AccountSearch search ) throws Exception;
+    JSONObject getJsonObject( String mid, String type, ReqServiceDto.AccountSearch search ) throws Exception;
 
     //날짜 만들기
     List<String> makeDate( ReqServiceDto.AccountSearch search ) throws Exception;

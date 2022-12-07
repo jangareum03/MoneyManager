@@ -1,58 +1,22 @@
-//월 내역 검색영역 선택 동작
-function onChangeModeByMonth( input ) {
+//검색영역 선택 동작
+function onChangeMode( input ) {
     let mode = input.value;
     let inout = document.getElementsByClassName('menu')[0];
-    let title = document.getElementsByClassName('menu')[1]
-    let inCategory = document.getElementsByClassName('menu')[2];
-    let outCategory = document.getElementsByClassName('menu')[3];
+    let inCategory = document.getElementsByClassName('menu')[1];
+    let outCategory = document.getElementsByClassName('menu')[2];
+    let title = document.getElementsByClassName('menu')[3];
+    let period = document.getElementsByClassName('menu')[4];
 
     inout.style.display = 'none';
-    title.style.display = 'none';
     inCategory.style.display = 'none';
     outCategory.style.display = 'none';
-
-    if( mode == 'all' ) {
-        document.getElementById('menu').submit();
-    }else if( mode == 'inout' ) {
-        inout.style.display = 'block';
-    }else if( mode == 'title' ) {
-        title.style.display = 'block';
-    }else if( mode == 'inCategory' ) {
-        inCategory.style.display = 'block';
-
-        let category = document.getElementsByClassName('exMode');
-        checkBoxDisabled(category);
-    }else if( mode == 'outCategory' ) {
-        outCategory.style.display = 'block';
-
-        let category = document.getElementsByClassName('inMode');
-        checkBoxDisabled(category);
-    }
-}
-
-//년 내역 검색영역 선택 동작
-function onChangeModeByYear( input ) {
-    let mode = input.value;
-    let inout = document.getElementsByClassName('menu')[0];
-    let title = document.getElementsByClassName('menu')[1];
-    let period = document.getElementsByClassName('menu')[2];
-    let inCategory = document.getElementsByClassName('menu')[3];
-    let outCategory = document.getElementsByClassName('menu')[4];
-
-    inout.style.display = 'none';
     title.style.display = 'none';
     period.style.display = 'none';
-    inCategory.style.display = 'none';
-    outCategory.style.display = 'none';
 
     if( mode == 'all' ) {
         document.getElementById('menu').submit();
     }else if( mode == 'inout' ) {
         inout.style.display = 'block';
-    }else if( mode == 'title' ) {
-        title.style.display = 'block';
-    }else if( mode == 'period' ){
-        period.style.display = 'block';
     }else if( mode == 'inCategory' ) {
         inCategory.style.display = 'block';
 
@@ -63,6 +27,10 @@ function onChangeModeByYear( input ) {
 
         let category = document.getElementsByClassName('inMode');
         checkBoxDisabled(category);
+    }else if( mode == 'title' ) {
+        title.style.display = 'block';
+    }else{
+        period.style.display = 'block';
     }
 }
 
@@ -101,14 +69,6 @@ function win_open( page, name ){
     window.open(page, name, "width=1000, height=600, left=500, top=200, toolbar=no, scrollbars=no, location=no, fullscreen=yes");
 }
 
-//날짜 숫자만 입력
-function dateCheck( target ){
-    const pattern = /[^0-9]/g;
-
-    if( pattern.test(target.value) ){
-        target.value = target.value.replace(pattern, '');
-    }
-}
 
 //기간 날짜 확인
 function periodCheck(){
