@@ -137,33 +137,37 @@
             </form>
             <button type="button" th:onclick="deleteCheck()">삭제</button>
         </div>
-        <form method="post" th:action="@{/deleteAccount}" id="table_form">
-            <table>
-                <tbody id="table_top">
-                    <tr>
-                        <th>선택</th>
-                        <th>날짜</th>
-                        <th>고정/변동</th>
-                        <th>카테고리</th>
-                        <th>제목</th>
-                        <th>금액</th>
-                    </tr>
-                </tbody>
-                <tbody id="table_body">
-                    <tr  th:if="${#lists.size(map['list'])}  == 0">
-                        <td colspan="6" th:style="${'vertical-align: middle'}">내역이 없습니다. 등록해주세요!</td>
-                    </tr>
-                    <tr th:each="list : ${map['list']}" th:unless="${#lists.size(map['list'])}  == 0">
-                        <td><input type="checkbox" name="id" th:value="${list.id}"></td>
-                        <td>[[${list.date}]]</td>
-                        <td th:text="${list.fix == 'y' ? '고정' : '변동'}"></td>
-                        <td>[[${list.name}]]</td>
-                        <td>[[${list.title}]]</td>
-                        <td th:text="${list.code == '01' ? '+ ' + #numbers.formatInteger(list.price, 3, 'COMMA') : '- ' + #numbers.formatInteger(list.price, 3, 'COMMA')}" th:style="${list.code == '01' ? 'color: #3960FF;' : 'color: #FF3939;'}">[[${list.price}]]</td>
-                    </tr>
-                </tbody>
-            </table>
-        </form>
+            <form method="post" th:action="@{/deleteAccount}"  id="table_list">
+                <input type="hidden" name="type" th:value="${map['type']}">
+                <input type="hidden" name="year" th:value="${map['year']}">
+                <input type="hidden" name="month" th:value="${map['month']}">
+                <input type="hidden" name="week" th:value="${map['week']}">
+                <table>
+                    <tbody id="table_top">
+                        <tr>
+                            <th>선택</th>
+                            <th>날짜</th>
+                            <th>고정/변동</th>
+                            <th>카테고리</th>
+                            <th>제목</th>
+                            <th>금액</th>
+                        </tr>
+                    </tbody>
+                    <tbody id="table_body">
+                        <tr  th:if="${#lists.size(map['list'])}  == 0">
+                            <td colspan="6" th:style="${'vertical-align: middle'}">내역이 없습니다. 등록해주세요!</td>
+                        </tr>
+                        <tr th:each="list : ${map['list']}" th:unless="${#lists.size(map['list'])}  == 0">
+                            <td><input type="checkbox" name="id" th:value="${list.id}"></td>
+                            <td>[[${list.date}]]</td>
+                            <td th:text="${list.fix == 'y' ? '고정' : '변동'}"></td>
+                            <td>[[${list.name}]]</td>
+                            <td>[[${list.title}]]</td>
+                            <td th:text="${list.code == '01' ? '+ ' + #numbers.formatInteger(list.price, 3, 'COMMA') : '- ' + #numbers.formatInteger(list.price, 3, 'COMMA')}" th:style="${list.code == '01' ? 'color: #3960FF;' : 'color: #FF3939;'}">[[${list.price}]]</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
         <div>
             <table>
                 <tr class="table_bottom">

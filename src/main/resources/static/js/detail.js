@@ -43,6 +43,22 @@ function checkBoxDisabled( category ){
     }
 }
 
+//Array를 JSON객체로 변환
+function arrToJson() {
+    let check = document.getElementsByName('id');
+    let index = 0;
+    let arr = [];
+
+    for(i=0; i<check.length; i++) {
+        if( check[i].checked == true ) {
+            arr[index] = check[i].value;
+            index++;
+        }
+    }
+
+    return arr;
+}
+
 //내역 삭제 시 체크박스 확인
 function deleteCheck(){
     let check = document.getElementsByName('id');
@@ -51,7 +67,6 @@ function deleteCheck(){
     for(i=0; i<check.length; i++) {
         if( check[i].checked == true ) {
             isCheck = false;
-            break;
         }
     }
 
@@ -59,8 +74,12 @@ function deleteCheck(){
         alert('삭제할 내역을 선택해주세요.');
         return false;
     }else{
-        let frm = document.getElementById('table_form');
-        frm.submit();
+        if( confirm("삭제하시겠습니까?") ) {
+            document.getElementById('table_list').submit();
+        }else{
+            return false;
+        }
+
     }
 }
 

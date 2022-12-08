@@ -13,6 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +112,7 @@ public class DetailController {
     public String postDelete( ReqServiceDto.DeleteAccount deleteAccount, HttpSession session ) throws Exception {
         detailService.deleteAccountBook( (String)session.getAttribute("mid"), deleteAccount );
 
-        return "redirect:/detailMonth";
+        return "forward:/accountDetail";
     }
 
 

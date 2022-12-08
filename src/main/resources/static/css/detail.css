@@ -180,22 +180,22 @@ nav{
 }
 
 /* 표 */
-#table_form {
+#table_list {
     width: 100%;
     height: 35%;
     overflow: auto;
 }
 
 /* 스크롤바 안보이게 */
-#table_form {
+#table_list {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
 }
-#table_form::-webkit-scrollbar {
+#table_list::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera*/
 }
 
-#table_form th,td {
+#table_list th,td {
     border-left: 1px solid #aaa;
     border-right: 1px solid #aaa;
     border-bottom: 1px solid #aaa;
