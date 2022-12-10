@@ -22,10 +22,11 @@ function showOption(){
 //카테고리 선택 시 하위카테고리 표시
 function changeCategory( category ){
     let categoryArea = document.getElementById('categoryArea');
-    let selected = document.getElementById('categoryM');
+    let categoryL = document.getElementById('categoryL');
+    let categoryM = document.getElementById('categoryM');
 
-    if( selected != null ) {
-        selected.remove();
+    if( categoryM != null ) {
+        categoryM.remove();
     }
 
     let xhr = new XMLHttpRequest();
@@ -39,6 +40,7 @@ function changeCategory( category ){
             let result = JSON.parse(xhr.response);
 
             if( result.length == 0 ) {
+                categoryL.setAttribute('name', 'category');
                 return false;
             }else{
                 for( i=0; i<result.length; i++ ) {
@@ -51,10 +53,12 @@ function changeCategory( category ){
 
                 new_select.setAttribute('class', 'wCategory');
                 new_select.setAttribute('id', 'categoryM');
+                new_select.setAttribute('name', 'category');
                 new_select.style.display = 'block';
                 new_select.style.width = '80px';
 
                 categoryArea.appendChild(new_select);
+                categoryL.removeAttribute('name');
             }
         }else{
             alert('통신 실패했습니다. 잠시 후 다시 시도해주세요.');
@@ -67,6 +71,7 @@ function clickCategory(){
     alert('선택함');
 }
 
+//가격에 숫자만 입력
 function checkPrice( target ){
     const pattern = /[^0-9]/g;
 
@@ -75,20 +80,31 @@ function checkPrice( target ){
     }
 }
 
-function writeCheck() {
-    let wTitle = document.getElementsByClassName('wTitle')[0].value;
-    let wPrice = document.getElementsByClassName('wPrice')[0].value;
-    let categoryL = document.getElementById('categoryL').value;
-    let categoryM = document.getElementById('categoryM').value;
 
-    if( categoryL == '00' ) {
+//등록 시 필수값 체크
+function writeCheck() {
+    let categoryL = document.getElementById('categoryL');
+    let title = document.getElementsByName('title')[0];
+    let price = document.getElementsByName('price')[0];
+    let priceType = document.getElementsByName('priceType')[0];
+
+    if( categoryL.value == '00' ) {
         alert('카테고리를 선택해주세요.');
+        category.focus();
         return false;
-    }else if( wTitle.replace(/ /g, '').length == 0 ) {
-        alert('제목을 작성해주세요.');
+    }else if( title.value == '' ) {
+        alert('제목을 입력해주세요.');
+        title.focus();
         return false;
-    }else if( wPrice.length == 0 ) {
+    }else if( price.value == '' ) {
         alert('금액을 입력해주세요.');
+        price.focus();
+        return false;
+    }else if( priceType.value == '' ) {
+        alert('금액 타입을 선택해주세요.');
+        priceType.focus();
         return false;
     }
+
+    return true;
 }

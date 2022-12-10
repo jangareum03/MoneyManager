@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>내역조회 : 돈매니저</title>
     <!-- css -->
-    <link rel="stylesheet" th:href="@{/css/detail.css}">
+    <link rel="stylesheet" th:href="@{/css/list.css}">
     <link rel="stylesheet" th:href="@{//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css}" type="text/css"/>
     <!-- js -->
     <script th:src="@{/js/detail.js}"></script>
@@ -84,7 +84,7 @@
                 <span th:case="m">[[${map['year']}]]년 [[${map['month']}]]월</span>
                 <span th:case="w">[[${map['year']}]]년 [[${map['month']}]]월 [[${map['week']}]]주</span>
             </th:block>
-            <form id="parentForm" method="post" th:action="@{/accountDetail}">
+            <form id="parentForm" method="post" th:action="@{/accountList}">
                 <input type="hidden" name="year" id="year">
                 <input type="hidden" name="month" id="month">
                 <input type="hidden" name="week" id="week">
@@ -94,7 +94,7 @@
         <div id="chart_div"></div>
         <!-- 검색 영역 -->
         <div id="searchMenu">
-            <form id="menu" method="post" th:action="@{/accountDetail}">
+            <form id="menu" method="post" th:action="@{/accountList}">
                 <input type="hidden" name="type" th:value="${map['type']}">
                 <input type="hidden" name="year" th:value="${map['year']}">
                 <input type="hidden" name="month" th:value="${map['month']}">
@@ -162,7 +162,7 @@
                             <td>[[${list.date}]]</td>
                             <td th:text="${list.fix == 'y' ? '고정' : '변동'}"></td>
                             <td>[[${list.name}]]</td>
-                            <td>[[${list.title}]]</td>
+                            <td><a th:href="@{/accountDetail/{id}(id= ${list.id})}">[[${list.title}]]</a></td>
                             <td th:text="${list.code == '01' ? '+ ' + #numbers.formatInteger(list.price, 3, 'COMMA') : '- ' + #numbers.formatInteger(list.price, 3, 'COMMA')}" th:style="${list.code == '01' ? 'color: #3960FF;' : 'color: #FF3939;'}">[[${list.price}]]</td>
                         </tr>
                     </tbody>

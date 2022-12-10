@@ -1,16 +1,3 @@
-@font-face {
-    font-family: 'Pretendard-Regular';
-    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'SEBANG_Gothic_Bold';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/SEBANG_Gothic_Bold.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
-
 /* reset.css */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -64,7 +51,6 @@ body{
     margin: 0 auto;
     font-family: 'Pretendard-Regular';
 }
-
 a, li{
     cursor: pointer;
 }
@@ -120,7 +106,6 @@ nav{
     color: #0B3B78;
 }
 
-
 /* 메뉴 하단 */
 #menu_bottom, ul {
     width: 100%;
@@ -135,113 +120,3 @@ nav{
     background-color: #1E1E1E;
     color: white;
 }
-
-/* 날짜 */
-.title {
-    cursor: pointer;
-}
-.title > span {
-    font-family: SEBANG_Gothic_Bold;
-    font-size: 45px;
-    margin-bottom: 60px;
-}
-
-.content {
-    width: 80%;
-    height: 90%;
-    margin: 5% auto;
-}
-
-/* 검색메뉴 */
-#menu {
-    display: flex;
-}
-#searchMenu {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-#searchMenu .menu {
-    display: none;
-    position: absolute;
-    left: 38%
-}
-
-/* 그래프 */
-#chart {
-    width: calc( 100% - 300px );
-    height: 100%;
-    text-align: center;
-}
-
-#chart_div {
-    width: 100%;
-    height: 450px;
-}
-
-/* 표 */
-#table_list {
-    width: 100%;
-    height: 35%;
-    overflow: auto;
-}
-
-/* 스크롤바 안보이게 */
-#table_list {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-}
-#table_list::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera*/
-}
-
-#table_list th,td {
-    border-left: 1px solid #aaa;
-    border-right: 1px solid #aaa;
-    border-bottom: 1px solid #aaa;
-}
-#table_top {
-    position: sticky;
-    top: 0px;
-    height: 30px;
-    background-color: #F9FC9A;
-}
-#table_top th:nth-child(1) {
-    width: 3%;
-}
-#table_top th:nth-child(2) {
-    width: 10%;
-}
-#table_top th:nth-child(3) {
-    width: 8%;
-}
-#table_top th:nth-child(4) {
-    width: 15%;
-}
-#table_top th:nth-child(6) {
-    width: 20%;
-}
-
-#table_body tr{
-    height: 50px;
-}
-.table_bottom {
-    position: sticky;
-    bottom: 0px;
-    height: 50px;
-}
-.table_bottom  th {
-    background-color: #AEBFF7;
-    vertical-align: middle;
-}
-.table_bottom  td {
-    background-color: #F9FAFF;
-    vertical-align: middle;
-}
-table {
-    width: 100%;
-    height: 100%;
-}
-
-
-
