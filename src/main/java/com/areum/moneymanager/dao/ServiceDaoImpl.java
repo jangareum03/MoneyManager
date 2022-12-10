@@ -71,11 +71,107 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public List<Category> selectExpenditureCategory() throws SQLException {
+    public List<ResServiceDto.DetailList> selectAccountByCategory( String mid, String startDate, String endDate, String category ) throws SQLException {
+        StringBuilder query = new StringBuilder(
+                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
+                        "FROM tb_account_book tab, tb_category tc " +
+                        "WHERE member_id=? AND tc.code = tab.category_id AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') "
+        );
+        query.append(category);
+        query.append("ORDER BY account_date DESC");
+        return jdbcTemplate.query(
+                query.toString(),
+                new RowMapper<ResServiceDto.DetailList>() {
+                    @Override
+                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
+                                .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
+                    }
+                },
+                mid, startDate, endDate
+        );
+    }
+
+    @Override
+    public List<ResServiceDto.DetailList> selectAccountByParentCategory( String mid, String startDate, String endDate, String code ) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
+                        "FROM tb_account_book tab, ( SELECT name,code FROM tb_category WHERE parent_code = ? ) tc " +
+                        "WHERE member_id = ? " +
+                        "AND tc.code = tab.category_id " +
+                        "AND tab.account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
+                        "ORDER BY account_date DESC",
+                new RowMapper<ResServiceDto.DetailList>() {
+                    @Override
+                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
+                                .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
+                    }
+                },
+                code, mid, startDate, endDate
+        );
+    }
+
+    @Override
+    public List<ResServiceDto.DetailList> selectAccountByTitle(String mid, String startDate, String endDate, String title) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
+                        "FROM tb_account_book tab, tb_category tc " +
+                        "WHERE member_id=? " +
+                        "AND tc.code = tab.category_id " +
+                        "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
+                        "AND title LIKE ? " +
+                        "ORDER BY account_date DESC",
+                new RowMapper<ResServiceDto.DetailList>() {
+                    @Override
+                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
+                                .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
+                    }
+                },
+                mid, startDate, endDate, '%'+title+'%'
+        );
+    }
+
+    @Override
+    public Integer selectAccountPrice( String mid, String startDate, String endDate, String code ) throws SQLException {
+        return jdbcTemplate.queryForObject(
+                "SELECT NVL(SUM(price), 0) price " +
+                        "FROM tb_account_book " +
+                        "WHERE member_id = ? " +
+                        "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
+                        "AND SUBSTR(category_id, 0, 2) = ?",
+                Integer.class,
+                mid, startDate, endDate, code
+        );
+    }
+
+    @Override
+    public List<ResServiceDto.DetailList> selectAllAccount( String mid, String startDate, String endDate ) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
+                        "FROM tb_account_book tab, tb_category tc " +
+                        "WHERE member_id = ? " +
+                        "AND tc.code = tab.category_id " +
+                        "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
+                        "ORDER BY account_date DESC",
+                new RowMapper<ResServiceDto.DetailList>() {
+                    @Override
+                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix")).code(rs.getString("code"))
+                                .name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
+                    }
+                },
+                mid, startDate, endDate
+        );
+    }
+
+    @Override
+    public List<Category> selectCategory() throws SQLException {
         return jdbcTemplate.query(
                 "SELECT name, code " +
-                        "FROM tb_category " +
-                        "WHERE parent_code = '020000' " +
+                        "FROM  tb_category " +
+                        "WHERE parent_code IS NULL " +
                         "ORDER BY code",
                 new RowMapper<Category>() {
                     @Override
@@ -83,6 +179,23 @@ public class ServiceDaoImpl implements ServiceDao {
                         return Category.builder().name(rs.getString("name")).code(rs.getString("code")).build();
                     }
                 }
+        );
+    }
+
+    @Override
+    public List<Category> selectCategory( String code ) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT name, code " +
+                        "FROM tb_category " +
+                        "WHERE parent_code = ? " +
+                        "ORDER BY code",
+                new RowMapper<Category>() {
+                    @Override
+                    public Category mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return Category.builder().name(rs.getString("name")).code(rs.getString("code")).build();
+                    }
+                },
+                code
         );
     }
 
@@ -169,133 +282,6 @@ public class ServiceDaoImpl implements ServiceDao {
                     }
                 },
                 mid, search.getYear(), mid, search.getYear()
-        );
-    }
-
-    @Override
-    public List<Category> selectIncomeCategory() throws SQLException {
-        return jdbcTemplate.query(
-                "SELECT name, code " +
-                        "FROM  tb_category " +
-                        "WHERE  parent_code = '010000' " +
-                        "ORDER BY code",
-                new RowMapper<Category>() {
-                    @Override
-                    public Category mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return Category.builder().name(rs.getString(1)).code(rs.getString(2)).build();
-                    }
-                }
-        );
-    }
-
-    @Override
-    public List<ResServiceDto.DetailList> selectAllAccount( String mid, String startDate, String endDate ) throws SQLException {
-        return jdbcTemplate.query(
-                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
-                            "FROM tb_account_book tab, tb_category tc " +
-                            "WHERE member_id = ? " +
-                            "AND tc.code = tab.category_id " +
-                            "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
-                            "ORDER BY account_date DESC",
-                new RowMapper<ResServiceDto.DetailList>() {
-                    @Override
-                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix")).code(rs.getString("code"))
-                                .name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
-                    }
-                },
-                mid, startDate, endDate
-        );
-    }
-
-    @Override
-    public List<ResServiceDto.DetailList> selectAccountByParentCategory( String mid, String startDate, String endDate, String code ) throws SQLException {
-        return jdbcTemplate.query(
-                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
-                        "FROM tb_account_book tab, ( SELECT name,code FROM tb_category WHERE parent_code = ? ) tc " +
-                        "WHERE member_id = ? " +
-                        "AND tc.code = tab.category_id " +
-                        "AND tab.account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
-                        "ORDER BY account_date DESC",
-                new RowMapper<ResServiceDto.DetailList>() {
-                    @Override
-                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
-                                .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
-                    }
-                },
-                code, mid, startDate, endDate
-        );
-    }
-
-    @Override
-    public List<ResServiceDto.DetailList> selectAccountByCategory( String mid, String startDate, String endDate, String category ) throws SQLException {
-        StringBuilder query = new StringBuilder(
-                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
-                "FROM tb_account_book tab, tb_category tc " +
-                "WHERE member_id=? AND tc.code = tab.category_id AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') "
-        );
-        query.append(category);
-        query.append("ORDER BY account_date DESC");
-        return jdbcTemplate.query(
-                query.toString(),
-                new RowMapper<ResServiceDto.DetailList>() {
-                    @Override
-                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
-                                .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
-                    }
-                },
-                mid, startDate, endDate
-        );
-    }
-
-    @Override
-    public List<ResServiceDto.DetailList> selectAccountByTitle(String mid, String startDate, String endDate, String title) throws SQLException {
-        return jdbcTemplate.query(
-                "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
-                        "FROM tb_account_book tab, tb_category tc " +
-                        "WHERE member_id=? " +
-                        "AND tc.code = tab.category_id " +
-                        "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
-                        "AND title LIKE ? " +
-                        "ORDER BY account_date DESC",
-                new RowMapper<ResServiceDto.DetailList>() {
-                    @Override
-                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
-                                .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
-                    }
-                },
-                mid, startDate, endDate, '%'+title+'%'
-        );
-    }
-
-    @Override
-    public Integer selectAccountPrice( String mid, String startDate, String endDate, String code ) throws SQLException {
-        return jdbcTemplate.queryForObject(
-                "SELECT NVL(SUM(price), 0) price " +
-                            "FROM tb_account_book " +
-                            "WHERE member_id = ? " +
-                                "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
-                                "AND SUBSTR(category_id, 0, 2) = ?",
-                Integer.class,
-                mid, startDate, endDate, code
-        );
-    }
-
-    @Override
-    public List<Category> selectParentCategory() throws SQLException {
-        return jdbcTemplate.query(
-                "SELECT name, code " +
-                        "FROM tb_category " +
-                        "WHERE parent_code IS NULL",
-                new RowMapper<Category>() {
-                    @Override
-                    public Category mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return Category.builder().name(rs.getString("name")).code(rs.getString("code")).build();
-                    }
-                }
         );
     }
 

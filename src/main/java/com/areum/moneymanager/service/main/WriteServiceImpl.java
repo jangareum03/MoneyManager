@@ -4,6 +4,7 @@ import com.areum.moneymanager.dao.ServiceDao;
 import com.areum.moneymanager.dao.ServiceDaoImpl;
 import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
+import com.areum.moneymanager.entity.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,38 +17,39 @@ import java.util.Map;
 @Service
 public class WriteServiceImpl implements WriteService {
 
-    private final ServiceDao accountBookDao;
+    private final ServiceDao serviceDao;
 
 
     @Autowired
-    public WriteServiceImpl( ServiceDaoImpl accountBookDao ) {
-        this.accountBookDao = accountBookDao;
+    public WriteServiceImpl( ServiceDaoImpl serviceDao ) {
+        this.serviceDao = serviceDao;
     }
 
     @Override
-    public Map<String, List<ResServiceDto.Category>> getCategory() throws Exception {
-        Map<String, List<ResServiceDto.Category>> resultMap = new HashMap<>();
+    public List<ResServiceDto.Category> getCategory() throws Exception {
+        List<ResServiceDto.Category> resultList = new ArrayList<>();
+        List<Category> categoryList = serviceDao.selectCategory();
 
-        resultMap.put("income", ResServiceDto.Category.toResIncomeCategory( accountBookDao.selectIncomeCategory() ));
-        resultMap.put("expend", ResServiceDto.Category.toResIncomeCategory( accountBookDao.selectExpenditureCategory() ));
-        resultMap.put("parent", ResServiceDto.Category.toResIncomeCategory( accountBookDao.selectParentCategory() ));
-
-        return resultMap;
+        for(Category category : categoryList ) {
+            resultList.add( ResServiceDto.Category.entityToDto(category) );
+        }
+        return resultList;
     }
 
     @Override
-    public List<ResServiceDto.Category> getExpenditureCategory() throws Exception {
-        return ResServiceDto.Category.toResIncomeCategory( accountBookDao.selectExpenditureCategory() );
-    }
+    public List<ResServiceDto.Category> getCategory( String code ) throws Exception {
+        List<ResServiceDto.Category> resultList = new ArrayList<>();
+        List<Category> categoryList = serviceDao.selectCategory( code );
 
-    @Override
-    public List<ResServiceDto.Category> getIncomeCategory() throws Exception {
-        return ResServiceDto.Category.toResIncomeCategory( accountBookDao.selectIncomeCategory() );
+        for( Category category : categoryList ) {
+            resultList.add( ResServiceDto.Category.entityToDto( category ) );
+        }
+        return resultList;
     }
 
     @Override
     public void writeAccountBook(ReqServiceDto.Write write, String mid ) throws Exception {
-        accountBookDao.insertAccountBook(write.toEntity(), mid);
+        serviceDao.insertAccountBook(write.toEntity(), mid);
     }
 
 }

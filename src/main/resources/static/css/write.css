@@ -338,9 +338,13 @@ nav{
     margin: 5px;
 }
 
-/* 고정여부 */
-#fixOption {
+/* 고정여부&카테고리 */
+#fixOption, #categoryM {
     display: none;
+}
+
+#categoryArea {
+    display: inline-flex;
 }
 
 /* 작성버튼 */

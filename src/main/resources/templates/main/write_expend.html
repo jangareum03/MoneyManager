@@ -39,11 +39,12 @@
                 <h3 class="write_title">
                     <label>카테고리</label>
                 </h3>
-                <select name="categoryM" class="wCategory" id="categoryL" onchange="changeCategory( this )">
-                    <option th:value="${'00'}">선택없음</option>
-                    <option th:each="category : ${category}" th:value="${category.code}">[[${category.name}]]</option>
-                </select>
-                <input type="hidden" name="category" id="category">
+                <div id="categoryArea">
+                    <select class="wCategory" id="categoryL" th:onchange="changeCategory(this)">
+                        <option th:value="${'00'}">선택없음</option>
+                        <option th:each="category : ${category}" th:value="${category.code}">[[${category.name}]]</option>
+                    </select>
+                </div>
             </div>
 
             <div class="wArea">

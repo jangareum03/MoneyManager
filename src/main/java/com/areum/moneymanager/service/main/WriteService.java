@@ -4,18 +4,14 @@ import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
 
 import java.util.List;
-import java.util.Map;
 
 public interface WriteService {
 
-    //카테고리 얻기
-    Map<String, List<ResServiceDto.Category>> getCategory() throws Exception;
+    //대카테고리 얻기
+    List<ResServiceDto.Category> getCategory() throws Exception;
 
-    //지출 카테고리 얻기
-    List<ResServiceDto.Category> getExpenditureCategory() throws Exception;
-
-    //수입 카테고리 얻기
-    List<ResServiceDto.Category> getIncomeCategory() throws Exception;
+    //중&소 카테고리 얻기
+    List<ResServiceDto.Category> getCategory( String code ) throws Exception;
 
     //가계부 등록
     void writeAccountBook(ReqServiceDto.Write write, String mid ) throws Exception;

@@ -19,15 +19,15 @@
             <div class="type">
                 <span>아래에서 수입/지출 중 하나를 선택해주세요.</span><br>
                 <div class="typeBtn">
-                    <input type="radio" id="typeIn" name="mode" th:value="1" checked><label for="typeIn"></label>
-                    <input type="radio" id="typeOut" name="mode" th:value="2"> <label for="typeOut"></label>
+                    <input type="radio" id="typeIn" name="code" th:value="${category[0].code}" checked><label for="typeIn"></label>
+                    <input type="radio" id="typeOut" name="code" th:value="${category[1].code}"> <label for="typeOut"></label>
                 </div>
             </div>
             <div>
                 <span>작성할 날짜를 선택해주세요.</span><br>
                 <div>
                     <select id="selectYear" name="year">
-                        <option th:each="wYear : ${#numbers.sequence(year, year-5)}" th:value="${wYear}" th:selected="${year} == ${wYear}">
+                        <option th:each="wYear : ${#numbers.sequence(year, year-5)}" th:value="${wYear}" th:selected="${wyear} == ${year}">
                             [[${wYear}]]
                         </option>
                     </select>
@@ -37,7 +37,7 @@
                         </option>
                     </select>
                     <select id="selectDate" name="date">
-                        <option th:each="wDate : ${#numbers.sequence(1, end)}" th:value="${wDate}" th:selected="${date} == ${wDate}">
+                        <option th:each="wDate : ${#numbers.sequence(1, end)}" th:value="${wDate}" th:selected="${wDate} == ${date}">
                             [[${wDate}]]
                         </option>
                     </select>

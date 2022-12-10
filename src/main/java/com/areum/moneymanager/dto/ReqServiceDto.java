@@ -17,6 +17,16 @@ public class ReqServiceDto {
         private int month;
     }
 
+    //가계부 구분
+    @Builder
+    @Getter
+    public static class DivisionAccount {
+        private String code;
+        private String year;
+        private String month;
+        private String date;
+    }
+
     //가계부 작성
     @Builder
     @Getter
@@ -66,6 +76,13 @@ public class ReqServiceDto {
     @Getter
     public static class DeleteAccount{
         private Long[] id;
+    }
+
+    //카테고리 얻기
+    @Builder
+    @Getter
+    public static class GetCategory{
+        private String code;
     }
 
 }

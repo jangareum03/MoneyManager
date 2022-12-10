@@ -1,8 +1,10 @@
+//위치 아이콘 선택 시 동작
 function openMapPop(){
     let option = 'top=320, left=660, width=800, height=500, status=no, menubar=no, toolbar=no, resizable=no';
     window.open('/write/map', '팝업', option);
 }
 
+//고정 or 변동 선택 시 동작
 function showOption(){
     let fix = document.getElementById('fix');
     let cycle = document.getElementsByClassName('fixCycle');
@@ -17,10 +19,52 @@ function showOption(){
     }
 }
 
-function changeCategory( categoryL ){
-    let category = document.getElementById('category');
+//카테고리 선택 시 하위카테고리 표시
+function changeCategory( category ){
+    let categoryArea = document.getElementById('categoryArea');
+    let selected = document.getElementById('categoryM');
 
-    category.value = categoryL.value;
+    if( selected != null ) {
+        selected.remove();
+    }
+
+    let xhr = new XMLHttpRequest();
+    xhr.open('POST', '/write/category', true);
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhr.send('code=' + category.value);
+
+    xhr.onload = function() {
+        if( xhr.status == 200 ) {
+            const new_select = document.createElement('select');
+            let result = JSON.parse(xhr.response);
+
+            if( result.length == 0 ) {
+                return false;
+            }else{
+                for( i=0; i<result.length; i++ ) {
+                    const new_option = document.createElement('option');
+                    new_option.value = result[i].code;
+                    new_option.text = result[i].name;
+
+                    new_select.appendChild(new_option);
+                }
+
+                new_select.setAttribute('class', 'wCategory');
+                new_select.setAttribute('id', 'categoryM');
+                new_select.style.display = 'block';
+                new_select.style.width = '80px';
+
+                categoryArea.appendChild(new_select);
+            }
+        }else{
+            alert('통신 실패했습니다. 잠시 후 다시 시도해주세요.');
+        }
+    }
+}
+
+//하위 카테고리 선택 시 동작
+function clickCategory(){
+    alert('선택함');
 }
 
 function checkPrice( target ){

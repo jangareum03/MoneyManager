@@ -17,23 +17,8 @@ public class ResServiceDto {
         private String name;
         private String code;
 
-        public static List<Category> toResIncomeCategory(List<com.areum.moneymanager.entity.Category> categoryList ){
-            List<Category> resultList = new ArrayList<>(categoryList.size());
-
-            for( com.areum.moneymanager.entity.Category category : categoryList )  {
-                resultList.add( categoryEntityToDto(category) );
-            }
-
-            return resultList;
-        }
-
-
-        private static Category categoryEntityToDto(com.areum.moneymanager.entity.Category category ) {
-            if( category == null ) {
-                return null;
-            }
-
-            return ResServiceDto.Category.builder().name(category.getName()).code(category.getCode()).build();
+        public static ResServiceDto.Category entityToDto(com.areum.moneymanager.entity.Category entity) {
+            return Category.builder().name(entity.getName()).code(entity.getCode()).build();
         }
     }
 
