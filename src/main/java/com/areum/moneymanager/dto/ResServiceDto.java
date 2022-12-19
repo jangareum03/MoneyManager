@@ -10,15 +10,21 @@ import java.util.List;
 
 public class ResServiceDto {
 
-    //수입 카테고리
+    //카테고리
     @Builder
     @Getter
     public static class Category {
         private String name;
         private String code;
 
-        public static ResServiceDto.Category entityToDto(com.areum.moneymanager.entity.Category entity) {
-            return Category.builder().name(entity.getName()).code(entity.getCode()).build();
+        public static List<ResServiceDto.Category> entityToDto(List<com.areum.moneymanager.entity.Category> entityList) {
+            List<ResServiceDto.Category> resultList = new ArrayList<>();
+
+            for( com.areum.moneymanager.entity.Category entity : entityList ) {
+                resultList.add( Category.builder().name(entity.getName()).code(entity.getCode()).build() );
+            }
+
+            return resultList;
         }
     }
 
@@ -66,6 +72,7 @@ public class ResServiceDto {
         private int outPrice;
     }
 
+    //주 차트
     @Builder
     @Getter
     public static class WeekChart{

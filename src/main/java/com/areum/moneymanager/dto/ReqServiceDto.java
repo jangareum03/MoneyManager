@@ -68,7 +68,10 @@ public class ReqServiceDto {
         private String title;
         private String start;
         private String end;
-        private String[] category;
+        private String basicInCategory;
+        private String basicExCategory;
+        private String[] inCategory;
+        private String[] exCategory;
     }
 
     //가계부 삭제

@@ -8,6 +8,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
@@ -17,6 +18,9 @@ import java.util.*;
 @Service
 public class DetailServiceImpl implements DetailService {
 
+    private static final String INCODE_CODE = "010000";
+    private static final String EXPORT_CODE = "020000";
+
     private final ServiceDao serviceDao;
     private LocalDate localDate;
 
@@ -25,7 +29,8 @@ public class DetailServiceImpl implements DetailService {
     }
 
 
-    public Map<String, Object> accountBookByMonth(String mid, String mode, ReqServiceDto.AccountSearch search) throws Exception {
+    @Override
+    public Map<String, Object> getAccountBookByMonth(String mid, String mode, ReqServiceDto.AccountSearch search) throws SQLException {
         Map<String, Object> resultMap = new HashMap<>();
 
         //날짜 설정
@@ -36,6 +41,7 @@ public class DetailServiceImpl implements DetailService {
         }
         String startDate = localDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String endDate = localDate.withDayOfMonth(localDate.lengthOfMonth()).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String category = null;
 
         switch (mode) {
             case "inout":
@@ -45,13 +51,22 @@ public class DetailServiceImpl implements DetailService {
                 resultMap.put("list", serviceDao.selectAccountByTitle(mid, startDate, endDate, search.getTitle()));
                 break;
             case "inCategory":
-            case "outCategory":
-                if (search.getCategory() == null || search.getCategory().length == 0) {
-                    resultMap.put("list", serviceDao.selectAllAccount(mid, startDate, endDate));
-                } else {
-                    String category = makeCategorySQL(search.getCategory());
-                    resultMap.put("list", serviceDao.selectAccountByCategory(mid, startDate, endDate, category));
+                if( search.getInCategory() == null || search.getInCategory().length == 0 ) {
+                    category = getAccountCategory( search.getBasicInCategory() ).isEmpty() ? "AND category_id = " : "AND tc.parent_code = ";
+                    category += search.getBasicInCategory() + "";
+                }else {
+                    category = makeCategorySQL( search.getInCategory() );
                 }
+                resultMap.put("list", serviceDao.selectAccountByCategory( mid, startDate, endDate, category ));
+                break;
+            case "exCategory":
+                if( search.getExCategory() == null || search.getExCategory().length == 0 ) {
+                    category = getAccountCategory( search.getBasicExCategory() ).isEmpty() ? "AND category_id = ": "AND tc.parent_code = ";
+                    category += search.getBasicExCategory() + "";
+                }else{
+                    category = makeCategorySQL( search.getExCategory() );
+                }
+                resultMap.put("list", serviceDao.selectAccountByCategory( mid, startDate, endDate, category ));
                 break;
             case "all":
             default:
@@ -65,13 +80,14 @@ public class DetailServiceImpl implements DetailService {
     }
 
     @Override
-    public Map<String, Object> accountBookByWeek(String mid, String mode, ReqServiceDto.AccountSearch search) throws Exception {
+    public Map<String, Object> getAccountBookByWeek(String mid, String mode, ReqServiceDto.AccountSearch search) throws SQLException {
         Map<String, Object> resultMap = new HashMap<>();
 
         //날짜 설정
         List<String> dateList = makeDateByWeek( search );
         String startDate = dateList.get(0);
         String endDate = dateList.get(1);
+        String category = null;
 
         switch ( mode ) {
             case "inout":
@@ -81,13 +97,22 @@ public class DetailServiceImpl implements DetailService {
                 resultMap.put("list", serviceDao.selectAccountByTitle(mid, startDate, endDate, search.getTitle()));
                 break;
             case "inCategory":
-            case "outCategory":
-                if (search.getCategory() == null || search.getCategory().length == 0) {
-                    resultMap.put("list", serviceDao.selectAllAccount(mid, startDate, endDate));
-                } else {
-                    String category = makeCategorySQL(search.getCategory());
-                    resultMap.put("list", serviceDao.selectAccountByCategory(mid, startDate, endDate, category));
+                if( search.getInCategory() == null || search.getInCategory().length == 0 ) {
+                    category = getAccountCategory( search.getBasicInCategory() ).isEmpty() ? "AND category_id = " : "AND tc.parent_code = ";
+                    category += search.getBasicInCategory() + "";
+                }else {
+                    category = makeCategorySQL( search.getInCategory() );
                 }
+                resultMap.put("list", serviceDao.selectAccountByCategory( mid, startDate, endDate, category ));
+                break;
+            case "exCategory":
+                if( search.getExCategory() == null || search.getExCategory().length == 0 ) {
+                    category = getAccountCategory( search.getBasicExCategory() ).isEmpty() ? "AND category_id = " : "AND tc.parent_code = ";
+                    category += search.getBasicExCategory() + "";
+                }else{
+                    category = makeCategorySQL( search.getExCategory() );
+                }
+                resultMap.put("list", serviceDao.selectAccountByCategory( mid, startDate, endDate, category ));
                 break;
             case "all" :
             default:
@@ -101,11 +126,13 @@ public class DetailServiceImpl implements DetailService {
     }
 
     @Override
-    public Map<String, Object> accountBookByYear(String mid, String mode, ReqServiceDto.AccountSearch search) throws Exception {
+    public Map<String, Object> getAccountBookByYear(String mid, String mode, ReqServiceDto.AccountSearch search) throws SQLException {
         Map<String, Object> resultMap = new HashMap<>();
 
         String startDate = search.getYear() + "0101";
         String endDate = search.getYear() + "1231";
+        String category = null;
+
         switch (mode) {
             case "inout":
                 resultMap.put("list", serviceDao.selectAccountByParentCategory(mid, startDate, endDate, search.getOption().replace(",", "")));
@@ -114,13 +141,22 @@ public class DetailServiceImpl implements DetailService {
                 resultMap.put("list", serviceDao.selectAccountByTitle(mid, startDate, endDate, search.getTitle()));
                 break;
             case "inCategory":
-            case "outCategory":
-                if (search.getCategory() == null || search.getCategory().length == 0) {
-                    resultMap.put("list", serviceDao.selectAllAccount(mid, startDate, endDate));
-                } else {
-                    String category = makeCategorySQL(search.getCategory());
-                    resultMap.put("list", serviceDao.selectAccountByCategory(mid, startDate, endDate, category));
+                if( search.getInCategory() == null || search.getInCategory().length == 0 ) {
+                    category = getAccountCategory( search.getBasicInCategory() ).isEmpty() ? "AND category_id = " : "AND tc.parent_code = ";
+                    category += search.getBasicInCategory() + "";
+                }else {
+                    category = makeCategorySQL( search.getInCategory() );
                 }
+                resultMap.put("list", serviceDao.selectAccountByCategory( mid, startDate, endDate, category ));
+                break;
+            case "exCategory":
+                if( search.getExCategory() == null || search.getExCategory().length == 0 ) {
+                    category = getAccountCategory( search.getBasicExCategory() ).isEmpty() ? "AND category_id = " : "AND tc.parent_code = ";
+                    category += search.getBasicExCategory() + "";
+                }else{
+                    category = makeCategorySQL( search.getExCategory() );
+                }
+                resultMap.put("list", serviceDao.selectAccountByCategory( mid, startDate, endDate, category ));
                 break;
             case "period":
                 resultMap.put("list", serviceDao.selectAllAccount(mid, search.getStart(), search.getEnd()));
@@ -136,20 +172,24 @@ public class DetailServiceImpl implements DetailService {
     }
 
     @Override
-    public void deleteAccountBook(String mid, ReqServiceDto.DeleteAccount deleteAccount) throws Exception {
-        String sql = makeDeleteSQL(deleteAccount.getId());
-        serviceDao.deleteAccountBook(mid, sql);
+    public Map<String, List<ResServiceDto.Category>> getAccountCategory() throws SQLException {
+        Map<String, List<ResServiceDto.Category>> resultMap = new HashMap<>();
+
+        resultMap.put("parent", ResServiceDto.Category.entityToDto(serviceDao.selectCategory()));
+        resultMap.put("income", ResServiceDto.Category.entityToDto(serviceDao.selectCategory(INCODE_CODE)));
+        resultMap.put("export", ResServiceDto.Category.entityToDto(serviceDao.selectCategory(EXPORT_CODE)));
+        return resultMap;
     }
 
     @Override
-    public JSONObject getJsonObject( String mid, String type, ReqServiceDto.AccountSearch search ) throws Exception {
-        if( "y".equals(type) ) {
-            return getJsonYear( mid, search );
-        }else if( "w".equals(type) ) {
-            return getJsonWeek( mid, search );
-        }else{
-            return getJsonMonth( mid, search );
-        }
+    public List<ResServiceDto.Category> getAccountCategory( String code ) throws SQLException {
+        return ResServiceDto.Category.entityToDto( serviceDao.selectCategory(code) );
+    }
+
+    @Override
+    public void deleteAccountBook(String mid, ReqServiceDto.DeleteAccount deleteAccount) throws SQLException {
+        String sql = makeDeleteSQL(deleteAccount.getId());
+        serviceDao.deleteAccountBook(mid, sql);
     }
 
     private int findEndDay( int start ) {
@@ -172,7 +212,7 @@ public class DetailServiceImpl implements DetailService {
     }
 
     //월 기준으로 json 얻기
-    private JSONObject getJsonMonth(String mid, ReqServiceDto.AccountSearch search) throws Exception {
+    private JSONObject getJsonMonth(String mid, ReqServiceDto.AccountSearch search) throws SQLException {
         List<ResServiceDto.MonthChart> list = graphByMonth( mid, search );
 
         JSONObject data = new JSONObject();
@@ -211,7 +251,7 @@ public class DetailServiceImpl implements DetailService {
     }
 
     //주 기준으로 json 얻기
-    private JSONObject getJsonWeek(String mid, ReqServiceDto.AccountSearch search) throws Exception {
+    private JSONObject getJsonWeek(String mid, ReqServiceDto.AccountSearch search) throws SQLException {
         List<ResServiceDto.WeekChart> list = graphByWeek( mid, search );
         JSONObject data = new JSONObject();
 
@@ -258,7 +298,7 @@ public class DetailServiceImpl implements DetailService {
     }
 
     //년 기준으로 json 얻기
-    private JSONObject getJsonYear(String mid, ReqServiceDto.AccountSearch search) throws Exception {
+    private JSONObject getJsonYear(String mid, ReqServiceDto.AccountSearch search) throws SQLException {
         List<ResServiceDto.YearChart> list = serviceDao.selectGraphByYear(mid, search);
         JSONObject data = new JSONObject();
 
@@ -304,7 +344,7 @@ public class DetailServiceImpl implements DetailService {
     }
 
     //월 기준으로 그래프 조회
-    private List<ResServiceDto.MonthChart> graphByMonth( String mid, ReqServiceDto.AccountSearch search ) throws Exception {
+    private List<ResServiceDto.MonthChart> graphByMonth( String mid, ReqServiceDto.AccountSearch search ) throws SQLException {
         List<String> makeDate = makeDate(search);
         String date = makeDate.get(0) + makeDate.get(1) + "01";
 
@@ -312,19 +352,19 @@ public class DetailServiceImpl implements DetailService {
     }
 
     //주 기준으로 그래프 조회
-    private List<ResServiceDto.WeekChart> graphByWeek( String mid, ReqServiceDto.AccountSearch search ) throws Exception {
+    private List<ResServiceDto.WeekChart> graphByWeek( String mid, ReqServiceDto.AccountSearch search ) throws SQLException {
         List<String> makeDate = makeDate(search);
         String date = makeDate.get(0) + makeDate.get(1) + "01";
 
         return serviceDao.selectGraphByWeek(mid ,date);
     }
 
-    public String[] makeCategoryList(String[] category, int size) throws Exception {
+    public String[] makeCategoryList( String[] category, int size ) {
         String[] result = new String[size];
 
-        for (int i = 0; i < result.length; i++) {
+        for (int i = 0; i < size; i++) {
             for (String s : category) {
-                if (s.substring(3, 4).equals(i + 1 + "")) {
+                if (s.substring(5, 6).equals(i + 1 + "")) {
                     result[i] = s;
                 }
             }
@@ -333,8 +373,7 @@ public class DetailServiceImpl implements DetailService {
         return result;
     }
 
-
-    private String makeCategorySQL(String[] category) throws Exception {
+    private String makeCategorySQL( String[] category ) throws SQLException {
         StringBuilder sql = new StringBuilder("AND category_id IN( ");
 
         for (int i = 0; i < category.length; i++) {
@@ -349,7 +388,7 @@ public class DetailServiceImpl implements DetailService {
         return sql.toString();
     }
 
-    public List<String> makeDate( ReqServiceDto.AccountSearch search ) throws Exception {
+    public List<String> makeDate( ReqServiceDto.AccountSearch search ) {
         List<String> result = new ArrayList<>();
 
 
@@ -373,7 +412,7 @@ public class DetailServiceImpl implements DetailService {
     }
 
     @Override
-    public List<String> makeDateByWeek(ReqServiceDto.AccountSearch search) throws Exception {
+    public List<String> makeDateByWeek(ReqServiceDto.AccountSearch search) {
         List<String> result = new ArrayList<>();
 
         localDate = LocalDate.of(Integer.parseInt(search.getYear()), Integer.parseInt(search.getMonth()), 1);
@@ -431,7 +470,7 @@ public class DetailServiceImpl implements DetailService {
         return result;
     }
 
-    private String makeDeleteSQL(Long[] id) throws Exception {
+    private String makeDeleteSQL(Long[] id) {
         StringBuilder sql = new StringBuilder("AND id IN (");
 
         for (int i = 0; i < id.length; i++) {
@@ -444,5 +483,16 @@ public class DetailServiceImpl implements DetailService {
 
         sql.append(")");
         return sql.toString();
+    }
+
+    @Override
+    public JSONObject makeJsonObject( String mid, String type, ReqServiceDto.AccountSearch search ) throws SQLException {
+        if( "y".equals(type) ) {
+            return getJsonYear( mid, search );
+        }else if( "w".equals(type) ) {
+            return getJsonWeek( mid, search );
+        }else{
+            return getJsonMonth( mid, search );
+        }
     }
 }

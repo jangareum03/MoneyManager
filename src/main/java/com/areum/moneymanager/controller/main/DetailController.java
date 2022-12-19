@@ -12,11 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Controller
@@ -31,8 +29,17 @@ public class DetailController {
         this.writeService = writeService;
     }
 
-    @RequestMapping( value = "/accountDetail", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView getAccountDetailView(@RequestParam(defaultValue = "all")String mode, @RequestParam(defaultValue = "m")String type, ReqServiceDto.AccountSearch search, HttpSession session ) throws Exception {
+    @GetMapping("/accountDetail/{id}")
+    public ModelAndView getAccountDetailView( @PathVariable Long id, HttpSession session ) {
+        ModelAndView mav = new ModelAndView();
+
+        String mid = (String) session.getAttribute("mid");
+        mav.setViewName("/main/account_detail");
+        return mav;
+    }
+
+    @RequestMapping( value = "/accountList", method = {RequestMethod.GET, RequestMethod.POST})
+    public ModelAndView getAccountListView(@RequestParam(defaultValue = "all")String mode, @RequestParam(defaultValue = "m")String type, ReqServiceDto.AccountSearch search, HttpSession session ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
         Map<String, Object> map = new HashMap<>();
@@ -42,35 +49,38 @@ public class DetailController {
         Map<String, Object> accountMap = null;
         if( "y".equals(type) ){
             map.put("year", search.getYear());
-            accountMap = detailService.accountBookByYear(mid, mode, search);
+            accountMap = detailService.getAccountBookByYear(mid, mode, search);
         }else if( "w".equals(type) ) {
             List<String> dateList = detailService.makeDate(search);
             map.put("year", dateList.get(0));
             map.put("month", dateList.get(1));
             map.put("week", search.getWeek());
-            accountMap = detailService.accountBookByWeek(mid, mode, search);
+            accountMap = detailService.getAccountBookByWeek(mid, mode, search);
         }else{
             List<String> dateList = detailService.makeDate(search);
             map.put("year", dateList.get(0));
             map.put("month", dateList.get(1));
-            accountMap = detailService.accountBookByMonth( mid, mode, search);
+            accountMap = detailService.getAccountBookByMonth( mid, mode, search);
         }
 
+        //가계부 리스트 얻기
+        map.put("list", accountMap.get("list"));
+
         //카테고리 리스트 얻기
-        Map<String, List<ResServiceDto.Category>> categoryMap = writeService.getCategory();
+        Map<String, List<ResServiceDto.Category>> categoryMap = detailService.getAccountCategory();
+        List<ResServiceDto.Category> incomeList = detailService.getAccountCategory( search.getBasicInCategory() == null ? categoryMap.get("income").get(0).getCode() : search.getBasicInCategory() );
+        List<ResServiceDto.Category> exportList = detailService.getAccountCategory( search.getBasicExCategory() == null ? categoryMap.get("export").get(0).getCode() : search.getBasicExCategory() );
         map.put("parent", categoryMap.get("parent"));
         map.put("income", categoryMap.get("income"));
-        map.put("expend", categoryMap.get("expend"));
-        map.put("incomeCheck", search.getCategory() == null ? null : detailService.makeCategoryList( search.getCategory(), categoryMap.get("income").size()));
-        map.put("expendCheck", search.getCategory() == null ? null : detailService.makeCategoryList( search.getCategory(), categoryMap.get("expend").size()));
+        map.put("export", categoryMap.get("export"));
+        map.put("subIncome", incomeList);
+        map.put("subExport", exportList);
 
         //검색 조건 구분
         map.put("mode", mode);
         map.put("type", type);
         map.put("option", search.getOption() == null ? null : search.getOption().replace(",", ""));
-
-        //가계부 리스트 얻기
-        map.put("list", accountMap.get("list"));
+        map.put("basic", mode.equals("inCategory") ? search.getBasicInCategory() : search.getBasicExCategory());
 
         //가격 얻기
         map.put("inPrice", accountMap.get("inPrice"));
@@ -101,18 +111,24 @@ public class DetailController {
     public JSONObject  postAccountChart( HttpSession session ) throws Exception {
         String mid = (String)session.getAttribute("mid");
 
-        JSONObject result = detailService.getJsonObject( mid, String.valueOf(session.getAttribute("type")) , (ReqServiceDto.AccountSearch) session.getAttribute("chart"));
+        JSONObject result = detailService.makeJsonObject( mid, String.valueOf(session.getAttribute("type")) , (ReqServiceDto.AccountSearch) session.getAttribute("chart"));
         session.removeAttribute("chart");
         session.removeAttribute("type");
 
         return  result;
     }
 
+    @ResponseBody
+    @PostMapping("/accountCategory")
+    public List<ResServiceDto.Category> postAccountCategory( String code ) throws SQLException {
+        return detailService.getAccountCategory(code);
+    }
+
     @PostMapping("/deleteAccount")
     public String postDelete( ReqServiceDto.DeleteAccount deleteAccount, HttpSession session ) throws Exception {
         detailService.deleteAccountBook( (String)session.getAttribute("mid"), deleteAccount );
 
-        return "forward:/accountDetail";
+        return "forward:/accountList";
     }
 
 

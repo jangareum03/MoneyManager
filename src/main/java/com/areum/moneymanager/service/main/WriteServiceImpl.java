@@ -27,24 +27,12 @@ public class WriteServiceImpl implements WriteService {
 
     @Override
     public List<ResServiceDto.Category> getCategory() throws Exception {
-        List<ResServiceDto.Category> resultList = new ArrayList<>();
-        List<Category> categoryList = serviceDao.selectCategory();
-
-        for(Category category : categoryList ) {
-            resultList.add( ResServiceDto.Category.entityToDto(category) );
-        }
-        return resultList;
+        return ResServiceDto.Category.entityToDto(serviceDao.selectCategory());
     }
 
     @Override
     public List<ResServiceDto.Category> getCategory( String code ) throws Exception {
-        List<ResServiceDto.Category> resultList = new ArrayList<>();
-        List<Category> categoryList = serviceDao.selectCategory( code );
-
-        for( Category category : categoryList ) {
-            resultList.add( ResServiceDto.Category.entityToDto( category ) );
-        }
-        return resultList;
+        return ResServiceDto.Category.entityToDto(serviceDao.selectCategory( code ));
     }
 
     @Override

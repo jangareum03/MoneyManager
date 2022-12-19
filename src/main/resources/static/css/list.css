@@ -167,6 +167,10 @@ nav{
     left: 38%
 }
 
+#incomeArea, #exportArea {
+    display: inline-flex;
+}
+
 /* 그래프 */
 #chart {
     width: calc( 100% - 300px );

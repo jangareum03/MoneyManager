@@ -18,13 +18,6 @@ public class ServiceDaoImpl implements ServiceDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    //쿼리문
-    private static final String SELECT_ACCOUNT_MONTH = "SELECT tc.name category, NVL(SUM(price), 0) price " +
-                                                                                                        "FROM tb_account_book tab RIGHT JOIN " +
-                                                                                                            "(SELECT * FROM tb_category WHERE parent_code = '020000')tc " +
-                                                                                                            "ON tc.code = tab.category_id AND tab.member_id = ? AND tab.account_date >= TRUNC(TO_DATE(?, 'YYYYMMDD'), 'MM') AND tab.account_date < ADD_MONTHS(TRUNC(TO_DATE(?, 'YYYYMMDD'),'MM'), 1) " +
-                                                                                                "GROUP BY tc.code, tc.name " +
-                                                                                                "ORDER BY tc.code";
 
     public ServiceDaoImpl(DataSource dataSource ){
         this.jdbcTemplate = new JdbcTemplate( dataSource );
@@ -202,7 +195,25 @@ public class ServiceDaoImpl implements ServiceDao {
     @Override
     public List<AccountBook> selectGraphByMonth( String mid, String date ) throws SQLException {
         return jdbcTemplate.query(
-                SELECT_ACCOUNT_MONTH,
+                "SELECT CASE WHEN SUBSTR(tc.code, 0, 4) = '0201' THEN '식비' " +
+                                                    "WHEN SUBSTR(tc.code, 0, 4) = '0202' THEN '교통' " +
+                                                    "WHEN SUBSTR(tc.code, 0, 4) = '0203' THEN '문화생활' " +
+                                                    "WHEN SUBSTR(tc.code, 0, 4) = '0204' THEN '미용패션' " +
+                                                    "WHEN SUBSTR(tc.code, 0, 4) = '0205' THEN '교육' " +
+                                                    "WHEN SUBSTR(tc.code, 0, 4) = '0206' THEN '주거통신' " +
+                                                    "WHEN SUBSTR(tc.code, 0, 4) = '0207' THEN '의료' " +
+                                                    "WHEN SUBSTR(tc.code, 0, 4) = '0208' THEN '기타' " +
+                                        "END AS category, " +
+                                        "NVL(SUM(price), 0) price " +
+                                "FROM TB_ACCOUNT_BOOK tab RIGHT JOIN " +
+                                    "( SELECT * " +
+                                        "FROM TB_CATEGORY " +
+                                        "WHERE parent_code IS NOT NULL " +
+                                        "START WITH parent_code = '020000' " +
+                                        "CONNECT BY PRIOR code = parent_code ) tc " +
+                                "ON member_id = ? AND tc.code = tab.category_id AND tab.account_date >= TRUNC(TO_DATE(?, 'YYYYMMDD'), 'MM') AND tab.account_date < ADD_MONTHS(TRUNC(TO_DATE(?, 'YYYYMMDD'),'MM'), 1) " +
+                                "GROUP BY SUBSTR(tc.code, 0, 4) " +
+                                "ORDER BY SUBSTR(tc.code, 0, 4)",
                 new RowMapper<AccountBook>() {
                     @Override
                     public AccountBook mapRow(ResultSet rs, int rowNum) throws SQLException {

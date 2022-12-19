@@ -66,11 +66,6 @@ function changeCategory( category ){
     }
 }
 
-//하위 카테고리 선택 시 동작
-function clickCategory(){
-    alert('선택함');
-}
-
 //가격에 숫자만 입력
 function checkPrice( target ){
     const pattern = /[^0-9]/g;
