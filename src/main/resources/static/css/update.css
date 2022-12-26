@@ -140,7 +140,7 @@ nav{
     height: 100%;
     text-align: center;
 }
-#detail {
+#update {
     width: 80%;
     height: 80%;
     margin: 5% auto;
@@ -154,7 +154,6 @@ nav{
 /* 테이블 */
 table {
     width: 100%;
-    height: 70%;
     margin: 10% auto;
     border: 1px solid #8C8C8C;
 }
@@ -167,6 +166,9 @@ th {
     border-right: 1px solid #8C8C8C;
     background-color: #C8C8C8;
 }
+td{
+    text-align: left;
+}
 
 #fixOption{
     padding-top: 20px;
@@ -174,6 +176,12 @@ th {
 
 /* 사진 */
 .accountImage {
-    width: 80px;
+    width: 60px;
+    margin: 5px;
     cursor: pointer;
+}
+
+/* 지도 */
+.map {
+    pointer: cursor;
 }

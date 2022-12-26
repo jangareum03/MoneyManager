@@ -22,11 +22,29 @@ function showOption(){
 //카테고리 선택 시 하위카테고리 표시
 function changeCategory( category ){
     let categoryArea = document.getElementById('categoryArea');
-    let categoryL = document.getElementById('categoryL');
-    let categoryM = document.getElementById('categoryM');
 
-    if( categoryM != null ) {
-        categoryM.remove();
+    //구분
+    let subCategory = 'M';
+    if( category.value.substr(2,2) == '00' ) {
+        console.log('[M] 1단계 성공');
+
+        if( document.getElementById('categoryM') != null ) {
+            const size = document.getElementById('categoryM').length;
+            for( i=0; i<size; i++ ) {
+                document.getElementById('categoryM').remove(0);
+            }
+        }
+        if( document.getElementById('categoryS') != null ) {
+            document.getElementById('categoryS').remove();
+        }
+    }else{
+        console.log('[S] 1단계 성공');
+        if( document.getElementById('categoryS') != null ) {
+            document.getElementById('categoryS').remove();
+        }
+
+        document.getElementById('categoryM').removeAttribute('name');
+        subCategory = 'S';
     }
 
     let xhr = new XMLHttpRequest();
@@ -40,25 +58,37 @@ function changeCategory( category ){
             let result = JSON.parse(xhr.response);
 
             if( result.length == 0 ) {
-                categoryL.setAttribute('name', 'category');
+                document.getElementById('categoryM').setAttribute('name', 'category');
                 return false;
             }else{
-                for( i=0; i<result.length; i++ ) {
-                    const new_option = document.createElement('option');
-                    new_option.value = result[i].code;
-                    new_option.text = result[i].name;
+            //설정
+                if( subCategory == 'S' ) {
+                    for( i=0; i<result.length; i++ ) {
+                        const new_option = document.createElement('option');
+                        new_option.value = result[i].code;
+                        new_option.text = result[i].name;
 
-                    new_select.appendChild(new_option);
+                        new_select.appendChild(new_option);
+                    }
+
+                    console.log('[S] 2단계 성공');
+                    new_select.setAttribute('id', 'categoryS');
+                    new_select.setAttribute('class', 'wCategory');
+                    new_select.setAttribute('name', 'category');
+                    new_select.style.display = 'block';
+                    new_select.style.width = '80px';
+
+                    categoryArea.appendChild(new_select);
+                }else{
+                    for( i=0; i<result.length; i++ ) {
+                        const new_option = document.createElement('option');
+                        new_option.value = result[i].code;
+                        new_option.text = result[i].name;
+
+                        document.getElementById('categoryM').appendChild(new_option);
+                    }
                 }
 
-                new_select.setAttribute('class', 'wCategory');
-                new_select.setAttribute('id', 'categoryM');
-                new_select.setAttribute('name', 'category');
-                new_select.style.display = 'block';
-                new_select.style.width = '80px';
-
-                categoryArea.appendChild(new_select);
-                categoryL.removeAttribute('name');
             }
         }else{
             alert('통신 실패했습니다. 잠시 후 다시 시도해주세요.');
@@ -75,6 +105,19 @@ function checkPrice( target ){
     }
 }
 
+//이미지 변경
+function changeImg() {
+    let img = document.querySelectorAll('.img');
+
+    console.log('img개수: ' + img.length);
+}
+
+//위치 아이콘 선택 시 동작
+function openMapPop(){
+    let option = 'top=320, left=660, width=800, height=500, status=no, menubar=no, toolbar=no, resizable=no';
+    window.open('/write/map', '팝업', option);
+}
+
 //위치 지우기
 function removeLocation() {
     document.getElementById('mapName').value = '';
@@ -85,19 +128,13 @@ function removeLocation() {
     document.getElementById('mapInput').style.display = 'block';
 }
 
-
 //등록 시 필수값 체크
-function writeCheck() {
-    let categoryL = document.getElementById('categoryL');
+function updateCheck() {
     let title = document.getElementsByName('title')[0];
     let price = document.getElementsByName('price')[0];
     let priceType = document.getElementsByName('priceType')[0];
 
-    if( categoryL.value == '00' ) {
-        alert('카테고리를 선택해주세요.');
-        category.focus();
-        return false;
-    }else if( title.value == '' ) {
+    if( title.value == '' ) {
         alert('제목을 입력해주세요.');
         title.focus();
         return false;

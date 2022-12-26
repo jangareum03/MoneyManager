@@ -2,7 +2,6 @@ package com.areum.moneymanager.service.main;
 
 import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
-import com.areum.moneymanager.entity.Category;
 import org.json.simple.JSONObject;
 
 import java.sql.SQLException;
@@ -11,19 +10,22 @@ import java.util.Map;
 
 public interface DetailService {
 
-    //월 기준으로 가계부 조회
+    //특정 가계부 조회
+    ResServiceDto.DetailAccount getAccountBookById( String mid, Long id ) throws SQLException;
+
+    //월 기준으로 전체 가계부 조회
     Map<String, Object> getAccountBookByMonth( String mid, String mode, ReqServiceDto.AccountSearch search ) throws SQLException;
 
-    //주 기준으로 가계부 조회
+    //주 기준으로 전체 가계부 조회
     Map<String, Object> getAccountBookByWeek( String mid, String mode, ReqServiceDto.AccountSearch search ) throws SQLException;
 
-    //년 기준으로 가계부 조회
+    //년 기준으로 전체 가계부 조회
     Map<String ,Object> getAccountBookByYear( String mid, String mode, ReqServiceDto.AccountSearch search ) throws SQLException;
 
     //가계부 카테고리 조회
     Map<String, List<ResServiceDto.Category>> getAccountCategory( ) throws SQLException;
 
-    //가계부 선택한 소카테고리 조회
+    //선택한 가계부 소카테고리 조회
     List<ResServiceDto.Category> getAccountCategory( String code ) throws SQLException;
 
     //가계부 삭제
@@ -41,4 +43,6 @@ public interface DetailService {
     //JSON 객체 생성
     JSONObject makeJsonObject( String mid, String type, ReqServiceDto.AccountSearch search ) throws SQLException;
 
+    //가계부 수정
+    void updateAccountBook( String mid, ReqServiceDto.UpdateAccount updateAccount ) throws SQLException;
 }

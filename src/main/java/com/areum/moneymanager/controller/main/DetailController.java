@@ -3,6 +3,7 @@ package com.areum.moneymanager.controller.main;
 import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.service.main.DetailServiceImpl;
+import com.areum.moneymanager.service.main.ImageService;
 import com.areum.moneymanager.service.main.WriteService;
 import com.areum.moneymanager.service.main.WriteServiceImpl;
 import org.json.simple.*;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -21,20 +23,53 @@ import java.util.*;
 public class DetailController {
 
     private final DetailServiceImpl detailService;
+    private final ImageService imageService;
     private final WriteService writeService;
 
     @Autowired
-    public DetailController(DetailServiceImpl detailService, WriteServiceImpl writeService ) {
+    public DetailController(DetailServiceImpl detailService, ImageService imageService, WriteServiceImpl writeService) {
         this.detailService = detailService;
+        this.imageService = imageService;
         this.writeService = writeService;
     }
 
     @GetMapping("/accountDetail/{id}")
-    public ModelAndView getAccountDetailView( @PathVariable Long id, HttpSession session ) {
+    public ModelAndView getAccountDetailView( @PathVariable Long id, HttpSession session ) throws SQLException, ParseException {
         ModelAndView mav = new ModelAndView();
 
         String mid = (String) session.getAttribute("mid");
+        ResServiceDto.DetailAccount account = detailService.getAccountBookById( mid, id );
+
+        //고정 옵션 설정
+        String option = "";
+        if( account.getFixOption() == null ) {
+            option = "";
+        }else if( account.getFixOption().equals("y") ) {
+            option = "일년";
+        } else if ( account.getFixOption().equals("m") ) {
+            option = "한달";
+        }else if ( account.getFixOption().equals("w") ) {
+            option = "일주일";
+        }
+
+        //제목
+        mav.addObject("date", account.getDate().substring(0, 4) + "년 " + account.getDate().substring(4, 6) + "월 " + account.getDate().substring(6, 8) + "일");
+
+        //가계부 정보
+        mav.addObject("id", id);
+        mav.addObject("fix", account.getFix());
+        mav.addObject("fixOption", option);
+        mav.addObject("title", account.getTitle());
+        mav.addObject("content", account.getContent());
+        mav.addObject("price", account.getPrice());
+        mav.addObject("image", account.getImage() == null ? null : imageService.findImage(mid, account));
+        mav.addObject("locationName", account.getMapName());
+        mav.addObject("location", account.getMapRoad());
+        mav.addObject("category", detailService.makeCategory( account.getCategory() ));
+
         mav.setViewName("/main/account_detail");
+
+
         return mav;
     }
 
@@ -97,6 +132,42 @@ public class DetailController {
         return mav;
     }
 
+    @GetMapping("/accountUpdate/{id}")
+    public ModelAndView getAccountUpdateView( @PathVariable Long id, HttpSession session ) throws Exception {
+        ModelAndView mav = new ModelAndView();
+
+        String mid = (String) session.getAttribute("mid");
+        ResServiceDto.DetailAccount account = detailService.getAccountBookById( mid, id );
+
+        //제목
+        mav.addObject("date", account.getDate().substring(0, 4) + "년 " + account.getDate().substring(4, 6) + "월 " + account.getDate().substring(6, 8) + "일");
+        mav.addObject("accountDate", account.getDate());
+
+        //가계부 정보
+        mav.addObject("id", id);
+        mav.addObject("fix", account.getFix());
+        mav.addObject("fixOption", account.getFixOption());
+        mav.addObject("title", account.getTitle());
+        mav.addObject("content", account.getContent());
+        mav.addObject("price", account.getPrice());
+        mav.addObject("priceType" , account.getPriceType());
+        mav.addObject("image", account.getImage() == null ? null : imageService.findImage(mid, account));
+        mav.addObject("maxImage", 1);
+        mav.addObject("locationName", account.getMapName());
+        mav.addObject("location", account.getMapRoad());
+
+        //카테고리
+        List<ResServiceDto.Category> categoryList = detailService.makeCategory( account.getCategory() );
+        mav.addObject("largeCategory", writeService.getCategory());
+        mav.addObject("mediumCategory", detailService.getAccountCategory( categoryList.get(0).getCode() ));
+        mav.addObject("smallCategory", detailService.getAccountCategory( categoryList.get(1).getCode() ));
+        mav.addObject("chooseCategory", categoryList);
+
+        mav.setViewName("/main/account_update");
+
+        return mav;
+    }
+
     @GetMapping("/datePopup")
     public ModelAndView getPopupView() {
         ModelAndView mav = new ModelAndView();
@@ -122,6 +193,13 @@ public class DetailController {
     @PostMapping("/accountCategory")
     public List<ResServiceDto.Category> postAccountCategory( String code ) throws SQLException {
         return detailService.getAccountCategory(code);
+    }
+
+    @PostMapping("/accountUpdate/{id}")
+    public String postAccountUpdate( ReqServiceDto.UpdateAccount updateAccount, HttpSession session ) throws Exception {
+        detailService.updateAccountBook( (String)session.getAttribute("mid"), updateAccount );
+        imageService.uploadImageFile( updateAccount, (String)session.getAttribute("mid") );
+        return "forward:/accountList";
     }
 
     @PostMapping("/deleteAccount")

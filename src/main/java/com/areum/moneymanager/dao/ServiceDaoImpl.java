@@ -63,8 +63,9 @@ public class ServiceDaoImpl implements ServiceDao {
         );
     }
 
+
     @Override
-    public List<ResServiceDto.DetailList> selectAccountByCategory( String mid, String startDate, String endDate, String category ) throws SQLException {
+    public List<ResServiceDto.ListAccount> selectAccountByCategory( String mid, String startDate, String endDate, String category ) throws SQLException {
         StringBuilder query = new StringBuilder(
                 "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
                         "FROM tb_account_book tab, tb_category tc " +
@@ -74,10 +75,10 @@ public class ServiceDaoImpl implements ServiceDao {
         query.append("ORDER BY account_date DESC");
         return jdbcTemplate.query(
                 query.toString(),
-                new RowMapper<ResServiceDto.DetailList>() {
+                new RowMapper<ResServiceDto.ListAccount>() {
                     @Override
-                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
+                    public ResServiceDto.ListAccount mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.ListAccount.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
                                 .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
                     }
                 },
@@ -86,7 +87,7 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public List<ResServiceDto.DetailList> selectAccountByParentCategory( String mid, String startDate, String endDate, String code ) throws SQLException {
+    public List<ResServiceDto.ListAccount> selectAccountByParentCategory( String mid, String startDate, String endDate, String code ) throws SQLException {
         return jdbcTemplate.query(
                 "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
                         "FROM tb_account_book tab, ( SELECT name,code FROM tb_category WHERE parent_code = ? ) tc " +
@@ -94,10 +95,10 @@ public class ServiceDaoImpl implements ServiceDao {
                         "AND tc.code = tab.category_id " +
                         "AND tab.account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
                         "ORDER BY account_date DESC",
-                new RowMapper<ResServiceDto.DetailList>() {
+                new RowMapper<ResServiceDto.ListAccount>() {
                     @Override
-                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
+                    public ResServiceDto.ListAccount mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.ListAccount.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
                                 .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
                     }
                 },
@@ -106,7 +107,7 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public List<ResServiceDto.DetailList> selectAccountByTitle(String mid, String startDate, String endDate, String title) throws SQLException {
+    public List<ResServiceDto.ListAccount> selectAccountByTitle(String mid, String startDate, String endDate, String title) throws SQLException {
         return jdbcTemplate.query(
                 "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
                         "FROM tb_account_book tab, tb_category tc " +
@@ -115,15 +116,35 @@ public class ServiceDaoImpl implements ServiceDao {
                         "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
                         "AND title LIKE ? " +
                         "ORDER BY account_date DESC",
-                new RowMapper<ResServiceDto.DetailList>() {
+                new RowMapper<ResServiceDto.ListAccount>() {
                     @Override
-                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
+                    public ResServiceDto.ListAccount mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.ListAccount.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix"))
                                 .code(rs.getString("code")).name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
                     }
                 },
                 mid, startDate, endDate, '%'+title+'%'
         );
+    }
+
+    @Override
+    public AccountBook selectAccountOneById( String mid, Long id ) throws SQLException {
+        List<AccountBook> resultList =  jdbcTemplate.query(
+                "SELECT * FROM tb_account_book WHERE member_id = ? AND id = ?",
+                new RowMapper<AccountBook>() {
+                    @Override
+                    public AccountBook mapRow( ResultSet rs, int rowNum ) throws SQLException {
+                        return AccountBook.builder().id(rs.getLong("id")).account_date(rs.getString("account_date"))
+                                .fix(rs.getString("fix")).fix_option(rs.getString("fix_option")).category_id(rs.getString("category_id"))
+                                .title(rs.getString("title")).content(rs.getString("content")).price(rs.getInt("price")).price_type(rs.getString("price_type"))
+                                .image1(rs.getString("image1")).image2(rs.getString("image2")).image3(rs.getString("image3"))
+                                .location_name(rs.getString("location_name")).location(rs.getString("location")).build();
+                    }
+                },
+                mid, id
+        );
+
+        return resultList.isEmpty() ? null : resultList.get(0);
     }
 
     @Override
@@ -140,7 +161,26 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public List<ResServiceDto.DetailList> selectAllAccount( String mid, String startDate, String endDate ) throws SQLException {
+    public Long selectId( String mid ) throws SQLException {
+        List<Long> idList = jdbcTemplate.query(
+                "SELECT id " +
+                        "FROM tb_account_book " +
+                        "WHERE member_id = ? " +
+                        "ORDER BY id DESC",
+                new RowMapper<Long>() {
+                    @Override
+                    public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return rs.getLong("id");
+                    }
+                },
+                mid
+        );
+
+        return idList.isEmpty() ? null : idList.get(0);
+    }
+
+    @Override
+    public List<ResServiceDto.ListAccount> selectAllAccount( String mid, String startDate, String endDate ) throws SQLException {
         return jdbcTemplate.query(
                 "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
                         "FROM tb_account_book tab, tb_category tc " +
@@ -148,14 +188,32 @@ public class ServiceDaoImpl implements ServiceDao {
                         "AND tc.code = tab.category_id " +
                         "AND account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +
                         "ORDER BY account_date DESC",
-                new RowMapper<ResServiceDto.DetailList>() {
+                new RowMapper<ResServiceDto.ListAccount>() {
                     @Override
-                    public ResServiceDto.DetailList mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return ResServiceDto.DetailList.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix")).code(rs.getString("code"))
+                    public ResServiceDto.ListAccount mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return ResServiceDto.ListAccount.builder().id(rs.getLong("id")).date(rs.getString("account_date")).fix(rs.getString("fix")).code(rs.getString("code"))
                                 .name(rs.getString("name")).title(rs.getString("title")).price(rs.getInt("price")).build();
                     }
                 },
                 mid, startDate, endDate
+        );
+    }
+
+    @Override
+    public List<Category> selectAllCategory( String code ) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT code, name " +
+                            "FROM tb_category " +
+                            "START WITH code = ? " +
+                            "CONNECT BY PRIOR parent_code = code " +
+                            "ORDER BY code",
+                new RowMapper<Category>() {
+                    @Override
+                    public Category mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return Category.builder().code(rs.getString("code")).name(rs.getString("name")).build();
+                    }
+                },
+                code
         );
     }
 
@@ -293,6 +351,35 @@ public class ServiceDaoImpl implements ServiceDao {
                     }
                 },
                 mid, search.getYear(), mid, search.getYear()
+        );
+    }
+
+    @Override
+    public void updateAccountBook( AccountBook accountBook, String mid ) throws SQLException {
+        jdbcTemplate.update(
+                new PreparedStatementCreator() {
+                    @Override
+                    public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+                        PreparedStatement pstmt = con.prepareStatement(
+                            "UPDATE tb_account_book SET fix=?, fix_option=?, category_id=?, title=?, content=?, price=?, price_type=?, image1=?, location_name=?, location=?, modefied_date=SYSDATE WHERE member_id=? AND id=?"
+                        );
+
+                        pstmt.setString(1, accountBook.getFix());
+                        pstmt.setString(2, accountBook.getFix_option());
+                        pstmt.setString(3, accountBook.getCategory_id());
+                        pstmt.setString(4, accountBook.getTitle());
+                        pstmt.setString(5, accountBook.getContent());
+                        pstmt.setInt(6, accountBook.getPrice());
+                        pstmt.setString(7, accountBook.getPrice_type());
+                        pstmt.setString(8, accountBook.getImage1());
+                        pstmt.setString(9, accountBook.getLocation_name());
+                        pstmt.setString(10, accountBook.getLocation());
+                        pstmt.setString(11, mid);
+                        pstmt.setLong(12, accountBook.getId());
+
+                        return pstmt;
+                    }
+                }
         );
     }
 

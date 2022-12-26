@@ -1,7 +1,6 @@
 package com.areum.moneymanager.dto;
 
 import com.areum.moneymanager.entity.AccountBook;
-import com.areum.moneymanager.entity.Category;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -28,10 +27,34 @@ public class ResServiceDto {
         }
     }
 
+    //가계부 정보
     @Builder
     @Getter
-    //내역조회(월) - 전체
-    public static class DetailList {
+    public static class DetailAccount {
+        private Long id;
+        private String date;
+        private String fix;
+        private String fixOption;
+        private String category;
+        private String title;
+        private String content;
+        private int price;
+        private String priceType;
+        private String image;
+        private String mapName;
+        private String mapRoad;
+
+
+        public static DetailAccount toDto( AccountBook entity ) {
+            return DetailAccount.builder().id(entity.getId()).date(entity.getAccount_date()).fix(entity.getFix()).category(entity.getCategory_id()).fixOption(entity.getFix_option())
+                    .title(entity.getTitle()).content(entity.getContent()).price(entity.getPrice()).priceType(entity.getPrice_type()).image(entity.getImage1()).mapName(entity.getLocation_name()).mapRoad(entity.getLocation()).build();
+        }
+    }
+
+    @Builder
+    @Getter
+    //리스트에서 전체 내역
+    public static class ListAccount {
         private Long id;
         private String date;
         private String fix;
@@ -80,6 +103,5 @@ public class ResServiceDto {
         private int inPrice;
         private int outPrice;
     }
-
 
 }

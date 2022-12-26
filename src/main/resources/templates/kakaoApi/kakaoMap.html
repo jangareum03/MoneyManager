@@ -264,7 +264,8 @@ function saveLocation( name, roadAddr, addr ) {
     opener.document.getElementById('mapRoad').value = roadAddr;
     opener.document.getElementById('locationAddr').innerHTML = addr;
     opener.document.getElementById('mapAddr').value = addr;
-    opener.document.getElementById('mapInput').innerHTML = '';
+    opener.document.getElementById('mapInput').style.display = 'none';
+    opener.document.getElementById('location').style.display = 'block';
 
     window.close();
 }

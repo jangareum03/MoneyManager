@@ -30,6 +30,11 @@ public class DetailServiceImpl implements DetailService {
 
 
     @Override
+    public ResServiceDto.DetailAccount getAccountBookById( String mid, Long id ) throws SQLException {
+        return ResServiceDto.DetailAccount.toDto( serviceDao.selectAccountOneById( mid, id ) );
+    }
+
+    @Override
     public Map<String, Object> getAccountBookByMonth(String mid, String mode, ReqServiceDto.AccountSearch search) throws SQLException {
         Map<String, Object> resultMap = new HashMap<>();
 
@@ -359,6 +364,10 @@ public class DetailServiceImpl implements DetailService {
         return serviceDao.selectGraphByWeek(mid ,date);
     }
 
+    public List<ResServiceDto.Category> makeCategory(String category ) throws SQLException {
+        return ResServiceDto.Category.entityToDto(serviceDao.selectAllCategory( category ));
+    }
+
     public String[] makeCategoryList( String[] category, int size ) {
         String[] result = new String[size];
 
@@ -494,5 +503,10 @@ public class DetailServiceImpl implements DetailService {
         }else{
             return getJsonMonth( mid, search );
         }
+    }
+
+    @Override
+    public void updateAccountBook( String mid, ReqServiceDto.UpdateAccount updateAccount ) throws SQLException {
+        serviceDao.updateAccountBook( updateAccount.toEntity(), mid );
     }
 }

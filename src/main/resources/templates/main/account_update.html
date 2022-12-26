@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>내역수정 : 돈매니저</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/update.css}">
+    <!-- js -->
+    <script th:src="@{/js/update.js}"></script>
+</head>
+<body>
+<nav th:replace="/include/menu.html :: menu"></nav>
+<form id="content" method="post" th:action="@{/accountUpdate/{id}(id=${id})}" enctype="multipart/form-data">
+    <div id="update">
+        <span class="title">[[${date}]]</span>
+        <input type="hidden" th:value="${accountDate}" name="accountDate">
+        <table>
+            <tr>
+                <th><span>고정/변동</span></th>
+                <td>
+                    <div th:onchange="showOption()">
+                        <label><input type="radio" name="fix" id="fix" th:value="${'y'}" th:checked="${fix == 'y'}"> 고정</label>
+                        <label><input type="radio" name="fix" th:value="${'n'}" th:checked="${fix == 'n'}"> 변동</label>
+                    </div>
+                    <div id="fixOption" th:style="${fix == 'y' ? 'display: block' : 'display: none'}">
+                        <label><input type="radio" name="fixOption" class="fixCycle" th:value="y" th:checked="${fixOption == 'y'}">일년</label>
+                        <label><input type="radio" name="fixOption" class="fixCycle" th:value="m"  th:checked="${fixOption == 'm'}">한달</label>
+                        <label><input type="radio" name="fixOption" class="fixCycle" th:value="w"  th:checked="${fixOption == 'w'}">일주일</label>
+                    </div>
+                </td>
+                <th>카테고리</th>
+                <td id="categoryArea">
+                    <select id="categoryL" th:onchange="changeCategory( this )">
+                        <option th:each="category: ${largeCategory}" th:value="${category.code}" th:selected="${category.code} == ${chooseCategory[0].code}">[[${category.name}]]</option>
+                    </select>
+                    <select id="categoryM" th:onchange="changeCategory( this )">
+                        <option th:each="category : ${mediumCategory}" th:value="${category.code}" th:selected="${category.code} == ${chooseCategory[1].code}">[[${category.name}]]</option>
+                    </select>
+                    <select id="categoryS" name="category">
+                        <option th:each="category : ${smallCategory}" th:value="${category.code}" th:selected="${category.code} == ${chooseCategory[2].code}">[[${category.name}]]</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>제목</th>
+                <td colspan="3">
+                    <input type="text" name="title" th:value="${title}" placeholder="제목을 입력해주세요." maxlength="50">
+                </td>
+            </tr>
+            <tr>
+                <th th:style="${'height: 50%'}">내용</th>
+                <td colspan="3">
+                    <textarea cols="60" rows="5" placeholder="내용을 입력해주세요." name="content" maxlength="300">[[${content}]]</textarea>
+                </td>
+            </tr>
+            <tr>
+                <th>금액</th>
+                <td colspan="3">
+                    <input type="text" name="price" th:value="${price}" placeholder="금액을 입력해주세요." th:onkeyup="checkPrice( this )">
+                    <select name="priceType">
+                        <option th:value="${'ca'}" th:selected="${priceType} == 'ca'">현금</option>
+                        <option th:value="${'de'}" th:selected="${priceType} == 'de'">체크카드</option>
+                        <option th:value="${'cr'}" th:selected="${priceType} == 'cr'">신용카드</option>
+                        <option th:value="${'ba'}" th:selected="${priceType} == 'ba'">계좌이체</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>사진</th>
+                <td colspan="3">
+                    <th:black th:each="num : ${#numbers.sequence(1,3)}">
+                        <label th:if="${num <= maxImage}">
+                            <input type="file" accept=".gif, .jpg, .png" name="images" class="img" th:style="${'display:none;'}">
+                            <img th:src="${image == null ? '/image/imageUnLock.png' : '/image/accountBook/' + image}" class="accountImage" th:id="${'img' + (num-1)}">
+                        </label>
+                        <label th:unless="${num <= maxImage}" th:style="${'pointer-events: none;'}">
+                            <input type="file" accept=".gif, .jpg, .png" class="img" th:style="${'display:none;'}" >
+                            <img src="/image/imageLock.png" class="accountImage" th:id="${'img' + (num-1)}">
+                        </label>
+                    </th:black>
+                    <script>
+                        let img = document.querySelectorAll('.img');
+                        for( let i=0; i < img.length; i++ ) {
+                            img[i].addEventListener("change", function() {
+                                if( this.files && this.files[0] ) {
+                                    let reader = new FileReader();
+                                    reader.onload = function(e) {
+                                        document.getElementById('img' + i).src = e.target.result;
+                                    };
+                                    reader.readAsDataURL(this.files[0]);
+                                } else{
+                                    document.getElementById('img' + i).src = '/image/imageUnLock.png';
+                                }
+                            });
+                        }
+                    </script>
+                </td>
+            </tr>
+            <tr>
+                <th>위치</th>
+                <td colspan="3">
+                    <img src="/image/location.png" class="map" onclick="openMapPop()">
+                    <label id="mapInput" th:style="${locationName == null ? 'display: block' : 'display: none'}">위치를 입력해주세요.</label>
+                    <div id="location" th:style="${locationName == null ? 'display: none' : 'display: block'}">
+                        <span  id="locationName">[[${locationName}]]</span><input type="hidden" name="mapName" id="mapName"><br>
+                        <span id="locationRoad">[[${location}]]</span><input type="hidden" name="mapRoad" id="mapRoad" ><br>
+                        <span id="locationAddr"></span><input type="hidden" id="mapAddr" name="mapAddr">
+                    </div>
+                    <button type="button" onclick="removeLocation()">지우기</button>
+                </td>
+            </tr>
+        </table>
+        <div>
+            <button type="button" th:onclick="history.back()">취소</button>
+            <button th:onclick="return updateCheck()">완료</button>
+        </div>
+    </div>
+</form>
+</body>
+</html>
