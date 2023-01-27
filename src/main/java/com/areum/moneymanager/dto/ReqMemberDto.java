@@ -1,9 +1,12 @@
 package com.areum.moneymanager.dto;
 
 import com.areum.moneymanager.entity.MemberInfo;
+import com.areum.moneymanager.entity.UpdateHistory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.lang.Nullable;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @Getter
@@ -20,7 +23,24 @@ public class ReqMemberDto {
         private String endDate;
     }
 
+    //회원정보 삭제
+    @Getter
+    @Builder
+    public static class Delete {
+        private String id;
+        private String password;
+        private String code;
+        @Nullable
+        private String cause;
 
+        public MemberInfo toEntity( String mid ) {
+            return MemberInfo.builder().memberId(mid).id(id).password(password).build();
+        }
+
+        public UpdateHistory toUpdateHistoryEntity( String mid ) {
+            return UpdateHistory.builder().memberId(mid).type('D').bfInfo("delete").afInfo("delete").deleteType(code).deleteCause(cause).build();
+        }
+    }
 
     //회원가입
     @Getter
@@ -77,5 +97,29 @@ public class ReqMemberDto {
     }
 
 
+    //회원정보 수정
+    @Getter
+    @AllArgsConstructor
+    public static class Update {
+        @Nullable
+        private String name;
+        @Nullable
+        private String password;
+        @Nullable
+        private char gender;
+        @Nullable
+        private String email;
+        @Nullable
+        private MultipartFile profile;
+
+        public MemberInfo toEntity() {
+            if( profile == null ) {
+                return MemberInfo.builder().name(name).password(password).gender(gender).email(email).build();
+            }else{
+                return MemberInfo.builder().name(name).password(password).gender(gender).email(email).profile(profile.getOriginalFilename()).build();
+            }
+        }
+
+    }
 
 }

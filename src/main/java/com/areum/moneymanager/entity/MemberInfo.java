@@ -17,6 +17,7 @@ public class MemberInfo {
     private String email;                             //회원 이메일
     private String profile;                         //회원 프로필
     private int point;                                  //회원포인트
+    private int checkCnt;                           //연속출석일자
     private Date regDate;                           //회원가입일
     private Date resignDate;                      //회원탈퇴일
     private Date lastLoginDate;                 //마지막접속일

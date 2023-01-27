@@ -60,6 +60,7 @@ table {
 body{
     width: 100%;
     height: 100vh;
+    font-family: 'Pretendard-Regular';
 }
 #popup {
     width: 95%;
@@ -70,9 +71,9 @@ body{
 /* 타이틀 */
 #title{
     font-family: SEBANG_Gothic_Bold;
-    font-size: 25px;
+    font-size: 45px;
     text-align: center;
-    padding-top: 2%;
+    padding: 35px 0 20px 0;
 }
 
 /* 날짜 영역 */
@@ -109,4 +110,11 @@ body{
     justify-content:  center;
     width: 95%;
     margin-top: 30px;
+}
+
+/* 안내메시지 */
+.main__msg {
+    font-size: 14px;
+    font-weight: 800;
+    color: red;
 }

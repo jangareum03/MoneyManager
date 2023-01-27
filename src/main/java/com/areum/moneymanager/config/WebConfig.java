@@ -9,13 +9,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     @Value("${image.accountBook.resourcePath}")
-    private String resourcePath;
+    private String accountResourcePath;
     @Value("${image.accountBook.connectPath}")
-    private String connectPath;
+    private String accountConnectPath;
+    @Value("${image.profile.resourcePath}")
+    private String profileResourcePath;
+    @Value("${image.profile.connectPath}")
+    private String profileConnectPath;
 
     @Override
     public void addResourceHandlers( ResourceHandlerRegistry registry ) {
-        registry.addResourceHandler(connectPath).addResourceLocations(resourcePath);
+        registry.addResourceHandler(accountConnectPath).addResourceLocations(accountResourcePath);
+        registry.addResourceHandler(profileConnectPath).addResourceLocations(profileResourcePath);
     }
 
 }

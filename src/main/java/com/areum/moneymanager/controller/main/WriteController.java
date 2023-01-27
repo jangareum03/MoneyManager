@@ -2,7 +2,7 @@ package com.areum.moneymanager.controller.main;
 
 import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
-import com.areum.moneymanager.service.main.ImageService;
+import com.areum.moneymanager.service.ImageService;
 import com.areum.moneymanager.service.main.WriteService;
 import com.areum.moneymanager.service.main.WriteServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;

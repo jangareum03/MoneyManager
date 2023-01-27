@@ -2,9 +2,11 @@ package com.areum.moneymanager.dto;
 
 import com.areum.moneymanager.entity.Attendance;
 import com.areum.moneymanager.entity.MemberInfo;
+import com.areum.moneymanager.entity.UpdateHistory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -52,6 +54,7 @@ public class ResMemberDto {
         return new FindId( memberInfo.getId(), Timestamp.valueOf(memberInfo.getLastLoginDate().toString()) );
     }
 
+    //비밀번호 찾기
     @Getter
     @AllArgsConstructor
     public static class FindPwd {
@@ -61,6 +64,7 @@ public class ResMemberDto {
         return new FindPwd( memberInfo.getEmail() );
     }
 
+    //회원 찾기
     @Getter
     @Builder
     public static class Member {
@@ -71,8 +75,15 @@ public class ResMemberDto {
         private char gender;
         private String profile;
         private Date joinDate;
+        private Date lastLogin;
         private int totalCount;
         private String email;
+
+        public static Member toDto( MemberInfo memberInfo ) {
+            return Member.builder().id(memberInfo.getId()).name(memberInfo.getName()).nickName(memberInfo.getNickName())
+                    .gender(memberInfo.getGender()).profile(memberInfo.getProfile()).joinDate(memberInfo.getRegDate()).lastLogin(memberInfo.getLastLoginDate())
+                    .totalCount(memberInfo.getCheckCnt()).email(memberInfo.getEmail()).build();
+        }
     }
 
     @Getter
@@ -84,6 +95,22 @@ public class ResMemberDto {
         private int maxDate;
     }
 
+    //프로필 수정내역
+    @Getter
+    @Builder
+    public static class ProfileHistory {
+        private char success;
+        private String year;
+        private String month;
+        private String date;
+        private String time;
+        private String profile;
 
+        public static ProfileHistory toDto( UpdateHistory updateHistory ) {
+            return ProfileHistory.builder().success(updateHistory.getSuccess())
+                    .year( String.valueOf(updateHistory.getDatetime().toLocalDate().getYear()) ).month( String.valueOf(updateHistory.getDatetime().toLocalDate().getMonthValue()) ).date( String.valueOf(updateHistory.getDatetime().toLocalDate().getDayOfMonth()) )
+                    .time( String.valueOf(updateHistory.getDatetime().getTime()) ).profile( updateHistory.getAfInfo() ).build();
+        }
+    }
 
 }

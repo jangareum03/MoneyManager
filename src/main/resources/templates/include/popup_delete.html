@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원탈퇴</title>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+    <script th:src="@{/js/myinfo.js}"></script>
+</head>
+<body>
+<div class="wrap">
+    <div class="header">
+        <span class="header__title">회원 탈퇴</span>
+    </div>
+    <div class="container">
+        <div class="main">
+            <div class="main-area">
+                <span class="main__title">탈퇴 사유</span>
+                <select class="main__select" th:onchange="changeOption( this )">
+                    <option th:value="${'00'}">선택없음</option>
+                    <option th:value="${'01'}">서비스 이용하지 않음</option>
+                    <option th:value="${'02'}">아이디/닉네임 변경</option>
+                    <option th:value="${'03'}">개인정보 유출 우려</option>
+                    <option th:value="${'04'}">서비스 이용 불만</option>
+                    <option th:value="${'05'}">기타</option>
+                </select>
+                <input class="main__input" type="text" placeholder="탈퇴 사유를 입력해주세요." th:style="${'display: none'}" disabled maxlength="100">
+                <span class="main__msg"></span>
+            </div>
+            <div class="main-area">
+                <div class="main-box">
+                    <span class="main__title">아이디</span>
+                    <span>[[${id}]]</span>
+                    <input id="id" type="hidden" th:value="${id}">
+                </div>
+                <div class="main-box">
+                    <span class="main__title">비밀번호</span>
+                    <input type="password" placeholder="비밀번호를 입력해주세요." th:onblur="checkPwd( this, 1 )" class="main__input" id="pwd">
+                    <span class="main__msg"></span>
+                </div>
+            </div>
+        </div>
+        <div class="guide">
+            <span class="guide__title">회원탈퇴 시 주의사항</span>
+            <div class="guide-area">
+                <span class="guide__text">
+                    계정을 탈퇴하면 작성하신 모든 데이터는 삭제됩니다.
+                    <span class="guide__text_sub">(단, Q&amp;A에서 작성하신 글은 유지됩니다.)</span>
+                </span>
+                <span class="guide__text">탈퇴 후 30일전에 재접속하시면 데이터는 복구됩니다.</span>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <button type="button" th:onclick="window.close()">취소</button>
+        <button type="button" th:onclick="deleteMember()">탈퇴</button>
+    </div>
+</div>
+</body>
+</html>

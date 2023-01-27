@@ -1,8 +1,10 @@
 package com.areum.moneymanager.dao;
 
 import com.areum.moneymanager.dto.ReqMemberDto;
+import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.entity.Attendance;
 import com.areum.moneymanager.entity.MemberInfo;
+import com.areum.moneymanager.entity.UpdateHistory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -17,6 +19,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class MemberDaoImpl implements MemberDao {
@@ -28,6 +31,26 @@ public class MemberDaoImpl implements MemberDao {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
+
+    @Override
+    public int deleteMember( String type, MemberInfo memberInfo ) throws SQLException {
+        if( type.equals("tmi") ) {
+            return jdbcTemplate.update(
+                    "UPDATE tb_member_info " +
+                                    "SET resign_date = SYSDATE " +
+                                    "WHERE id = ? AND password = ? " +
+                                        "AND member_id = (SELECT id FROM tb_member WHERE id = ?)",
+                    memberInfo.getId(), memberInfo.getPassword(), memberInfo.getMemberId()
+            );
+        }else{
+            return jdbcTemplate.update(
+                    "UPDATE tb_member "+
+                                    "SET resign = 'y', restore = 'y' " +
+                                    "WHERE id = ?",
+                    memberInfo.getMemberId()
+            );
+        }
+    }
 
     @Override
     public int insertAttend(String mid, String today) throws SQLException {
@@ -62,6 +85,30 @@ public class MemberDaoImpl implements MemberDao {
                 pstmt.setString(6, memberInfo.getNickName());
                 pstmt.setString(7, Character.toString(memberInfo.getGender()));
                 pstmt.setString(8, memberInfo.getEmail());
+
+                return pstmt;
+            }
+        });
+    }
+
+    @Override
+    public void insertUpdateHistory( String mid, UpdateHistory updateHistory, String sql ) throws SQLException {
+        jdbcTemplate.update(new PreparedStatementCreator() {
+            @Override
+            public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+                PreparedStatement pstmt = con.prepareStatement(
+                        sql
+                );
+
+                pstmt.setString(1, mid);
+                pstmt.setString(2, Character.toString(updateHistory.getSuccess()));
+                pstmt.setString(3, Character.toString(updateHistory.getType()));
+                pstmt.setString(4, updateHistory.getBfInfo());
+                pstmt.setString(5, updateHistory.getAfInfo());
+                if( updateHistory.getDeleteType() != null ) {
+                    pstmt.setString(6, updateHistory.getDeleteType());
+                    pstmt.setString(7, updateHistory.getDeleteCause());
+                }
 
                 return pstmt;
             }
@@ -137,6 +184,26 @@ public class MemberDaoImpl implements MemberDao {
         return member.isEmpty() ? null : member.get(0);
     }
 
+    @Override
+    public MemberInfo selectMemberByMid( String mid ) throws SQLException {
+        List<MemberInfo> memberList = jdbcTemplate.query(
+                "SELECT * " +
+                        "FROM tb_member_info tmi, " +
+                        "( SELECT id FROM tb_member WHERE id=? ) tm " +
+                        "WHERE tmi.member_id = tm.id",
+                new RowMapper<MemberInfo>() {
+                    @Override
+                    public MemberInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return MemberInfo.builder().id(rs.getString("id")).name(rs.getString("name")).password(rs.getString("password")).gender(rs.getString("gender").charAt(0)).regDate(rs.getDate("reg_date"))
+                                .email(rs.getString("email")).nickName(rs.getString("nickname")).profile(rs.getString("profile")).lastLoginDate(rs.getDate("last_login_date"))
+                                .checkCnt(rs.getInt("check_cnt")).build();
+                    }
+                },
+                mid
+        );
+        return memberList.isEmpty() ? null : memberList.get(0);
+    }
+
 
     @Override
     public String selectMid( String mid ) throws SQLException {
@@ -168,6 +235,52 @@ public class MemberDaoImpl implements MemberDao {
             Logger.error("요청한 아이디({})에 해당하는 비밀번호가 없어서 에러 발생하여 강제로 0 반환", id);
             return "0";
         }
+    }
+
+    @Override
+    public String selectPwdByMid( String mid ) throws SQLException {
+        return jdbcTemplate.queryForObject(
+                "SELECT password FROM tb_member_info WHERE member_id = ?",
+                String .class,
+                mid
+        );
+    }
+
+    @Override
+    public String selectType(String mid) throws SQLException {
+        return jdbcTemplate.queryForObject(
+                "SELECT type FROM tb_member WHERE id=?",
+                String.class,
+                mid
+        );
+    }
+
+    @Override
+    public UpdateHistory selectUpdateHistoryByMid( String mid, char type ) throws SQLException {
+        List<UpdateHistory> updateHistoryList = jdbcTemplate.query(
+                "SELECT * " +
+                        "FROM tb_update_history " +
+                        "WHERE member_id=? AND type = ? " +
+                        "ORDER BY datetime DESC",
+                new RowMapper<UpdateHistory>() {
+                    @Override
+                    public UpdateHistory mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return UpdateHistory.builder().id(rs.getLong("id")).memberId(rs.getString("member_id")).success(rs.getString("success").charAt(0))
+                                .datetime(rs.getDate("datetime")).type(rs.getString("type").charAt(0)).bfInfo(rs.getString("bf_info")).afInfo(rs.getString("af_info")).build();
+                    }
+                },
+                mid, type
+        );
+
+        return updateHistoryList.isEmpty() ? null : updateHistoryList.get(0);
+    }
+
+    @Override
+    public int updateMember( String mid, String sql ) throws SQLException {
+        return jdbcTemplate.update(
+                sql,
+                mid
+        );
     }
 
     @Override
