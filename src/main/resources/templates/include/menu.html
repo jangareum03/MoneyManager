@@ -3,9 +3,9 @@
     <div class="profile">
       <img th:src="${session.profile == null ? '/image/default.png' : '/image/profile/' + session.profile}">
       <div>
-        <span>초코아이스크림</span>님<br>
+        <span>[[${session.nickName}]]</span>님<br>
         환영합니다.<br>
-        <a>로그아웃</a>
+        <a th:href="@{/}">로그아웃</a>
       </div>
     </div>
   </div>
