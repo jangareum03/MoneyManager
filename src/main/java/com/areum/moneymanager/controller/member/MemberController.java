@@ -7,6 +7,7 @@ import com.areum.moneymanager.service.ImageService;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -49,17 +50,32 @@ public class MemberController {
     }
 
     @PostMapping("/login")
-    public String postLogin(@ModelAttribute("member") ReqMemberDto.Login login, BindingResult bindingResult, HttpSession session) throws Exception {
+    public String postLogin(@ModelAttribute("member") ReqMemberDto.Login login, BindingResult bindingResult, Model model, HttpSession session) throws SQLException {
         if( !StringUtils.hasText(login.getId()) ) {
             bindingResult.rejectValue("id", "noInput");
         }else if( !StringUtils.hasText(login.getPwd()) ) {
             bindingResult.rejectValue("pwd", "noInput");
         }else{
             int result = memberService.loginCheck( login );
+
             if( result == 0 ) {
                 bindingResult.rejectValue("id", "noMember");
             }else if( result == -1 ) {
-                bindingResult.rejectValue("id", "mismatch");
+                bindingResult.rejectValue("pwd", "mismatch");
+            }else if( result == -2 ) {
+                model.addAttribute("msg", "탈퇴한지 30일이 지나지 않아 계정을 복구합니다.");
+                model.addAttribute("method", "post");
+                model.addAttribute("url", "/recoverMember");
+                model.addAttribute("id", login.getId());
+                model.addAttribute("pwd", login.getPwd());
+
+                return "alert";
+            }else if( result == -3 ) {
+                model.addAttribute("msg", "탈퇴한지 30일이 경과하여 계정을 복구할 수 없습니다. 다시 가입해주시길 바랍니다..");
+                model.addAttribute("method", "get");
+                model.addAttribute("url", "/");
+
+                return "alert";
             }
         }
 
@@ -72,7 +88,7 @@ public class MemberController {
             //프로필 사진
             ResMemberDto.Member member = memberService.findMember( mid );
             session.setAttribute("profile", member.getProfile() == null ? null : imageService.findProfile( mid, member.getProfile(), memberService.findUpdateHistory( mid, 'I' ) ));
-
+            session.setAttribute("nickName", member.getNickName());
             return "redirect:/home";
         }
     }
@@ -112,9 +128,15 @@ public class MemberController {
             memberService.deleteMember( mid, delete );
             return 1;
         }catch( Exception e ){
-            e.printStackTrace();
             return 0;
         }
     }
 
+    @PostMapping("/recoverMember")
+    public String postRecoverMember( ReqMemberDto.Login login, HttpSession session ) throws SQLException {
+        String mid = memberService.findMid( login );
+        memberService.recoverMember( mid, login );
+
+        return "forward:/login";
+    }
 }

@@ -76,8 +76,8 @@ public class MemberServiceImpl implements MemberService {
         MemberInfo deleteMember = delete.toEntity( mid );
         UpdateHistory updateHistory = delete.toUpdateHistoryEntity( mid );
 
-        memberDao.deleteMember( "tmi", deleteMember );
-        int result = memberDao.deleteMember("tm", deleteMember);
+        memberDao.updateResignMember( deleteMember, "tmi", makeUpdateSQL(deleteMember, "deleteTmi") );
+        int result = memberDao.updateResignMember(deleteMember, "tm", makeUpdateSQL(deleteMember, "deleteTm"));
 
         String sql = "INSERT INTO tb_update_history VALUES(seq_updateHistory.NEXTVAL, ?, ?, SYSDATE, ?, ?, ?, ?, ?)";
         if( result == 1 ) {
@@ -86,13 +86,17 @@ public class MemberServiceImpl implements MemberService {
         memberDao.insertUpdateHistory( mid, updateHistory, sql );
     }
 
-
     @Override
-    public ResMemberDto.FindId findId( ReqMemberDto.FindId findIdDto ) throws SQLException {
-        MemberInfo memberInfo = findIdDto.toEntity();
-        LOGGER.debug("아이디 찾기 입력한 값: 이름({}), 이메일({})", memberInfo.getName(), memberInfo.getEmail());
+    public ResMemberDto.FindId findId( ReqMemberDto.FindId findId ) throws SQLException {
+        MemberInfo memberInfo = findId.toEntity();
 
-        return ResMemberDto.FindIdResponse( memberDao.selectId( memberInfo.getName() , memberInfo.getEmail() ) );
+        MemberInfo result = memberDao.selectId( memberInfo.getName(), memberInfo.getEmail(), makeSelectSQL("GM") );
+        if( result == null ) {
+            //탈퇴한 회원 정보 넘김
+            result = memberDao.selectId( memberInfo.getName(), memberInfo.getEmail(), makeSelectSQL("RM") );
+        }
+
+        return new ResMemberDto.FindId(result);
     }
 
     @Override
@@ -106,7 +110,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public String findMid(ReqMemberDto.Login loginDto) throws SQLException {
+    public String findMid( ReqMemberDto.Login loginDto ) throws SQLException {
         MemberInfo memberInfo = loginDto.toEntity();
         LOGGER.debug("회원번호 요청한 아이디: {}, 비밀번호: {}", memberInfo.getId(), memberInfo.getPassword());
 
@@ -129,11 +133,16 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public ResMemberDto.FindPwd findPwd(ReqMemberDto.FindPwd findPwdDto ) throws SQLException {
-        MemberInfo memberInfo = findPwdDto.toEntity();
+    public ResMemberDto.FindPwd findPwd( ReqMemberDto.FindPwd findPwd ) throws SQLException {
+        MemberInfo memberInfo = findPwd.toEntity();
 
-        LOGGER.debug("비밀번호 찾기 입력한 값: 이름({}), 아이디({})", memberInfo.getName(), memberInfo.getId());
-        return ResMemberDto.FindPwdResponse( memberDao.selectEmail(memberInfo.getName(), memberInfo.getId()) );
+        MemberInfo result = memberDao.selectEmail( memberInfo.getName(), memberInfo.getId(), makeSelectSQL("GM") );
+        if( result == null ) {
+            //탈퇴한 회원의 정보
+            result = memberDao.selectEmail( memberInfo.getName(), memberInfo.getId(), makeSelectSQL("RM") );
+        }
+
+        return new ResMemberDto.FindPwd(result);
     }
 
     @Override
@@ -175,7 +184,9 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public int idCheck( String id ) throws SQLException {
         LOGGER.debug("중복확인 요청 아이디: {}", id);
-        return memberDao.selectCountById(id);
+
+        String sql = "AND member_id = (SELECT id FROM tb_member WHERE resign = 'y' AND restore = 'y') ";
+        return memberDao.selectCountById( id, sql );
     }
 
     @Override
@@ -190,16 +201,24 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public int loginCheck( ReqMemberDto.Login loginDto ) throws SQLException {
-        String pwd = memberDao.selectPwd( loginDto.getId() );
-        LOGGER.debug("로그인 입력한 아이디({})와 비밀번호({})로 찾은 비밀번호: {}", loginDto.getId(), loginDto.getPwd(), pwd);
+        MemberInfo memberInfo = loginDto.toEntity();
 
-        if( pwd.equals(loginDto.getPwd()) ) {
-            return 1;
-        }else{
-            if( pwd.equals("0") ) {
-                return 0;
-            }
+        int idCount = memberDao.selectCountById( memberInfo.getId() );
+
+        if( idCount == 1 ) {
+            String pwd = memberDao.selectPwd( memberInfo.getId() );
+
+            if( pwd.equals(loginDto.getPwd()) ) {
+                return 1;
+            }else {
+                if( pwd.equals("null") ) {  //탈퇴한 계정
+                    return memberDao.selectResignMember( memberInfo ) == 1 ? -3 :  -2;
+                }
                 return -1;
+            }
+        }else {
+            //아이디 존재하지 않음
+            return 0;
         }
     }
 
@@ -230,22 +249,58 @@ public class MemberServiceImpl implements MemberService {
         return makeId;
     }
 
-    private String makeUpdateSQL( MemberInfo memberInfo ) {
-        String sql = "UPDATE tb_member_info SET ";
+    private String makeSelectSQL( String type ) {
+        String sql = null;
 
-        if( memberInfo.getName() != null ) {
-            sql += "name='" + memberInfo.getName() + "' ";
-        }else if( memberInfo.getGender() != '\u0000' ) {
-            sql += "gender='" + memberInfo.getGender() + "' ";
-        }else if( memberInfo.getEmail() != null ) {
-            sql += "email='" + memberInfo.getEmail() + "' ";
-        }else if( memberInfo.getMemberId() == null && memberInfo.getPassword() != null ) {
-            sql += "password='" + memberInfo.getPassword() + "' ";
-        }else{
-            sql += "profile='" + memberInfo.getProfile() + "' ";
+        switch ( type ) {
+            case "GM" :
+                sql = "WHERE member_id IN (SELECT id FROM tb_member WHERE resign = 'n' AND restore IS NULL) ";
+                break;
+            case "RM" :
+                sql = "WHERE member_id IN (SELECT id FROM tb_member WHERE resign = 'y') ";
+                break;
+            default:
+                break;
         }
 
-        sql += "WHERE member_id=?";
+        return sql;
+    }
+
+    private String makeUpdateSQL( MemberInfo memberInfo, String type ) {
+        String sql = "";
+        switch (type) {
+            case "update" :
+                sql = "UPDATE tb_member_info SET ";
+
+                if( memberInfo.getName() != null ) {
+                    sql += "name='" + memberInfo.getName() + "' ";
+                }else if( memberInfo.getGender() != '\u0000' ) {
+                    sql += "gender='" + memberInfo.getGender() + "' ";
+                }else if( memberInfo.getEmail() != null ) {
+                    sql += "email='" + memberInfo.getEmail() + "' ";
+                }else if( memberInfo.getMemberId() == null && memberInfo.getPassword() != null ) {
+                    sql += "password='" + memberInfo.getPassword() + "' ";
+                }else{
+                    sql += "profile='" + memberInfo.getProfile() + "' ";
+                }
+
+                sql += "WHERE member_id=?";
+                break;
+            case "deleteTmi" :
+                sql = "SET resign_date = SYSDATE ";
+                break;
+            case "deleteTm" :
+                sql = "SET resign = 'y', restore = 'y' ";
+                break;
+            case "recoverTmi" :
+                sql = "SET resign_date = NULL ";
+                break;
+            case "recoverTm" :
+                sql = "SET resign = 'n', restore = NULL ";
+                break;
+            default:
+                break;
+        }
 
         return sql;
     }
@@ -256,8 +311,8 @@ public class MemberServiceImpl implements MemberService {
         UpdateHistory updateHistory = findNowMember( memberDao.selectMemberByMid(mid), update );
 
         //정보수정
-        String sql  = makeUpdateSQL( memberUpdate );
-        int updateResult = memberDao.updateMember( mid, sql );
+        String sql  = makeUpdateSQL( memberUpdate, "update" );
+        int updateResult = memberDao.updateMemberInfo( mid, sql );
 
         //회원정보 수정내역 추가
         if( updateResult == 1 ) {
@@ -274,6 +329,22 @@ public class MemberServiceImpl implements MemberService {
     public int nickNameCheck( String nickName ) throws SQLException {
         LOGGER.debug("중복확인 요청 닉네임: {}", nickName);
         return memberDao.selectCountByNickName(nickName);
+    }
+
+    @Override
+    public void recoverMember( String mid, ReqMemberDto.Login login ) throws SQLException {
+        MemberInfo memberInfo = login.toEntity( mid );
+        UpdateHistory updateHistory = login.toUpdateHistoryEntity( mid );
+
+        memberDao.updateResignMember( memberInfo, "tm", makeUpdateSQL(memberInfo, "recoverTm") );
+        int result = memberDao.updateResignMember( memberInfo, "tmi", makeUpdateSQL(memberInfo, "recoverTmi") );
+
+        String sql = "INSERT INTO tb_update_history(id, member_id, success, datetime, type, bf_info, af_info) VALUES(seq_updateHistory.NEXTVAL, ?, ?, SYSDATE, ?, ?, ?)";
+        if( result == 1 ) {
+            updateHistory.updateSuccess('y');
+        }
+
+        memberDao.insertUpdateHistory( mid, updateHistory, sql );
     }
 
 

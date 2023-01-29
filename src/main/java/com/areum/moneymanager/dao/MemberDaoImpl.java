@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Repository
 public class MemberDaoImpl implements MemberDao {
@@ -29,27 +30,6 @@ public class MemberDaoImpl implements MemberDao {
 
     public MemberDaoImpl(DataSource dataSource ) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
-    }
-
-
-    @Override
-    public int deleteMember( String type, MemberInfo memberInfo ) throws SQLException {
-        if( type.equals("tmi") ) {
-            return jdbcTemplate.update(
-                    "UPDATE tb_member_info " +
-                                    "SET resign_date = SYSDATE " +
-                                    "WHERE id = ? AND password = ? " +
-                                        "AND member_id = (SELECT id FROM tb_member WHERE id = ?)",
-                    memberInfo.getId(), memberInfo.getPassword(), memberInfo.getMemberId()
-            );
-        }else{
-            return jdbcTemplate.update(
-                    "UPDATE tb_member "+
-                                    "SET resign = 'y', restore = 'y' " +
-                                    "WHERE id = ?",
-                    memberInfo.getMemberId()
-            );
-        }
     }
 
     @Override
@@ -136,11 +116,23 @@ public class MemberDaoImpl implements MemberDao {
     @Override
     public Integer selectCountById( String id ) throws SQLException {
         return jdbcTemplate.queryForObject(
-                "SELECT COUNT(id) FROM tb_member_info WHERE id=?",
+                "SELECT COUNT(id) " +
+                                "FROM tb_member_info " +
+                                "WHERE id = ? ",
                 Integer.class,
                 id
         );
+    }
 
+    @Override
+    public Integer selectCountById(String id, String sql) throws SQLException {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(id) " +
+                        "FROM tb_member_info " +
+                        "WHERE id = ? " + sql,
+                Integer.class,
+                id
+        );
     }
 
     @Override
@@ -153,34 +145,40 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public MemberInfo selectEmail( String name, String id ) throws SQLException {
-        try{
-            return jdbcTemplate.queryForObject(
-                    "SELECT email FROM tb_member_info WHERE name=? AND id=?",
-                    MemberInfo.class,
-                    name, id
-            );
-        }catch (EmptyResultDataAccessException e) {
-            Logger.error("요청한 이름({})과 아이디({})에 해당하는 이메일이 없어 에러 발생하여 강제로 null 반환", name, id);
-            return null;
-        }
-    }
-
-    @Override
-    public MemberInfo selectId(String name, String email) {
+    public MemberInfo selectEmail( String name, String id, String sql ) throws SQLException {
         List<MemberInfo> member = jdbcTemplate.query(
-                "SELECT id, last_login_date "
-                            + "FROM tb_member_info "
-                            + "WHERE name = ? "
-                            +  "AND email = ?",
+                "SELECT email, resign_date " +
+                        "FROM tb_member_info " +
+                        sql +
+                        "AND id = ? AND name = ?",
                 new RowMapper<MemberInfo>() {
                     @Override
                     public MemberInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return MemberInfo.builder().id(rs.getString(1)).lastLoginDate(rs.getDate(2)).build();
+                        return MemberInfo.builder().email(rs.getString("email")).resignDate(rs.getDate("resign_date")).build();
+                    }
+                },
+                id, name
+        );
+
+        return member.isEmpty() ? null : member.get(0);
+    }
+
+    @Override
+    public MemberInfo selectId( String name, String email, String sql ) {
+        List<MemberInfo> member = jdbcTemplate.query(
+                "SELECT id, last_login_date, resign_date " +
+                        "FROM tb_member_info " +
+                        sql +
+                        "AND name = ? AND email = ?",
+                new RowMapper<MemberInfo>() {
+                    @Override
+                    public MemberInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return MemberInfo.builder().id(rs.getString(1)).lastLoginDate(rs.getDate(2)).resignDate(rs.getDate(3)).build();
                     }
                 },
                 name, email
         );
+
         return member.isEmpty() ? null : member.get(0);
     }
 
@@ -224,16 +222,18 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public String selectPwd( String id) throws SQLException {
+    public String selectPwd( String id) {
         try{
             return jdbcTemplate.queryForObject(
-                    "SELECT password FROM tb_member_info WHERE id=?",
+                    "SELECT password " +
+                                    "FROM tb_member_info " +
+                                    "WHERE id = ? " +
+                                        "AND member_id = (SELECT id FROM tb_member WHERE resign = 'n' AND restore IS NULL)",
                     String.class,
                     id
             );
-        }catch (EmptyResultDataAccessException e){
-            Logger.error("요청한 아이디({})에 해당하는 비밀번호가 없어서 에러 발생하여 강제로 0 반환", id);
-            return "0";
+        }catch ( EmptyResultDataAccessException e ){
+            return "null";
         }
     }
 
@@ -244,6 +244,22 @@ public class MemberDaoImpl implements MemberDao {
                 String .class,
                 mid
         );
+    }
+
+    @Override
+    public Integer selectResignMember( MemberInfo memberInfo ) throws SQLException {
+        try {
+            return jdbcTemplate.queryForObject(
+                    "SELECT COUNT(id) " +
+                                    "FROM tb_member " +
+                                    "WHERE id = (SELECT member_id FROM tb_member_info WHERE id = ? AND password = ? AND resign_date IS NOT NULL) " +
+                                        "AND resign = 'y' AND restore = 'n'",
+                    Integer.class,
+                    memberInfo.getId(), memberInfo.getPassword()
+            );
+        }catch ( EmptyResultDataAccessException e ) {
+            return 0;
+        }
     }
 
     @Override
@@ -276,11 +292,31 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public int updateMember( String mid, String sql ) throws SQLException {
+    public int updateMemberInfo( String mid, String sql ) throws SQLException {
         return jdbcTemplate.update(
                 sql,
                 mid
         );
+    }
+
+    @Override
+    public int updateResignMember( MemberInfo memberInfo, String table, String sql ) {
+        if( table.equals("tmi") ) {
+            return jdbcTemplate.update(
+                    "UPDATE tb_member_info " +
+                            sql +
+                            "WHERE id = ? AND password = ? " +
+                            "AND member_id = (SELECT id FROM tb_member WHERE id = ?)",
+                    memberInfo.getId(), memberInfo.getPassword(), memberInfo.getMemberId()
+            );
+        }else{
+            return jdbcTemplate.update(
+                    "UPDATE tb_member "+
+                            sql +
+                            "WHERE id = ?",
+                    memberInfo.getMemberId()
+            );
+        }
     }
 
     @Override

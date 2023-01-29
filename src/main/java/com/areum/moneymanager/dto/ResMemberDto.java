@@ -6,9 +6,11 @@ import com.areum.moneymanager.entity.UpdateHistory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,24 +46,30 @@ public class ResMemberDto {
 
     //아이디 찾기
     @Getter
-    @AllArgsConstructor
+    @NoArgsConstructor
     public static class FindId{
         private String id;
-        private Timestamp date;
-    }
+        private Date lastDate;
+        private Date resignDate;
 
-    public static FindId FindIdResponse( MemberInfo memberInfo ) {
-        return new FindId( memberInfo.getId(), Timestamp.valueOf(memberInfo.getLastLoginDate().toString()) );
+        public FindId( MemberInfo memberInfo ) {
+            this.id = memberInfo.getId();
+            this.lastDate = memberInfo.getLastLoginDate();
+            this.resignDate = memberInfo.getResignDate();
+        }
     }
 
     //비밀번호 찾기
     @Getter
-    @AllArgsConstructor
+    @NoArgsConstructor
     public static class FindPwd {
         private String email;
-    }
-    public static FindPwd FindPwdResponse(MemberInfo memberInfo ){
-        return new FindPwd( memberInfo.getEmail() );
+        private Date resignDate;
+
+        public FindPwd( MemberInfo memberInfo ) {
+            this.email = memberInfo.getEmail();
+            this.resignDate = memberInfo.getResignDate();
+        }
     }
 
     //회원 찾기

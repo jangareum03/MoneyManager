@@ -10,9 +10,6 @@ import java.util.List;
 
 public interface MemberDao {
 
-    //회원탈퇴
-    int deleteMember( String type, MemberInfo memberInfo ) throws SQLException;
-
     //특정회원의 출석 추가
     int insertAttend( String mid, String today ) throws SQLException;
 
@@ -28,14 +25,16 @@ public interface MemberDao {
     //아이디 갯수 찾기
     Integer selectCountById( String id ) throws SQLException;
 
+    Integer selectCountById( String id, String sql ) throws SQLException;
+
     //닉네임 갯수 찾기
     Integer selectCountByNickName( String nickName ) throws SQLException;
 
     //이메일 찾기
-    MemberInfo selectEmail( String name, String id ) throws SQLException;
+    MemberInfo selectEmail( String name, String id, String sql ) throws SQLException;
 
     //아이디와 마지막 접속일 찾기
-    MemberInfo selectId(String name, String email ) throws SQLException;
+    MemberInfo selectId(String name, String email,  String sql ) throws SQLException;
 
     //특정회원 조회
     MemberInfo selectMemberByMid( String mid ) throws SQLException;
@@ -46,9 +45,12 @@ public interface MemberDao {
     String selectMid( String id, String password ) throws SQLException;
 
     //비밀번호 찾기
-    String selectPwd( String id ) throws SQLException;
+    String selectPwd( String id );
 
     String selectPwdByMid( String mid ) throws SQLException;
+
+    //탈퇴한 계정 찾기
+    Integer selectResignMember( MemberInfo memberInfo ) throws SQLException;
 
     //회원유형 찾기
     String selectType( String mid ) throws SQLException;
@@ -57,7 +59,10 @@ public interface MemberDao {
     UpdateHistory selectUpdateHistoryByMid( String mid, char type ) throws SQLException;
 
     //회원정보 변경
-    int updateMember( String mid, String sql ) throws SQLException;
+    int updateMemberInfo( String mid, String sql ) throws SQLException;
+
+    //회원탈퇴 및 복구
+    int updateResignMember( MemberInfo memberInfo, String table, String sql ) throws SQLException;
 
     //출석 포인트 수정
     void updatePoint( String mid, int point ) throws SQLException;

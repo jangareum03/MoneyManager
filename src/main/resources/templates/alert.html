@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <script th:inline="javascript">
+        let msg = [[${msg}]];
+        let url = [[${url}]];
+        let method = [[${method}]];
+
+        alert(msg);
+
+        if( method == 'get' ) {
+            location.href = url;
+        }else {
+            let id = document.createElement('input');
+            id.setAttribute('type', 'hidden');
+            id.setAttribute('name', 'id');
+            id.setAttribute('value', [[${id}]]);
+
+            let pwd = document.createElement('input');
+            pwd.setAttribute('type', 'hidden');
+            pwd.setAttribute('name', 'pwd');
+            pwd.setAttribute('value', [[${pwd}]]);
+
+            let form = document.createElement('form');
+            form.appendChild(id);
+            form.appendChild(pwd);
+
+            form.setAttribute('method', method);
+            form.setAttribute('action', url);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+</body>
+</html>

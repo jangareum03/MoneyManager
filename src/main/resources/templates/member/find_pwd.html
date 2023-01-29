@@ -14,10 +14,7 @@
     </div>
     <div class="content">
         <div class="subTitle">비밀번호 찾기 결과</div>
-        <div class="msg msgOk">
-            임의의 비밀번호를 아래 이메일로 보내드립니다.<br>
-            해당 이메일로 확인 후 로그인 부탁드립니다.
-        </div>
+        <div class="msg msgOk" th:utext="${msg}"></div>
         <div class="subContent">
             보낸 이메일은 <span id="point1">[[${email}]]</span> 입니다.
         </div>

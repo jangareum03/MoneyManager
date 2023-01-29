@@ -7,6 +7,7 @@ import com.areum.moneymanager.entity.UpdateHistory;
 
 import java.sql.Date;
 import java.sql.SQLException;
+import java.time.Period;
 import java.util.List;
 
 public interface MemberService {
@@ -64,5 +65,8 @@ public interface MemberService {
 
     //닉네임중복확인
     int nickNameCheck( String nickName ) throws SQLException;
+
+    //탈퇴회원 복구
+    void recoverMember( String mid, ReqMemberDto.Login login ) throws SQLException;
 
 }

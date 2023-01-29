@@ -38,7 +38,7 @@ public class ReqMemberDto {
         }
 
         public UpdateHistory toUpdateHistoryEntity( String mid ) {
-            return UpdateHistory.builder().memberId(mid).type('D').bfInfo("delete").afInfo("delete").deleteType(code).deleteCause(cause).build();
+            return UpdateHistory.builder().memberId(mid).success('n').type('D').bfInfo("delete").afInfo("delete").deleteType(code).deleteCause(cause).build();
         }
     }
 
@@ -69,6 +69,14 @@ public class ReqMemberDto {
 
         public MemberInfo toEntity(){
             return MemberInfo.builder().id(id).password(pwd).build();
+        }
+
+        public MemberInfo toEntity( String mid ) {
+            return MemberInfo.builder().memberId(mid).id(id).password(pwd).build();
+        }
+
+        public UpdateHistory toUpdateHistoryEntity( String mid ) {
+            return UpdateHistory.builder().memberId(mid).success('n').type('D').bfInfo("recover").afInfo("recover").build();
         }
     }
 

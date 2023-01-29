@@ -1,35 +1,17 @@
-<<<<<<< HEAD
 package com.areum.moneymanager.service;
 
 import com.areum.moneymanager.dao.ServiceDao;
 import com.areum.moneymanager.dao.ServiceDaoImpl;
-import com.areum.moneymanager.dto.ReqMemberDto;
 import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.dto.ResServiceDto;
-import com.areum.moneymanager.entity.UpdateHistory;
-=======
-package com.areum.moneymanager.service.main;
-
-import com.areum.moneymanager.config.WebConfig;
-import com.areum.moneymanager.dao.ServiceDao;
-import com.areum.moneymanager.dao.ServiceDaoImpl;
-import com.areum.moneymanager.dto.ReqServiceDto;
-import com.areum.moneymanager.dto.ResServiceDto;
->>>>>>> d53a5eff6ae40df6ca96aca000c3fed291dc146e
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-<<<<<<< HEAD
-import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
-=======
-import java.io.File;
-import java.util.List;
->>>>>>> d53a5eff6ae40df6ca96aca000c3fed291dc146e
+
 
 @Service
 public class ImageService {
@@ -44,18 +26,20 @@ public class ImageService {
     }
 
     //폴더 생성
-<<<<<<< HEAD
-    private File makeFolder( String mid, String date, String type ) {
+    private File makeFolder(String mid, String date, String type ) {
         String folder = "";
-        if( type.equals("a") ) {
+
+        if (type.equals("a")) {
             folder = downPath + "/accountBook/" + mid + "/" + date.substring(0, 4) + "/";
-        }else{
-            folder = downPath + "/profile/" + mid + "/"  + date + "/";
+        } else {
+            folder = downPath + "/profile/" + mid + "/" + date + "/";
         }
-=======
+
+        return new File(folder);
+    }
+
     private File makeFolder( String mid, String date ) {
         String folder = downPath + "/accountBook/" + mid + "/" + date.substring(0, 4) + "/";
->>>>>>> d53a5eff6ae40df6ca96aca000c3fed291dc146e
 
         return new File(folder);
     }
@@ -67,7 +51,6 @@ public class ImageService {
         return folder + detailAccount.getId() + "_" + detailAccount.getDate() + "01_" + detailAccount.getImage();
     }
 
-<<<<<<< HEAD
     //프로필 사진 경로 찾기
     public String findProfile( String mid, String profile, ResMemberDto.ProfileHistory profileHistory ) {
         String folder = mid + "/" + profileHistory.getYear() + "/";
@@ -78,10 +61,8 @@ public class ImageService {
         return folder + month + date + profileHistory.getTime() + "_" + profile;
     }
 
-=======
->>>>>>> d53a5eff6ae40df6ca96aca000c3fed291dc146e
     //사진  업로드
-    public void uploadImageFile( ReqServiceDto.Write write, String mid ) throws Exception {
+    public void uploadImageFile(ReqServiceDto.Write write, String mid ) throws Exception {
         for( int index=0; index<write.getImages().size(); index++ ) {
             if( !write.getImages().get(index).isEmpty() ){
                 saveImage( write.getImages().get(index), mid, serviceDao.selectId(mid), write.getAccountDate(), "0" + (index+1) );
@@ -97,25 +78,16 @@ public class ImageService {
         }
     }
 
-<<<<<<< HEAD
     public void uploadProfile( String mid, ResMemberDto.ProfileHistory profileHistory, MultipartFile multipartFile ) throws Exception {
         saveProfile( mid, profileHistory, multipartFile );
     }
 
     //사진저장
-    private void saveImage( MultipartFile file, String mid, Long id, String date, String index ) throws Exception {
-        File fileDir = makeFolder( mid, date, "a" );
-
-        if( !fileDir.mkdirs() ) {
-            System.out.println("해당 경로는 이미 존재합니다.");
-=======
-    //사진저장
     public void saveImage( MultipartFile file, String mid, Long id, String date, String index ) throws Exception {
-        File fileDir = makeFolder(mid, date);
+        File fileDir = makeFolder(mid, date, "a");
 
         if( !fileDir.exists() ) {
             fileDir.mkdirs();
->>>>>>> d53a5eff6ae40df6ca96aca000c3fed291dc146e
         }
 
         String saveFileName = String.format("%d_%s_%s", id, date + index, file.getOriginalFilename() );
@@ -124,7 +96,7 @@ public class ImageService {
         file.transferTo(saveFile);
     }
 
-<<<<<<< HEAD
+
     //프로필 저장
     private void saveProfile( String mid, ResMemberDto.ProfileHistory profileHistory, MultipartFile multipartFile ) throws IOException {
         File fileDir = makeFolder( mid, profileHistory.getYear(), "p" );
@@ -143,7 +115,4 @@ public class ImageService {
             multipartFile.transferTo(saveFile);
         }
     }
-
-=======
->>>>>>> d53a5eff6ae40df6ca96aca000c3fed291dc146e
 }
