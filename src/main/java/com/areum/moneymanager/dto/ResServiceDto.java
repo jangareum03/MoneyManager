@@ -51,6 +51,14 @@ public class ResServiceDto {
         }
     }
 
+    //자주묻는질문
+    @Builder
+    @Getter
+    public static class Faq {
+        private String question;
+        private String answer;
+    }
+
     @Builder
     @Getter
     //리스트에서 전체 내역
@@ -86,20 +94,20 @@ public class ResServiceDto {
         return resultList;
     }
 
-    //년 차트
-    @Builder
-    @Getter
-    public static class YearChart{
-        private String month;
-        private int inPrice;
-        private int outPrice;
-    }
-
     //주 차트
     @Builder
     @Getter
     public static class WeekChart{
         private int week;
+        private int inPrice;
+        private int outPrice;
+    }
+
+    //년 차트
+    @Builder
+    @Getter
+    public static class YearChart{
+        private String month;
         private int inPrice;
         private int outPrice;
     }
