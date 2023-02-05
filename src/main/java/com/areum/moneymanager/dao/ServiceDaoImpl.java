@@ -4,6 +4,7 @@ import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.entity.AccountBook;
 import com.areum.moneymanager.entity.Category;
+import com.areum.moneymanager.entity.Notice;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -177,6 +178,34 @@ public class ServiceDaoImpl implements ServiceDao {
         );
 
         return idList.isEmpty() ? null : idList.get(0);
+    }
+
+    @Override
+    public List<Notice> selectNoticeByPage( int start, int end ) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT tn.* " +
+                        "FROM ( " +
+                        "SELECT ROWNUM num, tmp.* " +
+                        "FROM ( SELECT * FROM tb_notice ORDER BY regdate DESC ) tmp " +
+                        ") tn " +
+                        "WHERE tn.num BETWEEN ? AND ?",
+                new RowMapper<Notice>() {
+                    @Override
+                    public Notice mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return Notice.builder().id( rs.getString("id") ).type(rs.getString("type").charAt(0)).title(rs.getString("title")).content(rs.getString("content"))
+                                .regDate(rs.getDate("regdate")).readCnt(rs.getInt("read_cnt")).build();
+                    }
+                },
+                start, end
+        );
+    }
+
+    @Override
+    public Integer selectAllNotice() throws SQLException {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM tb_notice",
+                Integer.class
+        );
     }
 
     @Override

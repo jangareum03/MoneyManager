@@ -4,6 +4,7 @@ import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.entity.AccountBook;
 import com.areum.moneymanager.entity.Category;
+import com.areum.moneymanager.entity.Notice;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -34,6 +35,9 @@ public interface ServiceDao {
     //카테고리명 조회
     List<Category> selectAllCategory( String code ) throws SQLException;
 
+    //공지사항 전체개수 조회
+    Integer selectAllNotice() throws SQLException;
+
     //대카테고리 조회
     List<Category> selectCategory() throws SQLException;
 
@@ -55,8 +59,10 @@ public interface ServiceDao {
     //최신 가계부 번호 조회
     Long selectId( String mid ) throws SQLException;
 
+    //공지사항 리스트
+    List<Notice> selectNoticeByPage( int start, int end ) throws SQLException;
+
     //가계부 수정
     void updateAccountBook( AccountBook accountBook, String mid ) throws SQLException;
-
 
 }

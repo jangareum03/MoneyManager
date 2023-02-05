@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>공지사항 : 돈매지너</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/notice.css}">
+</head>
+<body>
+<nav th:replace="/include/menu.html :: menu "></nav>
+<div>
+    <div class="header">
+        <div class="header__title">공지사항</div>
+    </div>
+    <div class="container">
+        <div class="main">
+            <div class="main-area">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>번호</th>
+                            <th>제목</th>
+                            <th>날짜</th>
+                            <th>조회수</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.size(noticeList)} == 0">
+                            <td colspan="4">공지사항이 없습니다.</td>
+                        </tr>
+                        <tr th:unless="${#lists.size(noticeList)} == 0" th:each="notice : ${noticeList}">
+                            <td>[[${notice.num}]]</td>
+                            <td>
+                                [(${notice.type})]
+                                <a th:href="@{/notice/{id}(id = ${notice.id})}">[[${notice.title}]]</a>
+                            </td>
+                            <td th:text="${#dates.format(notice.regDate, 'yyyy.MM.dd')}"></td>
+                            <td th:text="${#numbers.formatInteger(notice.count, 1, 'COMMA')}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <div th:each="page : ${page}">
+            <ul>
+                <li th:style="${page.isPrev ? 'display: inline' : 'display: none'}"><a th:href="@{/notice(pageIndex = ${page.startPage - 1})}">&lt; 이전</a></li>
+                <li th:each="num : ${#numbers.sequence( page.startPage, page.endPage )}">
+                    <a th:href="@{/notice(pageIndex = ${num})}">[[${num}]]</a>
+                </li>
+                <li th:style="${page.isNext ? 'display: inline' : 'display: none'}"><a th:href="@{/notice(pageIndex = ${page.endPage + 1})}">다음 &gt;</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+</html>

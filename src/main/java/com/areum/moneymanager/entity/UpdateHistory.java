@@ -1,6 +1,5 @@
 package com.areum.moneymanager.entity;
 
-import com.areum.moneymanager.dto.ReqMemberDto;
 import lombok.Builder;
 import lombok.Getter;
 

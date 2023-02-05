@@ -1,11 +1,15 @@
 package com.areum.moneymanager.dto;
 
 import com.areum.moneymanager.entity.AccountBook;
-import lombok.Builder;
 import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Builder;
+
+import java.util.Date;
+import java.util.Map;
+
 
 public class ResServiceDto {
 
@@ -16,7 +20,7 @@ public class ResServiceDto {
         private String name;
         private String code;
 
-        public static List<ResServiceDto.Category> entityToDto(List<com.areum.moneymanager.entity.Category> entityList) {
+        public static List<Category> entityToDto(List<com.areum.moneymanager.entity.Category> entityList) {
             List<ResServiceDto.Category> resultList = new ArrayList<>();
 
             for( com.areum.moneymanager.entity.Category entity : entityList ) {
@@ -59,9 +63,9 @@ public class ResServiceDto {
         private String answer;
     }
 
+    //리스트에서 전체 내역
     @Builder
     @Getter
-    //리스트에서 전체 내역
     public static class ListAccount {
         private Long id;
         private String date;
@@ -92,6 +96,70 @@ public class ResServiceDto {
         }
 
         return resultList;
+    }
+
+    //공지사항 리스트
+    @Builder
+    @Getter
+    public static class Notice {
+        private int num;
+        private String id;
+        private String type;
+        private String title;
+        private String content;
+        private Date regDate;
+        private int count;
+
+        public static List<ResServiceDto.Notice> toDTO(List<com.areum.moneymanager.entity.Notice> entityList, Map<Character, String> typeMap, ResServiceDto.Page pageInfo, int pageIndex ) {
+            List<ResServiceDto.Notice> resultList = new ArrayList<>(entityList.size());
+
+            int i= 1;
+            for( com.areum.moneymanager.entity.Notice notice : entityList ) {
+                resultList.add( Notice.builder().num( (pageIndex * pageInfo.getPostCount()) + (i++) ).id(notice.getId()).type( typeMap.get(notice.getType()) ).title( notice.getTitle() ).regDate( notice.getRegDate() ).count( notice.getReadCnt() ).build() );
+            }
+
+            return resultList;
+        }
+
+
+    }
+
+    //페이징
+    @Getter
+    public static class Page{
+        /* 총 게시물 개수 */
+        private int total;
+        /* 시작 페이지 */
+        private int startPage;
+        /* 끝 페이지 */
+        private int endPage;
+        /* 이전, 다음 페이지 표시 */
+        private boolean isPrev, isNext;
+        /* 페이지 게시물 표시 개수 */
+        private int postCount;
+        /* 페이지 사이즈 */
+        private int pageSize;
+
+
+        public Page( int total, int postCount, int pageSize, int pageIndex ) {
+            this.total = total;
+            this.postCount = postCount;
+            this.pageSize = pageSize;
+
+            /* 마지막페이지 */
+            this.endPage = (int) (Math.ceil( pageIndex / (double)pageSize ) * pageSize);
+            /* 시작페이지 */
+            this.startPage = endPage - (pageSize - 1);
+
+            /* 설정한 마지막페이지가 진짜 마지막페이지보다 큰 경우 */
+            int end = (int) Math.ceil( total / (double)postCount );
+            if( end < endPage ) this.endPage = end;
+
+            /* 이전 페이지 표시 */
+            this.isPrev = startPage != 1;
+            /* 다음페이지 표시 */
+            this.isNext = endPage < end;
+        }
     }
 
     //주 차트

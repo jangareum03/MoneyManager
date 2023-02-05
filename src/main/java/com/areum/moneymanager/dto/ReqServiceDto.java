@@ -114,4 +114,11 @@ public class ReqServiceDto {
         private String code;
     }
 
+    //공지사항 리스트 얻기
+    @Builder
+    @Getter
+    public static class NoticeList{
+        private int start;
+        private int end;
+    }
 }
