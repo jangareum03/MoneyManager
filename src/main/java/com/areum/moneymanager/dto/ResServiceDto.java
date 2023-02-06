@@ -1,6 +1,7 @@
 package com.areum.moneymanager.dto;
 
 import com.areum.moneymanager.entity.AccountBook;
+import com.areum.moneymanager.entity.Notice;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -110,6 +111,10 @@ public class ResServiceDto {
         private Date regDate;
         private int count;
 
+        public static Notice toDTO( com.areum.moneymanager.entity.Notice entity, String type ) {
+            return Notice.builder().type( type ).title( entity.getTitle() ).regDate( entity.getRegDate() ).content( entity.getContent() ).build();
+        }
+
         public static List<ResServiceDto.Notice> toDTO(List<com.areum.moneymanager.entity.Notice> entityList, Map<Character, String> typeMap, ResServiceDto.Page pageInfo, int pageIndex ) {
             List<ResServiceDto.Notice> resultList = new ArrayList<>(entityList.size());
 
@@ -120,8 +125,6 @@ public class ResServiceDto {
 
             return resultList;
         }
-
-
     }
 
     //페이징

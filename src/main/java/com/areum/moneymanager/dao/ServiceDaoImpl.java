@@ -181,7 +181,15 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
-    public List<Notice> selectNoticeByPage( int start, int end ) throws SQLException {
+    public Integer selectAllNotice() throws SQLException {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM tb_notice",
+                Integer.class
+        );
+    }
+
+    @Override
+    public List<Notice> selectAllNotice( int start, int end ) throws SQLException {
         return jdbcTemplate.query(
                 "SELECT tn.* " +
                         "FROM ( " +
@@ -197,14 +205,6 @@ public class ServiceDaoImpl implements ServiceDao {
                     }
                 },
                 start, end
-        );
-    }
-
-    @Override
-    public Integer selectAllNotice() throws SQLException {
-        return jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM tb_notice",
-                Integer.class
         );
     }
 
@@ -384,6 +384,24 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
+    public Notice selectNoticeById( String id ) throws SQLException {
+        List<Notice> resultList = jdbcTemplate.query(
+                "SELECT * FROM tb_notice WHERE id = ?",
+                new RowMapper<Notice>() {
+                    @Override
+                    public Notice mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return Notice.builder().id( rs.getString("id") ).adminId( rs.getString("admin_id") ).type( rs.getString("type").charAt(0) )
+                                .title( rs.getString("title") ).content( rs.getString("content") ).rank( rs.getInt("rank") )
+                                .regDate( rs.getDate("regdate") ).modifiedDate( rs.getDate("modified_date") ).readCnt( rs.getInt("read_cnt") ).build();
+                    }
+                },
+                id
+        );
+
+        return resultList.isEmpty() ? null : resultList.get(0);
+    }
+
+    @Override
     public void updateAccountBook( AccountBook accountBook, String mid ) throws SQLException {
         jdbcTemplate.update(
                 new PreparedStatementCreator() {
@@ -409,6 +427,16 @@ public class ServiceDaoImpl implements ServiceDao {
                         return pstmt;
                     }
                 }
+        );
+    }
+
+    @Override
+    public void updateReadCount( String id ) throws SQLException {
+        jdbcTemplate.update(
+                "UPDATE tb_notice " +
+                                "SET read_cnt = NVL( read_cnt, 0 ) + 1 " +
+                                "WHERE id = ?",
+                id
         );
     }
 

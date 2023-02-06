@@ -38,6 +38,9 @@ public interface ServiceDao {
     //공지사항 전체개수 조회
     Integer selectAllNotice() throws SQLException;
 
+    //전체 공지사항 리스트
+    List<Notice> selectAllNotice( int start, int end ) throws SQLException;
+
     //대카테고리 조회
     List<Category> selectCategory() throws SQLException;
 
@@ -59,10 +62,13 @@ public interface ServiceDao {
     //최신 가계부 번호 조회
     Long selectId( String mid ) throws SQLException;
 
-    //공지사항 리스트
-    List<Notice> selectNoticeByPage( int start, int end ) throws SQLException;
+    //특정 공지사항
+    Notice selectNoticeById( String id ) throws SQLException;
 
     //가계부 수정
     void updateAccountBook( AccountBook accountBook, String mid ) throws SQLException;
+
+    //조회수 증가
+    void updateReadCount( String id ) throws SQLException;
 
 }

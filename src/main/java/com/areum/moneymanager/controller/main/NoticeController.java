@@ -5,6 +5,7 @@ import com.areum.moneymanager.service.main.NoticeService;
 import com.areum.moneymanager.service.main.NoticeServiceImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -20,6 +21,19 @@ public class NoticeController {
 
     public NoticeController( NoticeServiceImpl noticeService ) {
         this.noticeService = noticeService;
+    }
+
+    @GetMapping("/notice/{id}")
+    public ModelAndView getNoticeDetail( @PathVariable String id ) throws SQLException {
+        ModelAndView mav = new ModelAndView();
+
+        mav.addObject("notice", noticeService.findNotice(id));
+        mav.setViewName("/main/notice_detail");
+
+        //조회수 증가
+        noticeService.addReadCount( id );
+
+        return mav;
     }
 
     @GetMapping("/notice")
@@ -38,4 +52,6 @@ public class NoticeController {
         mav.setViewName("/main/notice_list");
         return mav;
     }
+
+
 }
