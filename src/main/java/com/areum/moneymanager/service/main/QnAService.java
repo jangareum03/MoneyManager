@@ -15,8 +15,14 @@ public interface QnAService {
     //Q&A 검색조건에 따른 개수 조회
     int countSearch( ReqServiceDto.QnASearch search ) throws SQLException;
 
+    //Q&A 답변 찾기
+    ResServiceDto.Answer findAnswer( String id, String title ) throws SQLException;
+
+    //특정 질문 찾기
+    ResServiceDto.QnADetail findQnADetail( String id ) throws SQLException;
+
     //Q&A 리스트
-    List<ResServiceDto.QnA> findQAList( ResServiceDto.Page pageInfo, int pageIndex ) throws SQLException;
+    List<ResServiceDto.QnA> findQnAList( ResServiceDto.Page pageInfo, int pageIndex ) throws SQLException;
 
     //검색조건에 따른 Q&A 리스트
     List<ResServiceDto.QnA> findSearchList( ReqServiceDto.QnASearch search, ResServiceDto.Page pageInfo, int pageIndex ) throws SQLException;

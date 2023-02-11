@@ -2,10 +2,7 @@ package com.areum.moneymanager.dao;
 
 import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
-import com.areum.moneymanager.entity.AccountBook;
-import com.areum.moneymanager.entity.Category;
-import com.areum.moneymanager.entity.Notice;
-import com.areum.moneymanager.entity.Question;
+import com.areum.moneymanager.entity.*;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -67,6 +64,9 @@ public interface ServiceDao {
     //가계부 수입/지출가격 조회
     Integer selectAccountPrice( String mid, String startDate, String endDate, String code ) throws SQLException;
 
+    //Q&A 답변 조회
+    Answer selectAnswer( String id ) throws SQLException;
+
     //최신 가계부 번호 조회
     Long selectId( String mid ) throws SQLException;
 
@@ -78,6 +78,9 @@ public interface ServiceDao {
 
     //Q&A 검색조건에 따른 개수 조회
     Integer selectQuestionBySearch( String sql ) throws SQLException;
+
+    //특정 Q&A 조회
+    Question selectQuestionById( String id ) throws SQLException;
 
     //Q&A 검색 조건에 따른 조회
     List<Question> selectQuestionBySearch( String sql, int start, int end ) throws SQLException;

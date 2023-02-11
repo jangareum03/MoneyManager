@@ -160,6 +160,25 @@ public class ServiceDaoImpl implements ServiceDao {
     }
 
     @Override
+    public Answer selectAnswer( String id ) throws SQLException {
+        List<Answer> resultList = jdbcTemplate.query(
+                "SELECT tqa.content, tqa.regdate, ta.nickname " +
+                        "FROM tb_qa_answer tqa, tb_admin ta " +
+                        "WHERE QUESTION_ID = ? " +
+                        "AND tqa.ADMIN_ID  = ta.id",
+                new RowMapper<Answer>() {
+                    @Override
+                    public Answer mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return Answer.builder().content( rs.getString("content") ).regDate( rs.getDate("regdate") ).admin( Admin.builder().nickname( rs.getString("nickname") ).build() ).build();
+                    }
+                },
+                id
+        );
+
+        return resultList.isEmpty() ? null : resultList.get(0);
+    }
+
+    @Override
     public Long selectId( String mid ) throws SQLException {
         List<Long> idList = jdbcTemplate.query(
                 "SELECT id " +
@@ -445,6 +464,28 @@ public class ServiceDaoImpl implements ServiceDao {
                                 "FROM tb_qa_question " + sql,
                 Integer.class
         );
+    }
+
+    @Override
+    public Question selectQuestionById( String id ) throws SQLException {
+        List<Question> resultList = jdbcTemplate.query(
+                "SELECT tqq.*, tmi.nickname " +
+                                "FROM tb_qa_question tqq, tb_member_info tmi " +
+                                "WHERE tqq.id = ? " +
+                                    "AND tqq.member_id = tmi.member_id",
+                new RowMapper<Question>() {
+                    @Override
+                    public Question mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return Question.builder().id( rs.getString("id") ).memberId( rs.getString("member_id") ).memberInfo( MemberInfo.builder().nickName( rs.getString("nickname") ).build() )
+                                .title( rs.getString("title") ).content( rs.getString("content") )
+                                .open( rs.getString("open").charAt(0) ).answer( rs.getString("answer").charAt(0) )
+                                .regDate( rs.getDate("regdate") ).modifiedDate( rs.getDate("modified_date") ).build();
+                    }
+                },
+                id
+        );
+
+        return resultList.isEmpty() ? null : resultList.get(0);
     }
 
     @Override

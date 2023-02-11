@@ -5,11 +5,11 @@ import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.service.main.QnAService;
 import com.areum.moneymanager.service.main.QnAServiceImpl;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
-import javax.swing.plaf.PanelUI;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -26,8 +26,14 @@ public class QnAController {
 
 
     @GetMapping("/qna/detail/{id}")
-    public String getQnADetailView( @PathVariable String id ) {
-        System.out.println("id=" + id);
+    public String getQnADetailView( @PathVariable String id, Model model ) throws SQLException {
+        ResServiceDto.QnADetail qna = qnAService.findQnADetail(id);
+
+        //답변
+        if( qna.getAnswer() == 'y' ) {
+            model.addAttribute("answer", qnAService.findAnswer( id, qna.getTitle() ) );
+        }
+        model.addAttribute("question", qna);
 
         return "/main/qna_detail";
     }
@@ -45,7 +51,7 @@ public class QnAController {
             //페이징 처리
             total = qnAService.countAll();
             pageInfo = new ResServiceDto.Page( total, QNA_COUNT, PAGE_SIZE, Integer.parseInt(page)  );
-            qnAList = qnAService.findQAList( pageInfo, Integer.parseInt(page));
+            qnAList = qnAService.findQnAList( pageInfo, Integer.parseInt(page));
         }else {
             //페이징 처리
             total = qnAService.countSearch( qnASearch );

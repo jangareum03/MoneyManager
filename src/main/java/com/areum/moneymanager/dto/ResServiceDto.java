@@ -1,7 +1,7 @@
 package com.areum.moneymanager.dto;
 
 import com.areum.moneymanager.entity.AccountBook;
-import com.areum.moneymanager.entity.Notice;
+import com.areum.moneymanager.entity.Answer;
 import com.areum.moneymanager.entity.Question;
 import lombok.Getter;
 
@@ -14,6 +14,20 @@ import java.util.Map;
 
 
 public class ResServiceDto {
+
+    //Q&A 답변
+    @Builder
+    @Getter
+    public static class Answer{
+        private String writer;
+        private Date date;
+        private String title;
+        private String content;
+
+        public static Answer toDTO( com.areum.moneymanager.entity.Answer answer, String title ) {
+            return Answer.builder().writer( answer.getAdmin().getNickname() ).date( answer.getRegDate() ).title( "[답변] " + title ).content( answer.getContent() ).build();
+        }
+    }
 
     //카테고리
     @Builder
@@ -171,24 +185,6 @@ public class ResServiceDto {
         }
     }
 
-    //주 차트
-    @Builder
-    @Getter
-    public static class WeekChart{
-        private int week;
-        private int inPrice;
-        private int outPrice;
-    }
-
-    //년 차트
-    @Builder
-    @Getter
-    public static class YearChart{
-        private String month;
-        private int inPrice;
-        private int outPrice;
-    }
-
     //Q&A 리스트
     @Builder
     @Getter
@@ -212,7 +208,39 @@ public class ResServiceDto {
 
             return resultList;
         }
+    }
 
+    //Q&A 상세
+    @Builder
+    @Getter
+    public static class QnADetail {
+        private String title;
+        private String content;
+        private String writer;
+        private Date date;
+        private char answer;
+
+        public static QnADetail toDTO( Question question ) {
+            return QnADetail.builder().title( question.getTitle() ).content( question.getContent() ).writer( question.getMemberInfo().getNickName() ).date( question.getRegDate() ).answer( question.getAnswer() ).build();
+        }
+    }
+
+    //주 차트
+    @Builder
+    @Getter
+    public static class WeekChart{
+        private int week;
+        private int inPrice;
+        private int outPrice;
+    }
+
+    //년 차트
+    @Builder
+    @Getter
+    public static class YearChart{
+        private String month;
+        private int inPrice;
+        private int outPrice;
     }
 
 }

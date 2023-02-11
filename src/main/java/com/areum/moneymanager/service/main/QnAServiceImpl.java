@@ -6,7 +6,6 @@ import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpSession;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -33,7 +32,17 @@ public class QnAServiceImpl implements QnAService {
     }
 
     @Override
-    public List<ResServiceDto.QnA> findQAList( ResServiceDto.Page pageInfo, int pageIndex ) throws SQLException {
+    public ResServiceDto.Answer findAnswer( String id, String title ) throws SQLException {
+        return ResServiceDto.Answer.toDTO( serviceDao.selectAnswer(id), title );
+    }
+
+    @Override
+    public ResServiceDto.QnADetail findQnADetail(String id) throws SQLException {
+        return ResServiceDto.QnADetail.toDTO( serviceDao.selectQuestionById( id ) );
+    }
+
+    @Override
+    public List<ResServiceDto.QnA> findQnAList( ResServiceDto.Page pageInfo, int pageIndex ) throws SQLException {
         int end = pageInfo.getPostCount() * pageIndex;
         int start = end - (pageInfo.getPostCount() - 1);
 

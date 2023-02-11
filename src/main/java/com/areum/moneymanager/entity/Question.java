@@ -9,7 +9,7 @@ import java.sql.Date;
 @Builder
 @Getter
 public class Question {
-    //Q&A번호
+    //질문번호
     private String id;
     //등록자
     private String memberId;
