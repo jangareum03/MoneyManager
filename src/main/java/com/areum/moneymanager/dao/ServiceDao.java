@@ -5,9 +5,11 @@ import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.entity.AccountBook;
 import com.areum.moneymanager.entity.Category;
 import com.areum.moneymanager.entity.Notice;
+import com.areum.moneymanager.entity.Question;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 public interface ServiceDao {
 
@@ -41,6 +43,12 @@ public interface ServiceDao {
     //전체 공지사항 리스트
     List<Notice> selectAllNotice( int start, int end ) throws SQLException;
 
+    //Q&A 전체개수 조회
+    Integer selectAllQuestion() throws SQLException;
+
+    //Q&A 리스트 조회
+    List<Question> selectAllQuestion( int start, int end ) throws SQLException;
+
     //대카테고리 조회
     List<Category> selectCategory() throws SQLException;
 
@@ -65,10 +73,20 @@ public interface ServiceDao {
     //특정 공지사항
     Notice selectNoticeById( String id ) throws SQLException;
 
+    //Q&A 등록자 확인
+    String selectQnAMemberId( String id ) throws SQLException;
+
+    //Q&A 검색조건에 따른 개수 조회
+    Integer selectQuestionBySearch( String sql ) throws SQLException;
+
+    //Q&A 검색 조건에 따른 조회
+    List<Question> selectQuestionBySearch( String sql, int start, int end ) throws SQLException;
+
     //가계부 수정
     void updateAccountBook( AccountBook accountBook, String mid ) throws SQLException;
 
     //조회수 증가
     void updateReadCount( String id ) throws SQLException;
+
 
 }

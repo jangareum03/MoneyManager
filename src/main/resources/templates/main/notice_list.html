@@ -34,7 +34,7 @@
                                 [(${notice.type})]
                                 <a th:href="@{/notice/{id}(id = ${notice.id})}">[[${notice.title}]]</a>
                             </td>
-                            <td th:text="${#dates.format(notice.regDate, 'yyyy.MM.dd')}"></td>
+                            <td th:text="${#dates.format(notice.regDate, 'yyyy-MM-dd')}"></td>
                             <td th:text="${#numbers.formatInteger(notice.count, 1, 'COMMA')}"></td>
                         </tr>
                     </tbody>

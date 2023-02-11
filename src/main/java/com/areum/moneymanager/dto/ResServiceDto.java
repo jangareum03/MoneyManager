@@ -2,6 +2,7 @@ package com.areum.moneymanager.dto;
 
 import com.areum.moneymanager.entity.AccountBook;
 import com.areum.moneymanager.entity.Notice;
+import com.areum.moneymanager.entity.Question;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -156,7 +157,12 @@ public class ResServiceDto {
 
             /* 설정한 마지막페이지가 진짜 마지막페이지보다 큰 경우 */
             int end = (int) Math.ceil( total / (double)postCount );
-            if( end < endPage ) this.endPage = end;
+            if( end == 0 ) {
+                this.endPage = 1;
+            }else if( end < endPage ) {
+                this.endPage = end;
+            }
+
 
             /* 이전 페이지 표시 */
             this.isPrev = startPage != 1;
@@ -181,6 +187,32 @@ public class ResServiceDto {
         private String month;
         private int inPrice;
         private int outPrice;
+    }
+
+    //Q&A 리스트
+    @Builder
+    @Getter
+    public static class QnA{
+        /* 고유번호 */
+        private String id;
+        /* 리스트에 표시할 번호 */
+        private int num;
+        private String title;
+        private char open;
+        private Date regDate;
+        private String nickName;
+
+        public static List<QnA> toDTO( List<Question> questionList, ResServiceDto.Page pageInfo, int pageIndex ) {
+            List<QnA> resultList = new ArrayList<>(questionList.size());
+
+            int i=1;
+            for( Question question : questionList ) {
+                resultList.add( QnA.builder().id( question.getId() ).num( (pageInfo.getPostCount() * pageIndex) + (i++) ).title( question.getTitle() ).open( question.getOpen() ).regDate( question.getRegDate() ).nickName( question.getMemberInfo().getNickName() ).build() );
+            }
+
+            return resultList;
+        }
+
     }
 
 }

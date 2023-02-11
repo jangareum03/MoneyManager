@@ -3,6 +3,7 @@ package com.areum.moneymanager.dao;
 import com.areum.moneymanager.dto.ReqMemberDto;
 import com.areum.moneymanager.entity.Attendance;
 import com.areum.moneymanager.entity.MemberInfo;
+import com.areum.moneymanager.entity.Question;
 import com.areum.moneymanager.entity.UpdateHistory;
 
 import java.sql.SQLException;

@@ -16,8 +16,8 @@ import java.util.List;
 public class NoticeController {
 
     private final NoticeService noticeService;
-    final int NOTICE_COUNT = 10;
-    final int PAGE_SIZE = 5;
+    private final int NOTICE_COUNT = 10;
+    private final int PAGE_SIZE = 5;
 
     public NoticeController( NoticeServiceImpl noticeService ) {
         this.noticeService = noticeService;

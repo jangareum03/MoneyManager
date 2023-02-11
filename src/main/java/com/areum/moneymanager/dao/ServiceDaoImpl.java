@@ -2,9 +2,7 @@ package com.areum.moneymanager.dao;
 
 import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
-import com.areum.moneymanager.entity.AccountBook;
-import com.areum.moneymanager.entity.Category;
-import com.areum.moneymanager.entity.Notice;
+import com.areum.moneymanager.entity.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -193,8 +191,8 @@ public class ServiceDaoImpl implements ServiceDao {
         return jdbcTemplate.query(
                 "SELECT tn.* " +
                         "FROM ( " +
-                        "SELECT ROWNUM num, tmp.* " +
-                        "FROM ( SELECT * FROM tb_notice ORDER BY regdate DESC ) tmp " +
+                        "SELECT ROWNUM num, temp.* " +
+                        "FROM ( SELECT * FROM tb_notice ORDER BY regdate DESC ) temp " +
                         ") tn " +
                         "WHERE tn.num BETWEEN ? AND ?",
                 new RowMapper<Notice>() {
@@ -202,6 +200,34 @@ public class ServiceDaoImpl implements ServiceDao {
                     public Notice mapRow(ResultSet rs, int rowNum) throws SQLException {
                         return Notice.builder().id( rs.getString("id") ).type(rs.getString("type").charAt(0)).title(rs.getString("title")).content(rs.getString("content"))
                                 .regDate(rs.getDate("regdate")).readCnt(rs.getInt("read_cnt")).build();
+                    }
+                },
+                start, end
+        );
+    }
+
+    @Override
+    public Integer selectAllQuestion() throws SQLException {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM tb_qa_question",
+                Integer.class
+        );
+    }
+
+    @Override
+    public List<Question> selectAllQuestion( int start, int end ) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT tqq.id, tqq.title, tqq.regdate, tqq.open, tmi.nickname " +
+                        "FROM ( " +
+                                    "SELECT ROWNUM num, id, title, regdate, open, member_id " +
+                                        "FROM ( SELECT * FROM TB_QA_QUESTION ORDER BY regdate DESC ) " +
+                                    ")tqq, tb_member_info tmi " +
+                        "WHERE tmi.member_id = tqq.member_id " +
+                            "AND num BETWEEN ? AND ?",
+                new RowMapper<Question>() {
+                    @Override
+                    public Question mapRow( ResultSet rs, int rowNum ) throws SQLException {
+                        return Question.builder().memberInfo( MemberInfo.builder().nickName(rs.getString("nickName")).build() ).id( rs.getString("id") ).title( rs.getString("title") ).regDate( rs.getDate("regdate") ).open( rs.getString("open").charAt(0) ).build();
                     }
                 },
                 start, end
@@ -399,6 +425,46 @@ public class ServiceDaoImpl implements ServiceDao {
         );
 
         return resultList.isEmpty() ? null : resultList.get(0);
+    }
+
+    @Override
+    public String selectQnAMemberId( String id ) throws SQLException {
+        return jdbcTemplate.queryForObject(
+                "SELECT member_id " +
+                        "FROM tb_qa_question " +
+                        "WHERE id = ?",
+                String.class,
+                id
+        );
+    }
+
+    @Override
+    public Integer selectQuestionBySearch( String sql ) throws SQLException {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) " +
+                                "FROM tb_qa_question " + sql,
+                Integer.class
+        );
+    }
+
+    @Override
+    public List<Question> selectQuestionBySearch( String sql, int start, int end ) throws SQLException {
+        return jdbcTemplate.query(
+                "SELECT tqq.id, tqq.title, tqq.open, tqq.regdate, tmi.nickname " +
+                                "FROM ( " +
+                                                "SELECT ROWNUM num, id, title, open, regdate, member_id " +
+                                                "FROM (SELECT * FROM tb_qa_question " + sql + "ORDER BY regdate DESC) " +
+                                            ") tqq, tb_member_info tmi " +
+                                "WHERE tmi.member_id = tqq.member_id " +
+                                    "AND num BETWEEN ? AND ?",
+                new RowMapper<Question>() {
+                    @Override
+                    public Question mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return Question.builder().title( rs.getString("title") ).open( rs.getString("open").charAt(0) ).regDate( rs.getDate("regdate") ).memberInfo( MemberInfo.builder().nickName( rs.getString("nickname") ).build() ).build();
+                    }
+                },
+                start, end
+        );
     }
 
     @Override

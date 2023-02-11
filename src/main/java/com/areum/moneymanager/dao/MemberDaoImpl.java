@@ -4,6 +4,7 @@ import com.areum.moneymanager.dto.ReqMemberDto;
 import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.entity.Attendance;
 import com.areum.moneymanager.entity.MemberInfo;
+import com.areum.moneymanager.entity.Question;
 import com.areum.moneymanager.entity.UpdateHistory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,6 +19,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -228,7 +230,7 @@ public class MemberDaoImpl implements MemberDao {
                     "SELECT password " +
                                     "FROM tb_member_info " +
                                     "WHERE id = ? " +
-                                        "AND member_id = (SELECT id FROM tb_member WHERE resign = 'n' AND restore IS NULL)",
+                                        "AND member_id IN (SELECT id FROM tb_member WHERE resign = 'n' AND restore IS NULL)",
                     String.class,
                     id
             );
