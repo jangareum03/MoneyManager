@@ -1,14 +1,10 @@
 package com.areum.moneymanager.service.member;
 
-
 import com.areum.moneymanager.dto.ReqMemberDto;
 import com.areum.moneymanager.dto.ResMemberDto;
-import com.areum.moneymanager.entity.UpdateHistory;
 
 import java.sql.Date;
 import java.sql.SQLException;
-import java.time.Period;
-import java.util.List;
 
 public interface MemberService {
 

@@ -62,6 +62,27 @@ public class ServiceDaoImpl implements ServiceDao {
         );
     }
 
+    @Override
+    public void insertQnA( Question question, String id, String mid ) throws SQLException {
+        jdbcTemplate.update(
+                new PreparedStatementCreator() {
+                    @Override
+                    public PreparedStatement createPreparedStatement( Connection con ) throws SQLException {
+                        PreparedStatement pstmt = con.prepareStatement(
+                                "INSERT INTO tb_qa_question(id, member_id, title, content, open) VALUES(?, ?, ?, ?, ?)"
+                        );
+                        pstmt.setString(1, id);
+                        pstmt.setString(2, mid);
+                        pstmt.setString(3, question.getTitle());
+                        pstmt.setString(4, question.getContent());
+                        pstmt.setString(5, String.valueOf(question.getOpen()));
+
+                        return pstmt;
+                    }
+                }
+        );
+    }
+
 
     @Override
     public List<ResServiceDto.ListAccount> selectAccountByCategory( String mid, String startDate, String endDate, String category ) throws SQLException {
@@ -195,6 +216,22 @@ public class ServiceDaoImpl implements ServiceDao {
         );
 
         return idList.isEmpty() ? null : idList.get(0);
+    }
+
+    @Override
+    public String selectLastId( String mid ) throws SQLException {
+        return jdbcTemplate.queryForObject(
+                "SELECT id " +
+                                "FROM (" +
+                                        "SELECT * " +
+                                            "FROM tb_qa_question " +
+                                            "WHERE member_id = ? " +
+                                            "ORDER BY regdate DESC" +
+                                ") " +
+                                "WHERE ROWNUM <= 1",
+                String.class,
+                mid
+        );
     }
 
     @Override

@@ -94,3 +94,50 @@ function checkMember( id ) {
         }
     }
 }
+
+//제목 확인
+let isTitle = false;
+function checkTitle( target ) {
+    if( target.value.length == 0 ) {
+        document.getElementsByClassName('main__msg')[0].innerHTML = '제목을 입력해주세요.';
+        isTitle = false;
+    }else{
+        document.getElementsByClassName('main__msg')[0].innerHTML = '';
+        isTitle = true;
+    }
+}
+
+//내용 확인
+let isContent = false;
+function checkContent( target ) {
+    if( target.value.length == 0 ) {
+        document.getElementsByClassName('main__msg')[1].innerHTML = '내용을 입력해주세요.';
+        isContent =false;
+    }else{
+        document.getElementsByClassName('main__msg')[1].innerHTML = '';
+        isContent = true;
+    }
+}
+
+//비밀글 여부 확인
+function clickBox(){
+    let checkbox = document.getElementsByClassName('main__input_checkbox')[0];
+    let boxValue = document.getElementsByClassName('main__input_hidden')[0];
+
+    if( checkbox.checked ) {
+        boxValue.value = 'y';
+    }else{
+        boxValue.value = 'n';
+    }
+}
+
+//Q&A 작성 조건 확인
+function checkWrite() {
+    if( isTitle && isContent ) {
+        document.getElementsByClassName('main__form')[0].submit();
+    }else if( !isTitle ) {
+        document.getElementsByClassName('main__input')[0].focus();
+    }else{
+        document.getElementsByClassName('main__textarea')[0].focus();
+    }
+}

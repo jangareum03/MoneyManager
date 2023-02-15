@@ -4,10 +4,12 @@ import com.areum.moneymanager.dao.ServiceDao;
 import com.areum.moneymanager.dao.ServiceDaoImpl;
 import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
+import com.areum.moneymanager.entity.Question;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class QnAServiceImpl implements QnAService {
@@ -65,6 +67,13 @@ public class QnAServiceImpl implements QnAService {
         return mid.equals(writer) ? 1 : 0;
     }
 
+    @Override
+    public void registerQnA( ReqServiceDto.Question question, String mid ) throws SQLException {
+        String id = serviceDao.selectLastId( mid );
+        serviceDao.insertQnA( question.toEntity(), makeQuestionId(id, mid), mid );
+    }
+
+
     private String makeSQL( ReqServiceDto.QnASearch search ) {
         String result = null;
 
@@ -78,6 +87,19 @@ public class QnAServiceImpl implements QnAService {
             case "period":
                 result = "WHERE regdate BETWEEN TO_DATE(" + search.getStartDate() + "00, 'YYYYMMDDHH24') AND TO_DATE(" + search.getEndDate() + "235959, 'YYYYMMDDHH24MISS') ";
                 break;
+        }
+
+        return result;
+    }
+
+    private String makeQuestionId( String id, String mid ) {
+        String result;
+        if( Objects.isNull(id)) {
+            result = mid + "_001";
+        }else {
+            int next = Integer.parseInt( id.substring(9) );
+            String num = String.format( "%03d", ++next );
+            result = mid + "_" + num;
         }
 
         return result;

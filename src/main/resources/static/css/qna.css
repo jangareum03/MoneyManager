@@ -141,3 +141,10 @@ nav{
 .box__display_block {
     display: block;
 }
+
+/* 에러메시지 */
+.main__msg {
+    font-size: 14px;
+    font-weight: 800;
+    color: red;
+}

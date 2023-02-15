@@ -16,6 +16,9 @@ public interface ServiceDao {
     //가계부 등록
     void insertAccountBook( AccountBook accountBook, String mid ) throws SQLException;
 
+    //질문 등록
+    void insertQnA( Question question, String id, String mid ) throws SQLException;
+
     //가계부 카테고리 내역 조회
     List<ResServiceDto.ListAccount> selectAccountByCategory( String mid, String startDate, String endDate, String category ) throws SQLException;
 
@@ -70,6 +73,9 @@ public interface ServiceDao {
     //최신 가계부 번호 조회
     Long selectId( String mid ) throws SQLException;
 
+    //회원의 마지막 질문번호 찾기
+    String selectLastId( String mid ) throws SQLException;
+
     //특정 공지사항
     Notice selectNoticeById( String id ) throws SQLException;
 
@@ -90,6 +96,4 @@ public interface ServiceDao {
 
     //조회수 증가
     void updateReadCount( String id ) throws SQLException;
-
-
 }

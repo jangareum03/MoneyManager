@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Q &amp; A : 돈매니저</title>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/qna.css}">
+    <!-- js -->
+    <script th:src="@{/js/qna.js}"></script>
+</head>
+<body>
+<nav th:replace="/include/menu.html :: menu"></nav>
+<div class="wrap">
+    <!-- 헤더 -->
+    <div class="header">
+        <span class="header__title">Q&amp;A 작성</span>
+    </div>
+    <!-- 본문 -->
+    <div class="container">
+        <div class="main">
+            <form class="main__form" method="post" th:action="@{/qna/write}">
+                <table class="main__table">
+                    <tr>
+                        <th>제목</th>
+                        <td>
+                            <input type="text" class="main__input" name="title" placeholder="제목을 입력해주세요." maxlength="20" th:onblur="checkTitle( this )">
+                            <span class="main__msg"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>비밀글</th>
+                        <td>
+                            <label for="open">
+                                <input type="checkbox" class="main__input_checkbox" id="open" th:onclick="clickBox()">비밀글
+                                <input type="hidden" class="main__input_hidden" name="open" th:value="y">
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>내용</th>
+                        <td>
+                            <textarea class="main__textarea" name="content" placeholder="내용을 입력해주세요." maxlength="300" th:onblur="checkContent( this )"></textarea>
+                            <span class="main__msg"></span>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+    </div>
+    <!-- 하단 -->
+    <div class="footer">
+        <div class="footer__btn">
+            <button type="button" th:onclick="location.href=document.referrer">취소</button>
+            <button type="button" th:onclick="checkWrite()">등록</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
