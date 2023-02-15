@@ -1,11 +1,9 @@
 package com.areum.moneymanager.dto;
 
 import com.areum.moneymanager.entity.AccountBook;
+import com.areum.moneymanager.entity.Question;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
-import org.springframework.boot.context.properties.bind.DefaultValue;
-import org.springframework.lang.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -79,6 +77,19 @@ public class ReqServiceDto {
         private String keyword;
         private String startDate;
         private String endDate;
+    }
+
+    //질문 등록
+    @Builder
+    @Getter
+    public static class Question {
+        private String title;
+        private String open;
+        private String content;
+
+        public com.areum.moneymanager.entity.Question toEntity() {
+            return com.areum.moneymanager.entity.Question.builder().title( title ).open(open.charAt(0)).content(content).build();
+        }
     }
 
     //가계부 수정

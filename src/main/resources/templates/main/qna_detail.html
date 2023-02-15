@@ -36,8 +36,8 @@
             </table>
         </div>
         <!-- 답변 -->
-        <div class="answer">
-            <table class="answer__table">
+        <div class="answer" th:if="${answer != null}">
+            <table class="answer__table" th:if="${answer == null}">
                 <tr>
                     <th>답변</th>
                     <td>[[${answer.title}]]</td>
@@ -55,6 +55,7 @@
                 </tr>
             </table>
         </div>
+        <div th:unless="${answer == null}"></div>
     </div>
     <!-- 하단 -->
     <div class="footer">

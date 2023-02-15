@@ -30,4 +30,6 @@ public interface QnAService {
     //Q&A 번호 일치여부 확인
     int isSameQnA( String id, String mid ) throws SQLException;
 
+    //질문 등록
+    void registerQnA( ReqServiceDto.Question question, String mid ) throws SQLException;
 }

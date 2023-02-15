@@ -30,15 +30,17 @@ public class QnAController {
         ResServiceDto.QnADetail qna = qnAService.findQnADetail(id);
 
         //답변
+        ResServiceDto.Answer answer = null;
         if( qna.getAnswer() == 'y' ) {
-            model.addAttribute("answer", qnAService.findAnswer( id, qna.getTitle() ) );
+            answer = qnAService.findAnswer( id, qna.getTitle() );
         }
         model.addAttribute("question", qna);
+        model.addAttribute("answer", answer);
 
         return "/main/qna_detail";
     }
 
-    @GetMapping("/qna")
+    @RequestMapping( path = "/qna", method = {RequestMethod.GET, RequestMethod.POST})
     public ModelAndView getQnAView( @RequestParam(defaultValue = "1") String page, ReqServiceDto.QnASearch qnASearch ) throws SQLException {
         ModelAndView mav = new ModelAndView();
 
@@ -68,6 +70,10 @@ public class QnAController {
         return mav;
     }
 
+    @GetMapping("/qna/write")
+    public String getQnAWriteView() {
+        return "/main/qna_write";
+    }
 
     @ResponseBody
     @PostMapping("/qna/checkMember")
@@ -75,5 +81,13 @@ public class QnAController {
         String mid = (String)session.getAttribute("mid");
 
         return qnAService.isSameQnA( id, mid );
+    }
+
+    @PostMapping("/qna/write")
+    public String postWrite( ReqServiceDto.Question question, HttpSession session ) throws SQLException {
+        String mid = (String)session.getAttribute("mid");
+
+        qnAService.registerQnA( question, mid );
+        return "redirect:/qna";
     }
 }
