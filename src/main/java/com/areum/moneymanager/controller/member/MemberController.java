@@ -6,6 +6,8 @@ import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.service.ImageService;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -21,6 +23,8 @@ public class MemberController {
 
     private final MemberService memberService;
     private final ImageService imageService;
+
+    private final Logger LOGGER = LogManager.getLogger(MemberController.class);
 
     public MemberController( MemberServiceImpl memberService, ImageService imageService ) {
         this.memberService = memberService;
@@ -53,21 +57,23 @@ public class MemberController {
     public String postLogin(@ModelAttribute("member") ReqMemberDto.Login login, BindingResult bindingResult, Model model, HttpSession session) throws SQLException {
         if( !StringUtils.hasText(login.getId()) ) {
             bindingResult.rejectValue("id", "noInput");
-        }else if( !StringUtils.hasText(login.getPwd()) ) {
-            bindingResult.rejectValue("pwd", "noInput");
+        }else if( !StringUtils.hasText(login.getPassword()) ) {
+            bindingResult.rejectValue("password", "noInput");
         }else{
             int result = memberService.loginCheck( login );
 
             if( result == 0 ) {
                 bindingResult.rejectValue("id", "noMember");
             }else if( result == -1 ) {
-                bindingResult.rejectValue("pwd", "mismatch");
+                bindingResult.rejectValue("password", "mismatch");
             }else if( result == -2 ) {
+                LOGGER.info("[복구 가능한 탈퇴회원 로그인] 아이디: {}, 비밀번호: {}", login.getId(), login.getPassword());
+
                 model.addAttribute("msg", "탈퇴한지 30일이 지나지 않아 계정을 복구합니다.");
                 model.addAttribute("method", "post");
                 model.addAttribute("url", "/recoverMember");
                 model.addAttribute("id", login.getId());
-                model.addAttribute("pwd", login.getPwd());
+                model.addAttribute("pwd", login.getPassword());
 
                 return "alert";
             }else if( result == -3 ) {
@@ -128,12 +134,15 @@ public class MemberController {
             memberService.deleteMember( mid, delete );
             return 1;
         }catch( Exception e ){
+            e.printStackTrace();
             return 0;
         }
     }
 
     @PostMapping("/recoverMember")
     public String postRecoverMember( ReqMemberDto.Login login, HttpSession session ) throws SQLException {
+        LOGGER.info("[탈퇴회원 복구] 아이디: {}, 비밀번호: {}", login.getId(), login.getPassword());
+
         String mid = memberService.findMid( login );
         memberService.recoverMember( mid, login );
 
