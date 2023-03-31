@@ -6,23 +6,28 @@
     <!-- css -->
   <link rel="stylesheet" th:href="@{/css/notice.css}">
 </head>
-<body>
-<nav th:replace="/include/menu.html :: menu"></nav>
-<div>
-  <div>
-    <span>공지사항</span>
-  </div>
-  <div>
-    <div>
-      <div>[(${notice.type})] [[${notice.title}]]</div>
-      <span th:text="${#dates.format(notice.regDate, 'yyyy년 MM월 dd일 E요일')}"></span>
-    </div>
-    <div>
-      <textarea>[[${notice.content}]]</textarea>
+<body class="body__wrap">
+<nav th:replace="/include/menu.html :: nav"></nav>
+<div class="div__wrap">
+  <!-- 제목 -->
+  <div class="header">
+    <div class="header__title">
+      <span>공지 사항</span>
     </div>
   </div>
-  <div>
-    <button type="button" th:onclick="location.href=document.referrer">확인</button>
+  <!-- 공지사항 상세 -->
+  <div class="detail">
+    <div class="detail__items">
+        <div class="detail__title">[(${notice.type})] [[${notice.title}]]</div>
+        <span class="detail__date" th:text="${#dates.format(notice.regDate, 'yyyy년 MM월 dd일 E요일')}"></span>
+    </div>
+    <div class="detail__items detail__content">
+      [[${notice.content}]]
+    </div>
+  </div>
+  <!-- 버튼 -->
+  <div class="button__count--01">
+    <button type="button" class="button__size--medium button__default" th:onclick="location.href=document.referrer">확인</button>
   </div>
 </div>
 </body>

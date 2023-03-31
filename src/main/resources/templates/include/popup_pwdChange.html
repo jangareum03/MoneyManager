@@ -7,40 +7,44 @@
     <script th:src="@{/js/myinfo.js}"></script>
 </head>
 <body>
-<div class="wrap">
+<div class="div__wrap">
+    <!-- 제목 -->
     <div class="header">
-        <span class="header__title">비밀번호 변경</span>
-    </div>
-    <div class="container">
-        <div class="main">
-            <div class="main-area">
-                <span class="main__title">현재 비밀번호</span>
-                <input type="password" class="main__input" placeholder="현재 비밀번호를 입력해주세요." maxlength="20" th:onblur="checkPwd( this, 0 )">
-                <span class="main__msg"></span>
-            </div>
-            <div class="main-area">
-                <span class="main__title">새 비밀번호</span>
-                <input type="password" class="main__input" placeholder="새 비밀번호를 입력해주세요." maxlength="20" th:onblur="checkNewPwd( this )">
-                <span class="main__msg"></span>
-            </div>
-            <div class="main-area">
-                <span class="main__title">새 비밀번호 확인</span>
-                <input type="password" class="main__input" placeholder="새 비밀번호를 재입력해주세요." maxlength="20" th:onblur="checkReNewPwd( this )">
-                <span class="main__msg"></span>
-            </div>
-        </div>
-        <div class="guide">
-            <span class="guide__title">비밀번호 변경 시 유의사항</span>
-            <div class="guide-area">
-                <span class="guide__text">영어, 숫자, 특수문자 조합하여 8글자에서 20글자로 입력해야 합니다.</span><br>
-                <span class="guide__text">생년월일, 연락처 등 알기 쉬운 개인정보로 비밀번호를 변경하는 것은 권장하지 않습니다.</span><br>
-                <span class="guide__text">연속된 숫자, 같은 단어 3글자 이상 입력은 권장하지 않습니다.</span><br>
-            </div>
+        <div class="header__title">
+            <span>비밀번호 변경</span>
         </div>
     </div>
-    <div class="footer">
-        <button type="button" th:onclick="window.close()">취소</button>
-        <button type="button" th:onclick="changePwd()">변경</button>
+    <!-- 비밀번호 변경 -->
+    <div class="change">
+        <div class="change__items">
+            <span class="change__title">현재 비밀번호</span>
+            <input type="password" class="input__password" placeholder="현재 비밀번호를 입력해주세요." maxlength="20" th:onblur="checkPwd( this, 0 )">
+            <span class="msg__error"></span>
+        </div>
+        <div class="change__items">
+            <span class="change__title">새 비밀번호</span>
+            <input type="password" class="input__password" placeholder="새 비밀번호를 입력해주세요." maxlength="20" th:onblur="checkNewPwd( this )">
+            <span class="msg__error"></span>
+        </div>
+        <div class="change__items">
+            <span class="change__title">새 비밀번호 확인</span>
+            <input type="password" class="input__password" placeholder="새 비밀번호를 재입력해주세요." maxlength="20" th:onblur="checkReNewPwd( this )">
+            <span class="msg__error"></span>
+        </div>
+    </div>
+    <div class="guide">
+        <span class="guide__title">비밀번호 변경 시 유의사항</span>
+        <div class="guide__item">
+            <ol>
+                <li>영어, 숫자, 특수문자 조합하여 8글자에서 20글자로 입력해야 합니다.</li>
+                <li>생년월일, 연락처 등 알기 쉬운 개인정보로 비밀번호를 변경하는 것은 권장하지 않습니다.</li>
+                <li>연속된 숫자, 같은 단어 3글자 이상 입력은 권장하지 않습니다.</li>
+            </ol>
+        </div>
+    </div>
+    <div class="button__count--02">
+        <button type="button" class="button__size--medium button__cancel" th:onclick="window.close()">취소</button>
+        <button type="button" class="button__size--medium button__confirm" th:onclick="changePwd()">변경</button>
     </div>
 </div>
 </body>

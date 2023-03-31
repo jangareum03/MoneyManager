@@ -7,21 +7,28 @@
     <link rel="stylesheet" th:href="@{/css/find.css}">
 </head>
 <body>
-<div id="helpPwd">
-    <div class="title" onclick="location.href='/'">
-        계정찾기<br>
-        <span>돈 매니저</span>
+<!-- 제목 -->
+<div class="header">
+    <div class="header__title">
+        계정찾기
+        <span class="header__subTitle">돈매니저</span>
     </div>
-    <div class="content">
-        <div class="subTitle">비밀번호 찾기 결과</div>
-        <div class="msg msgOk" th:utext="${msg}"></div>
-        <div class="subContent">
-            보낸 이메일은 <span id="point1">[[${email}]]</span> 입니다.
+</div>
+<!-- 찾기 결과 -->
+<div class="find">
+    <div class="find__title">
+        <span class="find__info">비밀번호 찾기 결과</span>
+    </div>
+    <div class="find__guide">
+        <div class="find__guide--info" th:utext="${msg}"></div>
+        <div class="find__guide--pwd">
+            <p>보낸 이메일은 <span class="find__email">[[${email}]]</span>입니다.</p>
         </div>
     </div>
-    <div id="aloneBtn">
-        <button type="button" class="btn confirm" onclick="location.href='/'">로그인</button>
-    </div>
+</div>
+<!-- 버튼 -->
+<div class="button__count--01">
+    <button type="button" class="button__size--big button__confirm" th:onclick="location.href='/'">로그인</button>
 </div>
 </body>
 </html>

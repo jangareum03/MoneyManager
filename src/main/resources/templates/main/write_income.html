@@ -8,115 +8,151 @@
     <!-- js -->
     <script th:src="@{/js/write.js}"></script>
 </head>
-<body>
-<nav th:replace="/include/menu.html :: menu"></nav>
-<form id="write" enctype="multipart/form-data" method="post" th:action="@{/write/accountBook}">
-        <div id="wContent">
-            <div class="title">
-                [[${formatDate}]]<br>
-                <input type="hidden" name="accountDate" th:value="${accountDate}">
-                <span>수입</span>
-            </div>
-            <div class="wMain">
-                <div class="wArea fixs">
-                    <h3 class="write_title">
-                        <label>고정/변동</label>
-                    </h3>
-                    <div th:style="${'display: inline-block;'}">
-                        <div th:onchange="showOption()">
-                            <label><input type="radio" name="fix" id="fix" th:value="${'y'}"> 고정</label>
-                            <label><input type="radio" name="fix" th:value="${'n'}" checked> 변동</label>
-                        </div>
-                        <div id="fixOption" th:style="${'padding-top: 20px;'}">
-                            <label><input type="radio" name="fixOption" class="fixCycle" th:value="y">일년</label>
-                            <label><input type="radio" name="fixOption" class="fixCycle" th:value="m">한달</label>
-                            <label><input type="radio" name="fixOption" class="fixCycle" th:value="w">일주일</label>
-                        </div>
+<body class="body__wrap">
+<nav th:replace="/include/menu.html :: nav"></nav>
+<div class="div__wrap">
+    <!-- 제목 -->
+    <div class="header header__write">
+        <div class="header__title">
+            [[${formatDate}]]
+            <span class="header__subTitle">수입</span>
+        </div>
+    </div>
+    <!-- 수입 -->
+    <div class="write__detail">
+        <form enctype="multipart/form-data" method="post" th:action="@{/write/accountBook}" class="write__form">
+            <input type="hidden" name="accountDate" th:value="${accountDate}">
+            <div class="write__items">
+                <label class="write__title">고정 · 변동</label>
+                <div class="write__item write__item__fix">
+                    <div class="write__fix" th:onchange="showOption()">
+                        <label>
+                            <input type="radio" name="fix" class="input__radio input__radio__large" th:value="y">
+                            <svg class="fix__img" clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m21 4.009c0-.478-.379-1-1-1h-16c-.62 0-1 .519-1 1v16c0 .621.52 1 1 1h16c.478 0 1-.379 1-1zm-14.051 8.382c-.165-.148-.249-.352-.249-.557 0-.411.333-.746.748-.746.178 0 .355.063.499.19l3.298 2.938 5.453-5.962c.149-.161.35-.243.554-.243.417 0 .748.337.748.747 0 .179-.065.359-.196.502l-5.953 6.509c-.147.161-.35.242-.552.242-.178 0-.357-.062-.499-.19z" fill-rule="nonzero"/></svg>
+                            고정
+                        </label>
+                        <label>
+                            <input type="radio" name="fix" class="input__radio input__radio__large" th:value="n" checked>
+                            <svg class="fix__img" clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m21 4.009c0-.478-.379-1-1-1h-16c-.62 0-1 .519-1 1v16c0 .621.52 1 1 1h16c.478 0 1-.379 1-1zm-14.051 8.382c-.165-.148-.249-.352-.249-.557 0-.411.333-.746.748-.746.178 0 .355.063.499.19l3.298 2.938 5.453-5.962c.149-.161.35-.243.554-.243.417 0 .748.337.748.747 0 .179-.065.359-.196.502l-5.953 6.509c-.147.161-.35.242-.552.242-.178 0-.357-.062-.499-.19z" fill-rule="nonzero"/></svg>
+                            변동
+                        </label>
+                    </div>
+                    <div class="write__fix display__none">
+                        <label>
+                            <input type="radio" name="fixOption" class="input__radio input__radio__middle" th:value="y">
+                            <svg class="fix__img" clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m21 4.009c0-.478-.379-1-1-1h-16c-.62 0-1 .519-1 1v16c0 .621.52 1 1 1h16c.478 0 1-.379 1-1zm-14.051 8.382c-.165-.148-.249-.352-.249-.557 0-.411.333-.746.748-.746.178 0 .355.063.499.19l3.298 2.938 5.453-5.962c.149-.161.35-.243.554-.243.417 0 .748.337.748.747 0 .179-.065.359-.196.502l-5.953 6.509c-.147.161-.35.242-.552.242-.178 0-.357-.062-.499-.19z" fill-rule="nonzero"/></svg>
+                            일년
+                        </label>
+                        <label>
+                            <input type="radio" name="fixOption" class="input__radio input__radio__middle" th:value="m">
+                            <svg class="fix__img" clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m21 4.009c0-.478-.379-1-1-1h-16c-.62 0-1 .519-1 1v16c0 .621.52 1 1 1h16c.478 0 1-.379 1-1zm-14.051 8.382c-.165-.148-.249-.352-.249-.557 0-.411.333-.746.748-.746.178 0 .355.063.499.19l3.298 2.938 5.453-5.962c.149-.161.35-.243.554-.243.417 0 .748.337.748.747 0 .179-.065.359-.196.502l-5.953 6.509c-.147.161-.35.242-.552.242-.178 0-.357-.062-.499-.19z" fill-rule="nonzero"/></svg>
+                            한달
+                        </label>
+                        <label>
+                            <input type="radio" name="fixOption" class="input__radio input__radio__middle" th:value="w">
+                            <svg class="fix__img" clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m21 4.009c0-.478-.379-1-1-1h-16c-.62 0-1 .519-1 1v16c0 .621.52 1 1 1h16c.478 0 1-.379 1-1zm-14.051 8.382c-.165-.148-.249-.352-.249-.557 0-.411.333-.746.748-.746.178 0 .355.063.499.19l3.298 2.938 5.453-5.962c.149-.161.35-.243.554-.243.417 0 .748.337.748.747 0 .179-.065.359-.196.502l-5.953 6.509c-.147.161-.35.242-.552.242-.178 0-.357-.062-.499-.19z" fill-rule="nonzero"/></svg>
+                            일주일
+                        </label>
                     </div>
                 </div>
-                <div class="wArea">
-                    <h3 class="write_title">
-                        <label>카테고리</label>
-                    </h3>
-                    <select class="wCategory" id="categoryL" th:onchange="changeCategory(this)">
+            </div>
+            <div class="write__items">
+                <label class="write__title">카테고리</label>
+                <div class="write__item write__item__category">
+                    <select class="select__category__large" th:onchange="changeCategory( this )">
                         <option th:value="${'00'}">선택없음</option>
                         <option th:each="category : ${category}" th:value="${category.code}">[[${category.name}]]</option>
                     </select>
                 </div>
-
-                <div class="wArea">
-                    <h3 class="write_title">
-                        <label>제목</label>
-                    </h3>
-                    <input type="text" placeholder="제목을 입력해주세요." name="title" class="wTitle" maxlength="50">
+            </div>
+            <div class="write__items">
+                <label class="write__title">제목</label>
+                <div class="write__item">
+                    <input type="text" name="title" class="input__text" maxlength="50" th:onblur="checkTitle(this)">
                 </div>
-
-                <div class="wArea wContent">
-                    <h3 class="write_title">
-                        <label>내용</label>
-                    </h3>
-                    <textarea cols="60" rows="5" placeholder="내용을 입력해주세요." name="content" maxlength="300"></textarea>
+            </div>
+            <div class="write__items write__items__content">
+                <label class="write__title">내용</label>
+                <div class="write__item write__item__content">
+                    <textarea cols="60" rows="5" name="content" class="input__textarea" maxlength="300"></textarea>
                 </div>
-
-                <div class="wArea">
-                    <h3 class="write_title">
-                        <label>금액</label>
-                    </h3>
-                    <input type="text" placeholder="금액을 입력해주세요." name="price" class="wPrice" th:onkeyup="checkPrice( this )">
-                    <select name="priceType" class="wCategory" id="priceType">
-                        <option th:value="${''}">선택없음</option>
-                        <option th:value="${'ca'}">현금</option>
-                        <option th:value="${'de'}">체크카드</option>
-                        <option th:value="${'cr'}">신용카드</option>
-                        <option th:value="${'ba'}">계좌이체</option>
-                    </select>
-                </div>
-
-                <div class="wArea">
-                    <h3 class="write_title">
-                        <label>사진</label>
-                    </h3>
-                    <th:block th:each="num : ${#numbers.sequence(1, 3)}">
-                        <label th:if="${num <= maxImage}"><input type="file" name="images" th:style="${'display:none;'}" class="img" accept=".gif, .jpg, .png"><img src="/image/imageUnLock.png" th:id="${'img' + (num-1)}" th:style="${'cursor: pointer'}"/></label>
-                        <label th:style="${'pointer-events: none;'}" th:unless="${num <= maxImage}"><input type="file" name="images" th:style="${'display:none;'}" class="img"><img src="/image/imageLock.png" th:id="${'img' + (num-1)}"/></label>
-                    </th:block>
-                    <script>
-                        let img = document.querySelectorAll('.img');
-                        for( let i=0; i < img.length; i++ ) {
-                            img[i].addEventListener("change", function() {
-                                if( this.files && this.files[0] ) {
-                                    let reader = new FileReader();
-                                    reader.onload = function(e) {
-                                        document.getElementById('img' + i).src = e.target.result;
-                                    };
-                                    reader.readAsDataURL(this.files[0]);
-                                } else{
-                                    document.getElementById('img' + i).src = '/image/imageUnLock.png';
-                                }
-                            });
-                        }
-                    </script>
-                </div>
-
-                <div class="wArea">
-                    <h3 class="write_title">
-                        <label>위치</label>
-                    </h3>
-                    <img src="/image/location.png" class="map" onclick="openMapPop()">
-                    <label id="mapInput">위치를 입력해주세요.</label>
-                    <div id="location">
-                        <span  id="locationName"></span><input type="hidden" name="mapName" id="mapName"><br>
-                        <span id="locationRoad"></span><input type="hidden" name="mapRoad" id="mapRoad" ><br>
-                        <span id="locationAddr"></span><input type="hidden" id="mapAddr" name="mapAddr">
+            </div>
+            <div class="write__items">
+                <label class="write__title">금액</label>
+                <div class="write__item write__item__price">
+                    <input type="text" name="price" class="input__text" placeholder="금액을 입력해주세요." th:onkeyup="checkPrice( this )">
+                    <div class="write__priceOption">
+                        <label>
+                            <input type="radio" name="priceType" class="input__radio" th:value="none" checked>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm9 12c0 1.94-.624 3.735-1.672 5.207l-12.535-12.535c1.472-1.048 3.267-1.672 5.207-1.672 4.962 0 9 4.038 9 9zm-18 0c0-1.94.624-3.735 1.672-5.207l12.534 12.534c-1.471 1.049-3.266 1.673-5.206 1.673-4.962 0-9-4.038-9-9z"/><title>없음</title></svg>
+                        </label>
+                        <label>
+                            <input type="radio" name="priceType" class="input__radio" th:value="cash" title="현금">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.667 13.984c1.782 0 3.333-.671 3.333-1.5s-1.552-1.5-3.333-1.5c-1.781 0-3.333.671-3.333 1.5s1.551 1.5 3.333 1.5zm.062-1.339c-.199-.06-.81-.111-.81-.45 0-.189.223-.358.639-.396v-.148h.214v.141c.156.004.33.021.523.06l-.078.229c-.147-.034-.311-.066-.472-.066l-.048.001c-.321.013-.347.191-.125.267.364.112.844.195.844.493 0 .238-.289.366-.645.397v.146h-.214v-.139c-.22-.002-.451-.038-.642-.102l.098-.229c.163.042.367.084.552.084l.139-.01c.247-.034.296-.2.025-.278zm-.062 5.339c1.261 0 2.57-.323 3.333-.934v.434c0 .829-1.552 1.516-3.333 1.516-1.781 0-3.333-.687-3.333-1.516v-.434c.763.612 2.071.934 3.333.934zm0-3.333c1.261 0 2.57-.323 3.333-.934v.434c0 .829-1.552 1.5-3.333 1.5-1.781 0-3.333-.671-3.333-1.5v-.434c.763.611 2.071.934 3.333.934zm0 1.667c1.261 0 2.57-.323 3.333-.935v.435c0 .828-1.552 1.5-3.333 1.5-1.781 0-3.333-.672-3.333-1.5v-.435c.763.612 2.071.935 3.333.935zm-8.441-3.089c0 .601-.47.922-1.05 1.002v.369h-.351v-.35c-.362-.006-.737-.092-1.05-.254l.16-.575c.334.129.78.267 1.128.189.402-.091.485-.505.041-.705-.326-.15-1.323-.281-1.323-1.134 0-.477.363-.904 1.044-.998v-.373h.351v.356c.253.006.538.051.855.147l-.127.576c-.269-.094-.566-.18-.855-.162-.521.031-.567.482-.204.671.599.282 1.381.491 1.381 1.241zm5.774-7.229h-17v10h-1v-11h18v1zm-16 1v11h14v-5.516c0-1.792 1.985-2.71 4-2.875v-2.609h-18zm9 9c-1.933 0-3.5-1.567-3.5-3.5s1.567-3.5 3.5-3.5 3.5 1.567 3.5 3.5-1.567 3.5-3.5 3.5z"/><title>현금</title></svg>
+                        </label>
+                        <label>
+                            <input type="radio" name="priceType" class="input__radio" th:value="card" title="카드">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 8v-3c0-1.105.895-2 2-2h20c1.104 0 2 .895 2 2v3h-24zm24 3v8c0 1.104-.896 2-2 2h-20c-1.105 0-2-.896-2-2v-8h24zm-15 6h-6v1h6v-1zm3-2h-9v1h9v-1zm9 0h-3v1h3v-1z"/><title>카드</title></svg>
+                        </label>
+                        <label>
+                            <input type="radio" name="priceType" class="input__radio" th:value="bank" title="계좌이체">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 21h-4v-11h4v11zm7-11h-4v11h4v-11zm7 0h-4v11h4v-11zm2 12h-22v2h22v-2zm-23-13h24l-12-9-12 9z"/><title>계좌이체</title></svg>
+                        </label>
                     </div>
-                    <button type="button" onclick="removeLocation()">지우기</button>
                 </div>
             </div>
-            <div id="btnGroup">
-                <button type="button" class="btn cancel"  onclick="history.back()">이전</button>
-                <button class="btn confirm" th:onclick="return writeCheck()">완료</button>
+            <div class="write__items write__items__image">
+                <label class="write__title">사진</label>
+                <div class="write__item">
+                    <th:block th:each="num : ${#numbers.sequence(1, 3)}">
+                        <label th:if="${num <= maxImage}" class="image__label"><input type="file" name="images" class="input__file" th:style="${'display:none;'}" accept=".gif, .jpg, .png"><img src="/image/imageUnLock.png" class="images__img" th:style="${'cursor: pointer'}"/></label>
+                        <label th:unless="${num <= maxImage}" class="image__label image__label__pointer--none"><input type="file" name="images" th:style="${'display:none;'}"><img src="/image/imageLock.png" class="images__img"/></label>
+                    </th:block>
+                </div>
+                <script>
+                    let img = document.querySelectorAll('.input__file');
+                    for( let i=0; i < img.length; i++ ) {
+                        img[i].addEventListener("change", function() {
+                            if( this.files && this.files[0] ) {
+                                let reader = new FileReader();
+                                reader.onload = function(e) {
+                                    document.getElementsByClassName('images__img')[i].src = e.target.result;
+                                };
+                                reader.readAsDataURL(this.files[0]);
+                            } else{
+                                document.getElementsByClassName('images__img')[i].src = '/image/imageUnLock.png';
+                            }
+                        });
+                    }
+                </script>
             </div>
-        </div>
-</form>
+            <div class="write__items">
+                <label class="write__title">위치</label>
+                <div class="write__item">
+                    <label class="map__search write__location__search" th:onclick="openMapPop()">
+                        <img src="/image/location.png" class="location__img__search">
+                        <span>위치를 입력해주세요.</span>
+                    </label>
+                    <div class="map__result write__location__result display__none">
+                        <div class="location__info">
+                            <span id="title"></span><input type="hidden" id="titleV" name="mapName">
+                            <span id="road"></span><input type="hidden" id="roadV" name="mapRoad">
+                            <span id="add"></span><input type="hidden" id="addV" name="mapAddr">
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" class="location__img__remove" th:onclick="removeLocation()">
+                            <path d="M5.662 23l-5.369-5.365c-.195-.195-.293-.45-.293-.707 0-.256.098-.512.293-.707l14.929-14.928c.195-.194.451-.293.707-.293.255 0 .512.099.707.293l7.071 7.073c.196.195.293.451.293.708 0 .256-.097.511-.293.707l-11.216 11.219h5.514v2h-12.343zm3.657-2l-5.486-5.486-1.419 1.414 4.076 4.072h2.829zm6.605-17.581l-10.677 10.68 5.658 5.659 10.676-10.682-5.657-5.657z"/>
+                            <title>위치 삭제</title>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <!-- 버튼 -->
+            <div class="button__count--02">
+                <button type="button" class="button__size--medium button__cancel" th:onclick="history.back()">이전</button>
+                <button class="button__size--medium button__confirm" th:onclick="return writeCheck()">완료</button>
+            </div>
+        </form>
+    </div>
+</div>
 </body>
 </html>

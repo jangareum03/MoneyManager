@@ -1,251 +1,148 @@
-@font-face {
-    font-family: 'Pretendard-Regular';
-    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'SEBANG_Gothic_Bold';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/SEBANG_Gothic_Bold.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
+@import url("common.css");
 
-/* reset.css */
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
+/*공통 영역*/
+.header, .chart, .search, .account__form, .account__table__footer {
+    width: 80%;
+    margin: auto;
 }
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-    display: block;
-}
-body {
-    line-height: 1;
-}
-ol, ul {
-    list-style: none;
-}
-blockquote, q {
-    quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-    content: '';
-    content: none;
-}
-table {
-    border-collapse: collapse;
-    border-spacing: 0;
-}
-
-/* 기본 */
-body{
-    display: flex;
-    width: 85vw;
-    height: 100vh;
-    margin: 0 auto;
-    font-family: 'Pretendard-Regular';
-}
-
-a, li{
-    cursor: pointer;
-}
-
-/* 메뉴상단 */
-nav{
-    width: 300px;
-    height: 100%;
-    border-left: 2px solid #1E1E1E;
-    border-right: 2px solid #1E1E1E;
-}
-#menu_top {
-    display: flex;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 18%;
-    border-bottom: 1px solid #EA3B20;
-}
-.profile {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 80%;
-}
-.profile > img {
-    width: 100px;
-    height: 100px;
-    margin-left: 15px;
-}
-.profile > div {
-    padding-bottom: 25px;
-    width: 70%;
+.account__form, .account__table__footer {
     text-align: center;
 }
-.profile  span {
-    color: #EA3B20;
-    font-weight: 800;
-    font-size: 20px;
+/* 날짜 선택 */
+.header {
+    height: 15%;
 }
-.profile a {
-    position: absolute;
-    top: 60%;
-    left: 55%;
-    text-decoration: none;
-    font-size: 15px;
-    color: black;
-}
-.profile a:hover {
-    text-decoration: underline;
-    color: #0B3B78;
-}
-
-
-/* 메뉴 하단 */
-#menu_bottom, ul {
-    width: 100%;
-    height: 70%;
-}
-.liMenu {
-    width: 100%;
-    height: 13%;
-    font-size: 20px;
-}
-.liMenu:hover {
-    background-color: #1E1E1E;
-    color: white;
-}
-
-/* 날짜 */
-.title {
-    cursor: pointer;
-}
-.title > span {
+.header__title > span {
+    height: 5%;
+    margin-bottom: 60px;
     font-family: SEBANG_Gothic_Bold;
     font-size: 45px;
-    margin-bottom: 60px;
 }
-
-.content {
-    width: 80%;
-    height: 90%;
-    margin: 5% auto;
+.header__title > span:hover {
+    cursor: pointer;
 }
-
-/* 검색메뉴 */
-#menu {
+/* 차트 영역  */
+.chart {
+    height: 40%;
+}
+/* 검색 영역 */
+.search {
     display: flex;
+    width: 78%;
+    height: 5%;
 }
-#searchMenu {
+.search__form {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
+    width: 100%;
+    height: 50%;
 }
-#searchMenu .menu {
+.search__option {
+    align-items: center;
+    height: 30px;
+    margin-left: 25px;
+}
+.search__option .input__radio {
+    accent-color: var(--color-basic-point);
+}
+.search__option .input__checkbox {
+    display: none;
+}
+.search__option select {
+    width: 100px;
+    height: 25px;
+    margin-right: 20px;
+}
+.search__option__income, .search__option__expend {
+    align-items: center;
+}
+.search__option__income .option__label, .search__option__expend .option__label {
+    width: auto;
+    padding: 5px;
+    margin: 3px;
+    border: 1px solid gray;
+    border-radius: 5px;
+    text-align: center;
+}
+.input__checkbox:checked + .option__label {
+    border: 2px solid var(--color-basic-point);
+    color: var(--color-basic-point);
+}
+.search .menu {
     display: none;
     position: absolute;
     left: 38%
 }
-
-#incomeArea, #exportArea {
+.search__option__income, .search__option__expend {
     display: inline-flex;
 }
-
-/* 그래프 */
-#chart {
-    width: calc( 100% - 300px );
-    height: 100%;
-    text-align: center;
-}
-
-#chart_div {
-    width: 100%;
-    height: 450px;
-}
-
-/* 표 */
-#table_list {
-    width: 100%;
-    height: 35%;
+/* 내역 테이블 */
+.account__form {
+    height: 32%;
     overflow: auto;
-}
-
-/* 스크롤바 안보이게 */
-#table_list {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
 }
-#table_list::-webkit-scrollbar {
+/* 스크롤바 안보이게 */
+.account__form::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera*/
 }
-
-#table_list th,td {
-    border-left: 1px solid #aaa;
-    border-right: 1px solid #aaa;
-    border-bottom: 1px solid #aaa;
+.account__table {
+    width: 100%;
+    height: 100%;
+    margin: auto;
 }
-#table_top {
+.account__table__header {
     position: sticky;
     top: 0px;
-    height: 30px;
-    background-color: #F9FC9A;
+    height: 25px;
+    background: var(--color-basic);
+    color: var(--color-basic-opposite);
 }
-#table_top th:nth-child(1) {
-    width: 3%;
+.account__table__header th, .account__table__body td, .account__table__footer th, .account__table__footer td {
+    vertical-align: middle;
 }
-#table_top th:nth-child(2) {
+.account__table__header th:nth-child(1) {
+    width: 5%;
+}
+.account__table__header th:nth-child(2) {
     width: 10%;
 }
-#table_top th:nth-child(3) {
-    width: 8%;
+.account__table__header th:nth-child(3) {
+    width: 6%;
 }
-#table_top th:nth-child(4) {
+.account__table__header th:nth-child(4) {
+    width: 19%;
+}
+.account__table__header th:nth-child(6) {
     width: 15%;
 }
-#table_top th:nth-child(6) {
-    width: 20%;
-}
-
-#table_body tr{
+.account__table__body tr {
     height: 50px;
+    border-bottom: 1px solid var(--color-basic-cancel)
 }
-.table_bottom {
+.account__table__body a:hover {
+    color: var(--color-basic-point);
+}
+/* 총합 */
+.account__table__footer tr {
     position: sticky;
     bottom: 0px;
     height: 50px;
+    border-top: 1px solid var(--color-basic);
+    border-bottom: 1px solid var(--color-basic);
 }
-.table_bottom  th {
-    background-color: #AEBFF7;
-    vertical-align: middle;
+.account__table__footer th {
+    background: var(--color-basic);
+    color: var(--color-basic-opposite);
 }
-.table_bottom  td {
-    background-color: #F9FAFF;
-    vertical-align: middle;
+.account__table__footer td {
+    font-weight: 800;
 }
-table {
-    width: 100%;
-    height: 100%;
+/* 버튼 */
+button {
+    width: 50px;
+    height: 25px;
+    background-color: var(--color-basic);
+    color: var(--color-basic-opposite);
+    border-radius: 5px;
 }
-
-
-

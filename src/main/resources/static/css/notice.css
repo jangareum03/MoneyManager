@@ -1,135 +1,80 @@
-@font-face {
-    font-family: 'Pretendard-Regular';
-    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'SEBANG_Gothic_Bold';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/SEBANG_Gothic_Bold.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
+@import url("common.css");
 
-/* reset.css */
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
+/*공통 영역*/
+.header, .list, .detail, .button__count--01 {
+    width: 80%;
+    margin: auto;
 }
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-    display: block;
+/* 제목
+    일부분은 common.css에 작성되어 있음
+*/
+/* 공지사항 리스트 */
+.list {
+    height: 60%;
 }
-body {
-    line-height: 1;
-}
-ol, ul {
-    list-style: none;
-}
-blockquote, q {
-    quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-    content: '';
-    content: none;
-}
-table {
-    border-collapse: collapse;
-    border-spacing: 0;
-}
-
-/* 기본 */
-body{
-    display: flex;
-    width: 85vw;
-    height: 100vh;
-    margin: 0 auto;
-    font-family: 'Pretendard-Regular';
-}
-a, li{
-    cursor: pointer;
-}
-
-/* 메뉴상단 */
-nav{
-    width: 300px;
+.list__table {
+    width: 100%;
     height: 100%;
-    border-left: 2px solid #1E1E1E;
-    border-right: 2px solid #1E1E1E;
-}
-#menu_top {
-    display: flex;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 18%;
-    border-bottom: 1px solid #EA3B20;
-}
-.profile {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 80%;
-}
-.profile > img {
-    width: 100px;
-    height: 100px;
-    margin-left: 15px;
-}
-.profile > div {
-    padding-bottom: 25px;
-    width: 70%;
     text-align: center;
 }
-.profile  span {
-    color: #EA3B20;
-    font-weight: 800;
-    font-size: 20px;
+.list__table__header {
+    height: 25px;
+    background: var(--color-basic);
+    color: var(--color-basic-opposite);
 }
-.profile a {
+.list__table__header th, .list__table__body td, .list__table__footer th, .list__table__footer td {
+    vertical-align: middle;
+}
+.list__table__header th:nth-child(1) {
+    width: 5%;
+}
+.list__table__header th:nth-child(2) {
+    width: 50%;
+}
+.list__table__header th:nth-child(3) {
+    width: 25%;
+}
+.list__table__header th:nth-child(4) {
+    width: 10%;
+}
+.list__table__body tr {
+    height: 50px;
+    border-bottom: 1px solid var(--color-basic-cancel)
+}
+.list__table__body a:hover {
+    color: var(--color-basic-point);
+}
+/* 공지사항 상세 */
+.detail {
+    height: 65%;
+    padding: 20px;
+    border-top: 2px solid;
+    border-bottom: 2px solid;
+}
+.detail__items {
+    height: 80px;
+}
+.detail__title {
+    font-size: 30px;
+}
+.detail__date {
+    font-size: 18px;
+    color: var(--color-basic-cancel);
+}
+.detail__content {
+    font-size: 18px;
+    padding: 0 30px;
+    text-align: left;
+}
+/* 버튼 */
+.button__count--01 {
+    position: relative;
+    height: 100px;
+    text-align: center;
+}
+.button__count--01 > .button__default {
     position: absolute;
-    top: 60%;
-    left: 55%;
-    text-decoration: none;
-    font-size: 15px;
-    color: black;
-}
-.profile a:hover {
-    text-decoration: underline;
-    color: #0B3B78;
-}
-
-/* 메뉴 하단 */
-#menu_bottom, ul {
-    width: 100%;
-    height: 70%;
-}
-.liMenu {
-    width: 100%;
-    height: 13%;
-    font-size: 20px;
-}
-.liMenu:hover {
-    background-color: #1E1E1E;
-    color: white;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }

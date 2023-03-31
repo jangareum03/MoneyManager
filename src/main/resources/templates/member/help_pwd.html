@@ -3,40 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <title>계정 찾기 : 돈 매니저</title>
-  <!-- css -->
-  <link rel="stylesheet" th:href="@{/css/help.css}">
-  <!-- js -->
-  <script src="/js/help.js"></script>
+    <!-- css -->
+    <link rel="stylesheet" th:href="@{/css/help.css}">
+    <!-- js -->
+    <script src="/js/help.js"></script>
 </head>
 <body>
-<div id="help">
-  <div class="title" onclick="location.href='/'">
-    회원가입<br>
-    <span>돈매니저</span>
-  </div>
-  <div class="menu">
-    <a th:href="@{/helpId}"><span>아이디</span></a>
-    <a class="choice"><span>비밀번호</span></a>
-  </div>
-  <form method="post" th:action="@{/helpPwd/find}" th:object="${member}">
-    <div class="content">
-      <label for="input_name">이름</label>
-      <input type="text" id="input_name" name="name" placeholder="이름을 입력해주세요." maxlength="10" onblur="nameCheck()"><br>
-      <span id="nameMsg" class="errorMsg"></span>
-      <input type="hidden" id="nameResult" th:value="${'n'}" readonly>
-
-      <label for="input_id">아이디</label>
-      <input type="text" id="input_id" name="id" placeholder="아이디를 입력해주세요." maxlength="15" onblur="idCheck()"><br>
-      <span id="idMsg" class="errorMsg"></span>
-      <input type="hidden" id="idResult" th:value="${'n'}" readonly>
-
-      <button class="btn confirm" onclick="return helpPwd()">비밀번호 찾기</button>
+<!-- 제목 -->
+<div class="header">
+    <div class="header__title">
+        계정찾기
+        <span class="header__subTitle">돈매니저</span>
     </div>
-  </form>
-  <div id="btnGroup">
-    <button type="button" class="btn" onclick="location.href='/'">로그인</button>
-    <button type="button" class="btn" onclick="location.href='join'">회원가입</button>
-  </div>
 </div>
+<!-- 찾기 입력 -->
+<div class="help">
+    <div class="tab">
+        <a class="tab__item" th:href="@{/helpId}">
+            <span class="tab__info">아이디</span>
+        </a>
+        <a class="tab__item tab__item--focus">
+            <span class="tab__info">비밀번호</span>
+        </a>
+    </div>
+    <div class="help__wrap">
+        <form method="post" th:action="@{/helpPwd/find}" th:object="${member}" class="help__form">
+            <div class="help__item">
+                <span class="help__title">이름</span>
+                <input type="text" name="name" class="input" maxlength="10" th:onblur="nameCheck( this )">
+                <span class="msg__error"></span>
+            </div>
+            <div class="help__item">
+                <span class="help__title">아이디</span>
+                <input type="text" name="id" class="input" maxlength="15" th:onblur="idCheck( this )">
+                <span class="msg__error"></span>
+            </div>
+            <div class="button__count--01">
+                <button class="button__size--big button__confirm" th:onclick="return helpPwd()">비밀번호 찾기</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- 버튼 -->
+<div class="link">
+    <a class="link__item" th:href="@{/}">로그인</a>
+    <a class="link__item" th:href="@{/join}">회원가입</a></div>
 </body>
 </html>

@@ -58,7 +58,7 @@
 
         function drawChart() {
             let xhr = new XMLHttpRequest();
-            xhr.open('POST', '/accountChart', false);
+            xhr.open('POST', '/api/accountChart', false);
             xhr.setRequestHeader('content-type', 'application/json');
             xhr.send();
 
@@ -69,137 +69,137 @@
                 'colors' :  ['#FF3939', '#207E37']
             }
 
-            let chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+            let chart = new google.visualization.ColumnChart(document.getElementsByClassName('chart')[0]);
             chart.draw(data, option);
         }
     </script>
 </head>
-<body>
-<nav th:replace="/include/menu.html :: menu"></nav>
-<div id="chart">
-    <div class="content">
-        <div class="title" th:onclick="win_open('/datePopup', '날짜선택')">
-            <th:block th:switch="${map['type']}">
-                <span th:case="y">[[${map['year']}]]년</span>
-                <span th:case="m">[[${map['year']}]]년 [[${map['month']}]]월</span>
-                <span th:case="w">[[${map['year']}]]년 [[${map['month']}]]월 [[${map['week']}]]주</span>
-            </th:block>
-            <form id="parentForm" method="post" th:action="@{/accountList}">
-                <input type="hidden" name="year" id="year">
-                <input type="hidden" name="month" id="month">
-                <input type="hidden" name="week" id="week">
-                <input type="hidden" name="type" id="type">
-            </form>
+<body class="body__wrap">
+<nav th:replace="/include/menu.html :: nav"></nav>
+<div class="div__wrap">
+    <!-- 날짜 선택 -->
+    <div class="header" th:onclick="win_open('/datePopup', '날짜선택')">
+        <div class="header__title" th:switch="${map['type']}">
+            <span th:case="y">[[${map['year']}]]년</span>
+            <span th:case="m">[[${map['year']}]]년 [[${map['month']}]]월</span>
+            <span th:case="w">[[${map['year']}]]년 [[${map['month']}]]월 [[${map['week']}]]주</span>
         </div>
-        <div id="chart_div"></div>
-        <!-- 검색 영역 -->
-        <div id="searchMenu">
-            <form id="menu" method="post" th:action="@{/accountList}">
-                <input type="hidden" name="type" th:value="${map['type']}">
-                <input type="hidden" name="year" th:value="${map['year']}">
-                <input type="hidden" name="month" th:value="${map['month']}">
-                <input type="hidden" name="week" th:value="${map['week']}">
-
-                <select name="mode"  id="mode" th:onchange="onChangeMode(this)">
-                    <option th:value="${'all'}" th:selected="${map['mode']} == 'all'">전체</option>
-                    <option th:value="${'inout'}" th:selected="${map['mode']} == 'inout'">수입/지출</option>
-                    <option th:value="${'inCategory'}" th:selected="${map['mode']} == 'inCategory'">수입 카테고리</option>
-                    <option th:value="${'exCategory'}" th:selected="${map['mode']} == 'exCategory'">지출 카테고리</option>
-                    <option th:value="${'title'}" th:selected="${map['mode']} == 'title'">제목</option>
-                    <th:block th:if="${map['type']} == 'y'">
-                        <option th:value="${'period'}" th:selected="${map['mode']} == 'period'">기간</option>
-                    </th:block>
-                </select>
-                    <div class="menu" th:style="${map['mode'] == 'inout' ? 'display: block' : 'display: none'}">
-                        <label th:each="category : ${map['parent']}">
-                            <input type="radio" th:value="${category.code}" name="option" th:checked="${category.code == map['option']}" th:onclick="document.getElementById('menu').submit()">[[${category.name}]]
-                        </label>
-                    </div>
-                    <div class="menu" th:style="${map['mode'] == 'inCategory' ? 'display:block' : 'display:none'}">
-                        <select name="basicInCategory" id="inMenu" th:onchange="changeCategory(this)" th:style="${'width: 100px; height: 25px'}">
-                            <option th:each="category : ${map['income']}" th:value="${category.code}" th:selected="${map['basic']} == ${category.code}">[[${category.name}]]</option>
-                        </select>
-                        <div id="incomeArea">
-                            <th:block th:each="num : ${#numbers.sequence(0, 6)}">
-                                <input th:if="${num < #lists.size(map['subIncome']) }" type="checkbox" name="inCategory" th:id="'inLabel' + ${num}" class="inMode" th:value="${map['subIncome'][num].code}">
-                                <label th:if="${num < #lists.size(map['subIncome']) }" th:for="'inLabel' + ${num}">[[${map['subIncome'][num].name}]]</label>
-
-                                <input th:unless="${num< #lists.size(map['subIncome']) }"  type="checkbox" name="inCategory" th:id="'inLabel' + ${num}" class="inMode" th:value="${'00'}" th:style="${'display: none'}">
-                                <label  th:unless="${num< #lists.size(map['subIncome']) }" th:for="'inLabel' + ${num}" th:style="${'display: none'}"></label>
-                            </th:block>
-                            <button type="button" th:onclick="document.getElementById('menu').submit()">검색</button>
-                        </div>
-                    </div>
-                    <div class="menu" th:style="${map['mode'] == 'exCategory' ? 'display:block' : 'display: none'}">
-                        <select name="basicExCategory" id="exMenu" th:onchange="changeCategory( this )" th:style="${'width: 100px; height: 25px'}">
-                            <option th:each="category : ${map['export']}" th:value="${category.code}" th:selected="${map['basic']} == ${category.code}">[[${category.name}]]</option>
-                        </select>
-                        <div id="exportArea">
-                            <th:block th:each="num : ${#numbers.sequence(0, 6)}">
-                                <input th:if="${num < #lists.size(map['subExport']) }" type="checkbox" name="exCategory" th:id="'exLabel' + ${num}" class="exMode" th:value="${map['subExport'][num].code}">
-                                <label th:if="${num < #lists.size(map['subExport']) }" th:for="'exLabel' + ${num}">[[${map['subExport'][num].name}]]</label>
-
-                                <input th:unless="${num< #lists.size(map['subExport']) }"  type="checkbox" name="exCategory" th:id="'exLabel' + ${num}" class="exMode" th:value="${'00'}" th:style="${'display: none'}">
-                                <label  th:unless="${num< #lists.size(map['subExport']) }" th:for="'exLabel' + ${num}" th:style="${'display: none'}"></label>
-                            </th:block>
-                            <button type="button" th:onclick="document.getElementById('menu').submit()">검색</button>
-                        </div>
-                    </div>
-                    <div class="menu" th:style="${map['mode'] == 'title' ? 'display: block' : 'display: none'}">
-                        <input type="text" placeholder="제목을 입력해주세요." class="mode" name="title">
-                        <button type="button" th:onclick="document.getElementById('menu').submit()">검색</button>
-                    </div>
-                    <div class="menu" th:style="${map['mode'] == 'period' ? 'display: block' : 'display: none'}">
-                        시작일 <input type="text" class="period" name="start" id="start" readonly> - 종료일 <input type="text" class="period" name="end" id="end" readonly>
-                        <button type="button" th:onclick="periodCheck()">검색</button>
-                    </div>
-            </form>
-            <button type="button" th:onclick="deleteCheck()">삭제</button>
-        </div>
-            <form method="post" th:action="@{/deleteAccount}"  id="table_list">
-                <input type="hidden" name="type" th:value="${map['type']}">
-                <input type="hidden" name="year" th:value="${map['year']}">
-                <input type="hidden" name="month" th:value="${map['month']}">
-                <input type="hidden" name="week" th:value="${map['week']}">
-                <table>
-                    <tbody id="table_top">
-                        <tr>
-                            <th>선택</th>
-                            <th>날짜</th>
-                            <th>고정/변동</th>
-                            <th>카테고리</th>
-                            <th>제목</th>
-                            <th>금액</th>
-                        </tr>
-                    </tbody>
-                    <tbody id="table_body">
-                        <tr  th:if="${#lists.size(map['list'])}  == 0">
-                            <td colspan="6" th:style="${'vertical-align: middle'}">내역이 없습니다. 등록해주세요!</td>
-                        </tr>
-                        <tr th:each="list : ${map['list']}" th:unless="${#lists.size(map['list'])}  == 0">
-                            <td><input type="checkbox" name="id" th:value="${list.id}"></td>
-                            <td>[[${list.date}]]</td>
-                            <td th:text="${list.fix == 'y' ? '고정' : '변동'}"></td>
-                            <td>[[${list.name}]]</td>
-                            <td><a th:href="@{/accountDetail/{id}(id= ${list.id})}">[[${list.title}]]</a></td>
-                            <td th:text="${list.code == '01' ? '+ ' + #numbers.formatInteger(list.price, 3, 'COMMA') : '- ' + #numbers.formatInteger(list.price, 3, 'COMMA')}" th:style="${list.code == '01' ? 'color: #3960FF;' : 'color: #FF3939;'}">[[${list.price}]]</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </form>
-        <div>
-            <table>
-                <tr class="table_bottom">
-                    <th>전체</th>
-                    <td th:text="${map['totalPrice'] == 0 ? '0원' : #numbers.formatInteger(map['totalPrice'], 3, 'COMMA') + '원'}">[[${map['totalPrice']}]]</td>
-                    <th>수입</th>
-                    <td th:text="${map['inPrice'] == 0 ? '0원' : #numbers.formatInteger(map['inPrice'], 3, 'COMMA') + '원'}">[[${map['inPrice']}]]</td>
-                    <th>지출</th>
-                    <td th:text="${map['outPrice'] == 0 ? '0원' : #numbers.formatInteger(map['outPrice'], 3, 'COMMA') + '원'}">[[${map['outPrice']}]]</td>
-                </tr>
-            </table>
-        </div>
+        <form method="post" th:action="@{/accountList}" class="header__form">
+            <input type="hidden" name="year" id="year">
+            <input type="hidden" name="month" id="month">
+            <input type="hidden" name="week" id="week">
+            <input type="hidden" name="type" id="type">
+        </form>
     </div>
+    <!-- 차트 영역 -->
+    <div class="chart"></div>
+    <!-- 검색 영역 -->
+    <div class="search">
+        <form method="post" th:action="@{/accountList}" class="search__form">
+            <input type="hidden" name="type" th:value="${map['type']}">
+            <input type="hidden" name="year" th:value="${map['year']}">
+            <input type="hidden" name="month" th:value="${map['month']}">
+            <input type="hidden" name="week" th:value="${map['week']}">
+
+            <select name="mode" th:onchange="onChangeMode(this)">
+                <option th:value="${'all'}" th:selected="${map['mode']} == 'all'">전체</option>
+                <option th:value="${'inEx'}" th:selected="${map['mode']} == 'inout'">수입/지출</option>
+                <option th:value="${'inCategory'}" th:selected="${map['mode']} == 'inCategory'">수입 카테고리</option>
+                <option th:value="${'exCategory'}" th:selected="${map['mode']} == 'exCategory'">지출 카테고리</option>
+                <option th:value="${'title'}" th:selected="${map['mode']} == 'title'">제목</option>
+                <th:block th:if="${map['type']} == 'y'">
+                    <option th:value="${'period'}" th:selected="${map['mode']} == 'period'">기간</option>
+                </th:block>
+            </select>
+            <div class="search__option" th:style="${map['mode'] == 'inout' ? 'display: inline-flex' : 'display: none'}">
+                <label th:each="category : ${map['parent']}">
+                    <input type="radio" th:value="${category.code}" name="option" class="input__radio" th:checked="${category.code == map['option']}" th:onclick="document.getElementsByClassName('search__form')[0].submit()">[[${category.name}]]
+                </label>
+            </div>
+            <div class="search__option" th:style="${map['mode'] == 'inCategory' ? 'display: inline-flex' : 'display:none'}">
+                <select name="basicInCategory" id="inMenu" th:onchange="changeCategory(this)">
+                    <option th:each="category : ${map['income']}" th:value="${category.code}" th:selected="${map['basic']} == ${category.code}">[[${category.name}]]</option>
+                </select>
+                <div class="search__option__income">
+                    <th:block th:each="num : ${#numbers.sequence(0, 6)}">
+                        <input th:if="${num < #lists.size(map['subIncome']) }" type="checkbox" name="inCategory" th:id="'inLabel' + ${num}" class="input__checkbox inMode" th:value="${map['subIncome'][num].code}">
+                        <label th:if="${num < #lists.size(map['subIncome']) }" th:for="'inLabel' + ${num}" class="option__label">[[${map['subIncome'][num].name}]]</label>
+
+                        <input th:unless="${num< #lists.size(map['subIncome']) }"  type="checkbox" name="inCategory" th:id="'inLabel' + ${num}" class="input__checkbox" th:value="${'00'}" th:style="${'display: none'}">
+                        <label  th:unless="${num< #lists.size(map['subIncome']) }" th:for="'inLabel' + ${num}" th:style="${'display: none'}"></label>
+                    </th:block>
+                    <button type="button" th:onclick="document.getElementsByClassName('search__form')[0].submit()">검색</button>
+                </div>
+            </div>
+            <div class="search__option" th:style="${map['mode'] == 'exCategory' ? 'display: inline-flex' : 'display: none'}">
+                <select name="basicExCategory" id="exMenu" th:onchange="changeCategory( this )">
+                    <option th:each="category : ${map['export']}" th:value="${category.code}" th:selected="${map['basic']} == ${category.code}">[[${category.name}]]</option>
+                </select>
+                <div class="search__option__expend">
+                    <th:block th:each="num : ${#numbers.sequence(0, 6)}">
+                        <input th:if="${num < #lists.size(map['subExport']) }" type="checkbox" name="exCategory" th:id="'exLabel' + ${num}" class="input__checkbox exMode" th:value="${map['subExport'][num].code}">
+                        <label th:if="${num < #lists.size(map['subExport']) }" th:for="'exLabel' + ${num}" class="option__label">[[${map['subExport'][num].name}]]</label>
+
+                        <input th:unless="${num< #lists.size(map['subExport']) }"  type="checkbox" name="exCategory" th:id="'exLabel' + ${num}" class="input__checkbox" th:value="${'00'}" th:style="${'display: none'}">
+                        <label  th:unless="${num< #lists.size(map['subExport']) }" th:for="'exLabel' + ${num}" th:style="${'display: none'}"></label>
+                    </th:block>
+                    <button type="button" th:onclick="document.getElementsByClassName('search__form')[0].submit()">검색</button>
+                </div>
+            </div>
+            <div class="search__option" th:style="${map['mode'] == 'title' ? 'display: inline-flex' : 'display: none'}">
+                <input type="text" placeholder="제목을 입력해주세요." name="title">
+                <button type="button" th:onclick="document.getElementsByClassName('search__form')[0].submit()">검색</button>
+            </div>
+            <div class="search__option" th:style="${map['mode'] == 'period' ? 'display: inline-flex' : 'display: none'}">
+                시작일 <input type="text" id="start" name="start" class="period" readonly> - 종료일 <input type="text" class="period" name="end" id="end" readonly>
+                <button type="button" th:onclick="periodCheck()">검색</button>
+            </div>
+        </form>
+        <button type="button" th:onclick="deleteCheck()">삭제</button>
+    </div>
+    <!-- 내역 테이블 -->
+    <form method="post" th:action="@{/deleteAccount}"  class="account__form">
+        <input type="hidden" name="type" th:value="${map['type']}">
+        <input type="hidden" name="year" th:value="${map['year']}">
+        <input type="hidden" name="month" th:value="${map['month']}">
+        <input type="hidden" name="week" th:value="${map['week']}">
+        <table class="account__table">
+            <thead class="account__table__header">
+                <tr>
+                    <th>선택</th>
+                    <th>날짜</th>
+                    <th>고정/변동</th>
+                    <th>카테고리</th>
+                    <th>제목</th>
+                    <th>금액</th>
+                </tr>
+            </thead>
+            <tbody class="account__table__body">
+                <tr  th:if="${#lists.size(map['list'])}  == 0">
+                    <td colspan="6" th:style="${'vertical-align: middle'}">내역이 없습니다. 등록해주세요!</td>
+                </tr>
+                <tr th:each="list : ${map['list']}" th:unless="${#lists.size(map['list'])}  == 0">
+                    <td><input type="checkbox" name="id" th:value="${list.id}"></td>
+                    <td>[[${list.date}]]</td>
+                    <td th:text="${list.fix == 'y' ? '고정' : '변동'}"></td>
+                    <td>[[${list.name}]]</td>
+                    <td><a th:href="@{/accountDetail/{id}(id= ${list.id})}">[[${list.title}]]</a></td>
+                    <td th:text="${list.code == '01' ? '+ ' + #numbers.formatInteger(list.price, 3, 'COMMA') : '- ' + #numbers.formatInteger(list.price, 3, 'COMMA')}" class="font__color--income" th:classappend="${list.code == '02'} ? font__color--expend" >[[${list.price}]]</td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+    <!-- 총합 -->
+    <table class="account__table__footer">
+        <tr>
+            <th>전체</th>
+            <td th:text="${map['totalPrice'] == 0 ? '0원' : #numbers.formatInteger(map['totalPrice'], 3, 'COMMA') + '원'}">[[${map['totalPrice']}]]</td>
+            <th>수입</th>
+            <td th:text="${map['inPrice'] == 0 ? '0원' : #numbers.formatInteger(map['inPrice'], 3, 'COMMA') + '원'}" class="font__color--income">[[${map['inPrice']}]]</td>
+            <th>지출</th>
+            <td th:text="${map['outPrice'] == 0 ? '0원' : #numbers.formatInteger(map['outPrice'], 3, 'COMMA') + '원'}" class="font__color--expend">[[${map['outPrice']}]]</td>
+        </tr>
+    </table>
 </div>
 </body>
 </html>

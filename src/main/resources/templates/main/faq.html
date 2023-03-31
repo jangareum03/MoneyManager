@@ -17,19 +17,27 @@
 
                 for( i in data ) {
                     let area = document.createElement('div');
-                    let icon = document.createElement('div');
+                    let question = document.createElement('div');
+                    let icon = document.createElement('span');
                     let title = document.createElement('span');
-                    let content = document.createElement('div');
+                    let answer = document.createElement('div');
 
                     icon.innerHTML = 'Q';
                     title.innerHTML = data[i].question;
-                    content.innerHTML = data[i].answer;
+                    answer.innerHTML = data[i].answer;
 
-                    area.appendChild(icon);
-                    area.appendChild(title);
-                    area.appendChild(content);
+                    area.setAttribute('class', 'faq__item');
+                    icon.setAttribute('class', 'faq__icon');
+                    title.setAttribute('class', 'faq__title');
+                    question.setAttribute('class', 'faq__question');
+                    answer.setAttribute('class', 'faq__answer');
 
-                    document.getElementsByClassName('main')[0].appendChild(area);
+                    question.appendChild(icon);
+                    question.appendChild(title);
+                    area.appendChild(question);
+                    area.appendChild(answer);
+
+                    document.getElementsByClassName('faq__items')[0].appendChild(area);
                 }
 
             }else{
@@ -38,15 +46,19 @@
         }
     </script>
 </head>
-<body>
-<nav th:replace="/include/menu.html :: menu"></nav>
-<div class="wrap">
+<body class="body__wrap">
+<nav th:replace="/include/menu.html :: nav"></nav>
+<div class="div__wrap">
+    <!-- 제목 -->
     <div class="header">
-        <span class="header_title">마이페이지</span>
+        <div class="header__title">
+            마이 페이지
+            <span class="header__subTitle">자주 묻는 질문</span>
+        </div>
     </div>
-    <div class="container">
-        <span class="container_title">자주 묻는 질문</span>
-        <div class="main"></div>
+    <!-- 자주 묻는 질문 -->
+    <div class="faq">
+        <div class="faq__items"></div>
     </div>
 </div>
 </body>

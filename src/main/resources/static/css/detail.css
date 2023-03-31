@@ -1,179 +1,120 @@
-@font-face {
-    font-family: 'Pretendard-Regular';
-    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'SEBANG_Gothic_Bold';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/SEBANG_Gothic_Bold.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
+@import url("common.css");
 
-/* reset.css */
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
-}
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-    display: block;
-}
-body {
-    line-height: 1;
-}
-ol, ul {
-    list-style: none;
-}
-blockquote, q {
-    quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-    content: '';
-    content: none;
-}
-table {
-    border-collapse: collapse;
-    border-spacing: 0;
-}
-
-/* 기본 */
-body{
-    display: flex;
-    width: 85vw;
-    height: 100vh;
-    margin: 0 auto;
-    font-family: 'Pretendard-Regular';
-}
-a, li{
-    cursor: pointer;
-}
-
-/* 메뉴상단 */
-nav{
-    width: 300px;
-    height: 100%;
-    border-left: 2px solid #1E1E1E;
-    border-right: 2px solid #1E1E1E;
-}
-#menu_top {
-    display: flex;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 18%;
-    border-bottom: 1px solid #EA3B20;
-}
-.profile {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 80%;
-}
-.profile > img {
-    width: 100px;
-    height: 100px;
-    margin-left: 15px;
-}
-.profile > div {
-    padding-bottom: 25px;
-    width: 70%;
-    text-align: center;
-}
-.profile  span {
-    color: #EA3B20;
-    font-weight: 800;
-    font-size: 20px;
-}
-.profile a {
-    position: absolute;
-    top: 60%;
-    left: 55%;
-    text-decoration: none;
-    font-size: 15px;
-    color: black;
-}
-.profile a:hover {
-    text-decoration: underline;
-    color: #0B3B78;
-}
-
-/* 메뉴 하단 */
-#menu_bottom, ul {
-    width: 100%;
-    height: 70%;
-}
-.liMenu {
-    width: 100%;
-    height: 13%;
-    font-size: 20px;
-}
-.liMenu:hover {
-    background-color: #1E1E1E;
-    color: white;
-}
-
-/* 본문 */
-#content {
-    width: calc( 100% - 300px );
-    height: 100%;
-    text-align: center;
-}
-#detail {
+/*공통 영역*/
+.header, .detail, .detail__form, .update, .update__form, .button__count--02 {
     width: 80%;
-    height: 80%;
-    margin: 5% auto;
+    margin: auto;
 }
-.title {
-    font-family: SEBANG_Gothic_Bold;
-    font-size: 45px;
-    margin-bottom: 60px;
+.account__detail tr:nth-child(1), .account__detail tr:nth-child(2),
+.account__detail tr:nth-child(4), .account__detail tr:nth-child(6) {
+    height: 50px;
 }
-
-/* 테이블 */
-table {
-    width: 100%;
-    height: 70%;
-    margin: 10% auto;
-    border: 1px solid #8C8C8C;
+.input__radio {
+    display: none;
 }
-th, td {
-    border-bottom: 1px solid #8C8C8C;
+.input__text, textarea {
+    width: 90%;
+    height: 90%;
 }
-th {
-    width: 20%;
-    border-left: 1px solid #8C8C8C;
-    border-right: 1px solid #8C8C8C;
-    background-color: #C8C8C8;
+.input__text {
+    height: 50%;
 }
-
-#fixOption{
-    padding-top: 20px;
+.input__text:focus {
+    border-bottom: 1px solid var(--color-basic-cancel);
 }
-
-/* 사진 */
-.accountImage {
-    width: 80px;
+/* 제목
+    common.css에 작성되어 있음
+*/
+/* 상세영역 */
+.detail, .update {
+    height: 65%;
+}
+.detail__form, .update__form {
+    height: 95%;
+}
+.detail__table, .update__table {
+    width: 90%;
+    height: 100%;
+    margin: auto;
+    text-align: center;
+}
+.detail__table tr, .update__table tr {
+    border: 1px solid;
+}
+.detail__table th, td, .update__table th {
+    vertical-align: middle;
+}
+.detail__table th, .update__table th {
+    background: var(--color-basic);
+    color: var(--color-basic-opposite);
+}
+.detail__table .detail__table__image {
+    height: 60px;
+}
+.detail__table .detail__image {
+    vertical-align: baseline;
+    width: 600px;
+    height: 100%;
+    margin: auto;
+}
+.detail__table .detail__image img{
+    width: 150px;
+    height: 150px;
+}
+.detail__table__image {
+    height: 150px;
+}
+.update__table .input__radio {
+    display: none;
+}
+.update__table .input__radio:checked + svg {
+    fill: var(--color-basic-point);
+}
+.update__table .update__fix label {
+    display: inline-flex;
+    align-items: center;
+}
+.update__table__price, .update__price, .update__priceOption {
+    display: inline-flex;
+}
+.update__location__search {
+    display: inline-flex;
+    align-items: center;
+}
+.update__location__search:hover {
     cursor: pointer;
+}
+.update__fix {
+    width: 70%;
+    margin: auto;
+    text-align: left;
+}
+.update__fix svg, .update__price svg, .location__img__remove {
+    width: 20px;
+    fill: var(--color-basic-cancel);
+}
+.update__image img {
+    width: 120px;
+    height: 120px;
+}
+.update__price {
+    justify-content: space-around;
+    width: 30%;
+}
+.location__img__search {
+    width: 25px;
+    height: 25px;
+}
+.location__img__remove {
+    position: absolute;
+    left: 70%;
+    width: 25px;
+    height: 25px;
+}
+.location__img__remove:hover {
+    cursor: pointer;
+}
+/* 버튼 */
+.button__count--02 {
+    width: 30%;
 }

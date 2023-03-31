@@ -1,183 +1,66 @@
-@font-face {
-    font-family: 'SEBANG_Gothic_Bold';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/SEBANG_Gothic_Bold.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
+@import url("common.css");
 
-/* reset.css */
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
-}
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-    display: block;
-}
-body {
-    line-height: 1;
-}
-ol, ul {
-    list-style: none;
-}
-blockquote, q {
-    quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-    content: '';
-    content: none;
-}
-table {
-    border-collapse: collapse;
-    border-spacing: 0;
-}
-
-/* 회원가입 */
-body{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-a {
-    text-decoration: none;
-    font-size: 16px;
-    color: black;
-}
-a:hover{
-    text-decoration: underline;
-    color: #0B3B78;
-}
-
-#join {
-    width: 500px;
+/*공통 영역*/
+.header, .join, .button {
+    width: 50%;
+    margin: auto;
     text-align: center;
 }
-
-#inputGroup > .join_title {
-    margin: 20px 0 5px;
-    font-size: 14px;
-    font-weight: 700;
-    text-align: left;
+/* 제목
+    common.css에 작성되어 있음
+*/
+/* 회원가입 */
+.join {
+    height: 70%;
 }
-
-#inputGroup > input {
-    width: 99%;
-    height: 30px;
+.join__form {
+    height: 100%;
 }
-
-#inputGroup > .join_email, .join_gender {
-    display: inline-flex;
-    width: 100%;
-}
-
-#emailTime {
-    width: 100%;
-}
-
-#emailTime > input {
-    width: 98%;
-    height: 30px;
-}
-
-#emailTime > span {
-    position: relative;
-    bottom: 27px;
-    right: 10px;
-}
-
-/* 이메일 인증 시간 */
-#Timer {
-    font-size: 14px;
-    font-weight: 800;
-    text-align: right;
-    left: 200px;
-}
-
-.join_email > input {
-    width: 80%;
-    height: 30px;
-}
-
-.join_email > button {
-    width: 20%;
-    height: 36px;
-}
-
-.join_gender {
-    width: 80%;
-    justify-content: space-between;
-}
-
-.title {
-    font-family: SEBANG_Gothic_Bold;
-    font-size: 45px;
-    margin-bottom: 60px;
-    cursor: pointer
-}
-.title > span {
-    font-size: 20px;
-}
-
-.agree {
-    display: block;
-    text-align: left;
-    margin-top: 50px;
-}
-
-/* 에러메시지 */
-.errorMsg {
-    display: inline-block;
-    width: 100%;
-    font-size: 12px;
-    font-weight: 700;
-    text-align: left;
-}
-
-/* 버튼 */
-#btnGroup {
-    display: inline-flex;
-    justify-content: space-between;
+.join__item {
     width: 50%;
-    margin-top: 50px;
+    height: 11%;
+    margin: auto;
+    text-align: left;
 }
-.btn{
-    width: 35%;
-    height: 40px;
-    border-style: none;
-    border-radius: 10px;
-    cursor: pointer;
+.join__title {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 16px;
+    font-weight: 800;
 }
-
-.cancel {
-    background-color: #818181;
-    font-size: 15px;
-    font-weight: 700;
-    color: white;
+.join__gender {
+    display: flex;
+    justify-content: space-between;
 }
-
-.confirm {
-    background-color: #EA3B20;
-    font-size: 15px;
-    font-weight: 700;
-    color: white;
+.input {
+    display: block;
+    width: 95%;
+    height: 25px;
+    margin: auto;
+}
+.join__email {
+    display: flex;
+}
+.button__email {
+    width: 80px;
+    height: 30px;
+    background-color: var(--color-basic);
+    border-radius: 0;
+    color: var(--color-basic-opposite);
+}
+.join__emailCode {
+    position: relative;
+    top: -2%;
+}
+.input__emailCode {
+    width: 100%;
+}
+.msg__timer {
+    position: relative;
+    top: -30%;
+    left: 90%;
+}
+/* 버튼 */
+.button__count--02 {
+    width: 20%;
 }

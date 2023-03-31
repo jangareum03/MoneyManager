@@ -1,246 +1,96 @@
-@font-face {
-    font-family: 'Pretendard-Regular';
-    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'SEBANG_Gothic_Bold';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/SEBANG_Gothic_Bold.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
+@import url("common.css");
 
-/* reset.css */
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
+/*공통 영역*/
+.header, .myInfo, .link {
+    width: 65%;
+    margin: auto;
 }
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-    display: block;
-}
-body {
-    line-height: 1;
-}
-ol, ul {
-    list-style: none;
-}
-blockquote, q {
-    quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-    content: '';
-    content: none;
-}
-table {
-    border-collapse: collapse;
-    border-spacing: 0;
-}
-
-/* 기본 */
-body{
-    display: flex;
-    width: 85vw;
-    height: 100vh;
-    margin: 0 auto;
-    font-family: 'Pretendard-Regular';
-}
-a, li{
-    cursor: pointer;
-}
-
-/* 메뉴상단 */
-nav{
-    width: 300px;
-    height: 100%;
-    border-left: 2px solid #1E1E1E;
-    border-right: 2px solid #1E1E1E;
-}
-#menu_top {
-    display: flex;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 18%;
-    border-bottom: 1px solid #EA3B20;
-}
-.profile {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 80%;
-}
-.profile > img {
-    width: 100px;
-    height: 100px;
-    margin-left: 15px;
-}
-.profile > div {
-    padding-bottom: 25px;
-    width: 70%;
-    text-align: center;
-}
-.profile  span {
-    color: #EA3B20;
-    font-weight: 800;
-    font-size: 20px;
-}
-.profile a {
-    position: absolute;
-    top: 60%;
-    left: 55%;
-    text-decoration: none;
-    font-size: 15px;
-    color: black;
-}
-.profile a:hover {
-    text-decoration: underline;
-    color: #0B3B78;
-}
-
-/* 메뉴 하단 */
-#menu_bottom, ul {
-    width: 100%;
+/* 제목
+    common.css에 작성되어 있음
+*/
+/* 내 정보 */
+.myInfo {
     height: 70%;
 }
-.liMenu {
-    width: 100%;
-    height: 13%;
-    font-size: 20px;
-}
-.liMenu:hover {
-    background-color: #1E1E1E;
-    color: white;
-}
-
-/* 본문 */
-#myInfo {
-    width: calc( 100% - 300px );
-    height: 100%;
-    text-align: center;
-}
-.content {
-    width: 80%;
-    height: 90%;
-    margin: 5% auto;
-}
-
-/* 타이틀 */
-.title {
-    font-family: SEBANG_Gothic_Bold;
-    font-size: 45px;
-    margin-bottom: 60px;
-}
-/* 서브타이틀 */
-#main > span {
+.myInfo > .myInfo__title {
     display: block;
     border-bottom: 1px solid;
     font-size: 25px;
+    font-weight: 800;
     text-align: left;
-    margin-top: 5%;
 }
-
-/* 상단 */
-.top-div {
-    display: inline-flex;
-    width: 90%;
-    margin: 3% 0;
-}
-#profile {
-    width: 30%;
-}
-#profile > div {
-    width: 80%;
-    margin: 0 auto;
-}
-#profile img {
+.myInfo__header, .myInfo__body {
     width: 100%;
+    margin: auto;
 }
-
-#profile-info {
-    display: inline-block;
-    margin-top: 9%;
-    margin-left: 10%;
-    width: 70%;
-    text-align: left;
+.myInfo__header {
+    display: flex;
+    height: 35%;
+    padding: 20px 0;
 }
-#profile-info > #badge {
+.myInfo__profile {
+    width: 40%;
+    margin: auto;
+    text-align: center;
+}
+.profile__form, .profile__img, .profile__svg {
+    width: 100%;
+    height: 100%;
+}
+.profile__form > .profile {
+    width: 200px;
+    height: 200px;
+    margin: auto;
+    padding: 10px 0;
+}
+.myInfo__btn {
+    background: var(--color-button-myInfo);
+}
+.myInfo__info {
+    width: 60%;
+    margin: auto;
+}
+.profile__badge {
+    display: inline-flex;
+    margin-bottom: 5px;
     padding: 2px 20px;
+    color : white;
+    background-color: var(--color-badge-normal);
     border-radius: 10px;
     font-size: 15px;
-    background-color: #35A5AA;
-    color : #ffffff;
 }
-#nickName {
-    padding-top: 10px;
-    padding-bottom: 5px;
-    font-size: 22px;
+.profile__nickname {
+    font-size: 2.1rem;
 }
-#nickName > span {
-    font-size: 35px;
+.profile__nickname > span {
+    font-size: 2.6rem;
 }
-
-/* 하단 */
-.sub-area {
-    display: inline-flex;
-    width: 90%;
-    text-align: left;
-    margin-bottom: 5%;
+.myInfo__body {
+    height: 60%;
 }
-.sub-area > div {
+.myInfo__items {
+    display: flex;
+    width: 100%;
+    height: 120px;
+}
+.myInfo__item {
     width: 50%;
+    padding: 20px;
 }
-
-.sub-area > div > span:nth-child(1) {
-    font-size: 18px;
-    font-weight: 900;
-}
-.sub-area > div > div {
-    padding-top: 8px;
-}
-
-/* 변경하기 버튼 */
-.btn-change {
-    padding: 2px 8px;
-    border-style: none;
-    border-radius: 15px;
-    font-size: 12px;
-    background-color: #cccccc;
-}
-.btn-change:hover {
-    cursor: pointer;
-}
-
-/* 화면에 보이지 않은 효과 */
-#changeType, #profileBtn, #nameUpdate, #genderUpdate, #emailUpdate, #inputEmailCode, #emailBtn2 {
-    display : none;
-}
-
-/* 안내메시지 */
-#Timer, .msg {
-    font-family: 'Pretendard-Regular';
-    font-size: 14px;
+.myInfo__item > .myInfo__title {
+    font-size: 17px;
     font-weight: 800;
-    color: red;
+}
+.myInfo__totalAttend {
+    color: var(--color-basic-point);
+}
+/* 링크 */
+.link {
+    text-align: right;
+}
+.link a {
+    margin: 0 30px;
+}
+.link a:hover {
+    color: var(--color-basic-point);
 }

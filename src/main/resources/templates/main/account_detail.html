@@ -6,35 +6,44 @@
     <!-- css -->
     <link rel="stylesheet" th:href="@{/css/detail.css}">
 </head>
-<body>
-<nav th:replace="/include/menu.html :: menu"></nav>
-<form id="content" method="get" th:action="@{/accountUpdate/{id}(id=${id})}">
-    <div id="detail">
-        <span class="title">[[${date}]]</span>
-        <table>
-            <tr>
-                <th th:style="${'width: 20%;'}"><span>고정/변동</span></th>
-                <td th:text="${fix == 'y' ? '고정 > ' + fixOption : '변동'}" th:style="${'width: 30%'}"></td>
-                <th  th:style="${'width: 20%;'}">카테고리</th>
-                <td th:style="${'width: 30%'}">
-                    <span th:each="step : ${category}" th:text="${#lists.size(category) == stepStat.count ? step.name : step.name + ' > ' }" th:style="${#lists.size(category) == stepStat.count ? 'color: #EA3B20' : 'color: #000000'}"></span>
-                </td>
-            </tr>
-            <tr>
-                <th>제목</th><td colspan="3">[[${title}]]</td>
-            </tr>
-            <tr>
-                <th th:style="${'height: 50%'}">내용</th><td colspan="3" th:text="${content == null ? '내용을 입력하지 않았습니다.' : content}" th:style="${content == null ? 'color: #797979' : 'color: #000000'}"></td>
-            </tr>
-            <tr>
-                <th>금액</th><td colspan="3">[[${price}]]</td>
-            </tr>
-            <tr>
-                <th>사진</th>
-                <td colspan="3">
-                    <div class="accountImage">
-                        <img th:src="'/image/accountBook/' + ${image}" width="150" height="100" th:style="${image == null ? 'display:none': 'width: 100%'}" title="사진 크게보기" th:onclick="openImg(this.src)">
-                        <script>
+<body class="body__wrap">
+<nav th:replace="/include/menu.html :: nav"></nav>
+<div class="div__wrap">
+    <!-- 제목 -->
+    <div class="header">
+        <div class="header__title">
+            [[${date}]]
+        </div>
+    </div>
+    <!-- 상세 영역 -->
+    <div class="detail">
+        <form method="get" th:action="@{/accountUpdate/{id}(id=${id})}" class="detail__form">
+            <table class="account__detail detail__table">
+                <tr>
+                    <th class="table__width__percent--20"><span>고정/변동</span></th>
+                    <td class="table__width__percent--30" th:text="${fix == 'y' ? '고정 > ' + fixOption : '변동'}"></td>
+                    <th class="table__width__percent--20">카테고리</th>
+                    <td class="table__width__percent--30">
+                        <span th:each="step : ${category}" th:text="${#lists.size(category) == stepStat.count ? step.name : step.name + ' > ' }" th:style="${#lists.size(category) == stepStat.count ? 'color: var(--color-basic-point)' : 'color: #000000'}"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>제목</th><td colspan="3">[[${title}]]</td>
+                </tr>
+                <tr>
+                    <th class="table__height__percent--50">내용</th>
+                    <td colspan="3" th:text="${content == null ? '내용을 입력하지 않았습니다.' : content}" th:style="${content == null ? 'color: var(--font-color-gray)' : ''}"></td>
+                </tr>
+                <tr>
+                    <th>금액</th><td colspan="3" th:text="${#numbers.formatInteger(price, 3, 'COMMA') + '원'}"></td>
+                </tr>
+                <tr>
+                    <th>사진</th>
+                    <td th:if="${image == null}" colspan="3" class="detail__table__image font__color--gray">이미지를 등록하지 않았습니다.</td>
+                    <td th:unless="${image == null}" colspan="3" class="detail__table__image">
+                        <div class="detail__image">
+                            <img th:src="'/image/accountBook/' + ${image}" title="사진 크게보기" th:onclick="openImg(this.src)">
+                            <script>
                             function openImg(url) {
                                 let img = new Image();
                                 img.src = url;
@@ -47,22 +56,27 @@
                                 openWindow.document.write("<style>body{margin:0px;})</style><img src='"+url+"' width='"+win+"'>");
                             }
                         </script>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <th>위치</th>
-                <td colspan="3">
-                    <span  id="locationName">[[${locationName}]]</span><br>
-                    <span id="locationRoad">[[${location}]]</span>
-                </td>
-            </tr>
-        </table>
-        <div>
-            <button type="button" th:onclick="location.href='/accountList'">확인</button>
-            <button >수정</button>
-        </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>위치</th>
+                    <td th:if="${locationName == null}" colspan="3" class="font__color--gray">
+                        등록된 위치가 없습니다.
+                    </td>
+                    <td th:unless="${locationName == null}" colspan="3" class="location__info">
+                        <span id="title">[[${locationName}]]</span>
+                        [[${location}]]
+                    </td>
+                </tr>
+            </table>
+        </form>
     </div>
-</form>
+    <!-- 버튼 -->
+    <div class="button__count--02">
+        <button type="button" class="button__size--medium button__cancel" th:onclick="location.href='/accountList'">확인</button>
+        <button class="button__size--medium button__confirm" th:onclick="document.getElementsByClassName('detail__form')[0].submit()">수정</button>
+    </div>
+</div>
 </body>
 </html>

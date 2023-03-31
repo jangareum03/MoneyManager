@@ -9,81 +9,71 @@
     <script src="/js/join.js"></script>
 </head>
 <body>
-<div id="join">
-    <div class="title" onclick="location.href='/'">
-        회원가입<br>
-        <span>돈매니저</span>
-    </div>
-    <form method="post" th:action="@{/join}" th:object="${member}">
-        <div id="inputGroup">
-            <h3 class="join_title">
-                <label for="inputId">아이디</label>
-            </h3>
-            <input type="text" id="inputId" name="id" placeholder="아이디를 입력해주세요." maxlength="15" onblur="idCheck()"><br>
-            <span id="idMsg" class="errorMsg"></span>
-            <input type="hidden" id="idResult" value="n" readonly>
-
-            <h3 class="join_title">
-                <label for="inputPwd">비밀번호</label>
-            </h3>
-            <input type="password" id="inputPwd" name="password" placeholder="비밀번호를 입력해주세요." maxlength="20" onblur="pwdCheck()"><br>
-            <span id="pwdMsg" class="errorMsg"></span>
-            <input type="hidden" id="pwdResult" value="n" readonly>
-
-            <h3 class="join_title">
-                <label for="inputRePwd">비밀번호 확인</label>
-            </h3>
-            <input type="password" id="inputRePwd" placeholder="비밀번호를 재입력해주세요." maxlength="20" onblur="rePwdCheck()"><br>
-            <span id="rePwdMsg" class="errorMsg"></span>
-            <input type="hidden" id="rePwdResult" value="n" readonly>
-
-            <h3 class="join_title">
-                <label for="inputName">이름</label>
-            </h3>
-            <input type="text" id="inputName" name="name" placeholder="이름을 입력해주세요." maxlength="10" onblur="nameCheck()"><br>
-            <span id="nameMsg" class="errorMsg"></span>
-            <input type="hidden" id="nameResult" value="n" readonly>
-
-            <h3 class="join_title">
-                <label for="inputNickName">닉네임</label>
-            </h3>
-            <input type="text" id="inputNickName" name="nickName" placeholder="닉네임을 입력해주세요." maxlength="10" onblur="nickNameCheck()"><br>
-            <span id="nickNameMsg" class="errorMsg"></span>
-            <input type="hidden" id="nickNameResult" value="n" readonly>
-
-            <h3 class="join_title">
-                <label for="inputEmail">이메일</label>
-            </h3>
-            <div class="join_email">
-                <input type="text" id="inputEmail" name="email" placeholder="이메일을 입력해주세요.">
-                <button type="button" onclick="sendCode()">전송</button>
-            </div>
-            <div id="emailTime">
-                <input type="hidden" id="inputEmailCode" name="code" placeholder="인증코드를 입력해주세요." maxlength="6" onblur="emailCodeCheck()">
-                <span id="Timer"></span>
-            </div>
-            <span id="emailMsg" class="errorMsg"></span>
-            <input type="hidden" id="emailResult" value="n" readonly>
-
-            <h3 class="join_title">
-                <label>성별</label>
-            </h3>
-            <div class="join_gender">
-                <label><input type="radio" name="gender" value="0" checked>선택안함</label>
-                <label><input type="radio" name="gender" value="1">남자</label>
-                <label><input type="radio" name="gender" value="3">여자</label>
-            </div><br>
-
-            <label class="agree">
-                <input type="checkbox" id="inputAgree" value="false"> 이용약관에 동의합니다.<br>
-            </label>
-
-            <div id="btnGroup">
-                <button type="button" class="btn cancel" onclick="location.href='/'">취소</button>
-                <button class="btn confirm" onclick="return joinCheck()">가입</button>
-            </div>
+<!-- 제목 -->
+    <div class="header">
+        <div class="header__title">
+            돈 매니저
+            <span class="header__subTitle">회원가입</span>
         </div>
-    </form>
+    </div>
+<!-- 회원가입 -->
+    <div class="join">
+        <form method="post" th:action="@{/join}" th:object="${member}" class="join__form">
+            <div class="join__item">
+                <span class="join__title">아이디</span>
+                <input type="text" name="id" class="input" placeholder="아이디를 입력해주세요." maxlength="15" th:onblur="idCheck( this )">
+                <span class="msg__error"></span>
+            </div>
+            <div class="join__item">
+                <span class="join__title">비밀번호</span>
+                <input type="password" name="password" class="input" placeholder="비밀번호를 입력해주세요." maxlength="20" th:onblur="pwdCheck( this )">
+                <span class="msg__error"></span>
+            </div>
+            <div class="join__item">
+                <span class="join__title">비밀번호 확인</span>
+                <input type="password" class="input" placeholder="비밀번호를 재입력해주세요." maxlength="20" th:onblur="rePwdCheck( this )">
+                <span class="msg__error"></span>
+            </div>
+            <div class="join__item">
+                <span class="join__title">이름</span>
+                <input type="text" name="name" class="input" placeholder="이름을 입력해주세요." maxlength="10" th:onblur="nameCheck( this )">
+                <span class="msg__error"></span>
+            </div>
+            <div class="join__item">
+                <span class="join__title">닉네임</span>
+                <input type="text" name="nickName" class="input" placeholder="닉네임을 입력해주세요." maxlength="10" onblur="nickNameCheck( this )">
+                <span class="msg__error"></span>
+            </div>
+            <div class="join__item">
+                <span class="join__title">이메일</span>
+                <div class="join__email">
+                    <input type="text" name="email" class="input input__email" placeholder="이메일을 입력해주세요.">
+                    <button type="button" class="button__email" th:onclick="sendCode()">전송</button>
+                </div>
+                <span class="msg__error"></span>
+            </div>
+            <div class="join__item join__emailCode" th:style="'display:none'">
+                <input type="text" name="code" class="input input__emailCode" placeholder="인증코드를 입력해주세요." maxlength="6" th:onblur="emailCodeCheck( this )">
+                <span class="msg__timer"></span>
+                <span class="msg__error" th:style="'margin-left: -7%'"></span>
+            </div>
+            <div class="join__item">
+                <span class="join__title">성별</span>
+                <div class="join__gender">
+                    <label><input type="radio" name="gender" value="n" checked>선택안함</label>
+                    <label><input type="radio" name="gender" value="m">남자</label>
+                    <label><input type="radio" name="gender" value="w">여자</label>
+                </div>
+            </div>
+            <div class="join__item">
+                <label><input type="checkbox" class="checkbox" value="false"> 이용약관에 동의합니다.</label>
+            </div>
+        </form>
+    </div>
+<!-- 버튼 -->
+<div class="button__count--02">
+    <button type="button" class="button__size--medium button__cancel" th:onclick="location.href='/'">취소</button>
+    <button class="button__size--medium button__confirm" th:onclick="return joinCheck()">가입</button>
 </div>
 </body>
 </html>

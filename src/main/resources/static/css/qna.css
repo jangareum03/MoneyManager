@@ -1,150 +1,171 @@
-@font-face {
-    font-family: 'Pretendard-Regular';
-    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'SEBANG_Gothic_Bold';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/SEBANG_Gothic_Bold.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
+@import url("common.css");
 
-/* reset.css */
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
+/*공통 영역*/
+.header, .write, .search, .qna__list, .detail, .button__count--01 {
+    width: 80%;
+    margin: auto;
 }
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-    display: block;
-}
-body {
-    line-height: 1;
-}
-ol, ul {
-    list-style: none;
-}
-blockquote, q {
-    quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-    content: '';
-    content: none;
-}
-table {
-    border-collapse: collapse;
-    border-spacing: 0;
-}
-
-/* 기본 */
-body{
-    display: flex;
-    width: 85vw;
-    height: 100vh;
-    margin: 0 auto;
-    font-family: 'Pretendard-Regular';
-}
-a, li{
-    cursor: pointer;
-}
-
-/* 메뉴상단 */
-nav{
-    width: 300px;
+.question__table, .answer__table, .write__table {
+    width: 80%;
     height: 100%;
-    border-left: 2px solid #1E1E1E;
-    border-right: 2px solid #1E1E1E;
-}
-#menu_top {
-    display: flex;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 18%;
-    border-bottom: 1px solid #EA3B20;
-}
-.profile {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 80%;
-}
-.profile > img {
-    width: 100px;
-    height: 100px;
-    margin-left: 15px;
-}
-.profile > div {
-    padding-bottom: 25px;
-    width: 70%;
+    margin: auto;
     text-align: center;
 }
-.profile  span {
-    color: #EA3B20;
+.qna__table__header th, .qna__table__body td,
+.question__table th, .question__table td,
+.answer__table th, .answer__table td,
+.write__table th, .write__table td{
+    vertical-align: middle;
+}
+.detail {
+    height: 65%;
+}
+/* 제목
+    common.css에 작성되어 있음
+*/
+/* 작성 */
+.write {
+    height: 60%;
+}
+.write__form {
+    height: 90%;
+}
+.write__table__title {
+    background: var(--color-basic);
+    color: var(--color-basic-opposite);
+}
+.write__table tr:nth-child(1),
+.write__table tr:nth-child(2) {
+    height: 50px;
+}
+.write__table td {
+    padding: 0 50px;
+    text-align: left;
+}
+.write__table [type="text"], .textarea {
+    width: 90%;
+}
+.textarea {
+    height: 90%;
+}
+.write__table label {
+    display: inline-flex;
+    align-items: center;
+}
+.write__table svg {
+    width: 20px;
+    fill: var(--color-basic-sub);
+}
+.input__checkbox:checked + svg {
+    fill: var(--color-basic-point);
+}
+.msg__error{
+    margin: auto;
+    text-align: left;
+}
+/* 검색 영역 */
+.search {
+    display: flex;
+    width: 65%;
+}
+.search__form {
+    display: inline-flex;
+    width: 95%;
+    margin: auto;
+}
+.search__option {
+    margin-left: 20px;
+}
+.search__button {
+    width: auto;
+}
+/* 리스트 */
+.qna__list {
+    height: 60%;
+    margin-top: 40px;
+}
+.qna__table {
+    width: 90%;
+    height: 100%;
+    margin: auto;
+    border-bottom: 2px solid var(--color-basic);
+    text-align: center;
+}
+.qna__table__header {
+    height: 25px;
+    background: var(--color-basic);
+    color: var(--color-basic-opposite);
+}
+.qna__table__header th:nth-child(1) {
+    width: 5%
+}
+.qna__table__header th:nth-child(2) {
+    width: 50%;
+}
+.qna__table__header th:nth-child(3) {
+    width: 15%;
+}
+.qna__table__header th:nth-child(4) {
+    width: 15%;
+}
+.qna__table__body tr {
+    height: 50px;
+    border-bottom: 1px solid var(--color-basic-cancel)
+}
+/* 질문 */
+.question {
+    height: 65%;
+}
+.question__table tr {
+    border: 1px solid;
+}
+.question__table tr:nth-child(1) {
+    height: 50px;
+}
+.question__table tr:nth-child(2) {
+    height: 50px;
+}
+.question__table tr:nth-child(3) {
+    height: auto;
+}
+.question__table__title {
+    width: 100px;
+    background: var(--color-basic);
+    color: var(--color-basic-opposite);
+}
+.question__table tr:nth-child(1) td {
+    width: 200px;
+}
+/* 답변 */
+.answer {
+    height: 30%;
+    padding: 10px 0;
+}
+.answer__title {
+    height: 50px;
+    background: var(--color-basic);
+    color: var(--color-basic-opposite);
+}
+.answer__content {
+    border-bottom: 1px solid var(--color-basic);
+}
+.answer__content > td {
+    padding-top: 10px;
+}
+.answer__content div:nth-child(1) {
+    width: 95%;
+    height: 90%;
+    margin: auto;
+    text-align: left;
+}
+.answer__content div:nth-child(2) {
+    text-align: right;
     font-weight: 800;
-    font-size: 20px;
 }
-.profile a {
-    position: absolute;
-    top: 60%;
-    left: 55%;
-    text-decoration: none;
-    font-size: 15px;
-    color: black;
+/* 버튼 */
+.button__count--01 {
+    text-align: center;
 }
-.profile a:hover {
-    text-decoration: underline;
-    color: #0B3B78;
-}
-
-/* 메뉴 하단 */
-#menu_bottom, ul {
-    width: 100%;
-    height: 70%;
-}
-.liMenu {
-    width: 100%;
-    height: 13%;
-    font-size: 20px;
-}
-.liMenu:hover {
-    background-color: #1E1E1E;
-    color: white;
-}
-
-/* 검색영역 */
-.box__display_none {
-    display: none;
-}
-.box__display_block {
-    display: block;
-}
-
-/* 에러메시지 */
-.main__msg {
-    font-size: 14px;
-    font-weight: 800;
-    color: red;
+.button__count--02 {
+    width: 30%;
 }

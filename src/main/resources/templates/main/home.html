@@ -5,87 +5,44 @@
     <title>메인 : 돈매니저</title>
     <!-- css -->
     <link rel="stylesheet" th:href="@{/css/home.css}">
-    <!-- js -->
-    <script th:inline="javascript">
-    function attendCheck(date) {
-        let today = new Date().getDate();
-
-        if( date == today ){
-            let xhr = new XMLHttpRequest();
-            xhr.open('GET', '/home/attendOne', true);
-            xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
-            xhr.send();
-
-            xhr.onload = function() {
-                if( xhr.status == 200 ){
-                    if( xhr.response == date ) {
-                        alert('오늘 출석은 이미 완료했습니다. 내일 다시 해주세요!');
-                    }else{
-                        xhr.open('GET', '/home/attendCheck', true);
-                        xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
-                        xhr.send();
-
-                        xhr.onload = function() {
-                            if( xhr.status == 200 ) {
-                                alert('출석 완료 했습니다.');
-                                let img = document.getElementsByClassName('tableImg')[today+1];
-                                img.style.visibility = 'visible';
-                            }else{
-                                alert('통신 실패했습니다. 잠시 후 다시 시도해주세요.');
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    function attendList(){
-        let list = [[${attendList}]];
-        let start = [[${start}]] - 1;
-
-        for( let i=0; i<list.length; i++ ) {
-            for( let j=0; j<=[[${end}]]; j++ ) {
-                if( list[i].date == j ) {
-                    let img = document.getElementsByClassName('tableImg')[j+start];
-                    img.style.visibility = 'visible';
-                }
-            }
-        }
-    }
- </script>
 </head>
-<body onload="attendList()">
-<nav th:replace="/include/menu.html :: menu"></nav>
-<div id="calendar">
-        <!-- 년도 -->
-        <div id="year">
-            <a th:href="@{/home/moveCal(year=${year-1}, month=${month})}">&lt;</a>
-            <span>[[${year}]]</span>년
-            <a th:href="@{/home/moveCal(year=${year+1}, month=${month})}">&gt;</a>
+<body class="body__wrap">
+<nav th:replace="/include/menu.html :: nav"></nav>
+<div class="div__wrap">
+    <!-- 날짜 이동 -->
+    <div class="header">
+        <div class="header__title">
+            <a th:href="@{/home/moveCal(year=${year-1}, month=${month})}" class="header__link">&lt;</a>
+            <div class="header__wrap">
+                <span class="header__year">[[${year}]]</span> 년
+            </div>
+            <a th:href="@{/home/moveCal(year=${year+1}, month=${month})}" class="header__link">&gt;</a>
         </div>
-        <!-- 출석테이블 -->
-        <div id="dateTable">
-            <table>
-                <tr th:each="row : ${#numbers.sequence(1, rows)}">
-                    <th:block th:each="col : ${#numbers.sequence(1, 7)}">
-                        <td th:with="date=${ ((col + (7-col)) * (row-1) + col) - start}" th:style="${ ((col + (7-col)) * (row-1) + col) - start == today} ? 'border: 5px solid #EA3B20; cursor: pointer' : '' " th:onclick="attendCheck([[${ ((col + (7-col)) * (row-1) + col) - start}]])">
-                            <span th:if="${ (date > 0) && (date <= end) }" th:style="${ date == today ? 'color:#EA3B20; top: 2px; left:4px': ''}">
+    </div>
+    <!-- 출석체크 -->
+    <div class="calender">
+        <table class="calender__table">
+            <tr th:each="row : ${#numbers.sequence(1, rows)}">
+                <th:block th:each="col : ${#numbers.sequence(1, 7)}">
+                    <td th:with="date=${ ((col + (7-col)) * (row-1) + col) - start}" class="calender__notToday" th:classappend="${ ((col + (7-col)) * (row-1) + col) - start == today} ? calender__today" th:onclick="attendCheck([[${ ((col + (7-col)) * (row-1) + col) - start}]])">
+                            <span th:if="${ (date > 0) && (date <= end) }" class="calender__date" th:classappend="${ date == today} ? calender__today--color">
                                 <th:block th:if="${date < 10}">0[[${date}]]</th:block>
                                 <th:block th:unless="${date < 10}">[[${date}]]</th:block>
                             </span>
-                            <img th:src="@{/image/cat.png}" class="tableImg" th:style="${ ((col + (7-col)) * (row-1) + col) - start == today} ? 'top:16px; left:18px' : '' ">
-                        </td>
-                    </th:block>
-                </tr>
-            </table>
+                        <img th:src="@{/image/rabbit_02.png}" class="calender__img">
+                    </td>
+                </th:block>
+            </tr>
+        </table>
+    </div>
+    <!-- 월 이동 -->
+    <div class="month__wrap">
+        <div class="month">
+            <span th:each="m : ${#numbers.sequence(1, 12)}">
+                <a th:href="@{/home/moveCal(year=${year}, month=${m})}" class="month__link" th:classappend="${(m == month)} ? month__link--color"> [[${m}]]월</a>
+            </span>
         </div>
-        <!-- 월 -->
-        <div id="month">
-                <span th:each="m : ${#numbers.sequence(1, 12)}">
-                    <a th:href="@{/home/moveCal(year=${year}, month=${m})}" th:style="${(m == month) ? 'color:#EA3B20' : 'color: #585858'}"> [[${m}]]월</a>
-                </span>
-        </div>
+    </div>
 </div>
 </body>
 </html>

@@ -9,34 +9,45 @@
     <script src="/js/help.js"></script>
 </head>
 <body>
-<div id="help">
-    <div class="title" onclick="location.href='/'">
-        회원가입<br>
-        <span>돈매니저</span>
+<!-- 제목 -->
+<div class="header">
+    <div class="header__title">
+        계정찾기
+        <span class="header__subTitle">돈매니저</span>
     </div>
-    <div class="menu">
-        <a class="choice"><span>아이디</span></a>
-        <a th:href="@{/helpPwd}"><span>비밀번호</span></a>
+</div>
+<!-- 찾기 입력 -->
+<div class="help">
+    <div class="tab">
+        <a class="tab__item tab__item--focus">
+            <span class="tab__info">아이디</span>
+        </a>
+        <a class="tab__item" th:href="@{/helpPwd}">
+            <span class="tab__info">비밀번호</span>
+        </a>
     </div>
-    <form method="post" th:action="@{/helpId/find}" th:object="${member}">
-        <div class="content">
-            <label for="input_name">이름</label>
-            <input type="text" id="input_name" name="name" placeholder="이름을 입력해주세요." maxlength="10" onblur="nameCheck()"><br>
-            <span id="nameMsg" class="errorMsg"></span>
-            <input type="hidden" id="nameResult" value="n" readonly>
-
-            <label for="input_email">이메일</label>
-            <input type="text" id="input_email" name="email" placeholder="이메일을 입력해주세요." onblur="emailCheck()"><br>
-            <span id="emailMsg" class="errorMsg"></span>
-            <input type="hidden" id="emailResult" value="n" readonly>
-
-            <button class="btn confirm" onclick="return helpId()">아이디 찾기</button>
-        </div>
-    </form>
-    <div id="btnGroup">
-        <button type="button" class="btn" onclick="location.href='/'">로그인</button>
-        <button type="button" class="btn" onclick="location.href='join'">회원가입</button>
+    <div class="help__wrap">
+        <form method="post" th:action="@{/helpId/find}" th:object="${member}" class="help__form">
+            <div class="help__item">
+                <span class="help__title">이름</span>
+                <input type="text" class="input" name="name" maxlength="10" th:onblur="nameCheck( this )">
+                <span class="msg__error"></span>
+            </div>
+            <div class="help__item">
+                <span class="help__title">이메일</span>
+                <input type="text" class="input" name="email" th:onblur="emailCheck( this )">
+                <span class="msg__error"></span>
+            </div>
+            <div class="button__count--01">
+                <button class="button__size--big button__confirm" th:onclick="return helpId()">아이디 찾기</button>
+            </div>
+        </form>
     </div>
+</div>
+<!-- 링크 -->
+<div class="link">
+    <a class="link__item" th:href="@{/}">로그인</a>
+    <a class="link__item" th:href="@{/join}">회원가입</a>
 </div>
 </body>
 </html>

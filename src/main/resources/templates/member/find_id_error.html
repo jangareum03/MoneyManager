@@ -7,23 +7,30 @@
     <link rel="stylesheet" th:href="@{/css/find.css}">
 </head>
 <body>
-<div id="helpId">
-    <div class="title" onclick="location.href='/'">
-        계정찾기<br>
-        <span>돈 매니저</span>
+<!-- 제목 -->
+<div class="header">
+    <div class="header__title">
+        계정찾기
+        <span class="header__subTitle">돈매니저</span>
     </div>
-    <div class="content">
-        <div class="subTitle">아이디 찾기 결과</div>
-        <img id="errorImg" src="/image/error.png">
-        <div class="msg">
+</div>
+<!-- 찾기 결과 -->
+<div class="find">
+    <div class="find__title">
+        <span class="find__info">아이디 찾기 결과</span>
+    </div>
+    <div class="find__guide find__guide--text">
+        <img src="/image/error.png" class="find__img">
+        <p>
             찾으시는 아이디는 존재하지 않습니다.<br>
             다시 확인해주세요.
-        </div>
+        </p>
     </div>
-    <div id="btnGroup">
-        <button type="button" class="btn" onclick="location.href='/'">로그인</button>
-        <button type="button" class="btn confirm" onclick="location.href='/helpId'">아이디찾기</button>
-    </div>
+</div>
+<!-- 버튼 -->
+<div class="button__count--02">
+    <button type="button" class="button__size--medium button__cancel" th:onclick="location.href='/'">로그인</button>
+    <button type="button" class="button__size--medium button__confirm button__padding" th:onclick="location.href='/helpId'">아이디 찾기</button>
 </div>
 </body>
 </html>

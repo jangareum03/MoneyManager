@@ -8,45 +8,52 @@
     <!-- js -->
     <script th:src="@{/js/write.js}"></script>
 </head>
-<body>
-<nav th:replace="/include/menu.html :: menu"></nav>
-<div id="write">
-    <div class="content">
-        <div class="title" onclick="location.href='/write'">
-            작성하기<br>
+<body class="body__wrap">
+<nav th:replace="/include/menu.html :: nav"></nav>
+<div class="div__wrap">
+    <!-- 제목 -->
+    <div class="header">
+        <div class="header__title" th:onclick="location.href='/write'">
+            작성하기
         </div>
-        <form method="post" th:action="@{/write}">
-            <div class="type">
-                <span>아래에서 수입/지출 중 하나를 선택해주세요.</span><br>
-                <div class="typeBtn">
-                    <input type="radio" id="typeIn" name="code" th:value="${category[0].code}" checked><label for="typeIn"></label>
-                    <input type="radio" id="typeOut" name="code" th:value="${category[1].code}"> <label for="typeOut"></label>
+    </div>
+    <!-- 작성 -->
+    <div class="write">
+        <form method="post" th:action="@{/write}" class="write__form">
+            <!-- 수입/지출 선택 -->
+            <div class="write__item">
+                <span class="write__info">아래에서 수입·지출 중 하나를 선택해주세요.</span>
+                <div class="write__tab">
+                    <input type="radio" id="typeIn" name="code" class="input__radio input__radio--in" th:value="${category[0].code}" checked><label for="typeIn"></label>
+                    <input type="radio" id="typeOut" name="code" class="input__radio input__radio--out" th:value="${category[1].code}"><label for="typeOut"></label>
                 </div>
             </div>
-            <div>
-                <span>작성할 날짜를 선택해주세요.</span><br>
-                <div>
-                    <select id="selectYear" name="year">
+            <!-- 작성날짜 -->
+            <div class="write__item">
+                <span class="write__info">작성할 날짜를 선택해주세요.</span>
+                <div class="write__date">
+                    <select name="year" class="write__select">
                         <option th:each="wYear : ${#numbers.sequence(year, year-5)}" th:value="${wYear}" th:selected="${wyear} == ${year}">
                             [[${wYear}]]
                         </option>
                     </select>
-                    <select id="selectMonth" name="month">
+                    <select name="month" class="write__select">
                         <option th:each="wMonth : ${#numbers.sequence(1, 12)}" th:value="${wMonth}" th:selected="${wMonth} == ${month}">
                             [[${wMonth}]]
                         </option>
                     </select>
-                    <select id="selectDate" name="date">
+                    <select name="date" class="write__select">
                         <option th:each="wDate : ${#numbers.sequence(1, end)}" th:value="${wDate}" th:selected="${wDate} == ${date}">
                             [[${wDate}]]
                         </option>
                     </select>
                 </div>
             </div>
-            <div id="aloneBtn">
-                <button class="confirm" >다음</button>
-            </div>
         </form>
+    </div>
+    <!-- 버튼 -->
+    <div class="button__count--01">
+        <button class="button__size--big  btn__confirm" th:onclick="document.getElementsByClassName('write__form')[0].submit()">다음</button>
     </div>
 </div>
 </body>

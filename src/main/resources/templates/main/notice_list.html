@@ -6,52 +6,52 @@
     <!-- css -->
     <link rel="stylesheet" th:href="@{/css/notice.css}">
 </head>
-<body>
-<nav th:replace="/include/menu.html :: menu "></nav>
-<div>
+<body class="body__wrap">
+<nav th:replace="/include/menu.html :: nav "></nav>
+<div class="div__wrap">
+    <!-- 제목 -->
     <div class="header">
-        <div class="header__title">공지사항</div>
-    </div>
-    <div class="container">
-        <div class="main">
-            <div class="main-area">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>번호</th>
-                            <th>제목</th>
-                            <th>날짜</th>
-                            <th>조회수</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:if="${#lists.size(noticeList)} == 0">
-                            <td colspan="4">공지사항이 없습니다.</td>
-                        </tr>
-                        <tr th:unless="${#lists.size(noticeList)} == 0" th:each="notice : ${noticeList}">
-                            <td>[[${notice.num}]]</td>
-                            <td>
-                                [(${notice.type})]
-                                <a th:href="@{/notice/{id}(id = ${notice.id})}">[[${notice.title}]]</a>
-                            </td>
-                            <td th:text="${#dates.format(notice.regDate, 'yyyy-MM-dd')}"></td>
-                            <td th:text="${#numbers.formatInteger(notice.count, 1, 'COMMA')}"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="header__title">
+            <span>공지 사항</span>
         </div>
     </div>
-    <div class="footer">
-        <div th:each="page : ${page}">
-            <ul>
-                <li th:style="${page.isPrev ? 'display: inline' : 'display: none'}"><a th:href="@{/notice(pageIndex = ${page.startPage - 1})}">&lt; 이전</a></li>
-                <li th:each="num : ${#numbers.sequence( page.startPage, page.endPage )}">
-                    <a th:href="@{/notice(pageIndex = ${num})}">[[${num}]]</a>
-                </li>
-                <li th:style="${page.isNext ? 'display: inline' : 'display: none'}"><a th:href="@{/notice(pageIndex = ${page.endPage + 1})}">다음 &gt;</a></li>
-            </ul>
-        </div>
+    <!-- 공지사항 리스트 -->
+    <div class="list">
+        <table class="list__table">
+            <thead class="list__table__header">
+                <tr>
+                    <th>번호</th>
+                    <th>제목</th>
+                    <th>날짜</th>
+                    <th>조회수</th>
+                </tr>
+            </thead>
+            <tbody class="list__table__body">
+                <tr th:if="${#lists.size(noticeList)} == 0">
+                    <td colspan="4">공지사항이 없습니다.</td>
+                </tr>
+                <tr th:unless="${#lists.size(noticeList)} == 0" th:each="notice : ${noticeList}">
+                    <td>[[${notice.num}]]</td>
+                    <td>
+                        <a th:href="@{/notice/{id}(id = ${notice.id})}">[(${notice.type})]
+                            [[${notice.title}]]</a>
+                    </td>
+                    <td th:text="${#dates.format(notice.regDate, 'yyyy년 MM월 dd일')}"></td>
+                    <td th:text="${#numbers.formatInteger(notice.count, 1, 'COMMA')}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- 페이징 -->
+    <div class="paging" th:each="page : ${page}">
+        <ul>
+            <li th:style="${page.isPrev ? 'display: inline' : 'display: none'}"><a th:href="@{/notice(pageIndex = ${page.startPage - 1})}">&lt;</a></li>
+            <li th:each="num : ${#numbers.sequence( page.startPage, page.endPage )}">
+                <span th:if="${num == now}">[[${num}]]</span>
+                <a th:unless="${num == now}" th:href="@{/notice(pageIndex = ${num})}">[[${num}]]</a>
+            </li>
+            <li th:style="${page.isNext ? 'display: inline' : 'display: none'}"><a th:href="@{/notice(pageIndex = ${page.endPage + 1})}">&gt;</a></li>
+        </ul>
     </div>
 </div>
 </body>

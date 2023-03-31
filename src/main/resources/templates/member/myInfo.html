@@ -8,109 +8,108 @@
     <!-- js -->
     <script th:src="@{/js/myinfo.js}"></script>
 </head>
-<body>
-<nav th:replace="/include/menu.html :: menu"></nav>
-<div id="myInfo">
-    <div class="content">
-        <span class="title">마이페이지</span>
-        <div id="main">
-            <span>내 정보</span>
-            <div>
-                <span id="changeType">n</span>
-                <!-- 상단 -->
-                <div>
-                    <div class="flex top-div">
-                        <div id="profile">
-                            <form method="post" th:action="@{/updateInfo}" enctype="multipart/form-data">
-                                <div><img th:src="${profile == null ? '/image/default.png' : '/image/profile/' + profile}" id="profileImage"></div>
-                                <button type="button" class="btn-change" th:onclick="changeUser('profile')">변경하기</button>
-                                <button type="submit" id="profileBtn">확인</button>
-                            </form>
-                        </div>
-                        <div id="profile-info">
-                            <span id="badge">[[${badge}]]</span><br>
-                            <div id="nickName">
-                                <span>[[${nickName}]]</span>님 반갑습니다!
-                            </div>
-                            <span th:text="${lastLogin}"></span>
-                        </div>
+<body class="body__wrap">
+<nav th:replace="/include/menu.html :: nav"></nav>
+<div class="div__wrap">
+    <!-- 제목 -->
+    <div class="header">
+        <div class="header__title">
+            <span>마이 페이지</span>
+        </div>
+    </div>
+    <!-- 내 정보 -->
+    <div class="myInfo">
+        <span class="myInfo__title">내 정보</span>
+        <div class="myInfo__header">
+            <div class="myInfo__profile">
+                <form enctype="multipart/form-data" method="post" th:action="@{/updateInfo}" class="profile__form">
+                    <div th:if="${profile == null}" class="profile">
+                        <svg class="profile__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm7.753 18.305c-.261-.586-.789-.991-1.871-1.241-2.293-.529-4.428-.993-3.393-2.945 3.145-5.942.833-9.119-2.489-9.119-3.388 0-5.644 3.299-2.489 9.119 1.066 1.964-1.148 2.427-3.393 2.945-1.084.25-1.608.658-1.867 1.246-1.405-1.723-2.251-3.919-2.251-6.31 0-5.514 4.486-10 10-10s10 4.486 10 10c0 2.389-.845 4.583-2.247 6.305z"/></svg>
+                        <img class="profile__img display__none" src="">
                     </div>
-                    <!-- 하단 -->
-                    <div>
-                        <div class="sub-area">
-                            <div>
-                                <span>이름</span>
-                                <div id="name">
-                                    <span id="originName">[[${name}]]</span>
-                                    <button type="button" class="btn-change" th:onclick="changeUser('name')">변경하기</button>
-                                </div>
-                                <form method="post" th:action="@{/updateInfo}" id="nameUpdate" onsubmit="return false;">
-                                    <input type="text" th:value="${name}" name="name" maxlength="10">
-                                    <button type="button" th:onclick="checkName()">변경</button>
-                                </form>
-                                <span class="msg"></span>
-                            </div>
-                            <div>
-                                <span>성별</span>
-                                <div id="gender">
-                                    <span>[[${gender}]]</span>
-                                    <button type="button" class="btn-change" th:onclick="changeUser('gender')">변경하기</button>
-                                </div>
-                                <form method="post" th:action="@{/updateInfo}" id="genderUpdate">
-                                    <label><input type="radio" name="gender" th:value="n" th:checked="${gender == '선택없음'}">선택없음</label>
-                                    <label><input type="radio" name="gender" th:value="m" th:checked="${gender == '남자'}">남자</label>
-                                    <label><input type="radio" name="gender" th:value="w" th:checked="${gender == '여자'}">여자</label>
-                                    <button type="submit">변경</button>
-                                </form>
-                            </div>
-                        </div>
+                    <div class="profile" th:unless="${profile == null}">
+                        <img th:src="${'/image/profile/' + profile}" class="profile__img">
                     </div>
-                    <div>
-                        <div class="sub-area">
-                            <div>
-                                <span>가입일</span>
-                                <div>[[${joinDate}]]</div>
-                            </div>
-                            <div>
-                                <span>출석</span>
-                                <div>
-                                    연속 출석일은 <span th:style="${'color: #EA3B20'}">[[${totalAttend}]]</span>일 입니다.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="sub-area">
-                            <div>
-                                <span>이메일</span>
-                                <div id="email">
-                                    <span id="originEmail">[[${email}]]</span>
-                                    <button type="button" class="btn-change" th:onclick="changeUser('email')">변경하기</button>
-                                </div>
-                                <form method="post" th:action="@{/updateInfo}" id="emailUpdate" onsubmit="return false;">
-                                    <div th:style="${'display: flex'}">
-                                        <input type="text" th:value="${email}" name="email">
-                                        <button type="button" id="emailBtn1" th:onclick="checkEmail()">확인</button>
-                                        <button type="button" id="emailBtn2" th:onclick="document.getElementById('emailUpdate').submit()">변경</button>
-                                    </div>
-                                    <div th:style="${'display: flex'}">
-                                        <input type="text" id="inputEmailCode" name="code" placeholder="인증코드를 입력해주세요." maxlength="6" onblur="emailCodeCheck()">
-                                        <span id="Timer"></span>
-                                    </div>
-                                </form>
-                                <span class="msg"></span>
-                            </div>
-                        </div>
-                    </div>
+                    <button type="button" class="button__size--small myInfo__btn profile__btn" th:onclick="changeUser('profile')">변경하기</button>
+                    <button type="submit" class="profile__btn" th:style="'display:none'">확인</button>
                 </form>
             </div>
-        </div>
-            <!-- 하단 메뉴 -->
-            <div>
-                <span th:onclick="openPopup('pwdChange')">비밀번호 변경하기</span>
-                <span th:onclick="openPopup('memberDelete')">탈퇴하기</span>
+            <div class="myInfo__info">
+                <span class="profile__badge">[[${badge}]]</span>
+                <div class="profile__nickname">
+                    <span>[[${nickName}]]</span>님 반갑습니다!
+                </div>
+                <span th:text="${lastLogin}" class="font__color--gray"></span>
             </div>
         </div>
+        <div class="myInfo__body">
+            <div class="myInfo__items">
+                <div class="myInfo__item">
+                    <span class="myInfo__title">이름</span>
+                    <div class="myInfo__div">
+                        <span class="myInfo__name">[[${name}]]</span>
+                        <button type="button" class="button__size--small myInfo__btn" th:onclick="changeUser('name')">변경하기</button>
+                    </div>
+                    <form method="post" th:action="@{/updateInfo}" class="myInfo__form" th:style="'display: none'" onsubmit="return false;">
+                        <input type="text" name="name" class="input__text myInfo__name" th:value="${name}" maxlength="10">
+                        <button type="button" th:onclick="checkName()">변경</button>
+                    </form>
+                    <span class="msg__error"></span>
+                </div>
+                <div class="myInfo__item">
+                    <span  class="myInfo__title">성별</span>
+                    <div class="myInfo__div">
+                        <span>[[${gender}]]</span>
+                        <button type="button" class="button__size--small myInfo__btn" th:onclick="changeUser('gender')">변경하기</button>
+                    </div>
+                    <form method="post" th:action="@{/updateInfo}" class="myInfo__form" th:style="'display: none'">
+                        <label><input type="radio" name="gender" th:value="n" th:checked="${gender == '선택없음'}">선택없음</label>
+                        <label><input type="radio" name="gender" th:value="m" th:checked="${gender == '남자'}">남자</label>
+                        <label><input type="radio" name="gender" th:value="w" th:checked="${gender == '여자'}">여자</label>
+                        <button type="submit">변경</button>
+                    </form>
+                </div>
+            </div>
+            <div class="myInfo__items">
+                <div class="myInfo__item">
+                    <span class="myInfo__title">가입일</span>
+                    <div>[[${joinDate}]]</div>
+                </div>
+                <div class="myInfo__item">
+                    <span class="myInfo__title">출석</span>
+                    <div>
+                        연속 출석일은 <span class="myInfo__totalAttend">[[${totalAttend}]]</span>일 입니다.
+                    </div>
+                </div>
+            </div>
+            <div class="myInfo__items">
+                <div class="myInfo__item">
+                    <span class="myInfo__title">이메일</span>
+                    <div class="myInfo__div">
+                        <span class="myInfo__email">[[${email}]]</span>
+                        <button type="button" class="button__size--small myInfo__btn" th:onclick="changeUser('email')">변경하기</button>
+                    </div>
+                    <form method="post" th:action="@{/updateInfo}" class="myInfo__form" th:style="'display: none'" onsubmit="return false;">
+                        <div class="myInfo__div display__flex">
+                            <input type="text" name="email" class="input__text myInfo__email" th:value="${email}" >
+                            <button type="button" th:onclick="checkEmail()">확인</button>
+                            <button th:style="'display: none'" th:onclick="document.getElementsByClassName('myInfo__form')[2].submit()">변경</button>
+                        </div>
+                        <div class="myInfo__div" th:style="${'display: none; margin-top: 5px'}">
+                            <input type="text" name="code" class="input__text" placeholder="인증코드를 입력해주세요." maxlength="6" onblur="emailCodeCheck( this )">
+                            <span class="msg__timer"></span>
+                        </div>
+                    </form>
+                    <span class="msg__error"></span>
+                </div>
+                <div class="myInfo__item"></div>
+            </div>
+        </div>
+    </div>
+    <!-- 링크 -->
+    <div class="link">
+        <a th:onclick="openPopup('pwdChange')">비밀번호 변경하기</a>
+        <a th:onclick="openPopup('memberDelete')">탈퇴하기</a>
     </div>
 </div>
 </body>

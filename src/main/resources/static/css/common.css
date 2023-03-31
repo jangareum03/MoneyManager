@@ -1,0 +1,241 @@
+/*
+이름 규칙은아래와 같이 진행함
+    '--속성-객체-상황-(농도)' 순으로 진행
+        * 농도는 1부터 10까지 범위로 1이 제일 연하고 10이 제일 진함
+*/
+@charset "UTF-8";
+@import url("menu.css");
+
+:root,
+:root.default{
+    --color-badge-normal: #35A5AA;
+    --color-basic: #0A0D14;
+    --color-basic-opposite: #FFFFFF;
+    --color-basic-sub: #858585;
+    --color-basic-cancel: #818181;
+    --color-basic-error: #C40808;
+    --color-basic-point: #EA3B20;
+    --color-basic-subPoint: #FFE354;
+    --color-basic-success: #0A7A0A;
+    --color-button-myInfo: #545454;
+    --color-table-notToday: #AEBFF7;
+    --color-table-today: #FFE498;
+    --font-color-black: #000000;
+    --font-color-gray: #797979;
+}
+
+/* 글씨 */
+@font-face {
+    font-family: 'SEBANG_Gothic_Bold';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/SEBANG_Gothic_Bold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Pretendard-Regular';
+    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+}
+
+/* reset.css */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+body {
+    line-height: 1;
+}
+ol, ul {
+    list-style: none;
+}
+blockquote, q {
+    quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content: '';
+    content: none;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+/* 공통부분 */
+body{
+    height: 100vh;
+    margin: 0 auto;
+    font-family: Pretendard-Regular;
+}
+.body__wrap {
+    display: inline-flex;
+    width: 100%;
+    overflow: hidden;
+}
+.div__wrap {
+    width: calc(100% - 350px);
+}
+[class^="msg__"] {
+    display: block;
+    color: var(--color-basic-error);
+    font-size: 14px;
+    font-weight: 800;
+}
+/* 색상 */
+.font__color--gray {
+    color: var(--font-color-gray);
+}
+.font__color--income {
+    color: #0033CC;
+}
+.font__color--expend {
+    color: #CC0605;
+}
+.display__none {
+    display: none;
+}
+.display__flex {
+    display: flex;
+}
+.display__inline-flex {
+    display: inline-flex;
+}
+/* 제목 */
+.header {
+    position: relative;
+    height: 20%;
+}
+.header__title {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: SEBANG_Gothic_Bold;
+    font-size: 55px;
+}
+.header__subTitle {
+    display: block;
+    font-size: 0.4em;
+}
+/* 표 */
+.table__width__percent--20 {
+    width: 20%;
+}
+.table__width__percent--30 {
+    width: 30%;
+}
+.table__height__percent--50 {
+    height: 50%;
+}
+/* 링크 */
+a, a:visited{
+    color: black;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a:visited {
+    color: var(--color-basic);
+}
+button, a {
+    cursor: pointer;
+}
+/* 버튼 */
+.button__count--02 {
+    display: flex;
+    justify-content: space-between;
+    margin: auto;
+}
+.button__size--small {
+    border: none;
+    border-radius: 10px;
+    color: white;
+}
+.button__size--medium  {
+    width: 100px;
+    height: 50px;
+    border: none;
+    border-radius: 10px;
+    color: white;
+}
+.button__size--big {
+    height: 50px;
+    border: none;
+    border-radius: 10px;
+    color: white;
+}
+.button__cancel {
+    background: var(--color-basic-cancel);
+}
+.button__confirm {
+    background: var(--color-basic-point);
+}
+.button__default {
+    background: var(--color-basic);
+    color: var(--color-basic-opposite);
+}
+/* 지도 */
+.location__info {
+    display:flex;
+    flex-flow: column;
+    width: 100%;
+}
+.map__display--flex {
+    display: inline-flex;
+}
+span#title {
+    color: var(--color-basic-point);
+    font-weight: 600;
+}
+span#road {
+    color: var(--color-basic);
+    font-size: 16px;
+}
+span#add {
+    position: relative;
+    color: var(--color-basic-sub);
+    font-size: 14px;
+}
+/* 페이징 */
+.paging {
+    width: 80%;
+    height: 100px;
+    margin: auto;
+    text-align: center;
+}
+.paging ul {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+}
+.paging li {
+    width: 30px;
+    height: 30px;
+    font-weight: 800;
+}
+.paging span {
+    color: var(--color-basic-point);
+    cursor: default;
+}

@@ -1,0 +1,107 @@
+/* 공통 영역 */
+a:visited {
+    color: var(--color-basic-opposite);
+}
+.nav {
+    width: 350px;
+    height: 100%;
+    background: var(--color-basic);
+    color: white;
+}
+/* 사용자 정보 */
+.user {
+    display: flex;
+    justify-content: center;
+    height: 20%;
+}
+.user__profile {
+    width: 120px;
+    height: 120px;
+    margin: auto;
+    border: 2px solid white;
+    border-radius: 70%;
+    overflow: hidden;
+}
+.profile__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.user__info {
+    width: calc(90% - 120px);
+    margin: auto;
+}
+.user__wrap {
+    width: 100%;
+    height: 80%;
+    text-align: center;
+}
+.user__nickName {
+    color: var(--color-basic-point);
+    font-size: 20px;
+    font-weight: 600;
+}
+.user__logout {
+    display: block;
+    margin-top: 10px;
+    color: var(--color-basic-subPoint);
+}
+.user__logout:visited {
+    color: var(--color-basic-subPoint);
+}
+/* 메뉴 */
+.menu {
+    height: 70%;
+    margin: 20px 0;
+}
+.menu > ul {
+    height: 100%;
+}
+.menu__item {
+    height: 10%;
+    padding: 10px;
+}
+.menu__item--selected {
+    background: var(--color-basic-point);
+    color: var(--color-basic-opposite);
+}
+.menu__item--selected svg {
+    fill: var(--color-basic-opposite);
+}
+.menu__item:hover:not(.menu__item--selected) {
+    background: var(--color-basic-opposite);
+}
+.menu__item:hover:not(.menu__item--selected) .menu__info {
+    color: var(--color-basic-point);
+}
+.menu__item:hover:not(.menu__item--selected) svg {
+    fill: var(--color-basic-point);
+}
+.menu__item > a {
+    display: inline-flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+}
+.menu__item > a:hover {
+    text-decoration: none;
+}
+.menu__icon {
+    width: 20%;
+    height: 60%;
+}
+.menu__icon > svg {
+    width: 100%;
+    height: 100%;
+    fill: white;
+}
+.menu__info {
+    color: var(--color-basic-opposite);
+    font-size: 22px;
+}
+/* 서비스 정보 */
+.copyright {
+    height: 10%;
+    text-align: center;
+    color: var(--color-basic-sub);
+}

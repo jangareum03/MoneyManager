@@ -1,0 +1,124 @@
+@import url("common.css");
+
+/*공통 영역*/
+.header, .login, .subLogin, .link {
+    width: 50%;
+    margin: auto;
+    text-align: center;
+}
+/* 제목
+    common.css에 작성되어 있음
+*/
+/* 로그인 창 */
+.login {
+    width: 30%;
+    height: 35%;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 40px;
+}
+.login__form {
+    height: 80%;
+}
+.login__item {
+    height: 20%;
+    margin: 7%;
+}
+.login__title {
+    display: block;
+    font-size: 18px;
+    font-weight: 800;
+    text-align: left;
+}
+.input {
+    width: 100%;
+    height: 60%;
+    border: none;
+    border-bottom: 1px solid var(--color-basic-sub);
+    background: transparent;
+}
+.input:focus {
+    outline: none;
+    border-bottom: 2px solid var(--color-basic-point);
+    background: transparent;
+}
+.login__checkbox {
+    position: relative;
+    top: -10%;
+    margin-left: 7%;
+    text-align: left;
+}
+.login__button {
+    position: relative;
+    height: 30%;
+}
+.login__button > .button__default {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 50px;
+    font-size: 20px;
+    font-weight: 800;
+}
+/* 간편 로그인 */
+.subLogin {
+    width: 25%;
+    height: 28%;
+}
+.subLogin__title {
+    display: flex;
+    flex-basis: 100%;
+    align-items: center;
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 12px;
+    margin: 8px 0px;
+}
+.subLogin__title:before,
+.subLogin__title:after {
+    content: "";
+    flex-grow: 1;
+    background: rgba(0, 0, 0, 0.35);
+    height: 1px;
+    font-size: 0px;
+    line-height: 0px;
+    margin: 0px 16px;
+}
+.subLogin__link {
+    display: block;
+    width: 80%;
+    height: 50px;
+    margin: 20px auto;
+    border-radius: 10px;
+}
+.subLogin--kakao {
+    background: #FEE500;
+}
+.subLogin--naver {
+    background: #03C75A;
+}
+.subLogin--google {
+    background: #3367D6;
+}
+.subLogin__image {
+    height: 100%;
+}
+/* 회원링크 */
+.link {
+    height: 10%;
+    color: var(--color-basic-sub);
+}
+.link__item {
+    margin-bottom: 10px;
+}
+.link__a, .link__a:visited {
+    color: var(--color-basic-point);
+}
+/* 에러 메시지 */
+.msg__error {
+    display: block;
+    width: 80%;
+    margin-top: 5px;
+    text-align: left;
+}

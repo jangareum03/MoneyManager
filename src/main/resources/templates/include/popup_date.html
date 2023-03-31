@@ -7,55 +7,55 @@
     <link rel="stylesheet" th:href="@{/css/popup.css}">
     <script>
         function clickGo(){
-            let yearList = document.getElementsByName('year');
-            let monthList = document.getElementsByName('month');
-            let weekList = document.getElementsByName('week');
-            let yChecked, mChecked, wChecked = false;
-            let year, month, week;
+            let year = document.getElementsByName('year');
+            let month = document.getElementsByName('month');
+            let week = document.getElementsByName('week');
+            let isYear, isMonth, isWeek = false;
+            let yearValue, monthValue, weekValue;
 
-            for( i=0; i<yearList.length; i++ ) {
-                if( yearList[i].checked ) {
-                    year = yearList[i].value;
-                    yChecked = true;
+            for( i=0; i<year.length; i++ ) {
+                if( year[i].checked ) {
+                    yearValue = year[i].value;
+                    isYear = true;
                 }
             }
 
-            if( !yChecked ) {
+            if( !isYear ) {
                 alert('년도를 선택해주세요.');
                 return false;
             }else{
-                for( i=0; i<monthList.length; i++){
-                    if( monthList[i].checked ) {
-                        month = monthList[i].value;
-                        mChecked = true;
+                for( i=0; i<month.length; i++){
+                    if( month[i].checked ) {
+                        monthValue = month[i].value;
+                        isMonth = true;
                     }
                 }
 
-                for( i=0; i<weekList.length; i++){
-                    if( weekList[i].checked ) {
-                        week = weekList[i].value;
-                        wChecked = true;
+                for( i=0; i<week.length; i++){
+                    if( week[i].checked ) {
+                        weekValue = week[i].value;
+                        isWeek = true;
                     }
                 }
 
-                if( !mChecked && !wChecked  ) {
+                if( !isMonth && !isWeek  ) {
                     //년만 선택됨
-                    opener.document.getElementById('year').value = year;
+                    opener.document.getElementById('year').value = yearValue;
                     opener.document.getElementById('type').value = 'y';
-                    opener.document.getElementById('parentForm').submit();
-                }else if( mChecked && !wChecked ) {
+                    opener.document.getElementsByClassName('header__form')[0].submit();
+                }else if( isMonth && !isWeek ) {
                      //년,월만 선택됨
-                    opener.document.getElementById('year').value = year;
-                    opener.document.getElementById('month').value = month;
+                    opener.document.getElementById('year').value = yearValue;
+                    opener.document.getElementById('month').value = monthValue;
                     opener.document.getElementById('type').value = 'm';
-                    opener.document.getElementById('parentForm').submit();
-                }else if( mChecked && wChecked ) {
+                    opener.document.getElementsByClassName('header__form')[0].submit();
+                }else if( isMonth && isWeek ) {
                     //년, 월, 주 모두 선택됨
-                    opener.document.getElementById('year').value = year;
-                    opener.document.getElementById('month').value = month;
-                    opener.document.getElementById('week').value = week;
+                    opener.document.getElementById('year').value = yearValue;
+                    opener.document.getElementById('month').value = monthValue;
+                    opener.document.getElementById('week').value = weekValue;
                     opener.document.getElementById('type').value = 'w';
-                    opener.document.getElementById('parentForm').submit();
+                    opener.document.getElementsByClassName('header__form')[0].submit();
                 }else{
                     alert('월을 선택해주세요.');
                     return false;
@@ -69,34 +69,43 @@
     </script>
 </head>
 <body>
-<div id="popup">
-    <div id="title">날짜 선택</div>
-    <div class="dateArea">
-        <span>년</span>
-        <div>
-            <label th:each="y : ${#numbers.sequence( (year-4), year)}">
-                <input type="radio" name="year" th:value="${y}">[[${y}]]년
-            </label>
+<div class="div__wrap">
+    <!-- 제목 -->
+    <div class="header">
+        <div class="header__title">
+            <span>날짜 선택</span>
         </div>
     </div>
-    <div class="dateArea">
-        <span>월</span>
-        <div>
-            <label th:each="m : ${#numbers.sequence(1, 12)}">
-                <input type="radio" name="month" th:value="${m}">[[${m}]]월
-            </label>
+    <!-- 날짜 선택 -->
+    <div class="date">
+        <div class="date__items">
+            <span class="date__title">년</span>
+            <div class="date__item">
+                <th:block th:each="y : ${#numbers.sequence( (year-4), year)}">
+                    <input type="radio" th:id="${y} + 'y'" name="year" th:value="${y}"><label th:for="${y} + 'y'">[[${y}]]</label>
+                </th:block>
+            </div>
+        </div>
+        <div class="date__items">
+            <span class="date__title">월</span>
+            <div class="date__item">
+                <th:block th:each="m : ${#numbers.sequence( 1, 12)}">
+                    <input type="radio" th:id="${m} + 'm'" name="month" th:value="${m}"><label th:for="${m} + 'm'">[[${m}]]</label>
+                </th:block>
+            </div>
+        </div>
+        <div class="date__items">
+            <span class="date__title">주</span>
+            <div class="date__item">
+                <th:block th:each="w : ${#numbers.sequence( 1, 5)}">
+                    <input type="radio" th:id="${w} + 'w'" name="week" th:value="${w}"><label th:for="${w} + 'w'">[[${w}]]</label>
+                </th:block>
+            </div>
         </div>
     </div>
-    <div class="dateArea">
-        <span>주</span>
-        <div>
-            <label th:each="w : ${#numbers.sequence(1, 5)}">
-                <input type="radio" name="week" th:value="${w}">[[${w}]]주
-            </label>
-        </div>
-    </div>
-    <div id="aloneBtn">
-        <button type="button" th:onclick="return clickGo()">확인</button>
+    <!-- 버튼 -->
+    <div class="button__count--01">
+        <button type="button" class="button__size--big button__default" th:onclick="return clickGo()">확인</button>
     </div>
 </div>
 </body>

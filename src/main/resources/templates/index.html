@@ -1,33 +1,59 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>돈매니저</title>
     <!-- css -->
-    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="/css/index.css">
     <link rel="shortcut icon" href="#">
 </head>
 <body>
-<div id="login">
-    <div class="title">
-        돈매니저<br>
-        <span>MoneyManager</span>
-    </div>
-    <form method="post" th:action="@{/login}" th:object="${member}">
-        <div id="inputGroup">
-            <input type="text" placeholder="아이디" class="input_id" th:field="*{id}" maxlength="15"><br>
-            <input type="password" placeholder="비밀번호" class="input_pwd" th:field="*{pwd}" maxlength="20"><br>
-            <label><input type="checkbox">로그인 상태 유지</label><br>
-            <button class="defaultBtn">로그인</button><br>
-            <span th:errors="*{id}" th:style="${'color: red'}"></span>
-            <span th:errors="*{pwd}" th:style="${'color: red'}"></span>
+    <!-- 제목 -->
+    <div class="header">
+        <div class="header__title">
+            돈매니저
+            <span class="header__subTitle">Money Manager</span>
         </div>
-    </form>
-    <div>
-        <a th:href="@{/join}">회원가입</a>
-        <a th:href="@{/helpId}"> 계정찾기</a>
     </div>
-</div>
+    <!-- 로그인 창 -->
+    <div class="login">
+        <form method="post" th:action="@{/login}" class="login__form" th:object="${member}">
+            <div class="login__item">
+                <span class="login__title">아이디</span>
+                <input type="text" class="input" th:field="*{id}" maxlength="15">
+                <span class="msg__error" th:errors="*{id}"></span>
+            </div>
+            <div class="login__item">
+                <span class="login__title">비밀번호</span>
+                <input type="password" class="input" th:field="*{password}" maxlength="20">
+                <span class="msg__error" th:errors="*{password}"></span>
+            </div>
+            <div class="login__checkbox">
+                <label class="login__label"><input type="checkbox">자동 로그인</label>
+            </div>
+            <div class="login__button">
+                <button class="button__size--big button__default">로그인</button>
+            </div>
+        </form>
+    </div>
+    <!-- 간편 로그인 -->
+    <div class="subLogin">
+        <div class="subLogin__title">간편 로그인</div>
+        <a class="subLogin__link subLogin--kakao"><img th:src="@{/image/kakao_login.png}" class="subLogin__image"></a>
+        <a class="subLogin__link subLogin--naver"><img th:src="@{/image/naver_login.png}" class="subLogin__image"></a>
+        <a class="subLogin__link subLogin--google"><img th:src="@{/image/google_login.png}" class="subLogin__image"></a>
+    </div>
+    <!-- 회원 링크 -->
+    <div class="link">
+        <div class="link__item">
+            아직 회원가입을 하지 않은 회원은?
+            <a th:href="@{/join}" class="link__a">회원가입</a>
+        </div>
+        <div class="link__item">
+            가입한 회원 정보를 잊어버린 회원은?
+            <a th:href="@{/helpId}" class="link__a">계정찾기</a>
+        </div>
+    </div>
 </body>
 </html>

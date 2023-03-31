@@ -50,7 +50,7 @@
         <div class="option">
             <div>
                 <form onsubmit="searchPlaces(); return false;">
-                    키워드 : <input type="text" value="이태원 맛집" id="keyword" size="15">
+                    키워드 : <input type="text" value="교보문고" id="keyword" size="15">
                     <button type="submit">검색하기</button>
                 </form>
             </div>
@@ -257,15 +257,16 @@ function removeAllChildNods(el) {
 }
 
 //검색 항목 onclick 이벤트 처리
-function saveLocation( name, roadAddr, addr ) {
-    opener.document.getElementById('locationName').innerHTML = name;
-    opener.document.getElementById('mapName').value = name;
-    opener.document.getElementById('locationRoad').innerHTML = roadAddr;
-    opener.document.getElementById('mapRoad').value = roadAddr;
-    opener.document.getElementById('locationAddr').innerHTML = addr;
-    opener.document.getElementById('mapAddr').value = addr;
-    opener.document.getElementById('mapInput').style.display = 'none';
-    opener.document.getElementById('location').style.display = 'block';
+function saveLocation( title, road, add ) {
+    opener.document.getElementById('title').innerHTML = title;
+    opener.document.getElementById('titleV').value = title;
+    opener.document.getElementById('road').innerHTML = road;
+    opener.document.getElementById('roadV').value = road;
+    opener.document.getElementById('add').innerHTML = add;
+    opener.document.getElementById('addV').value = add;
+
+    opener.document.getElementsByClassName('map__search')[0].style.display = 'none';
+    opener.document.getElementsByClassName('map__result')[0].classList.replace('display__none', 'display__inline-flex');
 
     window.close();
 }
