@@ -28,26 +28,26 @@ import java.util.Objects;
 public class MemberDaoImpl implements MemberDao {
 
     private final JdbcTemplate jdbcTemplate;
-    private final Logger Logger = LogManager.getLogger(MemberDaoImpl.class);
+    private final Logger LOGGER = LogManager.getLogger(MemberDaoImpl.class);
 
     public MemberDaoImpl(DataSource dataSource ) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     @Override
-    public int insertAttend(String mid, String today) throws SQLException {
-        return jdbcTemplate.update(
-                new PreparedStatementCreator() {
-                    @Override
-                    public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-                        PreparedStatement pstmt = con.prepareStatement("INSERT INTO tb_attendance VALUES(seq_attendance.NEXTVAL, ?, TO_DATE(?, 'YYYYMMDD'))");
-                        pstmt.setString(1, mid);
-                        pstmt.setString(2, today);
+    public int insertAttend( String mid, String today ) throws SQLException {
+            return jdbcTemplate.update(
+                    new PreparedStatementCreator() {
+                        @Override
+                        public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+                            PreparedStatement pstmt = con.prepareStatement("INSERT INTO tb_attendance VALUES(seq_attendance.NEXTVAL, ?, TO_DATE(?, 'YYYYMMDD'))");
+                            pstmt.setString(1, mid);
+                            pstmt.setString(2, today);
 
-                        return pstmt;
+                            return pstmt;
+                        }
                     }
-                }
-        );
+            );
     }
 
     @Override
@@ -127,7 +127,7 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public Integer selectCountById(String id, String sql) throws SQLException {
+    public Integer selectCountById( String id, String sql ) throws SQLException {
         return jdbcTemplate.queryForObject(
                 "SELECT COUNT(id) " +
                         "FROM tb_member_info " +
@@ -147,12 +147,11 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public MemberInfo selectEmail( String name, String id, String sql ) throws SQLException {
+    public MemberInfo selectEmail( String name, String id ) throws SQLException {
         List<MemberInfo> member = jdbcTemplate.query(
                 "SELECT email, resign_date " +
                         "FROM tb_member_info " +
-                        sql +
-                        "AND id = ? AND name = ?",
+                        "WHERE id = ? AND name = ?",
                 new RowMapper<MemberInfo>() {
                     @Override
                     public MemberInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -166,12 +165,11 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public MemberInfo selectId( String name, String email, String sql ) {
+    public MemberInfo selectId( String name, String email ) {
         List<MemberInfo> member = jdbcTemplate.query(
                 "SELECT id, last_login_date, resign_date " +
                         "FROM tb_member_info " +
-                        sql +
-                        "AND name = ? AND email = ?",
+                        "WHERE name = ? AND email = ?",
                 new RowMapper<MemberInfo>() {
                     @Override
                     public MemberInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -207,20 +205,35 @@ public class MemberDaoImpl implements MemberDao {
 
     @Override
     public String selectMid( String mid ) throws SQLException {
-        return jdbcTemplate.queryForObject(
-                "SELECT id FROM tb_member WHERE id LIKE '%' || ? || '%'",
-                String.class,
-                mid
-        );
+        try{
+            return jdbcTemplate.queryForObject(
+                "SELECT * " +
+                            "FROM ( " +
+                                "SELECT id " +
+                                    "FROM tb_member " +
+                                    "WHERE id LIKE '%' || ? || '%' " +
+                                    "ORDER BY id DESC ) " +
+                            "WHERE ROWNUM <2",
+                    String.class,
+                    mid
+            );
+        }catch ( EmptyResultDataAccessException e ) {
+            return null;
+        }
     }
 
     @Override
     public String selectMid( String id, String password ) throws SQLException {
+        try{
             return jdbcTemplate.queryForObject(
                     "SELECT member_id FROM tb_member_info WHERE id=? AND password=?",
                     String.class,
                     id, password
             );
+        }catch( EmptyResultDataAccessException e ) {
+            LOGGER.error("결과 쿼리의 값이 0으로 인한 에러 발생!!", e );
+            return null;
+        }
     }
 
     @Override

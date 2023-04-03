@@ -4,10 +4,10 @@ import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.service.main.HomeService;
 import com.areum.moneymanager.service.main.HomeServiceImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
@@ -20,6 +20,8 @@ import java.util.List;
 public class HomeController {
 
     private final HomeService homeService;
+
+    private final Logger LOGGER = LogManager.getLogger(HomeController.class);
 
     public HomeController(HomeServiceImpl homeService) {
         this.homeService = homeService;
@@ -56,25 +58,33 @@ public class HomeController {
         return mav;
     }
 
-    @GetMapping("/attendCheck")
     @ResponseBody
-    public void getAttendCheck( HttpSession session ) throws Exception {
+    @PostMapping("/attendanceCheck")
+    public int getAttendanceCheck( HttpSession session, String day ) throws Exception {
         String mid = (String) session.getAttribute("mid");
-
-        int result = homeService.doAttend(mid);
-        if( result == 1 ) {
-            homeService.getPoint(mid);
-        }
-    }
-
-    @GetMapping("/attendOne")
-    @ResponseBody
-    public String getAttendList( HttpSession session ) throws Exception {
-        String mid = (String) session.getAttribute("mid");
+        int selectDay = Integer.parseInt(day);
         LocalDate date = LocalDate.now();
 
-        List<ResMemberDto.AttendCheck> attendCheckList = homeService.completeAttend(mid, date.getYear(), date.getMonthValue(), date.lengthOfMonth() );
-        return attendCheckList.get(0).getDate();
+        LOGGER.info("사용자가 선택한 날짜는 {} 이다.", selectDay);
+
+        //마지막 출석날짜
+        List<ResMemberDto.AttendCheck> attendList = homeService.completeAttend(mid, date.getYear(), date.getMonthValue(), date.lengthOfMonth() );
+        int lastDay = 0;
+        if( attendList.size() != 0 ) {
+            lastDay = Integer.parseInt(attendList.get(0).getDate());
+        }
+        LOGGER.info("마지막 출석날짜는 {} 입니다.", lastDay);
+
+        if( lastDay == selectDay ) {
+            return 0;
+        }else if( selectDay != date.getDayOfMonth() ) {
+            return -1;
+        }else {
+            homeService.doAttend(mid);
+            homeService.getPoint(mid);
+
+            return 1;
+        }
     }
 
     @GetMapping("/moveCal")

@@ -19,7 +19,7 @@ import java.util.List;
 public class HomeServiceImpl implements HomeService {
 
     private final MemberDao memberDao;
-    private final Logger logger = LogManager.getLogger(HomeServiceImpl.class);
+    private final Logger LOGGER = LogManager.getLogger(HomeServiceImpl.class);
 
     public HomeServiceImpl( MemberDaoImpl memberDao) {
         this.memberDao = memberDao;

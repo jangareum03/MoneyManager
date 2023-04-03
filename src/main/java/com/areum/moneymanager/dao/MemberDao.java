@@ -32,10 +32,10 @@ public interface MemberDao {
     Integer selectCountByNickName( String nickName ) throws SQLException;
 
     //이메일 찾기
-    MemberInfo selectEmail( String name, String id, String sql ) throws SQLException;
+    MemberInfo selectEmail( String name, String id ) throws SQLException;
 
     //아이디와 마지막 접속일 찾기
-    MemberInfo selectId(String name, String email,  String sql ) throws SQLException;
+    MemberInfo selectId(String name, String email ) throws SQLException;
 
     //특정회원 조회
     MemberInfo selectMemberByMid( String mid ) throws SQLException;

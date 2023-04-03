@@ -5,8 +5,63 @@
     <title>메인 : 돈매니저</title>
     <!-- css -->
     <link rel="stylesheet" th:href="@{/css/home.css}">
+    <!-- js -->
+    <script th:inline="javascript">
+    const year = [[${year}]];
+    const month = [[${month}]];
+    const today = new Date();
+    const start = [[${start}]] - 1;
+
+    function isDate( day ) {
+        if( year == today.getFullYear() && month == (today.getMonth() + 1) && day == today.getDate() ) {
+            return true;
+        }else {
+            return false;
+        }
+    }
+
+    function attendCheck( day ) {
+        if( isDate(day) ) {
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '/home/attendanceCheck', true);
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            xhr.send('day=' + day);
+
+            xhr.onload = function() {
+                if( xhr.status == 200 ) {
+                    if( xhr.response == -1 ) {
+                        alert('잘못된 날짜 선택으로 출석체크가 불가능합니다.');
+                    }else if( xhr.response == 0 ){
+                        alert('오늘 출석은 이미 완료했습니다. 내일 다시 해주세요!');
+                    }else{
+                        alert('출석 완료 했습니다.');
+
+                        const index = parseInt(start) + parseInt(day);
+                        let img = document.getElementsByClassName('calender__img')[index];
+                        img.style.visibility = 'visible';
+                    }
+                }else{
+                    alert('통신 실패했습니다. 잠시 후 다시 시도해주세요.');
+                }
+            }
+        }
+    }
+
+    function showAttend() {
+        let list = [[${attendList}]];
+
+        for( let i=0; i<list.length; i++ ) {
+            for( let j=0; j<=[[${end}]]; j++ ) {
+                if( list[i].date == j ) {
+                    let img = document.getElementsByClassName('calender__img')[j+ start];
+                    img.style.visibility = 'visible';
+                }
+            }
+        }
+    }
+    </script>
 </head>
-<body class="body__wrap">
+<body class="body__wrap" th:onload="showAttend()">
 <nav th:replace="/include/menu.html :: nav"></nav>
 <div class="div__wrap">
     <!-- 날짜 이동 -->
@@ -24,7 +79,7 @@
         <table class="calender__table">
             <tr th:each="row : ${#numbers.sequence(1, rows)}">
                 <th:block th:each="col : ${#numbers.sequence(1, 7)}">
-                    <td th:with="date=${ ((col + (7-col)) * (row-1) + col) - start}" class="calender__notToday" th:classappend="${ ((col + (7-col)) * (row-1) + col) - start == today} ? calender__today" th:onclick="attendCheck([[${ ((col + (7-col)) * (row-1) + col) - start}]])">
+                    <td th:with="date=${ ((col + (7-col)) * (row-1) + col) - start}" class="calender__notToday" th:classappend="${ ((col + (7-col)) * (row-1) + col) - start == today} ? calender__today" th:day="${ ((col + (7-col)) * (row-1) + col) - start}" th:onclick="attendCheck(this.getAttribute('day'))">
                             <span th:if="${ (date > 0) && (date <= end) }" class="calender__date" th:classappend="${ date == today} ? calender__today--color">
                                 <th:block th:if="${date < 10}">0[[${date}]]</th:block>
                                 <th:block th:unless="${date < 10}">[[${date}]]</th:block>
