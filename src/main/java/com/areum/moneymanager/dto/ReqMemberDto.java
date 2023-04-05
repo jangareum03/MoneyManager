@@ -58,6 +58,10 @@ public class ReqMemberDto {
             return MemberInfo.builder().memberId(mid)
                     .id(id).password(password).name(name).nickName(nickName).email(email).gender(gender).build();
         }
+
+        public void encPassword( String password ) {
+            this.password = password;
+        }
     }
 
     //로그인
@@ -65,14 +69,14 @@ public class ReqMemberDto {
     @AllArgsConstructor
     public static class Login {
         private String id;
-        private String pwd;
+        private String password;
 
         public MemberInfo toEntity(){
-            return MemberInfo.builder().id(id).password(pwd).build();
+            return MemberInfo.builder().id(id).password(password).build();
         }
 
         public MemberInfo toEntity( String mid ) {
-            return MemberInfo.builder().memberId(mid).id(id).password(pwd).build();
+            return MemberInfo.builder().memberId(mid).id(id).password(password).build();
         }
 
         public UpdateHistory toUpdateHistoryEntity( String mid ) {

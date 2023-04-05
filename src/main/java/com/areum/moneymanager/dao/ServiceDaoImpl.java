@@ -110,7 +110,7 @@ public class ServiceDaoImpl implements ServiceDao {
     public List<ResServiceDto.ListAccount> selectAccountByParentCategory( String mid, String startDate, String endDate, String code ) throws SQLException {
         return jdbcTemplate.query(
                 "SELECT tab.id, tab.account_date, tab.fix, SUBSTR(tab.category_id, 0, 2) code, tc.name, tab.title, tab.price " +
-                        "FROM tb_account_book tab, ( SELECT name,code FROM tb_category WHERE parent_code = ? ) tc " +
+                        "FROM tb_account_book tab, ( SELECT * FROM tb_category START WITH parent_code = ? CONNECT BY parent_code = PRIOR code ) tc " +
                         "WHERE member_id = ? " +
                         "AND tc.code = tab.category_id " +
                         "AND tab.account_date BETWEEN TO_DATE(?, 'YYYYMMDD') AND TO_DATE(?, 'YYYYMMDD') " +

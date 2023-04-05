@@ -1,10 +1,7 @@
 package com.areum.moneymanager.dao;
 
 import com.areum.moneymanager.dto.ReqMemberDto;
-import com.areum.moneymanager.entity.Attendance;
-import com.areum.moneymanager.entity.MemberInfo;
-import com.areum.moneymanager.entity.Question;
-import com.areum.moneymanager.entity.UpdateHistory;
+import com.areum.moneymanager.entity.*;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -22,6 +19,9 @@ public interface MemberDao {
 
     //출석날짜 리스트 출력
     List<Attendance> selectAttendDateList(ReqMemberDto.AttendCheck date ) throws SQLException;
+
+    //회원 아이디 찾기
+    MemberInfo selectById( String id );
 
     //아이디 갯수 찾기
     Integer selectCountById( String id ) throws SQLException;
@@ -51,7 +51,7 @@ public interface MemberDao {
     String selectPwdByMid( String mid ) throws SQLException;
 
     //탈퇴한 계정 찾기
-    Integer selectResignMember( MemberInfo memberInfo ) throws SQLException;
+    Integer selectResignMember( String id, String password ) throws SQLException;
 
     //회원유형 찾기
     String selectType( String mid ) throws SQLException;

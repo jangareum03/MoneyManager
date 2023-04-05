@@ -45,6 +45,7 @@
 .login__checkbox {
     position: relative;
     top: -10%;
+    margin-top: 70px;
     margin-left: 7%;
     text-align: left;
 }

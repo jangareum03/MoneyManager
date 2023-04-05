@@ -116,6 +116,25 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
+    public MemberInfo selectById( String id ) {
+        List<MemberInfo> member = jdbcTemplate.query(
+                "SELECT * " +
+                        "FROM tb_member_info " +
+                        "WHERE id = ?",
+                new RowMapper<MemberInfo>() {
+                    @Override
+                    public MemberInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return MemberInfo.builder().id(rs.getString("id")).name(rs.getString("name")).password(rs.getString("password")).gender(rs.getString("gender").charAt(0)).regDate(rs.getDate("reg_date"))
+                                .email(rs.getString("email")).nickName(rs.getString("nickname")).profile(rs.getString("profile")).lastLoginDate(rs.getDate("last_login_date"))
+                                .checkCnt(rs.getInt("check_cnt")).build();
+                    }
+                },
+                id
+        );
+        return member.isEmpty() ? null : member.get(0);
+    }
+
+    @Override
     public Integer selectCountById( String id ) throws SQLException {
         return jdbcTemplate.queryForObject(
                 "SELECT COUNT(id) " +
@@ -262,7 +281,7 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public Integer selectResignMember( MemberInfo memberInfo ) throws SQLException {
+    public Integer selectResignMember( String id, String password ) throws SQLException {
         try {
             return jdbcTemplate.queryForObject(
                     "SELECT COUNT(id) " +
@@ -270,7 +289,7 @@ public class MemberDaoImpl implements MemberDao {
                                     "WHERE id = (SELECT member_id FROM tb_member_info WHERE id = ? AND password = ? AND resign_date IS NOT NULL) " +
                                         "AND resign = 'y' AND restore = 'n'",
                     Integer.class,
-                    memberInfo.getId(), memberInfo.getPassword()
+                    id, password
             );
         }catch ( EmptyResultDataAccessException e ) {
             return 0;

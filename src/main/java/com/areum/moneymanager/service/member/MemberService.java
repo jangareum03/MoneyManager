@@ -29,9 +29,10 @@ public interface MemberService {
 
     //특정회원 찾기
     ResMemberDto.Member findMember( String mid ) throws SQLException;
+    ResMemberDto.AuthMember findAuthMember( String id );
 
     //회원번호 찾기
-    String findMid( ReqMemberDto.Login loginDto ) throws SQLException;
+    String findMid( String id, String password ) throws SQLException;
 
     //비밀번호 찾기
     ResMemberDto.FindPwd findPwd( ReqMemberDto.FindPwd findPwdDto ) throws SQLException;
@@ -47,11 +48,14 @@ public interface MemberService {
     //아이디중복확인
     int idCheck( String id ) throws SQLException;
 
+    //회원 확인
+    boolean isMember( String id );
+
     //회원가입
     void joinMember( ReqMemberDto.Join joinDto ) throws SQLException;
 
     //로그인
-    int loginCheck( ReqMemberDto.Login loginDto ) throws SQLException;
+    int loginCheck( String id, String password ) throws SQLException;
 
     //회원번호 생성
     String makeMemberId( String id ) throws SQLException;

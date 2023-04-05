@@ -6,13 +6,12 @@ import com.areum.moneymanager.entity.UpdateHistory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.sql.Date;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Getter
@@ -44,31 +43,91 @@ public class ResMemberDto {
         return ResMemberDto.AttendCheck.builder().date(attendance.getCheckDate().toString().substring(8)).build();
     }
 
+    //사용자 인증
+    @Builder
+    @Getter
+    public static class AuthMember implements UserDetails {
+        private String id;
+        private String password;
+        private String role;
+
+        public static AuthMember toDTO( MemberInfo memberInfo ) {
+            return AuthMember.builder().id( memberInfo.getId() ).password( memberInfo.getPassword() ).role("ROLE_USER").build();
+        }
+
+        //권한 리턴
+        @Override
+        public Collection<? extends GrantedAuthority> getAuthorities() {
+            Collection<GrantedAuthority> collection = new ArrayList<>();
+            collection.add(new GrantedAuthority() {
+                @Override
+                public String getAuthority() {
+                    return getRole();
+                }
+            });
+            return collection;
+        }
+
+        //비밀번호 리턴
+        @Override
+        public String getPassword() {
+            return this.password;
+        }
+
+        //아이디 리턴
+        @Override
+        public String getUsername() {
+            return this.id;
+        }
+
+        //계정만료 리턴
+        @Override
+        public boolean isAccountNonExpired() {
+            return true;
+        }
+
+        //계정잠금 리턴
+        @Override
+        public boolean isAccountNonLocked() {
+            return true;
+        }
+
+        //비밀번호 오래 사용 리턴
+        @Override
+        public boolean isCredentialsNonExpired() {
+            return true;
+        }
+
+        //계정 활성화 리턴
+        @Override
+        public boolean isEnabled() {
+            return true;
+        }
+    }
+
     //아이디 찾기
     @Getter
-    @NoArgsConstructor
+    @Builder
     public static class FindId{
         private String id;
         private Date lastDate;
         private Date resignDate;
 
-        public FindId( MemberInfo memberInfo ) {
-            this.id = memberInfo.getId();
-            this.lastDate = memberInfo.getLastLoginDate();
-            this.resignDate = memberInfo.getResignDate();
+        public static FindId toDTO( MemberInfo memberInfo ) {
+            return FindId.builder().id( memberInfo.getId() ).lastDate( memberInfo.getLastLoginDate() ).resignDate( memberInfo.getResignDate() ).build();
         }
+
     }
 
     //비밀번호 찾기
     @Getter
-    @NoArgsConstructor
+    @Builder
     public static class FindPwd {
         private String email;
         private Date resignDate;
 
-        public FindPwd( MemberInfo memberInfo ) {
-            this.email = memberInfo.getEmail();
-            this.resignDate = memberInfo.getResignDate();
+        public static FindPwd toDTO( MemberInfo memberInfo ) {
+            return  FindPwd.builder().email( memberInfo.getEmail() ).resignDate( memberInfo.getResignDate() ).build();
         }
     }
 

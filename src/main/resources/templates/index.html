@@ -18,16 +18,15 @@
     </div>
     <!-- 로그인 창 -->
     <div class="login">
-        <form method="post" th:action="@{/login}" class="login__form" th:object="${member}">
+        <form method="post" th:action="@{/login}" class="login__form">
             <div class="login__item">
                 <span class="login__title">아이디</span>
-                <input type="text" class="input" th:field="*{id}" maxlength="15">
-                <span class="msg__error" th:errors="*{id}"></span>
+                <input type="text" name="id" class="input" maxlength="15">
             </div>
             <div class="login__item">
                 <span class="login__title">비밀번호</span>
-                <input type="password" class="input" th:field="*{password}" maxlength="20">
-                <span class="msg__error" th:errors="*{password}"></span>
+                <input type="password" name="password" class="input" maxlength="20">
+                <span class="msg__error">[[${exception}]]</span>
             </div>
             <div class="login__checkbox">
                 <label class="login__label"><input type="checkbox">자동 로그인</label>
