@@ -1,12 +1,14 @@
 package com.areum.moneymanager.controller.member;
 
 import com.areum.moneymanager.dto.ReqMemberDto;
+import com.areum.moneymanager.entity.MemberInfo;
 import com.areum.moneymanager.service.member.MailService;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
@@ -18,13 +20,15 @@ public class JoinController {
 
     private final MemberService memberService;
     private final MailService mailService;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final Logger LOGGER = LogManager.getLogger(JoinController.class);
 
 
     @Autowired
-    public JoinController(MemberServiceImpl memberService, MailService mailService) {
+    public JoinController( MemberServiceImpl memberService, MailService mailService, BCryptPasswordEncoder bCryptPasswordEncoder ) {
         this.memberService = memberService;
         this.mailService = mailService;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @GetMapping
@@ -65,7 +69,10 @@ public class JoinController {
     }
 
     @PostMapping
-    public String postJoin( @ModelAttribute("member") ReqMemberDto.Join member ) throws Exception {
+    public String postJoin( ReqMemberDto.Join member ) throws Exception {
+
+        member.encPassword( bCryptPasswordEncoder.encode(member.getPassword()) );
+
         memberService.joinMember( member );
         LOGGER.info("회원가입 완료");
 

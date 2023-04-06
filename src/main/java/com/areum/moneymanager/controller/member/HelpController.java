@@ -6,10 +6,12 @@ import com.areum.moneymanager.service.member.MailService;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.text.DateFormat;
@@ -19,28 +21,31 @@ import java.time.Period;
 import java.util.Date;
 
 @Controller
+@RequestMapping("/help")
 public class HelpController {
 
     private final MemberService memberService;
     private final MailService mailService;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    public HelpController( MemberServiceImpl memberService, MailService mailService ) {
+    public HelpController( MemberServiceImpl memberService, MailService mailService, BCryptPasswordEncoder bCryptPasswordEncoder ) {
         this.memberService = memberService;
         this.mailService = mailService;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
-    @GetMapping("/helpId")
+    @GetMapping("/id")
     public String getHelpIdView() {
         return "/member/help_id";
     }
 
-    @GetMapping("/helpPwd")
+    @GetMapping("/password")
     public String getHelpPwdView() {
         return "/member/help_pwd";
     }
 
-    @PostMapping("/helpId/find")
+    @PostMapping("/find-id")
     public ModelAndView postFindId( ReqMemberDto.FindId findId ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
@@ -80,7 +85,7 @@ public class HelpController {
         return mav;
     }
 
-    @PostMapping("/helpPwd/find")
+    @PostMapping("/find-password")
     public ModelAndView postFindPwd( ReqMemberDto.FindPwd findPwd ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
@@ -91,7 +96,7 @@ public class HelpController {
             if( member.getResignDate() == null ) {
                 //임시 비밀번호 전송
                 String pwd = mailService.sendMail(member.getEmail(), "password");
-                memberService.changePwd( findPwd, pwd );
+                memberService.changePwd( findPwd, bCryptPasswordEncoder.encode(pwd) );
 
                 StringBuilder sb = new StringBuilder(member.getEmail());
                 int index = member.getEmail().indexOf("@");
@@ -111,7 +116,7 @@ public class HelpController {
                 if( diffDay < 30 ) {
                     //임시 비밀번호 전송
                     String pwd = mailService.sendMail(member.getEmail(), "password");
-                    memberService.changePwd( findPwd, pwd );
+                    memberService.changePwd( findPwd, bCryptPasswordEncoder.encode(pwd) );
 
                     StringBuilder sb = new StringBuilder(member.getEmail());
                     int index = member.getEmail().indexOf("@");
