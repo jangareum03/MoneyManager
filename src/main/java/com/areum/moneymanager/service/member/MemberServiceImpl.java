@@ -6,6 +6,7 @@ import com.areum.moneymanager.dto.ReqMemberDto;
 import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.entity.MemberInfo;
 import com.areum.moneymanager.entity.UpdateHistory;
+import com.areum.moneymanager.service.LogService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,46 +23,61 @@ import java.util.*;
 @Service
 public class MemberServiceImpl implements MemberService {
 
+    private final LogService logService;
     private final MemberDao memberDao;
-    private final Logger LOGGER = LogManager.getLogger(MemberServiceImpl.class);
+    private final Logger logger = LogManager.getLogger(MemberServiceImpl.class);
 
     @Autowired
-    public MemberServiceImpl(MemberDaoImpl memberDao) {
+    public MemberServiceImpl( MemberDaoImpl memberDao, LogService logService ) {
         this.memberDao = memberDao;
+        this.logService = logService;
     }
 
     @Override
     public String changeBasicFormatByDate( Date date ) throws SQLException {
         String originDate = String.valueOf(date);
+        String formatDate;
 
         int year = Integer.parseInt( originDate.substring(0, 4) );
         int month = Integer.parseInt( originDate.substring(5, 7) );
         int day = Integer.parseInt( originDate.substring(8, 10) );
 
-        return String.format("%d년 %d월 %d일", year, month, day);
+        formatDate = String.format("%d년 %d월 %d일", year, month, day);
+
+        logger.debug("{} 날짜에서 {}날짜로 변경", originDate, formatDate);
+        return formatDate;
     }
 
     @Override
     public String changeFormatByGender( char gender ) throws SQLException {
+        String formatGender;
+
         if( gender == 'n' ) {
-            return "선택없음";
+            formatGender = "선택없음";
         }else if( gender == 'm' ) {
-            return "남자";
+            formatGender = "남자";
         }else {
-            return "여자";
+            formatGender = "여자";
         }
+
+        logger.debug("성별을 {}에서 {}로 변경", gender, formatGender);
+        return formatGender;
     }
 
     @Override
     public String changeFormatByLastLogin( Date lastLogin ) throws SQLException {
-        String originalDate = String.valueOf(lastLogin);
+        String originDate = String.valueOf(lastLogin);
+        String formatDate;
 
-        int year = Integer.parseInt(originalDate.substring(0, 4));
-        int month = Integer.parseInt(originalDate.substring(5,7));
-        int date = Integer.parseInt(originalDate.substring(8, 10));
+        int year = Integer.parseInt(originDate.substring(0, 4));
+        int month = Integer.parseInt(originDate.substring(5,7));
+        int date = Integer.parseInt(originDate.substring(8, 10));
         String day = LocalDate.of(year, month, date).getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.KOREA);
 
-        return String.format("마지막 접속일은 %d년 %02d월 %02d일 %s 입니다.", year, month, date, day);
+        formatDate = String.format("마지막 접속일은 %d년 %02d월 %02d일 %s 입니다.", year, month, date, day);
+
+        logger.debug("{} 날짜에서 {}날짜로 변경", originDate, formatDate);
+        return formatDate;
     }
 
     @Override
@@ -69,7 +85,7 @@ public class MemberServiceImpl implements MemberService {
         MemberInfo memberInfo = findPwdDto.toEntity();
 
         memberDao.updatePwd( memberInfo.getId(), newPwd );
-        LOGGER.debug("임시 비밀번호 변경: {}", newPwd);
+        logger.debug("임시 비밀번호({}) 변경", newPwd);
     }
 
     @Override
@@ -77,14 +93,20 @@ public class MemberServiceImpl implements MemberService {
         MemberInfo deleteMember = delete.toEntity( mid );
         UpdateHistory updateHistory = delete.toUpdateHistoryEntity( mid );
 
-        memberDao.updateResignMember( deleteMember, "tmi", makeUpdateSQL(deleteMember, "deleteTmi") );
-        int result = memberDao.updateResignMember(deleteMember, "tm", makeUpdateSQL(deleteMember, "deleteTm"));
+        String[] tables = {"tmi", "tm"};
+        String[] types = {"deleteTmi", "deleteTm"};
+
+        int result = 0;
+        for( int i=0; i <tables.length; i++) {
+            result = memberDao.updateResignMember( deleteMember, tables[i], makeUpdateSQL(deleteMember, types[i]) );
+        }
 
         String sql = "INSERT INTO tb_update_history VALUES(seq_updateHistory.NEXTVAL, ?, ?, SYSDATE, ?, ?, ?, ?, ?)";
         if( result == 1 ) {
             updateHistory.updateSuccess('y');
         }
-        memberDao.insertUpdateHistory( mid, updateHistory, sql );
+
+        logService.updateMember( mid, updateHistory, result, sql );
     }
 
     @Override
@@ -106,31 +128,38 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public ResMemberDto.AuthMember findAuthMember( String id ) {
-        return ResMemberDto.AuthMember.toDTO( memberDao.selectById( id ) );
+    public ReqMemberDto.AuthMember findAuthMember( String id ) {
+        return ReqMemberDto.AuthMember.toDTO( memberDao.selectById( id ) );
     }
 
     @Override
     public String findMid( String id, String password ) throws SQLException {
         MemberInfo memberInfo = new ReqMemberDto.Login( id, password ).toEntity();
-        LOGGER.debug("[회원번호 유무 확인] 아이디: {}, 비밀번호: {}", memberInfo.getId(), memberInfo.getPassword());
 
         return memberDao.selectMid( memberInfo.getId(), memberInfo.getPassword() );
     }
 
     private UpdateHistory findNowMember( MemberInfo memberInfo, ReqMemberDto.Update update ) {
+        UpdateHistory updateHistory;
         if( update.getName() != null ) {
-            return UpdateHistory.builder().success('n').type('N').bfInfo(memberInfo.getName()).afInfo(update.getName()).build();
+            logger.debug("기존 이름: {}, 변경할 이름: {}", memberInfo.getName(), update.getName());
+            updateHistory = UpdateHistory.builder().success('n').type('N').bfInfo(memberInfo.getName()).afInfo(update.getName()).build();
         }else if( update.getGender() != '\u0000' ) {
-            return UpdateHistory.builder().success('n').type('G').bfInfo(String.valueOf(memberInfo.getGender())).afInfo(String.valueOf(update.getGender())).build();
+            logger.debug("기존 성별: {}, 변경할 성별: {}", memberInfo.getGender(), update.getGender());
+            updateHistory = UpdateHistory.builder().success('n').type('G').bfInfo(String.valueOf(memberInfo.getGender())).afInfo(String.valueOf(update.getGender())).build();
         }else if( update.getEmail() != null ) {
-            return UpdateHistory.builder().success('n').type('E').bfInfo(memberInfo.getEmail()).afInfo(update.getEmail()).build();
+            logger.debug("기존 이메일: {}, 변경할 이메일: {}", memberInfo.getEmail(), update.getEmail());
+            updateHistory = UpdateHistory.builder().success('n').type('E').bfInfo(memberInfo.getEmail()).afInfo(update.getEmail()).build();
         }else if( update.getProfile() != null ){
+            logger.debug("기존 프로필: {}, 변경할 프로필: {}", memberInfo.getProfile(), update.getProfile().getOriginalFilename());
             String profile = memberInfo.getProfile() == null ? " " : memberInfo.getProfile();
-            return UpdateHistory.builder().success('n').type('I').bfInfo(profile).afInfo(update.getProfile().getOriginalFilename()).build();
+            updateHistory = UpdateHistory.builder().success('n').type('I').bfInfo(profile).afInfo(update.getProfile().getOriginalFilename()).build();
         }else{
-            return UpdateHistory.builder().success('n').type('P').bfInfo(memberInfo.getPassword()).afInfo(update.getPassword()).build();
+            logger.debug("기존 비밀번호: {}, 변경할 비밀번호: {}", memberInfo.getPassword(), update.getPassword());
+            updateHistory = UpdateHistory.builder().success('n').type('P').bfInfo(memberInfo.getPassword()).afInfo(update.getPassword()).build();
         }
+
+        return updateHistory;
     }
 
     @Override
@@ -146,8 +175,10 @@ public class MemberServiceImpl implements MemberService {
         String pwd = memberDao.selectPwdByMid( mid );
 
         if( pwd.equals(password) ) {
+            logger.debug("비밀번호 일치");
             return 1;
         }else{
+            logger.debug("비밀번호 불일치");
             return 0;
         }
     }
@@ -163,26 +194,31 @@ public class MemberServiceImpl implements MemberService {
     }
 
     private String changeType( String type ) {
+        String result;
         switch (type) {
             case "N":
-                return "네이버";
+                result = "네이버";
             case "K":
-                return "카카오";
+                result = "카카오";
             case "G":
-                return "구글";
+                result = "구글";
             case "F":
-                return "페이스북";
+                result = "페이스북";
             default:
-                return "일반회원";
+                result = "일반회원";
         }
+
+        logger.debug("회원 유형을 {}에서 {}로 변경", type, result);
+        return result;
     }
 
     @Override
     public int idCheck( String id ) throws SQLException {
-        LOGGER.debug("중복확인 요청 아이디: {}", id);
-
         String sql = "AND member_id IN (SELECT id FROM TB_MEMBER WHERE resign = 'n' OR (resign = 'y' AND restore = 'y')) ";
-        return memberDao.selectCountById( id, sql );
+        int result = memberDao.selectCountById( id, sql );
+
+        logger.debug(result == 1 ? "아이디 있음" : "아이디 없음");
+        return result;
     }
 
     @Override
@@ -196,8 +232,7 @@ public class MemberServiceImpl implements MemberService {
         MemberInfo memberInfo = joinDto.toEntity(mid);
 
         memberDao.insertMember( memberInfo );
-        LOGGER.debug("회원가입 완료 데이터: mid({}), id({}), password({}), name({}), nickName({}), email({}), gender({})",
-                mid, joinDto.getId(), joinDto.getPassword(), joinDto.getName(), joinDto.getNickName(), joinDto.getEmail(), joinDto.getGender());
+        logger.debug("회원가입 완료: {}}", joinDto.toString());
     }
 
     @Override
@@ -208,17 +243,16 @@ public class MemberServiceImpl implements MemberService {
             String pwd = memberDao.selectPwd( id );
 
             if( pwd.equals(password) ) {
+                memberDao.updateLastDate( id, password );
+                logger.debug("로그인 성공");
                 return 1;
             }else {
-                if( pwd.equals("null") ) {  //탈퇴한 계정
-                    return memberDao.selectResignMember( id, password ) == 1 ? -3 :  -2;
-                }
-                return -1;
+                logger.debug("로그인 실패");
+                return memberDao.selectResignMember( id, password ) == 1 ? -3 :  -2;
             }
-        }else {
-            //아이디 존재하지 않음
-            return 0;
         }
+
+        return 0;
     }
 
     @Override
@@ -237,14 +271,14 @@ public class MemberServiceImpl implements MemberService {
             int midNum = Integer.parseInt(mid.substring(5));
 
             if( midNum++ == 999 ) {
-                LOGGER.error("회원번호 생성 에러 발생!! 요청 아이디: {}", id);
+                logger.error("회원번호 생성 에러 발생!! 요청 아이디: {}", id);
                 return "에러";
             }else{
                 makeId += String.format("%03d", midNum);
             }
         }
 
-        LOGGER.debug("요청 아이디: {}, 생성된 회원번호: {}" , id, makeId);
+        logger.debug("요청 아이디: {}, 생성된 회원번호: {}" , id, makeId);
         return makeId;
     }
 
@@ -301,6 +335,7 @@ public class MemberServiceImpl implements MemberService {
                 break;
         }
 
+        logger.debug("회원 정보 수정 SQL 생성: {}", sql);
         return sql;
     }
 
@@ -313,19 +348,15 @@ public class MemberServiceImpl implements MemberService {
         String sql  = makeUpdateSQL( memberUpdate, "update" );
         int updateResult = memberDao.updateMemberInfo( mid, sql );
 
-        //회원정보 수정내역 추가
-        if( updateResult == 1 ) {
-            sql = "INSERT INTO tb_update_history(id, member_id, success, datetime, type, bf_info, af_info) VALUES(seq_updateHistory.NEXTVAL, ?, ?, SYSDATE, ?, ?, ?)";
-            updateHistory.updateSuccess('y');
-        }
-        memberDao.insertUpdateHistory( mid, updateHistory, sql );
-
+        logService.updateMember( mid, updateHistory, updateResult, sql );
     }
 
     @Override
     public int nickNameCheck( String nickName ) throws SQLException {
-        LOGGER.debug("중복확인 요청 닉네임: {}", nickName);
-        return memberDao.selectCountByNickName(nickName);
+        int result = memberDao.selectCountByNickName(nickName);
+
+        logger.debug(result == 1 ? "닉네임 있음" : "닉네임 없음");
+        return result;
     }
 
     @Override
@@ -341,6 +372,6 @@ public class MemberServiceImpl implements MemberService {
             updateHistory.updateSuccess('y');
         }
 
-        memberDao.insertUpdateHistory( mid, updateHistory, sql );
+        logService.updateMember( mid, updateHistory, result, sql );
     }
 }

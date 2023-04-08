@@ -1,6 +1,6 @@
 package com.areum.moneymanager.config;
 
-import com.areum.moneymanager.dto.ResMemberDto;
+import com.areum.moneymanager.dto.ReqMemberDto;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,11 +26,13 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
     private static final int TIME = 60 * 30;
+    private static final String ROLE_USER = "ROLE_USER";
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
@@ -41,7 +43,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain( HttpSecurity http ) throws Exception {
         http.csrf().disable()
                 .authorizeHttpRequests()
-                .antMatchers("/", "/join", "/help/**").permitAll()
+                .antMatchers("/", "/join", "/help/**", "/login-fail").permitAll()
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
                 .and()
@@ -53,34 +55,44 @@ public class WebSecurityConfig {
                 .successHandler(new AuthenticationSuccessHandler() {
                     @Override
                     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                        String auth = ((ResMemberDto.AuthMember) authentication.getPrincipal()).getRole();
+                        String auth = ((ReqMemberDto.AuthMember) authentication.getPrincipal()).getRole();
 
-                        if( auth.equals("ROLE_USER") ) {
+                        if( auth.equals(ROLE_USER) ) {
                             request.getSession().setMaxInactiveInterval(TIME); //세션 타임아웃 시간 설정
+
                             response.sendRedirect("/login-success");
                         }
                     }
                 })
                 .failureHandler(new AuthenticationFailureHandler() {
                     @Override
-                    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-                        String errorMessage;
+                    public void onAuthenticationFailure( HttpServletRequest request, HttpServletResponse response, AuthenticationException exception ) throws IOException, ServletException {
+                        String error, errorMessage;
+
                         if (exception instanceof BadCredentialsException) {
                             errorMessage = "아이디와 비밀번호가 일치하지 않습니다. 다시 확인해주세요.";
-                        } else if (exception instanceof InternalAuthenticationServiceException) {
-                            errorMessage = "내부적으로 발생한 시스템 문제로 인해 요청을 처리할 수 없습니다. 관리자에게 문의하세요.";
+                            error = "BadInfo";
                         } else if (exception instanceof UsernameNotFoundException) {
                             errorMessage = "계정이 존재하지 않습니다. 회원가입 진행 후 로그인 해주세요.";
-                        } else if (exception instanceof AuthenticationCredentialsNotFoundException) {
+                            error = "NotInfo";
+                        }else if (exception instanceof InternalAuthenticationServiceException) {
+                            errorMessage = "내부적으로 발생한 시스템 문제로 인해 요청을 처리할 수 없습니다. 관리자에게 문의하세요.";
+                            error = "SystemError";
+                        }  else if (exception instanceof AuthenticationCredentialsNotFoundException) {
                             errorMessage = "인증 요청이 거부되었습니다. 관리자에게 문의하세요.";
+                            error = "RefuseAuth";
                         } else {
                             errorMessage = "알 수 없는 이유로 로그인에 실패하였습니다 관리자에게 문의하세요.";
+                            error = "NotKnow";
                         }
 
-                        response.sendRedirect("/?error=true&exception=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8));
+                        response.sendRedirect( "/login-fail?error=" + error + "&exception=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8) + "&id=" + request.getParameter("id") );
                     }
                 })
-                .permitAll();
+                .and()
+                .logout()
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/");
 
         return http.build();
     }

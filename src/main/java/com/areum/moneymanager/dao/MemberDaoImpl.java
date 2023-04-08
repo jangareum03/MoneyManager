@@ -1,10 +1,8 @@
 package com.areum.moneymanager.dao;
 
 import com.areum.moneymanager.dto.ReqMemberDto;
-import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.entity.Attendance;
 import com.areum.moneymanager.entity.MemberInfo;
-import com.areum.moneymanager.entity.Question;
 import com.areum.moneymanager.entity.UpdateHistory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,16 +17,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @Repository
 public class MemberDaoImpl implements MemberDao {
 
     private final JdbcTemplate jdbcTemplate;
-    private final Logger LOGGER = LogManager.getLogger(MemberDaoImpl.class);
+    private final Logger logger = LogManager.getLogger(this.getClass());
 
     public MemberDaoImpl(DataSource dataSource ) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
@@ -67,30 +62,6 @@ public class MemberDaoImpl implements MemberDao {
                 pstmt.setString(6, memberInfo.getNickName());
                 pstmt.setString(7, Character.toString(memberInfo.getGender()));
                 pstmt.setString(8, memberInfo.getEmail());
-
-                return pstmt;
-            }
-        });
-    }
-
-    @Override
-    public void insertUpdateHistory( String mid, UpdateHistory updateHistory, String sql ) throws SQLException {
-        jdbcTemplate.update(new PreparedStatementCreator() {
-            @Override
-            public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-                PreparedStatement pstmt = con.prepareStatement(
-                        sql
-                );
-
-                pstmt.setString(1, mid);
-                pstmt.setString(2, Character.toString(updateHistory.getSuccess()));
-                pstmt.setString(3, Character.toString(updateHistory.getType()));
-                pstmt.setString(4, updateHistory.getBfInfo());
-                pstmt.setString(5, updateHistory.getAfInfo());
-                if( updateHistory.getDeleteType() != null ) {
-                    pstmt.setString(6, updateHistory.getDeleteType());
-                    pstmt.setString(7, updateHistory.getDeleteCause());
-                }
 
                 return pstmt;
             }
@@ -250,7 +221,6 @@ public class MemberDaoImpl implements MemberDao {
                     id, password
             );
         }catch( EmptyResultDataAccessException e ) {
-            LOGGER.error("결과 쿼리의 값이 0으로 인한 에러 발생!!", e );
             return null;
         }
     }
@@ -323,6 +293,16 @@ public class MemberDaoImpl implements MemberDao {
         );
 
         return updateHistoryList.isEmpty() ? null : updateHistoryList.get(0);
+    }
+
+    @Override
+    public void updateLastDate( String id, String password ) {
+      jdbcTemplate.update(
+              "UPDATE tb_member_info " +
+                            "SET last_login_date = SYS  DATE " +
+                            "WHERE id =? AND password = ?",
+              id, password
+      );
     }
 
     @Override

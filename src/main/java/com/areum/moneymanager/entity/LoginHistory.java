@@ -7,9 +7,9 @@ import java.sql.Date;
 
 @Builder
 @Getter
-public class LoginLog {
+public class LoginHistory {
     private Long id;
-    private String member_mid;
+    private String login_id;
     private String browser;
     private String ip;
     private Date login_date;

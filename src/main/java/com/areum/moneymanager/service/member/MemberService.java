@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 public interface MemberService {
 
+
     //날짜 기본양식으로 변경
     String changeBasicFormatByDate( Date date ) throws SQLException;
 
@@ -29,7 +30,7 @@ public interface MemberService {
 
     //특정회원 찾기
     ResMemberDto.Member findMember( String mid ) throws SQLException;
-    ResMemberDto.AuthMember findAuthMember( String id );
+    ReqMemberDto.AuthMember findAuthMember( String id );
 
     //회원번호 찾기
     String findMid( String id, String password ) throws SQLException;

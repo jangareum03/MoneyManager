@@ -43,67 +43,6 @@ public class ResMemberDto {
         return ResMemberDto.AttendCheck.builder().date(attendance.getCheckDate().toString().substring(8)).build();
     }
 
-    //사용자 인증
-    @Builder
-    @Getter
-    public static class AuthMember implements UserDetails {
-        private String id;
-        private String password;
-        private String role;
-
-        public static AuthMember toDTO( MemberInfo memberInfo ) {
-            return AuthMember.builder().id( memberInfo.getId() ).password( memberInfo.getPassword() ).role("ROLE_USER").build();
-        }
-
-        //권한 리턴
-        @Override
-        public Collection<? extends GrantedAuthority> getAuthorities() {
-            Collection<GrantedAuthority> collection = new ArrayList<>();
-            collection.add(new GrantedAuthority() {
-                @Override
-                public String getAuthority() {
-                    return getRole();
-                }
-            });
-            return collection;
-        }
-
-        //비밀번호 리턴
-        @Override
-        public String getPassword() {
-            return this.password;
-        }
-
-        //아이디 리턴
-        @Override
-        public String getUsername() {
-            return this.id;
-        }
-
-        //계정만료 리턴
-        @Override
-        public boolean isAccountNonExpired() {
-            return true;
-        }
-
-        //계정잠금 리턴
-        @Override
-        public boolean isAccountNonLocked() {
-            return true;
-        }
-
-        //비밀번호 오래 사용 리턴
-        @Override
-        public boolean isCredentialsNonExpired() {
-            return true;
-        }
-
-        //계정 활성화 리턴
-        @Override
-        public boolean isEnabled() {
-            return true;
-        }
-    }
 
     //아이디 찾기
     @Getter
