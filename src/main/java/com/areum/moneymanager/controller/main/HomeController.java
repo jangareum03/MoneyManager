@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
+import java.security.Principal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoField;
 import java.util.List;
@@ -21,14 +22,15 @@ public class HomeController {
 
     private final HomeService homeService;
 
-    private final Logger LOGGER = LogManager.getLogger(HomeController.class);
+    private final Logger LOGGER = LogManager.getLogger(this.getClass());
 
     public HomeController(HomeServiceImpl homeService) {
         this.homeService = homeService;
     }
 
+    //홈화면 요청
     @GetMapping
-    public ModelAndView getHomeView( HttpSession session ) throws Exception {
+    public ModelAndView getHomeView(HttpSession session ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
         //달력값 계산
@@ -58,6 +60,7 @@ public class HomeController {
         return mav;
     }
 
+    //출석체크 요청
     @ResponseBody
     @PostMapping("/attendanceCheck")
     public int getAttendanceCheck( HttpSession session, String day ) throws Exception {
@@ -65,21 +68,21 @@ public class HomeController {
         int selectDay = Integer.parseInt(day);
         LocalDate date = LocalDate.now();
 
-        LOGGER.info("사용자가 선택한 날짜는 {} 이다.", selectDay);
-
         //마지막 출석날짜
         List<ResMemberDto.AttendCheck> attendList = homeService.completeAttend(mid, date.getYear(), date.getMonthValue(), date.lengthOfMonth() );
         int lastDay = 0;
         if( attendList.size() != 0 ) {
             lastDay = Integer.parseInt(attendList.get(0).getDate());
         }
-        LOGGER.info("마지막 출석날짜는 {} 입니다.", lastDay);
 
         if( lastDay == selectDay ) {
+            LOGGER.info("오늘 출석 완료하여 출석체크 불가");
             return 0;
         }else if( selectDay != date.getDayOfMonth() ) {
+            LOGGER.info("선택한 날짜가 오늘이 아니라서 출석체크 불가");
             return -1;
         }else {
+            LOGGER.debug("출석체크 가능");
             homeService.doAttend(mid);
             homeService.getPoint(mid);
 
@@ -87,8 +90,10 @@ public class HomeController {
         }
     }
 
+    //년도 이동 요청
     @GetMapping("/moveCal")
     public ModelAndView getMoveCalendar(ReqServiceDto.MoveDate moveDate, HttpSession session ) throws Exception {
+        LOGGER.debug("출석 조회할 날짜(년: {}, 월: {}) 요청", moveDate.getYear(), moveDate.getMonth());
         ModelAndView mav = new ModelAndView();
 
         //달력값 계산
@@ -119,7 +124,5 @@ public class HomeController {
 
         return mav;
     }
-
-
 
 }

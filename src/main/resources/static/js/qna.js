@@ -1,44 +1,36 @@
 //검색 메뉴 선택
 function changeSearch( type ) {
-    let search = document.getElementsByClassName('search-area')[1];
-    let option = document.getElementsByClassName('search-box');
-    let input = document.getElementsByClassName('search__input_text');
+    let option = document.getElementsByClassName('search__option');
+    let text = document.getElementsByClassName('input__text');
 
     for( i=0; i< type.options.length - 1; i++ ) {
-        input[i].removeAttribute('name');
-        option[i].className = 'search-box box__display_none';
+        text[i].removeAttribute('name');
+        option[i].style.display = 'none';
     }
 
     if( type.value == 'all' ) {
         location.href = '/qna';
     }else{
-        search.style.display = 'inline';
-
-        let index;
         if( type.value == 'title' ) {
-            index = 0;
-            input[index].setAttribute('name', 'keyword');
-            option[index].className = 'search-box box__display_block';
+            text[0].setAttribute('name', 'keyword');
+            option[0].style.display = 'block';
         }else if( type.value == 'writer' ) {
-            index = 1;
-            input[index].setAttribute('name', 'keyword');
-            option[index].className = 'search-box box__display_block';
+            text[1].setAttribute('name', 'keyword');
+            option[1].style.display = 'block';
         }else {
-            index = 2;
-            input[index].setAttribute('name', 'startDate');
-            input[index+1].setAttribute('name', 'endDate');
-            option[index].className = 'search-box box__display_block';
+            text[2].setAttribute('name', 'startDate');
+            text[3].setAttribute('name', 'endDate');
+            option[2].style.display = 'block';
         }
     }
 }
-
 //검색어 확인
 function checkSearch() {
-    let type = document.getElementsByClassName('search__select')[0].value;
-    let keyword = document.getElementsByClassName('search__input_text');
-    let form = document.getElementsByClassName('search-form')[0];
+    let select = document.getElementsByName('type')[0].value;
+    let keyword = document.getElementsByClassName('input__text');
+    let form = document.getElementsByClassName('search__form')[0];
 
-    if( type == 'title' ) {
+    if( select == 'title' ) {
         if( keyword[0].value.replace(/ /g, '') == '' ) {
             alert('검색어를 입력해주세요.');
 
@@ -48,7 +40,7 @@ function checkSearch() {
         }else{
             form.submit();
         }
-    }else if( type == 'writer' ) {
+    }else if( select == 'writer' ) {
         if( keyword[1].value.replace(/ /g, '') == '' ) {
             alert('검색어를 입력해주세요.');
 
@@ -74,9 +66,10 @@ function checkSearch() {
         }
     }
 }
-
 //비밀글 확인 후 이동
 function checkMember( id ) {
+    console.log(id);
+
     let xhr = new XMLHttpRequest();
     xhr.open('POST', '/qna/checkMember', true);
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
@@ -85,7 +78,7 @@ function checkMember( id ) {
     xhr.onload = function(){
         if( xhr.status == 200 ) {
             if( xhr.response == 1 ) {
-                location.href = '/qna/detail/' + id;
+                location.href = '/qna/' + id;
             }else{
                 alert('비밀글이여서 볼 수 없습니다.');
             }
@@ -94,50 +87,53 @@ function checkMember( id ) {
         }
     }
 }
-
 //제목 확인
 let isTitle = false;
 function checkTitle( target ) {
     if( target.value.length == 0 ) {
-        document.getElementsByClassName('main__msg')[0].innerHTML = '제목을 입력해주세요.';
+        document.getElementsByClassName('msg__error')[0].innerHTML = '제목을 입력해주세요.';
         isTitle = false;
     }else{
-        document.getElementsByClassName('main__msg')[0].innerHTML = '';
+        document.getElementsByClassName('msg__error')[0].innerHTML = '';
         isTitle = true;
     }
 }
-
 //내용 확인
 let isContent = false;
 function checkContent( target ) {
     if( target.value.length == 0 ) {
-        document.getElementsByClassName('main__msg')[1].innerHTML = '내용을 입력해주세요.';
+        document.getElementsByClassName('msg__error')[1].innerHTML = '내용을 입력해주세요.';
         isContent =false;
     }else{
-        document.getElementsByClassName('main__msg')[1].innerHTML = '';
+        document.getElementsByClassName('msg__error')[1].innerHTML = '';
         isContent = true;
     }
 }
-
 //비밀글 여부 확인
 function clickBox(){
-    let checkbox = document.getElementsByClassName('main__input_checkbox')[0];
-    let boxValue = document.getElementsByClassName('main__input_hidden')[0];
+    let box = document.getElementsByClassName('input__checkbox')[0];
+    let value = document.getElementsByClassName('input__hidden')[0];
 
-    if( checkbox.checked ) {
-        boxValue.value = 'y';
-    }else{
-        boxValue.value = 'n';
+    if( box.checked ) {
+        value.setAttribute('value', 'n');
+    }else {
+        value.setAttribute('value', 'y');
     }
 }
-
 //Q&A 작성 조건 확인
 function checkWrite() {
+    let textarea = document.getElementsByClassName('textarea')[0];
+
+    //textarea에서 줄바꿈 처리
+    textarea.value = textarea.value.replaceAll(/(\n|\r|\n)/g, '<br>');
+
     if( isTitle && isContent ) {
-        document.getElementsByClassName('main__form')[0].submit();
+        document.getElementsByClassName('write__form')[0].submit();
     }else if( !isTitle ) {
-        document.getElementsByClassName('main__input')[0].focus();
+        alert('제목을 입력해주세요.');
+        document.getElementsByClassName('input__text')[0].focus();
     }else{
-        document.getElementsByClassName('main__textarea')[0].focus();
+        alert('내용을 입력해주세요.');
+        textarea.focus();
     }
 }

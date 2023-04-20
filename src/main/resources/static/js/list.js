@@ -1,40 +1,31 @@
 //검색영역 선택 동작
-function onChangeMode( input ) {
-    let mode = input.value;
-    let inout = document.getElementsByClassName('menu')[0];
-    let inCategory = document.getElementsByClassName('menu')[1];
-    let exCategory = document.getElementsByClassName('menu')[2];
-    let title = document.getElementsByClassName('menu')[3];
-    let period = document.getElementsByClassName('menu')[4];
+function onChangeMode( mode ) {
+    let option = document.getElementsByClassName('search__option');
 
-    inout.style.display = 'none';
-    inCategory.style.display = 'none';
-    exCategory.style.display = 'none';
-    title.style.display = 'none';
-    period.style.display = 'none';
+    //화면 안보이게
+    for( i=0; i<option.length; i++ ) {
+        option[i].style.display = 'none';
+    }
 
-    if( mode == 'all' ) {
-        document.getElementById('menu').submit();
-    }else if( mode == 'inout' ) {
-        inout.style.display = 'block';
+    if( mode.value == 'all' ) {
+        document.getElementsByClassName('search__form')[0].submit();
+    }else if( mode.value == 'inEx' ) {
+        option[0].style.display = 'inline-flex';
 
         let radioOption = document.getElementsByName('option');
         for( i=0; i<radioOption.length; i++ ) {
-            if( radioOption[i].checked ) {
-                radioOption[i].checked = false;
-            }
+            radioOption[i].checked = false;
         }
-    }else if( mode == 'inCategory' ) {
-        inCategory.style.display = 'block';
-    }else if( mode == 'exCategory' ) {
-        exCategory.style.display = 'block';
-    }else if( mode == 'title' ) {
-        title.style.display = 'block';
+    }else if( mode.value == 'inCategory' ) {
+        option[1].style.display = 'inline-flex';
+    }else if( mode.value == 'exCategory' ) {
+        option[2].style.display = 'inline-flex';
+    }else if( mode.value == 'title' ) {
+        option[3].style.display = 'inline-flex';
     }else{
-        period.style.display = 'block';
+        option[4].style.display = 'inline-flex';
     }
 }
-
 //카테고리 선택 시 하위 카테고리 표시
 function changeCategory( category ) {
     let mode_name = 'inMode';
@@ -49,7 +40,7 @@ function changeCategory( category ) {
     checkBoxDisabled( mode );
 
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/accountCategory', true);
+    xhr.open('GET', '/accounts/category', true);
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xhr.send('code=' + category.value);
 
@@ -60,7 +51,6 @@ function changeCategory( category ) {
             for( i=0; i<mode.length; i++ ){
                 if( i < result.length ) {
                     mode[i].value = result[i].code;
-                    mode[i].style.display = 'inline';
                     document.querySelector('label[for="' + label_name + i + '"]').innerText = result[i].name;
                     document.querySelector('label[for="' + label_name + i + '"]').style.display = 'inline';
                 }else{
@@ -73,7 +63,6 @@ function changeCategory( category ) {
         }
     }
 }
-
 //카테고리 체크박스 모두해제
 function checkBoxDisabled( category ){
     for( i=0; i<category.length; i++ ) {
@@ -82,8 +71,6 @@ function checkBoxDisabled( category ){
         }
     }
 }
-
-
 //Array를 JSON객체로 변환
 function arrToJson() {
     let check = document.getElementsByName('id');
@@ -99,7 +86,6 @@ function arrToJson() {
 
     return arr;
 }
-
 //내역 삭제 시 체크박스 확인
 function deleteCheck(){
     let check = document.getElementsByName('id');
@@ -116,19 +102,16 @@ function deleteCheck(){
         return false;
     }else{
         if( confirm("삭제하시겠습니까?") ) {
-            document.getElementById('table_list').submit();
+            document.getElementsByClassName('account__form')[0].submit();
         }else{
             return false;
         }
     }
 }
-
 //팝업창 띄우기
 function win_open( page, name ){
     window.open(page, name, "width=1000, height=600, left=500, top=200, toolbar=no, scrollbars=no, location=no, fullscreen=yes");
 }
-
-
 //기간 날짜 확인
 function periodCheck(){
     let start = document.getElementById('start').value;
@@ -148,5 +131,5 @@ function periodCheck(){
         return false;
     }
 
-    document.getElementById('menu').submit();
+    document.getElementsByClassName('search__form')[0].submit();
 }

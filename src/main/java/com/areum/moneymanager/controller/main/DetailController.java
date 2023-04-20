@@ -2,10 +2,13 @@ package com.areum.moneymanager.controller.main;
 
 import com.areum.moneymanager.dto.ReqServiceDto;
 import com.areum.moneymanager.dto.ResServiceDto;
+import com.areum.moneymanager.service.main.DetailService;
 import com.areum.moneymanager.service.main.DetailServiceImpl;
 import com.areum.moneymanager.service.ImageService;
 import com.areum.moneymanager.service.main.WriteService;
 import com.areum.moneymanager.service.main.WriteServiceImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -20,11 +23,13 @@ import java.util.*;
 
 
 @Controller
+@RequestMapping("/accounts")
 public class DetailController {
 
-    private final DetailServiceImpl detailService;
+    private final DetailService detailService;
     private final ImageService imageService;
-    private final WriteService writeService;
+    private final WriteServiceImpl writeService;
+    private final Logger LOGGER = LogManager.getLogger(this.getClass());
 
     @Autowired
     public DetailController(DetailServiceImpl detailService, ImageService imageService, WriteServiceImpl writeService) {
@@ -33,12 +38,21 @@ public class DetailController {
         this.writeService = writeService;
     }
 
-    @GetMapping("/accountDetail/{id}")
+    //카테로기 선택 시 하위 카테고리 요청
+    @ResponseBody
+    @GetMapping("/category")
+    public List<ResServiceDto.Category> getAccountCategory( String code ) throws SQLException {
+        return detailService.getAccountCategory(code);
+    }
+
+    //특정 가계부 상세화면 요청
+    @GetMapping("/{id}")
     public ModelAndView getAccountDetailView( @PathVariable Long id, HttpSession session ) throws SQLException, ParseException {
         ModelAndView mav = new ModelAndView();
 
         String mid = (String) session.getAttribute("mid");
         ResServiceDto.DetailAccount account = detailService.getAccountBookById( mid, id );
+
 
         //고정 옵션 설정
         String option = "";
@@ -73,8 +87,9 @@ public class DetailController {
         return mav;
     }
 
-    @RequestMapping( value = "/accountList", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView getAccountListView(@RequestParam(defaultValue = "all")String mode, @RequestParam(defaultValue = "m")String type, ReqServiceDto.AccountSearch search, HttpSession session ) throws Exception {
+    //가계부 리스트 요청
+    @RequestMapping(method = {RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE})
+    public ModelAndView getAccountListView(@RequestParam(defaultValue = "all") String mode, @RequestParam(defaultValue = "m") String type, ReqServiceDto.AccountSearch search, HttpSession session ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
         Map<String, Object> map = new HashMap<>();
@@ -83,15 +98,21 @@ public class DetailController {
         //선택한 날짜 옵션별로 년,월,주 설정
         Map<String, Object> accountMap = null;
         if( "y".equals(type) ){
+            LOGGER.debug("년 단위로 내역조회 리스트 화면 요청");
+
             map.put("year", search.getYear());
             accountMap = detailService.getAccountBookByYear(mid, mode, search);
         }else if( "w".equals(type) ) {
+            LOGGER.debug("주 단위로 내역조회 리스트 화면 요청");
+
             List<String> dateList = detailService.makeDate(search);
             map.put("year", dateList.get(0));
             map.put("month", dateList.get(1));
             map.put("week", search.getWeek());
             accountMap = detailService.getAccountBookByWeek(mid, mode, search);
         }else{
+            LOGGER.debug("월 단위로 내역조회 리스트 화면 요청");
+
             List<String> dateList = detailService.makeDate(search);
             map.put("year", dateList.get(0));
             map.put("month", dateList.get(1));
@@ -122,7 +143,6 @@ public class DetailController {
         map.put("outPrice", accountMap.get("outPrice"));
         map.put("totalPrice", (int) accountMap.get("inPrice") + (int) accountMap.get("outPrice"));
 
-
         //차트를 위한 session 저장
         session.setAttribute("chart", search);
         session.setAttribute("type", type);
@@ -132,7 +152,8 @@ public class DetailController {
         return mav;
     }
 
-    @GetMapping("/accountUpdate/{id}")
+    //가계부 수정화면 요청
+    @GetMapping("/update/{id}")
     public ModelAndView getAccountUpdateView( @PathVariable Long id, HttpSession session ) throws Exception {
         ModelAndView mav = new ModelAndView();
 
@@ -168,47 +189,21 @@ public class DetailController {
         return mav;
     }
 
-    @GetMapping("/datePopup")
-    public ModelAndView getPopupView() {
-        ModelAndView mav = new ModelAndView();
-
-        mav.addObject("year", LocalDate.now().getYear());
-        mav.setViewName("/include/popup_date");
-        return mav;
-    }
-
-    @ResponseBody
-    @PostMapping("/accountChart")
-    public JSONObject  postAccountChart( HttpSession session ) throws Exception {
-        String mid = (String)session.getAttribute("mid");
-
-        JSONObject result = detailService.makeJsonObject( mid, String.valueOf(session.getAttribute("type")) , (ReqServiceDto.AccountSearch) session.getAttribute("chart"));
-        session.removeAttribute("chart");
-        session.removeAttribute("type");
-
-        return  result;
-    }
-
-    @ResponseBody
-    @PostMapping("/accountCategory")
-    public List<ResServiceDto.Category> postAccountCategory( String code ) throws SQLException {
-        return detailService.getAccountCategory(code);
-    }
-
-    @PostMapping("/accountUpdate/{id}")
-    public String postAccountUpdate( ReqServiceDto.UpdateAccount updateAccount, HttpSession session ) throws Exception {
+    //특정 가가부 수정 요청
+    @PutMapping("/{id}")
+    public String putAccountUpdate( ReqServiceDto.UpdateAccount updateAccount, HttpSession session ) throws Exception {
         detailService.updateAccountBook( (String)session.getAttribute("mid"), updateAccount );
         imageService.uploadImageFile( updateAccount, (String)session.getAttribute("mid") );
-        return "forward:/accountList";
+        return "forward:/accounts";
     }
 
-    @PostMapping("/deleteAccount")
-    public String postDelete( ReqServiceDto.DeleteAccount deleteAccount, HttpSession session ) throws Exception {
+    //특정 가계부 삭제 요청
+    @DeleteMapping("/trashcan")
+    public String deleteAccount( ReqServiceDto.DeleteAccount deleteAccount, HttpSession session ) throws Exception {
         detailService.deleteAccountBook( (String)session.getAttribute("mid"), deleteAccount );
 
-        return "forward:/accountList";
+        return "forward:/accounts";
     }
-
 
 
 }

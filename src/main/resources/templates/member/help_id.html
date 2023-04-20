@@ -22,12 +22,12 @@
         <a class="tab__item tab__item--focus">
             <span class="tab__info">아이디</span>
         </a>
-        <a class="tab__item" th:href="@{/help/password}">
+        <a class="tab__item" th:href="@{/members/help(type='password')}">
             <span class="tab__info">비밀번호</span>
         </a>
     </div>
     <div class="help__wrap">
-        <form method="post" th:action="@{/help/find-id}" th:object="${member}" class="help__form">
+        <form method="post" th:action="@{/members/help/find-id}" th:object="${member}" class="help__form">
             <div class="help__item">
                 <span class="help__title">이름</span>
                 <input type="text" class="input" name="name" maxlength="10" th:onblur="nameCheck( this )">
@@ -47,7 +47,7 @@
 <!-- 링크 -->
 <div class="link">
     <a class="link__item" th:href="@{/}">로그인</a>
-    <a class="link__item" th:href="@{/join}">회원가입</a>
+    <a class="link__item" th:href="@{/members/join}">회원가입</a>
 </div>
 </body>
 </html>

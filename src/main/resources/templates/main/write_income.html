@@ -20,7 +20,7 @@
     </div>
     <!-- 수입 -->
     <div class="write__detail">
-        <form enctype="multipart/form-data" method="post" th:action="@{/write/accountBook}" class="write__form">
+        <form enctype="multipart/form-data" method="post" th:action="@{/accounts/write}" class="write__form">
             <input type="hidden" name="accountDate" th:value="${accountDate}">
             <div class="write__items">
                 <label class="write__title">고정 · 변동</label>
@@ -105,8 +105,8 @@
                 <label class="write__title">사진</label>
                 <div class="write__item">
                     <th:block th:each="num : ${#numbers.sequence(1, 3)}">
-                        <label th:if="${num <= maxImage}" class="image__label"><input type="file" name="images" class="input__file" th:style="${'display:none;'}" accept=".gif, .jpg, .png"><img src="/image/imageUnLock.png" class="images__img" th:style="${'cursor: pointer'}"/></label>
-                        <label th:unless="${num <= maxImage}" class="image__label image__label__pointer--none"><input type="file" name="images" th:style="${'display:none;'}"><img src="/image/imageLock.png" class="images__img"/></label>
+                        <label th:if="${num <= maxImage}" class="image__label"><input type="file" name="images" class="input__file" th:style="${'display:none;'}" accept=".gif, .jpg, .png"><img src="/images/imageUnLock.png" class="images__img" th:style="${'cursor: pointer'}"/></label>
+                        <label th:unless="${num <= maxImage}" class="image__label image__label__pointer--none"><input type="file" name="images" th:style="${'display:none;'}"><img src="/images/imageLock.png" class="images__img"/></label>
                     </th:block>
                 </div>
                 <script>
@@ -120,7 +120,7 @@
                                 };
                                 reader.readAsDataURL(this.files[0]);
                             } else{
-                                document.getElementsByClassName('images__img')[i].src = '/image/imageUnLock.png';
+                                document.getElementsByClassName('images__img')[i].src = '/images/imageUnLock.png';
                             }
                         });
                     }
@@ -130,7 +130,7 @@
                 <label class="write__title">위치</label>
                 <div class="write__item">
                     <label class="map__search write__location__search" th:onclick="openMapPop()">
-                        <img src="/image/location.png" class="location__img__search">
+                        <img src="/images/location.png" class="location__img__search">
                         <span>위치를 입력해주세요.</span>
                     </label>
                     <div class="map__result write__location__result display__none">

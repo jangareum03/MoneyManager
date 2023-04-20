@@ -5,7 +5,10 @@ import com.areum.moneymanager.dto.ResServiceDto;
 import com.areum.moneymanager.service.ImageService;
 import com.areum.moneymanager.service.main.WriteService;
 import com.areum.moneymanager.service.main.WriteServiceImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,12 +23,13 @@ import java.util.List;
 
 
 @Controller
-@RequestMapping("/write")
+@RequestMapping("/accounts/write")
 public class WriteController {
 
     private static final String INCOME_CODE = "010000";
     private  final WriteService writeService;
     private final ImageService imageService;
+    private final Logger logger = LogManager.getLogger(this.getClass());
 
     @Autowired
     public WriteController(WriteServiceImpl writeService, ImageService imageService ) {
@@ -33,13 +37,8 @@ public class WriteController {
         this.imageService = imageService;
     }
 
-    @GetMapping("/map")
-    public String getMapView(){
-        return "/kakaoApi/kakaoMap";
-    }
-
-
-    @GetMapping
+    //가계부 작성화면 요청
+    @GetMapping("/step1")
     public ModelAndView getWriteStep1View() throws Exception {
         ModelAndView mav = new ModelAndView();
         LocalDate today = LocalDate.now();
@@ -53,22 +52,25 @@ public class WriteController {
         return mav;
     }
 
-    @PostMapping("/category")
+    //카테고리 요청
     @ResponseBody
+    @PostMapping("/category")
     public List<ResServiceDto.Category> postCategoryList( String code ) throws Exception {
         return writeService.getCategory( code );
     }
 
-    @PostMapping("/accountBook")
-    public String postWrite(ReqServiceDto.Write write, HttpSession session ) throws Exception {
+    //가계부 등록 요청
+    @PostMapping
+    public String postWrite( ReqServiceDto.Write write, HttpSession session ) throws Exception {
         String mid = (String) session.getAttribute("mid");
 
         writeService.writeAccountBook(write, mid);
         imageService.uploadImageFile( write, mid );
-        return "redirect:/write";
+        return "redirect:/accounts/write/step1";
     }
 
-    @PostMapping
+    //가계부 화면 요청
+    @PostMapping("/step2")
     public ModelAndView postWriteStep2View( ReqServiceDto.DivisionAccount divisionAccount ) throws Exception {
         ModelAndView mav = new ModelAndView();
         LocalDate localDate = LocalDate.of(Integer.parseInt(divisionAccount.getYear()), Integer.parseInt(divisionAccount.getMonth()), Integer.parseInt(divisionAccount.getDate()));

@@ -43,7 +43,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain( HttpSecurity http ) throws Exception {
         http.csrf().disable()
                 .authorizeHttpRequests()
-                .antMatchers("/", "/join", "/help/**", "/login-fail").permitAll()
+                .antMatchers("/", "/members/join/**", "/members/help/**", "/members/login-fail").permitAll()
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
                 .and()
@@ -60,7 +60,7 @@ public class WebSecurityConfig {
                         if( auth.equals(ROLE_USER) ) {
                             request.getSession().setMaxInactiveInterval(TIME); //세션 타임아웃 시간 설정
 
-                            response.sendRedirect("/login-success");
+                            response.sendRedirect("/members/login-success");
                         }
                     }
                 })

@@ -5,54 +5,76 @@ import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.service.ImageService;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
 import java.sql.SQLException;
+import java.util.Objects;
 
 @Controller
+@RequestMapping("/members/mypage")
 public class MyPageController {
 
     private final MemberService memberService;
     private final ImageService imageService;
+    private final Logger logger= LogManager.getLogger(this.getClass());
 
     public MyPageController( MemberServiceImpl memberService, ImageService imageService ) {
         this.memberService = memberService;
         this.imageService = imageService;
     }
 
-    @GetMapping("/myPage")
-    public String getMyPageView() {
-        return "/member/mypage";
-    }
-
-    @GetMapping("/myInfo")
-    public ModelAndView getMyInfoView( HttpSession session ) throws SQLException {
-        ModelAndView mav = new ModelAndView();
-
+    @GetMapping
+    public ModelAndView getMyPageView( HttpSession session ) throws SQLException {
         String mid = (String)session.getAttribute("mid");
-        ResMemberDto.Member member = memberService.findMember( mid );
 
-        mav.addObject("profile", member.getProfile() == null ? null : imageService.findProfile( mid, member.getProfile(), memberService.findUpdateHistory( mid, 'I' ) ));
-        mav.addObject("badge", memberService.findType( mid ));
-        mav.addObject("nickName", member.getNickName());
-        mav.addObject("lastLogin", memberService.changeFormatByLastLogin(member.getLastLogin()));
-        mav.addObject("name", member.getName());
-        mav.addObject("gender", memberService.changeFormatByGender(member.getGender()));
-        mav.addObject("joinDate", memberService.changeBasicFormatByDate(member.getJoinDate()));
-        mav.addObject("totalAttend", member.getTotalCount());
-        mav.addObject("email", member.getEmail());
-        mav.setViewName("/member/myInfo");
+        ModelAndView mav = new ModelAndView();
+        mav.addObject("id", memberService.findId(mid));
+        mav.setViewName("/member/mypage");
 
-        session.setAttribute("profile", member.getProfile() == null ? null : imageService.findProfile( mid, member.getProfile(), memberService.findUpdateHistory( mid, 'I' ) ) );
         return mav;
     }
 
-    @PostMapping("/updateInfo")
-    public String postUpdateInfo( ReqMemberDto.Update update, HttpSession session ) throws Exception {
+    @GetMapping("/{id}")
+    public ModelAndView getMyInfoView(@PathVariable String id, HttpSession session ) throws SQLException {
+        ModelAndView mav = new ModelAndView();
+
+        String mid = (String)session.getAttribute("mid");
+
+        try{
+            ResMemberDto.Member member = memberService.findMember( mid );
+
+            mav.addObject("profile", member.getProfile() == null ? null : imageService.findProfile( mid, member.getProfile(), memberService.findUpdateHistory( mid, 'I' ) ));
+            mav.addObject("badge", memberService.findType( mid ));
+            mav.addObject("nickName", member.getNickName());
+            mav.addObject("lastLogin", memberService.changeFormatByLastLogin(member.getLastLogin()));
+            mav.addObject("name", member.getName());
+            mav.addObject("gender", memberService.changeFormatByGender(member.getGender()));
+            mav.addObject("joinDate", memberService.changeBasicFormatByDate(member.getJoinDate()));
+            mav.addObject("totalAttend", member.getTotalCount());
+            mav.addObject("email", member.getEmail());
+            mav.setViewName("/member/myInfo");
+
+            session.setAttribute("profile", member.getProfile() == null ? null : imageService.findProfile( mid, member.getProfile(), memberService.findUpdateHistory( mid, 'I' ) ) );
+
+        }catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+
+        return mav;
+    }
+
+    @GetMapping("/faq")
+    public String getFAQView() {
+        return "/main/faq";
+    }
+
+    @PutMapping
+    public String putUpdateInfo( ReqMemberDto.Update update, HttpSession session ) throws Exception {
         String mid = (String)session.getAttribute("mid");
 
         memberService.modifyMember( mid , update );
@@ -66,6 +88,6 @@ public class MyPageController {
             }
         }
 
-        return "redirect:/myInfo";
+        return "redirect:/members/mypage";
     }
 }

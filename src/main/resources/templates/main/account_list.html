@@ -58,7 +58,7 @@
 
         function drawChart() {
             let xhr = new XMLHttpRequest();
-            xhr.open('POST', '/api/accountChart', false);
+            xhr.open('GET', '/api/chart', false);
             xhr.setRequestHeader('content-type', 'application/json');
             xhr.send();
 
@@ -78,13 +78,13 @@
 <nav th:replace="/include/menu.html :: nav"></nav>
 <div class="div__wrap">
     <!-- 날짜 선택 -->
-    <div class="header" th:onclick="win_open('/datePopup', '날짜선택')">
+    <div class="header" th:onclick="win_open('/popup/dates', '날짜선택')">
         <div class="header__title" th:switch="${map['type']}">
             <span th:case="y">[[${map['year']}]]년</span>
             <span th:case="m">[[${map['year']}]]년 [[${map['month']}]]월</span>
             <span th:case="w">[[${map['year']}]]년 [[${map['month']}]]월 [[${map['week']}]]주</span>
         </div>
-        <form method="post" th:action="@{/accountList}" class="header__form">
+        <form method="post" th:action="@{/accounts}" class="header__form">
             <input type="hidden" name="year" id="year">
             <input type="hidden" name="month" id="month">
             <input type="hidden" name="week" id="week">
@@ -95,7 +95,7 @@
     <div class="chart"></div>
     <!-- 검색 영역 -->
     <div class="search">
-        <form method="post" th:action="@{/accountList}" class="search__form">
+        <form method="get" th:action="@{/accounts}" class="search__form">
             <input type="hidden" name="type" th:value="${map['type']}">
             <input type="hidden" name="year" th:value="${map['year']}">
             <input type="hidden" name="month" th:value="${map['month']}">
@@ -103,7 +103,7 @@
 
             <select name="mode" th:onchange="onChangeMode(this)">
                 <option th:value="${'all'}" th:selected="${map['mode']} == 'all'">전체</option>
-                <option th:value="${'inEx'}" th:selected="${map['mode']} == 'inout'">수입/지출</option>
+                <option th:value="${'inEx'}" th:selected="${map['mode']} == 'inEx'">수입/지출</option>
                 <option th:value="${'inCategory'}" th:selected="${map['mode']} == 'inCategory'">수입 카테고리</option>
                 <option th:value="${'exCategory'}" th:selected="${map['mode']} == 'exCategory'">지출 카테고리</option>
                 <option th:value="${'title'}" th:selected="${map['mode']} == 'title'">제목</option>
@@ -111,7 +111,7 @@
                     <option th:value="${'period'}" th:selected="${map['mode']} == 'period'">기간</option>
                 </th:block>
             </select>
-            <div class="search__option" th:style="${map['mode'] == 'inout' ? 'display: inline-flex' : 'display: none'}">
+            <div class="search__option" th:style="${map['mode'] == 'inEx' ? 'display: inline-flex' : 'display: none'}">
                 <label th:each="category : ${map['parent']}">
                     <input type="radio" th:value="${category.code}" name="option" class="input__radio" th:checked="${category.code == map['option']}" th:onclick="document.getElementsByClassName('search__form')[0].submit()">[[${category.name}]]
                 </label>
@@ -158,7 +158,7 @@
         <button type="button" th:onclick="deleteCheck()">삭제</button>
     </div>
     <!-- 내역 테이블 -->
-    <form method="post" th:action="@{/deleteAccount}"  class="account__form">
+    <form th:method="delete" th:action="@{/accounts/trashcan}" class="account__form">
         <input type="hidden" name="type" th:value="${map['type']}">
         <input type="hidden" name="year" th:value="${map['year']}">
         <input type="hidden" name="month" th:value="${map['month']}">
@@ -183,7 +183,7 @@
                     <td>[[${list.date}]]</td>
                     <td th:text="${list.fix == 'y' ? '고정' : '변동'}"></td>
                     <td>[[${list.name}]]</td>
-                    <td><a th:href="@{/accountDetail/{id}(id= ${list.id})}">[[${list.title}]]</a></td>
+                    <td><a th:href="@{/accounts/{id}(id= ${list.id})}">[[${list.title}]]</a></td>
                     <td th:text="${list.code == '01' ? '+ ' + #numbers.formatInteger(list.price, 3, 'COMMA') : '- ' + #numbers.formatInteger(list.price, 3, 'COMMA')}" class="font__color--income" th:classappend="${list.code == '02'} ? font__color--expend" >[[${list.price}]]</td>
                 </tr>
             </tbody>

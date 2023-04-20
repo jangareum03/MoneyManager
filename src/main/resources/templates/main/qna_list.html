@@ -104,8 +104,8 @@
       <tr th:unless="${#lists.size(qnaList)} == 0" th:each="qna : ${qnaList}">
         <td>[[${qna.num}]]</td>
         <td>
-          <a th:if="${qna.open} == 'y'" th:href="@{/qna/detail/{id}(id = ${qna.id})}">[[${qna.title}]]</a>
-          <a th:unless="${qna.open} == 'y'" th:qna="${qna.id}" th:onclick="checkMember( this.getAttribute('qna') )"><img src="/image/qnaLock.png" th:style="${'width: 20px;'}">비밀글입니다.</a>
+          <a th:if="${qna.open} == 'y'" th:href="@{/qna/{id}(id = ${qna.id})}">[[${qna.title}]]</a>
+          <a th:unless="${qna.open} == 'y'" th:qna="${qna.id}" th:onclick="checkMember( this.getAttribute('qna') )"><img src="/images/qnaLock.png" th:style="${'width: 20px;'}">비밀글입니다.</a>
         </td>
         <td th:text="${#dates.format(qna.regDate, 'yyyy-MM-dd')}"></td>
         <td>[[${qna.nickName}]]</td>

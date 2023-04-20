@@ -1,98 +1,88 @@
-//이름 검사
-function nameCheck() {
-    let name = document.getElementById('input_name').value;
-    let msg = document.getElementById('nameMsg');
-    let result = document.getElementById('nameResult');
+/*
+    이름                          |                                 설명
+    ---------------------------------------------------
+    nameCheck             |         이름 형식 확인
+    emailCheck             |         이메일 형식 확인
+    idCheck                   |         아이디 형식 확인
+    helpId                      |         필요한 정보 확인 후 아이디 찾기 실행
+    helpPwd                  |         필요한 정보 확인 후 비밀번호 변경 실행
+*/
+
+
+let msg = document.getElementsByClassName('msg__error');
+let isName, isEmail, isId = false;
+
+function nameCheck( name ) {
     const pattern = /[^a-zA-Zㄱ-ㅎ가-힣]/g;
 
-    msg.style.color = '#D71E1E';
-    result.value = 'n';
-
-    if( name == '' ) {
-        msg.innerHTML = '';
-    }else if( name.length < 3 || pattern.test(name) ) {
-        msg.innerHTML = '3글자 이상의 영문자와 한글만 입력해야 합니다.';
+    isName = false;
+    if( name.value == '' ) {
+        msg[0].innerHTML = '';
+    }else if( name.value.length < 2 || pattern.test(name.value) ) {
+        msg[0].innerHTML = '2글자 이상의 영문자와 한글만 입력해야 합니다.';
     }else{
-        result.value = 'y';
-        msg.innerHTML = '';
+        msg[0].innerHTML = '';
+        isName = true;
     }
 }
 
-//이메일 검사
-function emailCheck() {
-    let email = document.getElementById('input_email').value;
-    let msg = document.getElementById('emailMsg');
-    let result = document.getElementById('emailResult');
+function emailCheck( email ) {
     const pattern = /^([\w\.\_\-])*[a-zA-Z0-9]+([\w\.\_\-])*([a-zA-Z0-9])+([\w\.\_\-])+@([a-zA-Z0-9]+\.)+[a-zA-Z0-9]{2,8}$/;
 
-    msg.style.color = '#D71E1E';
-    result.value = 'n';
-
-    if( email == '' ) {
-        msg.innerHTML = '';
-    }else if( !pattern.test(email) ) {
-        msg.innerHTML = '이메일 형식에 맞게 입력해야 합니다.';
+    isEmail =false;
+    if( email.value == '' ) {
+        msg[1].innerHTML = '';
+    }else if( !pattern.test(email.value) ) {
+        msg[1].innerHTML = '이메일 형식에 맞게 입력해야 합니다.';
     }else{
-        result.value = 'y';
+        isEmail = true;
     }
 }
 
-//아이디값 체크
-function idCheck() {
-    let id = document.getElementById('input_id').value;
-    let msg = document.getElementById('idMsg');
-    let result = document.getElementById('idResult');
+function idCheck( id ) {
     const pattern = /[^a-zA-Z0-9]/g;
 
-    msg.style.color = '#D71E1E';
-    result.value = 'n';
-
-    if( id == '' ) {
-        msg.innerHTML = '';
-    }else if( id.length < 5 || pattern.test(id) ) {
-        msg.innerHTML = '5 ~ 20자리의 영문자와 숫자만 입력해야 합니다.';
+    isId = false;
+    if( id.value == '' ) {
+        msg[1].innerHTML = '';
+    }else if( id.value.length < 5 || pattern.test(id.value) ) {
+        msg[1].innerHTML = '5 ~ 20자리의 영문자와 숫자만 입력해야 합니다.';
     }else{
-        msg.innerHTML = '';
-        result.value = 'y';
+        msg[1].innerHTML = '';
+        isId = true;
     }
 }
 
-//아이디 찾기 체크
 function helpId() {
-    let name = document.getElementById('input_name').value;
-    let nameResult = document.getElementById('nameResult');
-    let email = document.getElementById('input_email').value;
-    let idResult = document.getElementById('emailResult');
+    let name = document.getElementsByClassName('input')[0];
+    let email = document.getElementsByClassName('input')[1];
 
-    if( name.length == 0 || nameResult.value == 'n' ) {
+    if( !isName ) {
         alert('이름을 확인해주세요.');
-        document.getElementById('input_name').focus();
+        name.focus();
         return false;
-    }else if( email.length == 0 || idResult.value == 'n' ) {
+    }else if( !isEmail ) {
         alert('이메일을 확인해주세요.');
-        document.getElementById('input_email').focus();
+        email.focus();
         return false;
     }else{
         return true;
     }
 }
 
-//비밀번호 찾기 체크
 function helpPwd() {
-    let name = document.getElementById('input_name').value;
-    let nameResult = document.getElementById('nameResult');
-    let id = document.getElementById('input_id').value;
-    let idResult = document.getElementById('idResult');
+    let name = document.getElementsByClassName('input')[0];
+    let id = document.getElementsByClassName('input')[1];
 
-    if( name.length == 0 || nameResult.value == 'n') {
+    if( !isName ) {
         alert('이름을 확인해주세요.');
-        document.getElementById('input_name').focus();
+        name.focus();
         return false;
-    }else if( id.length == 0 || idResult.value == 'n' ) {
+    }else if( !isId ) {
         alert("아이디를 확인해주세요.");
-        document.getElementById('input_id').focus();
+        id.focus();
         return false;
-    }else{
+    }else {
         return true;
     }
 }

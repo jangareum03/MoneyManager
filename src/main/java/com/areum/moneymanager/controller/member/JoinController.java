@@ -15,13 +15,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 @Controller
-@RequestMapping("/join")
+@RequestMapping("/members/join")
 public class JoinController {
 
     private final MemberService memberService;
     private final MailService mailService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final Logger LOGGER = LogManager.getLogger(JoinController.class);
+    private final Logger logger = LogManager.getLogger(this.getClass());
 
 
     @Autowired
@@ -37,44 +37,37 @@ public class JoinController {
     }
 
     @ResponseBody
-    @PostMapping("/emailCodeCheck")
+    @PostMapping("/check-email-code")
     public String postEmailCodeCheck(ReqMemberDto.Join member, String time, HttpServletRequest request ) {
-        LOGGER.info("이메일 인증코드 확인");
         HttpSession session = request.getSession();
-
         return mailService.emailCodeCheck(session, member.getEmail(), member.getCode(), time);
     }
 
     @ResponseBody
-    @PostMapping("/idCheck")
+    @PostMapping("/check-id")
     public int postIdCheck( ReqMemberDto.Join member ) throws Exception {
-        LOGGER.info("아이디 중복 확인");
         return memberService.idCheck(member.getId());
     }
 
     @ResponseBody
-    @PostMapping("/nickNameCheck")
+    @PostMapping("/check-nickname")
     public int postNickNameCheck( ReqMemberDto.Join member ) throws Exception {
-        LOGGER.info("닉네임 중복 확인");
         return memberService.nickNameCheck(member.getNickName());
     }
 
     @ResponseBody
-    @PostMapping("/sendEmail")
-    public void postSendEmailCode(ReqMemberDto.Join member, HttpSession session) throws Exception {
+    @PostMapping("/send-email")
+    public int postSendEmailCode(ReqMemberDto.Join member, HttpSession session) throws Exception {
         String code = mailService.sendMail(member.getEmail(), "email");
-        session.setAttribute(""+member.getEmail() , code);
+        session.setAttribute(""+ member.getEmail() , code);
 
-        LOGGER.info("이메일 전송 완료");
+        return 1;
     }
 
     @PostMapping
     public String postJoin( ReqMemberDto.Join member ) throws Exception {
-
         member.encPassword( bCryptPasswordEncoder.encode(member.getPassword()) );
-
         memberService.joinMember( member );
-        LOGGER.info("회원가입 완료");
 
         return "index";
     }

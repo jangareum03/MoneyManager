@@ -18,7 +18,7 @@
     </div>
 <!-- 회원가입 -->
     <div class="join">
-        <form method="post" th:action="@{/join}" th:object="${member}" class="join__form">
+        <form method="post" th:action="@{/members/join}" th:object="${member}" class="join__form">
             <div class="join__item">
                 <span class="join__title">아이디</span>
                 <input type="text" name="id" class="input" placeholder="아이디를 입력해주세요." maxlength="15" th:onblur="idCheck( this )">
@@ -55,7 +55,7 @@
             <div class="join__item join__emailCode" th:style="'display:none'">
                 <input type="text" name="code" class="input input__emailCode" placeholder="인증코드를 입력해주세요." maxlength="6" th:onblur="emailCodeCheck( this )">
                 <span class="msg__timer"></span>
-                <span class="msg__error" th:style="'margin-left: -7%'"></span>
+                <span class="msg__error"></span>
             </div>
             <div class="join__item">
                 <span class="join__title">성별</span>

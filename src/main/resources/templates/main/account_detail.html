@@ -17,7 +17,7 @@
     </div>
     <!-- 상세 영역 -->
     <div class="detail">
-        <form method="get" th:action="@{/accountUpdate/{id}(id=${id})}" class="detail__form">
+        <form method="get" th:action="@{/accounts/update/{id}(id=${id})}" class="detail__form">
             <table class="account__detail detail__table">
                 <tr>
                     <th class="table__width__percent--20"><span>고정/변동</span></th>
@@ -74,7 +74,7 @@
     </div>
     <!-- 버튼 -->
     <div class="button__count--02">
-        <button type="button" class="button__size--medium button__cancel" th:onclick="location.href='/accountList'">확인</button>
+        <button type="button" class="button__size--medium button__cancel" th:onclick="location.href='/accounts'">확인</button>
         <button class="button__size--medium button__confirm" th:onclick="document.getElementsByClassName('detail__form')[0].submit()">수정</button>
     </div>
 </div>

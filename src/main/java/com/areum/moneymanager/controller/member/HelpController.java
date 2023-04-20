@@ -5,28 +5,30 @@ import com.areum.moneymanager.dto.ResMemberDto;
 import com.areum.moneymanager.service.member.MailService;
 import com.areum.moneymanager.service.member.MemberService;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.Period;
 import java.util.Date;
 
 @Controller
-@RequestMapping("/help")
+@RequestMapping("/members/help")
 public class HelpController {
 
     private final MemberService memberService;
     private final MailService mailService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final Logger logger = LogManager.getLogger(this.getClass());
 
     @Autowired
     public HelpController( MemberServiceImpl memberService, MailService mailService, BCryptPasswordEncoder bCryptPasswordEncoder ) {
@@ -35,14 +37,13 @@ public class HelpController {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
-    @GetMapping("/id")
-    public String getHelpIdView() {
-        return "/member/help_id";
-    }
-
-    @GetMapping("/password")
-    public String getHelpPwdView() {
-        return "/member/help_pwd";
+    @GetMapping()
+    public String getHelpIdView(@RequestParam String type) {
+        if( type.equals("id") ) {
+            return "/member/help_id";
+        }else{
+            return "/member/help_pwd";
+        }
     }
 
     @PostMapping("/find-id")
@@ -51,6 +52,7 @@ public class HelpController {
 
         ResMemberDto.FindId member = memberService.findId( findId );
         if(member == null) {
+            logger.debug("이름({})과 이메일({}) 정보로 아이디 찾기 실패", findId.getName(), findId.getEmail());
             mav.setViewName("/member/find_id_error");
         }else{
             StringBuilder sb = new StringBuilder(member.getId());
@@ -87,6 +89,8 @@ public class HelpController {
 
     @PostMapping("/find-password")
     public ModelAndView postFindPwd( ReqMemberDto.FindPwd findPwd ) throws Exception {
+        logger.debug("이름({})과 아이디({}) 정보로 비밀번호 찾기 요청", findPwd.getName(), findPwd.getId());
+
         ModelAndView mav = new ModelAndView();
 
         ResMemberDto.FindPwd member = memberService.findPwd(findPwd);
@@ -123,6 +127,7 @@ public class HelpController {
                     mav.addObject("email", sb.replace(index -3, index, "***"));
                     mav.addObject("msg", "탈퇴일로부터 30일이 지나지 않아 복구 가능한 아이디로, 임의의 비밀번호를 아래 이메일로 보내드렸습니다.<br>해당 이메일로 확인 후 로그인 하시면 복구 가능합니다.");
                     mav.setViewName("/member/find_pwd");
+
                 }else {
                     mav.addObject("msg", "복구 불가능한 계정으로 비밀번호를 찾을 수 없습니다.");
                     mav.addObject("method", "get");
@@ -134,7 +139,5 @@ public class HelpController {
 
         return mav;
     }
-
-
 
 }

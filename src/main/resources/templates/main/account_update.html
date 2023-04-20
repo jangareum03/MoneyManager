@@ -19,7 +19,7 @@
     </div>
     <!-- 수정 영역 -->
     <div class="update">
-        <form enctype="multipart/form-data" method="post" th:action="@{/accountUpdate/{id}(id=${id})}" class="update__form">
+        <form enctype="multipart/form-data" th:method="put" th:action="@{/accounts/{id}(id=${id})}" class="update__form">
             <table class="account__detail update__table">
                 <tr>
                     <th class="table__width__percent--20"><span>고정/변동</span></th>
@@ -111,11 +111,11 @@
                         <th:black th:each="num : ${#numbers.sequence(1,3)}" class="update__image" >
                             <label th:if="${num <= maxImage}">
                                 <input type="file" accept=".gif, .jpg, .png" name="images" class="img" th:value="${image}" th:style="${'display:none;'}">
-                                <img th:src="${image == null ? '/image/imageUnLock.png' : '/image/accountBook/' + image}" th:id="${'img' + (num-1)}" th:style="'cursor: pointer;'">
+                                <img th:src="${image == null ? '/images/imageUnLock.png' : '/image/accountBook/' + image}" th:id="${'img' + (num-1)}" th:style="'cursor: pointer;'">
                             </label>
                             <label th:unless="${num <= maxImage}" th:style="${'pointer-events: none;'}">
                                 <input type="file" accept=".gif, .jpg, .png" class="img" th:style="${'display:none;'}" >
-                                <img src="/image/imageLock.png" th:id="${'img' + (num-1)}">
+                                <img src="/images/imageLock.png" th:id="${'img' + (num-1)}">
                             </label>
                         </th:black>
                         <script>
@@ -129,7 +129,7 @@
                                     };
                                     reader.readAsDataURL(this.files[0]);
                                 } else{
-                                    document.getElementById('img' + i).src = '/image/imageUnLock.png';
+                                    document.getElementById('img' + i).src = '/images/imageUnLock.png';
                                 }
                             });
                         }
@@ -140,7 +140,7 @@
                     <th>위치</th>
                     <td colspan="3" class="update__table__location">
                         <div class="map__search update__location__search" th:style="${location == null ? 'display: inline-flex' : 'display: none'}" th:onclick="openMapPop()">
-                            <img src="/image/location.png" class="location__img__search">
+                            <img src="/images/location.png" class="location__img__search">
                             <span>위치를 입력해주세요.</span>
                         </div>
                         <div class="map__result update__location__result" th:classappend="${location == null} ? display__none">

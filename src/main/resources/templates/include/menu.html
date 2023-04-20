@@ -2,13 +2,13 @@
   <!-- 사용자 정보 -->
   <div class="user">
     <div class="user__profile">
-      <img th:src="${session.profile == null ? '/image/default.svg' : '/image/profile/' + session.profile}" class="profile__img">
+      <img th:src="${session.profile == null ? '/images/default.svg' : '/image/profile/' + session.profile}" class="profile__img">
     </div>
     <div class="user__info">
         <div class="user__wrap">
           <p><span class="user__nickName">[[${session.nickName}]]</span>님</p>
           환영합니다.
-          <a th:href="@{/logout}" class="user__logout">로그아웃</a>
+          <a class="user__logout" th:href="@{/logout}">로그아웃</a>
         </div>
     </div>
   </div>
@@ -24,7 +24,7 @@
         </a>
       </li>
       <li class="menu__item">
-        <a th:href="@{/write}">
+        <a th:href="@{/accounts/write/step1}">
           <div class="menu__icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.127 22.564l-7.126 1.436 1.438-7.125 5.688 5.689zm-4.274-7.104l5.688 5.689 15.46-15.46-5.689-5.689-15.459 15.46z"/></svg>
           </div>
@@ -32,7 +32,7 @@
         </a>
       </li>
       <li class="menu__item">
-        <a th:href="@{/accountList}">
+        <a th:href="@{/accounts}">
           <div class="menu__icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 19h-4v-4h4v4zm6 0h-4v-8h4v8zm6 0h-4v-13h4v13zm6 0h-4v-19h4v19zm1 2h-24v2h24v-2z"/></svg>
           </div>
@@ -40,7 +40,7 @@
         </a>
       </li>
       <li class="menu__item">
-        <a th:href="@{/myPage}">
+        <a th:href="@{/members/mypage}">
           <div class="menu__icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 7.001c0 3.865-3.134 7-7 7s-7-3.135-7-7c0-3.867 3.134-7.001 7-7.001s7 3.134 7 7.001zm-1.598 7.18c-1.506 1.137-3.374 1.82-5.402 1.82-2.03 0-3.899-.685-5.407-1.822-4.072 1.793-6.593 7.376-6.593 9.821h24c0-2.423-2.6-8.006-6.598-9.819z"/></svg>
           </div>
@@ -48,7 +48,7 @@
         </a>
       </li>
       <li class="menu__item">
-        <a th:href="@{/notice}">
+        <a th:href="@{/notices}">
           <div class="menu__icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.353 19.081c-2.866-.662-5.534-1.242-4.242-3.682.333-.63.616-1.235.856-1.815-.723.414-1.527.733-1.966.843l-.187-.888c.957-.273 1.989-.783 2.709-1.532 1.53-5.237-1.055-8.007-4.523-8.007-4.234 0-7.055 4.124-3.11 11.399 1.331 2.454-1.437 3.034-4.241 3.682-2.482.572-2.649 1.785-2.649 3.884v1.035h20v-1.035c0-2.099-.167-3.312-2.647-3.884zm-7.347-3.981c-.367.076-.727-.161-.802-.529-.077-.368.161-.729.527-.804l1.462-.325.273 1.334-1.46.324zm-4.498-9.85h-1.212c.528-2.963 2.624-5.25 5.704-5.25s5.176 2.287 5.704 5.25h-1.212c-.544-2.184-2.264-3.518-4.492-3.513-2.228-.005-3.948 1.329-4.492 3.513zm9.737.75c1.913 0 2.755 1.493 2.755 2.99 0 1.503-.85 3.01-2.458 3.01.628-2.344.535-4.397-.297-6zm-13.245 2.984c0-1.495.83-2.984 2.743-2.984-.847 1.616-.945 3.669-.313 6-1.587 0-2.43-1.511-2.43-3.016z"/></svg>
           </div>
