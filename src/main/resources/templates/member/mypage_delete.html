@@ -1,0 +1,76 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='회원탈퇴 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-member-delete">
+        <!-- 상단 -->
+        <section class="delete-header">
+            <h1 class="delete-header__title">마이페이지</h1>
+        </section>
+
+        <!-- 본문 -->
+        <section class="delete-body">
+            <!-- 본문 : 안내사항 -->
+            <section class="delete-guide">
+                <header class="delete-guide__title">회원 탈퇴 전 꼭 확인해주세요!</header>
+
+                <ul class="delete-guide__list">
+                    <li class="delete-guide__item">
+                        <svg class="icon icon--check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                            <path fill="currentColor" d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06a.733.733 0 0 1 1.047 0l3.052 3.093l5.4-6.425z"/>
+                        </svg>
+                        <p class="delete-guide__text">탈퇴 시 작성하신 데이터가 삭제됩니다. <br>(단, Q&A에서 작성하신 글은 유지됩니다.)</p>
+                    </li>
+                    <li class="delete-guide__item">
+                        <svg class="icon icon--check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                            <path fill="currentColor" d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06a.733.733 0 0 1 1.047 0l3.052 3.093l5.4-6.425z"/>
+                        </svg>
+                        <p class="delete-guide__text">탈퇴 후 <strong>30일전에 접속</strong>하시면 데이터는 복구됩니다.</p>
+                    </li>
+                    <li class="delete-guide__item">
+                        <svg class="icon icon--check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                            <path fill="currentColor" d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06a.733.733 0 0 1 1.047 0l3.052 3.093l5.4-6.425z"/>
+                        </svg>
+                        <p class="delete-guide__text">탈퇴 시 구입하신 <b>테마</b>와 <b>글꼴</b>은 더 이상 사용하실 수 없습니다.</p>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 본문: 삭제 입력 -->
+            <form class="form">
+                <div class="form__field form__field--id">
+                    <label class="form__label">아이디</label>
+                    <span th:text="${id}"></span>
+                </div>
+                <div class="form__field form__field--password">
+                    <label class="form__label" for="password">비밀번호</label>
+                    <input id="password" class="form__input form__input--password"  type="password" placeholder="비밀번호를 입력해주세요.">
+                </div>
+                <div class="form__field form__field--cause">
+                    <label class="form__label" for="cause">탈퇴 사유</label>
+                    <select id="cause" class="form__select">
+                        <option value="00">선택없음</option>
+                        <option value="01">서비스 이용하지 않음</option>
+                        <option value="02">아이디/닉네임 변경</option>
+                        <option value="03">개인정보 유출 우려</option>
+                        <option value="04">서비스 이용 불만</option>
+                        <option value="05">기타</option>
+                    </select>
+                </div>
+                <div class="form__field form__field--agreement">
+                    <label class="form__label">
+                        <input class="form__input form__input--checkbox" type="checkbox">
+                        탈퇴 시 모든 정보가 삭제되는 것을 동의합니다.
+                    </label>
+                </div>
+
+                <!-- 버튼 -->
+                <div class="form__actions">
+                    <button type="button" class="button button--large button--danger">탈퇴</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script src="/js/pages/mypage-delete.js"></script>
+</th:block>
+</html>

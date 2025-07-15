@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='자주 묻는 질문 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-support page-faq-list">
+        <!-- 상단 : 제목 -->
+        <section class="support-header">
+            <h1 class="support-header__title">고객센터</h1>
+        </section>
+
+        <!-- 본문 -->
+        <section class="support-body">
+            <!-- 본문: 메뉴 -->
+            <nav class="support-menu">
+                <ul class="support-menu__list">
+                    <li class="support-menu__item" th:classappend="${#httpServletRequest.requestURI.contains('faq')} ? 'support-menu__item--selected'" th:attr="data-menu='faq'">자주 묻는 질문</li>
+                    <li class="support-menu__item" th:classappend="${#httpServletRequest.requestURI.contains('inquiry')} ? 'support-menu__item--selected'" th:attr="data-menu='inquiry'">1 : 1 문의하기</li>
+                    <li class="support-menu__item" th:classappend="${#httpServletRequest.requestURI.contains('notice')} ? 'support-menu__item--selected'" th:attr="data-menu='notice'">공지 사항</li>
+                    <li class="support-menu__item"></li>
+                    <li class="support-menu__item"></li>
+                </ul>
+            </nav>
+
+            <!-- 본문: 질문내용 -->
+            <section class="support-list">
+                <article th:each="faq : ${faqList}" class="support-list__item">
+                    <span class="support-list__question">
+                        <i>
+                            <svg class="icon icon--faq" width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14.3043 6.26302H14.3123M17.3044 6.26302H17.3124M20.8125 6.0346C20.8125 8.81558 18.5734 11.0703 15.8124 11.0703C15.487 11.0703 15.1647 11.0387 14.8454 10.9755C14.6153 10.9303 14.5003 10.9082 14.4203 10.9208C14.3403 10.9334 14.2263 10.9966 14.0003 11.1239C13.3533 11.487 12.6086 11.609 11.8873 11.4702C12.163 11.1117 12.3499 10.6867 12.4313 10.2334C12.4813 9.9545 12.3573 9.68398 12.1713 9.48609C11.3034 8.56935 10.815 7.32876 10.8123 6.0346C10.8123 3.25468 13.0513 1 15.8124 1C18.5734 1 20.8125 3.25468 20.8125 6.0346ZM6.31414 20.9995H3.53007C3.20706 20.9995 2.88206 20.9511 2.58505 20.8174C1.61902 20.3805 1.12801 19.8027 0.900007 19.4416C0.838127 19.3416 0.807725 19.2236 0.81311 19.1044C0.818494 18.9852 0.859393 18.8708 0.930008 18.7774C2.05004 17.2112 4.6501 16.2659 6.31914 16.2659C7.98718 16.2659 10.5832 17.2112 11.7033 18.7774C11.8443 18.9743 11.8633 19.2364 11.7333 19.4416C11.5043 19.8027 11.0133 20.3805 10.0472 20.8174C9.74711 20.9445 9.42566 21.0064 9.10221 20.9995H6.31414ZM9.09821 10.7776C9.09769 11.1614 9.02536 11.5412 8.88536 11.8955C8.74537 12.2498 8.54044 12.5716 8.28229 12.8426C8.02414 13.1135 7.71781 13.3283 7.3808 13.4746C7.04379 13.621 6.6827 13.696 6.31814 13.6955C5.58223 13.696 4.87622 13.389 4.35528 12.8418C3.83435 12.2947 3.54113 11.5522 3.54007 10.7776C3.54047 10.3939 3.61266 10.014 3.75254 9.65967C3.89241 9.30531 4.09722 8.98342 4.35529 8.71238C4.61335 8.44133 4.9196 8.22645 5.25656 8.07998C5.59352 7.93352 5.95458 7.85835 6.31914 7.85877C6.6837 7.85835 7.04477 7.93352 7.38173 8.07998C7.71869 8.22645 8.02494 8.44133 8.283 8.71238C8.54106 8.98342 8.74587 9.30531 8.88575 9.65967C9.02562 10.014 9.09782 10.3939 9.09821 10.7776Z" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </i>
+                        [[${faq.question}]]
+                    </span>
+                    <p  class="support-list__answer" th:utext="${faq.answer}"></p>
+                </article>
+            </section>
+        </section>
+
+        <section class="support-footer"></section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script th:src="@{/js/pages/support.js}"></script>
+</th:block>
+</html>

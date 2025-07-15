@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='공지사항 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-notice-detail">
+        <!-- 상단 : 제목 -->
+        <section class="notice-header">
+            <span class="notice-header__title">공지사항 상세</span>
+        </section>
+
+        <!-- 본문 : 내용 -->
+        <section class="notice-body">
+            <div class="notice__header">
+                <span class="notice__title" th:text="${notice.title}"></span>
+                <span class="notice__date" th:text="${notice.date}"></span>
+            </div>
+            <div class="notice__content">
+                <p th:text="${notice.content}"></p>
+            </div>
+        </section>
+
+        <!-- 하단 -->
+        <section class="notice-footer">
+            <div class="notice__actions">
+                <button class="button button--medium button--default" th:attr="data-mode='prev'">이전</button>
+            </div>
+        </section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script th:src="@{/js/pages/support.js}"></script>
+</th:block>
+</html>

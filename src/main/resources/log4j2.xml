@@ -2,7 +2,7 @@
 <Configuration status="debug" monitorInterval="5">
     <!--공통 속성 설정 -->
     <Properties>
-        <Property name="logFileName">log4jFile</Property>
+        <Property name="logFileName">budgetBook</Property>
         <Property name="consoleLayout">%highlight{[%-5level]}{FATAL=bg_red, ERROR=red, INFO=green, DEBUG=blue} %style{%d{yyyy-MM-dd HH:mm:ss}:%-3relative}{cyan}    %style{[%M]}{yellow} %logger{35} - %msg%n</Property>
         <Property name="fileLayout">%d [%t] %-5level %c(%M:%L) - %m%n</Property>
     </Properties>
@@ -14,8 +14,8 @@
         </Console>
         <!--ConsoleAppender, RollingFileAppneder -->
         <RollingFile name="file"
-                     fileName="logs/${logFileName}.log"
-                     filePattern="logs/${logFileName}.%d{yyyy-MM-dd-hh}.log">
+                     fileName="logs/main/${logFileName}.log"
+                     filePattern="logs/main/${logFileName}.%d{yyyy-MM-dd}.log">
             <PatternLayout pattern="${fileLayout}" />
             <Policies>
                 <TimeBasedTriggeringPolicy
@@ -39,11 +39,11 @@
             <Policies>
                 <SizeBasedTriggeringPolicy size="20 MB" />
             </Policies>
-            <DefaultRolloverstrategy>
+            <DefaultRolloverStrategy>
                 <Delete basePath="/logs" maxDepth="3">
                     <IfLastModified age="10d" />
                 </Delete>
-            </DefaultRolloverstrategy>
+            </DefaultRolloverStrategy>
         </RollingFile>
     </Appenders>
 
@@ -51,7 +51,7 @@
     <!--Log가 찍힐 대상 설정.-->
     <Loggers>
         <!-- 스프링 프레임워크에서 찍는건 level을 info로 설정 -->
-        <logger name="com.areum.moneymanager" level="info" additivity="false" >
+        <logger name="com.areum.moneymanager" level="debug" additivity="false" >
             <AppenderRef ref="console" />
             <AppenderRef ref="error" />
         </logger>
@@ -63,9 +63,18 @@
 
         <logger name="com.areum.moneymanager.dao" level="debug" additivity="false">
             <AppenderRef ref="error"/>
+            <AppenderRef ref="console"/>
         </logger>
 
+        <Logger name="org.springframework.web" level="error" additivity="false">
+            <AppenderRef ref="error" />
+        </Logger>
+
         <!-- ROOT logger-->
-        <Root level="info" />
+        <Root level="error">
+            <AppenderRef ref="file" />
+            <AppenderRef ref="error" />
+        </Root>
+
     </Loggers>
 </Configuration>

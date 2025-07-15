@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='자주 묻는 질문 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-support page-notice-list">
+        <!-- 상단 : 제목 -->
+        <section class="support-header">
+            <h1 class="support-header__title">고객센터</h1>
+        </section>
+
+        <!-- 본문 -->
+        <section class="support-body">
+            <!-- 본문: 메뉴 -->
+            <nav class="support-menu">
+                <ul class="support-menu__list">
+                    <li class="support-menu__item" th:classappend="${#httpServletRequest.requestURI.contains('faq')} ? 'support-menu__item--selected'" th:attr="data-menu='faq'">자주 묻는 질문</li>
+                    <li class="support-menu__item" th:classappend="${#httpServletRequest.requestURI.contains('inquiry')} ? 'support-menu__item--selected'" th:attr="data-menu='inquiry'">1 : 1 문의하기</li>
+                    <li class="support-menu__item" th:classappend="${#httpServletRequest.requestURI.contains('notice')} ? 'support-menu__item--selected'" th:attr="data-menu='notice'">공지 사항</li>
+                    <li class="support-menu__item"></li>
+                    <li class="support-menu__item"></li>
+                </ul>
+            </nav>
+
+            <!-- 본문: 질문내용 -->
+            <section class="support-list">
+                <table class="table table-list" th:classappend="${#lists.isEmpty(notices)} ? 'empty' : 'filled'">
+                    <thead class="table__head">
+                        <tr class="table__row">
+                            <th class="table__cell table__cell--header">번호</th>
+                            <th class="table__cell table__cell--header">제목</th>
+                            <th class="table__cell table__cell--header">날짜</th>
+                            <th class="table__cell table__cell--header">조회수</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="table__body">
+                        <tr th:if="${#lists.isEmpty(notices)}" class="table__row table__row--empty">
+                            <td class="table__cell" colspan="4">등록된 공지사항이 없습니다.</td>
+                        </tr>
+
+                        <tr th:each="index : ${#numbers.sequence( 1, page.size )}"
+                            th:if="${index <= #lists.size(notices)}" class="table__row">
+                            <!-- 번호 -->
+                            <td class="table__cell table__cell--num" th:text="${(page.page -1) * page.size + index}"></td>
+
+                            <!-- 제목 -->
+                            <td class="table__cell table__cell--title" th:attr="data-type='notice'">
+                                <!-- 뱃지 -->
+                                <th:block th:switch="${notices[index-1].type.code}">
+                                    <span th:case="'N'" class="notice__badge notice__badge--none" th:text="${notices[index - 1].type.text}"></span>
+                                    <span th:case="'E'" class="notice__badge notice__badge--event" th:text="${notices[index - 1].type.text}"></span>
+                                    <span th:case="'P'" class="notice__badge notice__badge--press" th:text="${notices[index - 1].type.text}"></span>
+                                </th:block>
+
+                                <!-- 링크 -->
+                                <a class="table__link" th:text="${notices[index - 1].title}" th:attr="data-id=${notices[index-1].id}"></a>
+                            </td>
+
+                            <!-- 작성날짜 -->
+                            <td class="table__cell table__cell--date" th:text="${notices[index-1].date}"></td>
+
+                            <!-- 조회수 -->
+                            <td class="table__cell table__cell--view" th:text="${notices[index-1].view}"></td>
+                        </tr>
+
+                        <tr th:each="index : ${#numbers.sequence( 1, page.size )}" th:unless="${index <= #lists.size(notices)}" class="table__row table__row--empty">
+                            <td class="table__cell"></td>
+                            <td class="table__cell"></td>
+                            <td class="table__cell"></td>
+                            <td class="table__cell"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </section>
+
+
+        <!-- 하단 -->
+        <section class="support-footer">
+            <div class="pagination" th:each="page: ${page}">
+                <!-- 이전 버튼 -->
+                <button th:if="${page.isPrev}" class="pagination__button pagination__button--prev" th:attr="data-start=${page.start}">&ltrif;</button>
+
+                <!-- 번호 버튼 -->
+                <button th:each="num : ${#numbers.sequence( page.start, page.end )}" class="pagination__button pagination__button--number" th:classappend="${num == page.page} ? 'pagination__button--selected'" th:attr="data-page=${num}">[[${num}]]</button>
+
+                <!-- 다음 버튼 -->
+                <button th:if="${page.isNext}" class="pagination__button pagination__button--next" th:attr="data-end=${page.end}">&rtrif;</button>
+            </div>
+        </section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script th:src="@{/js/pages/support.js}"></script>
+</th:block>
+</html>

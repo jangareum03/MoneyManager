@@ -1,0 +1,110 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='마이페이지 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-member-index">
+        <!-- 상단 -->
+        <section class="index-header">
+             <h1 class="index-header__title">마이페이지</h1>
+        </section>
+
+        <!-- 본문 -->
+        <section class="index-body">
+            <!-- 본문: 내정보 -->
+            <div class="index-top">
+                <div class="index-profile">
+                    <th:block th:if="${info.profile == null}">
+                        <!-- 프로필 없는 상태 -->
+                        <svg class="index-profile__image index-profile__image--empty" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M29.9999 50.8893C22.7083 50.8893 16.2624 47.156 12.4999 41.556C12.5874 35.7227 24.1666 32.5143 29.9999 32.5143C35.8333 32.5143 47.4124 35.7227 47.4999 41.556C45.572 44.4275 42.9675 46.7808 39.9157 48.4084C36.8639 50.0361 33.4586 50.8881 29.9999 50.8893ZM29.9999 9.47266C32.3206 9.47266 34.5462 10.3945 36.1871 12.0355C37.828 13.6764 38.7499 15.902 38.7499 18.2227C38.7499 20.5433 37.828 22.7689 36.1871 24.4098C34.5462 26.0508 32.3206 26.9727 29.9999 26.9727C27.6793 26.9727 25.4537 26.0508 23.8127 24.4098C22.1718 22.7689 21.2499 20.5433 21.2499 18.2227C21.2499 15.902 22.1718 13.6764 23.8127 12.0355C25.4537 10.3945 27.6793 9.47266 29.9999 9.47266ZM29.9999 0.722656C26.1697 0.722656 22.377 1.47707 18.8383 2.94284C15.2997 4.4086 12.0843 6.557 9.37597 9.26538C3.90616 14.7352 0.833252 22.1538 0.833252 29.8893C0.833252 37.6248 3.90616 45.0435 9.37597 50.5133C12.0843 53.2216 15.2997 55.3701 18.8383 56.8358C22.377 58.3016 26.1697 59.056 29.9999 59.056C37.7354 59.056 45.1541 55.9831 50.6239 50.5133C56.0937 45.0435 59.1666 37.6248 59.1666 29.8893C59.1666 13.7602 46.0416 0.722656 29.9999 0.722656Z"/>
+                        </svg>
+                    </th:block>
+                    <th:block th:unless="${info.profile == null}">
+                        <!-- 프로필 있는 상태 -->
+                        <img class="index-profile__image index-profile__image--filled" th:src="${info.profile}" alt="사용자 이미지"/>
+                    </th:block>
+                </div>
+                <div class="index-content">
+                    <a class="index-link index-link--edit" th:href="@{/mypage/info}">수정하기 &gt;</a>
+                    <span class="index-content__membership" th:classappend="${info.memberShip.type}" th:text="${info.memberShip.text}"></span>
+                    <span class="index-content__greeting">
+                        <em class="index-content__nickname" th:text="${info.nickName}"></em>님 반갑습니다!
+                    </span>
+                    <span class="index-content__date" th:text="${info.lastLoginDate}"></span>
+                </div>
+            </div>
+
+            <!-- 본문: 메뉴 -->
+            <div class="index-bottom">
+                <!-- 본문: 포인트 -->
+                <article class="index-menu index-menu--point">
+                    <header class="index-menu__header index-menu__header--point">
+                        <h2>
+                            <svg class="icon icon--point" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3.75 1.25H11.25V2.5H3.75V1.25ZM2.5 3.75V2.5H3.75V3.75H2.5ZM2.5 11.25V3.75H1.25V11.25H2.5ZM3.75 12.5V11.25H2.5V12.5H3.75ZM11.25 12.5V13.75H3.75V12.5H11.25ZM12.5 11.25V12.5H11.25V11.25H12.5ZM12.5 3.75H13.75V11.25H12.5V3.75ZM12.5 3.75V2.5H11.25V3.75H12.5ZM6.875 3.125H8.125V4.375H10V5.625H6.25V6.875H10V10.625H8.125V11.875H6.875V10.625H5V9.375H8.75V8.125H5V4.375H6.875V3.125Z"/>
+                            </svg>
+                            포인트
+                        </h2>
+                        <a class="index-link index-link--point" th:href="@{/mypage/point}">내역보기 &gt;</a>
+                    </header>
+
+                    <div class="index-menu__content index-menu__content--point">
+                        <section class="index-point__current">
+                            <h3>현재 포인트</h3>
+                            <p><strong class="index-point__current--strong" th:text="${point.currentPoint}"></strong>point</p>
+                        </section>
+                        <section class="index-point__earm">
+                            <h3>누적 포인트</h3>
+                            <p><strong th:text="${point.earmPoint}"></strong>point</p>
+                        </section>
+                        <section class="index-point__used">
+                            <h3>사용된 포인트</h3>
+                            <p><strong th:text="${point.usePoint}"></strong>point</p>
+                        </section>
+                    </div>
+                </article>
+
+                <!-- 본문: 설정 -->
+                <article class="index-menu index-menu--setting">
+                    <header class="index-menu__header index-menu__header--setting">
+                        <h2>
+                            <svg class="icon icon--setting" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <g clip-path="url(#clip0_721_1006)">
+                                    <path d="M9.26254 0.625H5.73754L5.33316 2.64812C4.99835 2.79816 4.67999 2.98248 4.38316 3.19813L2.42691 2.53625L0.665039 5.58875L2.21566 6.95125C2.17822 7.31612 2.17822 7.68388 2.21566 8.04875L0.665039 9.41125L2.42754 12.4637L4.38316 11.8025C4.67816 12.0163 4.99566 12.2013 5.33316 12.3519L5.73754 14.375H9.26254L9.66691 12.3519C10.0017 12.2018 10.3201 12.0175 10.6169 11.8019L12.5732 12.4637L14.3357 9.41125L12.7844 8.04875C12.8219 7.68388 12.8219 7.31612 12.7844 6.95125L14.335 5.58875L12.5725 2.53625L10.6175 3.1975C10.3207 2.98207 10.0023 2.79796 9.66754 2.64812L9.26254 0.625ZM7.50004 10C6.837 10 6.20111 9.73661 5.73227 9.26777C5.26343 8.79893 5.00004 8.16304 5.00004 7.5C5.00004 6.83696 5.26343 6.20107 5.73227 5.73223C6.20111 5.26339 6.837 5 7.50004 5C8.16308 5 8.79897 5.26339 9.26781 5.73223C9.73665 6.20107 10 6.83696 10 7.5C10 8.16304 9.73665 8.79893 9.26781 9.26777C8.79897 9.73661 8.16308 10 7.50004 10Z"/>
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0_721_1006">
+                                        <rect width="15" height="15" fill="white"/>
+                                    </clipPath>
+                                </defs>
+                            </svg>
+                            설정
+                        </h2>
+                        <a class="index-link index-link--setting">변경하기 &gt;</a>
+                    </header>
+
+                    <div class="index-menu__content index-menu__content--setting">
+                        <section class="index-setting__standard">
+                            <h3>내역날짜 기준일</h3>
+                            <p><b class="index-setting__standard--strong">1</b>일</p>
+                        </section>
+                        <section class="index-setting__theme">
+                            <h3>테마</h3>
+                            <p>기본</p>
+                        </section>
+                        <section class="index-setting__font">
+                            <h3>글꼴</h3>
+                            <p>기본</p>
+                        </section>
+                        <section class="index-setting__target">
+                            <h3>목표 소비</h3>
+                            <p>0</p>
+                        </section>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script src="/js/pages/mypage-index.js"></script>
+</th:block>
+</html>

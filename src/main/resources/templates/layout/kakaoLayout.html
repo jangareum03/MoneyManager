@@ -1,0 +1,24 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title th:text="${pageTitle != null} ? ${pageTitle} : '돈매니저'"></title>
+
+    <!-- 페이지 별 추가 CSS -->
+    <th:block layout:fragment="pageStyle">
+        <link rel="stylesheet" th:href="@{/css/map.css}"/>
+        <script type="text/javascript" th:src="@{'//dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=' + ${@environment.getProperty('kakao.mapKey')} + '&libraries=services'}"></script>
+    </th:block>
+</head>
+
+<body class="web">
+<!-- 메인 -->
+<th:block layout:fragment="main"></th:block>
+
+<!-- 스크립트 -->
+<th:block th:replace="/layout/fragments/script :: script"></th:block>
+<th:block layout:fragment="pageScript">
+</th:block>
+</body>
+</html>

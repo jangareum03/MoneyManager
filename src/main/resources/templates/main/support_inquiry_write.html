@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='문의사항 작성 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-inquiry page-inquiry-write">
+        <!-- 상단 : 제목 -->
+        <section class="inquiry-header">
+            <h1 class="inquiry-header__title">작성하기</h1>
+        </section>
+
+        <!-- 본문 -->
+        <section class="inquiry-body">
+            <form class="form form--inquiry" action="/support/inquiry" method="post">
+                <!-- 제목 -->
+                <div class="form__field form__field--title">
+                    <label class="form__label" for="title">제목</label>
+                    <input id="title" class="form__input form__input--text" name="title" type="text"  placeholder="제목을 입력해주세요." maxlength="50">
+                </div>
+
+                <!-- 비밀글 -->
+                <div class="form__field form__field--lock">
+                    <label class="form__label" for="lock">비밀글</label>
+                    <label class="form__label">
+                        <input id="lock" class="form__input form__input--checkbox" name="isOpen" type="checkbox" value="false">
+                        비밀글로 설정
+                    </label>
+                </div>
+
+                <!-- 내용 -->
+                <div class="form__field form__field--content">
+                    <label class="inquiry__label" for="content">내용</label>
+                    <textarea  id="content" class="form__textarea" name="content" placeholder="내용을 입력해주세요." maxlength="50"></textarea>
+                </div>
+            </form>
+
+            <div class="form__actions">
+                <button class="button button--medium button--default" type="button" th:attr="data-mode='prev'">이전</button>
+                <button class="button button--medium button--submit" type="button" th:attr="data-mode='submit'">작성</button>
+            </div>
+        </section>
+
+        <!-- 하단 -->
+        <section class="inquiry-footer"></section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script th:src="@{/js/pages/support.js}"></script>
+</th:block>
+</html>

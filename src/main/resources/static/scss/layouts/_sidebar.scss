@@ -1,0 +1,254 @@
+/*==============================
+            📁 사이드바 메뉴 화면
+==============================*/
+@use '../mixins' as *;
+@use '../variables' as *;
+
+
+
+.sidebar {
+    @include flex-box( column );
+    width: $sidebar-width;
+    background-color: var(--sidebar-background-point);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+
+    //======= ▼ 상단 =======
+    &-top {
+        @include flex-box( $align: center );
+        flex: 1.8;
+        padding: 1.3rem;
+        gap: 5%;
+        box-sizing: border-box;
+
+         //--- 프로필 영역 ---
+        .sidebar-profile {
+            @include flex-box( $justify: center, $align: center );
+            flex: 1.5;
+            object-fit: cover;
+            background-color: $color-white;
+            border-radius: 50%;
+
+            //프로필
+            &__image {
+                width: 100%;
+                height: 100%;
+                padding: 0.3rem;
+                box-sizing: border-box;
+
+                //등록 전 상태
+                &--empty {
+                    fill: $color-sidebar-profile-fill;
+                }
+
+                //등록 후 상태
+                &--filled {
+                    object-fit: cover;
+                    border-radius: 50%;
+                }
+            }
+        }
+
+        //--- 인사 영역 ---
+        .sidebar-welcome {
+            @include flex-box( column );
+            flex: 2;
+            gap: 0.2rem;
+            color: var(--sidebar-text-color);
+
+            //닉네임
+            &__nickname {
+                font-size: 1.5em;
+                color: var(--text-color-accent);
+            }
+        }
+    }
+
+    //======= ▼ 메뉴 =======
+    &-menu {
+        flex: 8;
+        background-color: var(--sidebar-background);
+
+        //--- 리스트 영역 ---
+        &__list {
+            height: 100%;
+        }
+
+        //--- 메뉴 요소 영역 ---
+        &__item {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 13%;
+            transition: all 0.2s ease;
+
+            //선택된 상태
+            &--selected {
+                font-weight: bold;
+                color: var(--sidebar-text-color-selected);
+                background-color: var(--sidebar-background-selected);
+
+                &::before {
+                    content: " ";
+                     width: 4px;
+                     height: 100%;
+                     background-color: var(--sidebar-background);
+                }
+
+                //링크
+                .sidebar-menu__link {
+                    color: var(--sidebar-text-color-selected);
+                }
+
+                //아이콘
+                .sidebar-menu__icon {
+                    .icon--menu {
+                        fill: var(--sidebar-icon-color);
+                    }
+                }
+
+                //토글 메뉴
+                .sidebar-toggle {
+                    display: block;
+                    height: $sidebar-toggle-height;
+                }
+
+                //토글메뉴가 포함된 메뉴
+                &.sidebar-menu__toggle {
+                    z-index: 5;
+                }
+
+                //토글메뉴가 포함된 다음 메뉴
+                &.sidebar-menu__toggle + .sidebar-menu__item {
+                    padding-top: $sidebar-toggle-height;
+                }
+            }
+        }
+
+        //--- 링크 영역 ---
+        &__link {
+            @include flex-box( $align: center );
+            width: 100%;
+            height: 100%;
+            font-size: 1.2rem;
+            color: $color-sidebar-text;
+
+            //마우스 올린 상태
+            &:hover {
+                text-decoration: none;
+                background-color: var(--sidebar-background-hover);
+                color: var(--sidebar-text-color-hover);
+
+                //아이콘
+                .icon--menu {
+                    fill: var(--sidebar-icon-color-hover);
+                }
+            }
+        }
+
+         //--- 아이콘 영역 ---
+         &__icon {
+             @include flex-box( $justify: center, $align: center );
+             flex-shrink: 0;
+             width: 2.5rem;
+             height: 2.5rem;
+             padding: 0 1.5rem;
+
+             //아이콘
+             .icon--menu {
+                 fill: $color-sidebar-icon-fill;
+             }
+         }
+    }
+
+    //======= ▼ 토글 메뉴 =======
+    &-toggle {
+        position: absolute;
+        z-index: 3;
+        display: none;
+        width: 100%;
+
+        //--- 리스트 영역 ---
+        &__list {
+            @include flex-box( column );
+            height: 100%;
+        }
+
+        //--- 메뉴 요소 영역 ---
+        &__item {
+            @include flex-box( $align: center );
+            flex: 1;
+            width: 100%;
+            cursor: pointer;
+
+            //선택한  상위 메뉴
+            .sidebar-toggle__item--selected {
+                color: $color-sidebar-text;
+            }
+
+            //선택된 상태
+            &.sidebar-toggle__item--selected {
+                span {
+                    color: var(--sidebar-text-color-selected);
+                }
+
+                //아이콘
+                .icon--menu {
+                    fill: var(--sidebar-icon-color);
+                }
+            }
+
+            //마우스 올린 상태
+            &:hover {
+                background-color: var(--sidebar-background-hover);
+
+                a {
+                     color: $color-sidebar-text;
+                     text-decoration: none;
+                }
+            }
+        }
+
+        //--- 링크 영역 ---
+        a {
+            @include flex-box( $align: center );
+            gap: 5px;
+            padding-left: 20%;
+            width: 100%;
+            height: 100%;
+            color: $color-sidebar-text;
+        }
+
+        //--- 아이콘 영역 ---
+        &__icon {
+            width: 1.1rem;
+            height: 1.1rem;
+            margin-right: 0.8rem;
+
+            .icon--menu {
+                fill: $color-sidebar-icon-fill;
+            }
+        }
+    }
+
+    //======= ▼ 하단 =======
+    &-footer {
+        @include flex-box();
+        flex: 1;
+        padding: 1rem;
+        box-sizing: border-box;
+        background-color: var(--sidebar-background);
+
+        //--- 로그아웃 영역 ---
+        &__link {
+            @include flex-box( $align: center );
+            color: $color-text-link;
+        }
+
+        //--- 아이콘 영역 ---
+        &__icon {
+            width: 1.1rem;
+            height: 1.1rem;
+            color: $color-text-link;
+        }
+    }
+}

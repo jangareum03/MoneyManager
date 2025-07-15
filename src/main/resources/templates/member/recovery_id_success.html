@@ -1,0 +1,47 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/loginLayout}" th:with="pageTitle='아이디 찾기 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-member-recovery">
+        <div class="recovery-box">
+            <!-- 상단 -->
+            <section class="recovery-header">
+                <h1 class="recovery-header__title">
+                    계정찾기
+                    <small>돈매니저</small>
+                </h1>
+            </section>
+
+            <!-- 본문 -->
+            <section class="recovery-body">
+                <!-- 본문: 서브탭 -->
+                <nav class="recovery-menu">
+                    <ul class="recovery-menu__list">
+                        <li class="recovery-menu__item recovery-menu__item--selected" data-menu="id">아이디 찾기</li>
+                        <li class="recovery-menu__item" data-menu="password">비밀번호 찾기</li>
+                    </ul>
+                </nav>
+
+                <!-- 본문: 성공안내 -->
+                <article class="recovery-result recovery-result--success">
+                    <!-- 본문: 안내문구 -->
+                    <div class="recovery-result__guide" th:utext="${find.message}"></div>
+
+                    <!-- 본문: 결과 정보 -->
+                    <div class="recovery-result__data">
+                        <span class="recovery-result__text">찾으시는 아이디는 <strong class="recovery-result__text--strong" th:text="${find.id}"></strong>  입니다.</span>
+                        <small class="recovery-result__text">마지막 접속일은 [[${find.date}]] 입니다.</small>
+                    </div>
+                </article>
+            </section>
+
+            <!-- 하단 -->
+            <section class="recovery-footer">
+                <button type="button" class="button button--medium button--default button--login">로그인</button>
+                <button type="button" class="button button--medium button--default button--signup">회원가입</button>
+            </section>
+        </div>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script src="/js/pages/member-recovery.js"></script>
+</th:block>
+</html>

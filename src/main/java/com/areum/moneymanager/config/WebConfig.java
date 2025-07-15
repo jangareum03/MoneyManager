@@ -8,9 +8,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${image.accountBook.resourcePath}")
+    @Value("${image.budgetBook.resourcePath}")
     private String accountResourcePath;
-    @Value("${image.accountBook.connectPath}")
+    @Value("${image.budgetBook.connectPath}")
     private String accountConnectPath;
     @Value("${image.profile.resourcePath}")
     private String profileResourcePath;
@@ -21,6 +21,8 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers( ResourceHandlerRegistry registry ) {
         registry.addResourceHandler(accountConnectPath).addResourceLocations(accountResourcePath);
         registry.addResourceHandler(profileConnectPath).addResourceLocations(profileResourcePath);
+        registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/static/");
     }
+
 
 }

@@ -3,27 +3,29 @@ package com.areum.moneymanager.entity;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.Date;
+import java.sql.Date;
 
 @Getter
 @Builder
 public class Notice {
-    //공지사항 번호
+    /* 공지사항 번호(PK) */
     private String id;
-    //등록자
-    private String adminId;
-    //공지사항 유형
+    /* 등록자(FK: admin_id) */
+    private Admin admin;
+    /* 유형 */
     private char type;
-    //공지사항 제목
+    /* 상태 */
+    private String status;
+    /* 제목 */
     private String title;
-    //공지사항 내용
+    /* 내용 */
     private String content;
-    //등록일
-    private Date regDate;
-    //수정일
-    private Date modifiedDate;
-    //조회수
-    private int readCnt;
-    //우선순위
+    /* 등록일 */
+    private Date createdDate;
+    /* 수정일 */
+    private Date updatedDate;
+    /* 조회수 */
+    private Long viewCount;
+    /* 우선순위 */
     private int rank;
 }
