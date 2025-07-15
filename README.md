@@ -22,7 +22,7 @@
 - 보안 : HTTPS(Keystore.p12), CSP
 
 ## ERD
-(추후 추가 예정입니다.)
+<img width="1338" height="1140" alt="Image" src="https://github.com/user-attachments/assets/4415220d-e52c-46ac-aa00-5fc4f0017324" />
 
 ## 주요기능
 - 회원가입 / 로그인
@@ -42,3 +42,4 @@
 - 목표 소비 설정
 - 한번에 수입과 지출을 파일로 등록 가능
 - 테마 추가
+- 관리자 페이지 추가
