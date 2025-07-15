@@ -1,0 +1,99 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='내 정보 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-member-info">
+        <!-- 상단 -->
+        <section class="info-header">
+            <h1 class="info-header__title">마이페이지</h1>
+        </section>
+
+        <!-- 본문 -->
+        <section class="info-body">
+            <h2 class="info-body__title">내 정보</h2>
+
+            <!-- 본문: 상단 -->
+            <div class="info-top">
+                <div class="info-profile">
+                    <img class="info-profile__image" th:src="${member.profile}" alt="사용자 이미지" />
+                    <span class="info-profile__tooltip">클릭하면 변경이 가능합니다.</span>
+                </div>
+                <div class="info-content">
+                    <span class="info-content__membership" th:classappend="${summary.memberShip.type}" th:text="${summary.memberShip.text}"></span>
+                    <span class="info-content__greeting">
+                        <em class="info-content__nickname" th:text="${summary.nickName}"></em>님 반갑습니다!
+                    </span>
+                    <span class="info-content__date" th:text="${summary.lastLoginDate}"></span>
+                </div>
+            </div>
+
+            <!-- 본문 : 하단 -->
+            <dl class="info-bottom">
+                <div class="info-item info-item__name">
+                    <dt>이름</dt>
+                    <dd>
+                        <span th:text="${member.name}"></span>
+                        <button class="button">
+                            <svg class="icon icon--edit" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.83752 2.74552C10.0542 2.52888 10.0542 2.16782 9.83752 1.9623L8.5377 0.662477C8.33218 0.445841 7.97112 0.445841 7.75448 0.662477L6.7324 1.679L8.81544 3.76205M0 8.41696V10.5H2.08304L8.22664 4.35085L6.14359 2.26781L0 8.41696Z"/>
+                            </svg>
+                        </button>
+                    </dd>
+                </div>
+
+                <div class="info-item info-item__gender">
+                    <dt>성별</dt>
+                    <dd>
+                        <span th:text="${member.gender}"></span>
+                        <button class="button">
+                            <svg class="icon icon--edit" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.83752 2.74552C10.0542 2.52888 10.0542 2.16782 9.83752 1.9623L8.5377 0.662477C8.33218 0.445841 7.97112 0.445841 7.75448 0.662477L6.7324 1.679L8.81544 3.76205M0 8.41696V10.5H2.08304L8.22664 4.35085L6.14359 2.26781L0 8.41696Z"/>
+                            </svg>
+                        </button>
+                    </dd>
+                </div>
+
+                <div class="info-item info-item__email">
+                    <dt>이메일</dt>
+                    <dd>
+                        <span th:text="${member.email}"></span>
+                        <button class="button">
+                            <svg class="icon icon--edit" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.83752 2.74552C10.0542 2.52888 10.0542 2.16782 9.83752 1.9623L8.5377 0.662477C8.33218 0.445841 7.97112 0.445841 7.75448 0.662477L6.7324 1.679L8.81544 3.76205M0 8.41696V10.5H2.08304L8.22664 4.35085L6.14359 2.26781L0 8.41696Z"/>
+                            </svg>
+                        </button>
+                    </dd>
+                </div>
+
+                <div class="info-item info-item__password">
+                    <dt>비밀번호</dt>
+                    <dd>
+                        <span>**********</span>
+                        <button class="button">
+                            <svg class="icon icon--edit" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.83752 2.74552C10.0542 2.52888 10.0542 2.16782 9.83752 1.9623L8.5377 0.662477C8.33218 0.445841 7.97112 0.445841 7.75448 0.662477L6.7324 1.679L8.81544 3.76205M0 8.41696V10.5H2.08304L8.22664 4.35085L6.14359 2.26781L0 8.41696Z"/>
+                            </svg>
+                        </button>
+                    </dd>
+                </div>
+
+                <div class="info-item info-item__join">
+                    <dt>가입일</dt>
+                    <dd th:text="${member.joinDate}"></dd>
+                </div>
+
+                <div class="info-item info-item__day">
+                    <dt>연속 출석</dt>
+                    <dd>연속 출석일은 <b th:text="${member.attendCount}"></b>일 입니다.</dd>
+                </div>
+            </dl>
+        </section>
+
+        <!-- 하단 -->
+        <section class="info-footer">
+            <a class="info-link info-link--delete" th:href="@{/mypage/delete}"> 탈퇴하기&gt;</a>
+        </section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script src="/js/pages/mypage-info.js"></script>
+</th:block>
+</html>

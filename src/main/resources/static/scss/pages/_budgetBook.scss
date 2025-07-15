@@ -1,0 +1,1429 @@
+@use '../mixins' as *;
+@use '../variables' as *;
+
+
+/*==============================
+          📁 가계부 상세작성/수정 공통
+==============================*/
+.page-budget {
+    @include flex-box( column, center, center );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    padding: 5rem;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    //======= ▼ 상단 =======
+    .budget-header {
+        @include flex-box( column, center, center );
+        flex: 1;
+
+        //제목
+        &__title {
+            font-size: 2.5rem;
+            font-family: var(--title-font);
+        }
+
+        //--- 유형 영역 ---
+        &__type {
+            @include flex-box( $justify: center );
+
+            &::after {
+                content: '';
+                margin-top: 5px;
+                font-size: 1.2em;
+                font-weight: bold;
+            }
+        }
+    }
+
+    //======= ▼ 본문 =======
+    .budget-body {
+        flex: 5;
+        width: 100%;
+        max-width: 1500px;
+        padding: 0 10rem;
+        box-sizing: border-box;
+
+        input,
+        select {
+            border: none;
+            border-radius: 5px;
+            border-bottom: 1px solid $color-gray-200;
+        }
+
+        //--- 공통 폼 전체 ---
+        .form {
+            @include flex-box( column );
+            height: 100%;
+            gap: 1rem;
+
+            //--- 공통 입력 필드 ---
+            &__field {
+                @include flex-box( column );
+                flex: 1;
+                gap: 0.5rem;
+
+                //--- 공통 라벨 ---
+                > .form__label {
+                    //첫번재 라벨
+                    &:first-of-type {
+                        font-size: 0.85rem;
+                        font-weight: bold;
+                    }
+
+                    //필수라벨
+                    &--essential::before {
+                        content: '*';
+                        margin-right: 0.2rem;
+                        font-weight: 100;
+                        color: $color-red-800;
+                    }
+                }
+
+                //--- 라벨 제외한 영역 ---
+                > div:first-of-type {
+                    display: flex;
+                    padding: 0.5rem 1rem;
+                    border-bottom: 1px solid $color-gray-400;
+                    border-radius: 5px;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+                }
+
+                 //--- 사진, 메모 영역 ---
+                 &--photo,
+                 &--memo{
+                     flex: 2;
+                 }
+            }
+        }
+
+        //--- 입력 전체 영역 ---
+        .form__input-container {
+            //고정&변동
+            &--fix {
+                @include flex-box( column );
+                gap: 0.5rem;
+
+                .form__input-box--main,
+                .form__input-box--option {
+                    @include flex-box();
+                    gap: 0.2rem;
+
+                    > label {
+                        cursor: pointer;
+                    }
+                }
+            }
+
+            //금액
+            &--price {
+                gap: 1rem;
+
+                .form__input-box--main {
+                    width: 20rem;
+                    max-width: 320px;
+
+                    * {
+                        width: 100%;
+                    }
+                }
+
+                .form__input-box--type {
+                    @include flex-box();
+                    gap: 1rem;
+
+                    .form__input--radio {
+                        display: none;
+                    }
+
+                    //아이콘
+                    .icon {
+                        width: 1.3rem;
+                        height: 1.3rem;
+                        cursor: pointer;
+                    }
+                }
+            }
+
+            //위치
+            &--location {
+                @include flex-box( $align: center );
+                gap: 0.5rem;
+
+                //이미지
+                img,
+                svg {
+                    width: 1.5rem;
+                    height: 1.5rem;
+                }
+
+                //등록 전 상태
+                .form__input-box--empty {
+                    @include flex-box( $align: center );
+                    gap: 0.5rem;
+                    cursor: pointer;
+                }
+
+                //등록 후 상태
+                .form__input-box--filled {
+                    @include flex-box( column, $align: self-start );
+                    margin-right: 2rem;
+                    cursor: pointer;
+
+                    //장소
+                    .location__name {
+                        margin-bottom: 5px;
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                    }
+
+                    //지번주소
+                    .location__add {
+                        font-size: 0.9em;
+                        color: $color-gray-600;
+                    }
+                }
+
+                //삭제 아이콘
+                .icon--del {
+                    cursor: pointer;
+                    user-select: none;
+                    -webkit-user-drag: none;
+
+                    //마우스 올린 상태
+                    &:hover {
+                        color: $color-red-700;
+                    }
+                }
+            }
+        }
+
+        //--- 입력 박스 영역 ---
+        .form__input-box {
+            //카테고리
+            &--category {
+                gap: 1rem;
+
+                .form__select {
+                    width: 6rem;
+                    height: 1.7rem;
+                }
+            }
+
+            //메모
+            &--memo {
+                * {
+                  width: 100%;
+                }
+
+                textarea {
+                    max-width: 1150px;
+                    max-height: 60px;
+                    border: none;
+                }
+            }
+
+            //사진
+            &--photo {
+                @include flex-box();
+                gap: 3rem;
+
+                //라벨
+                .form__label {
+                    @include flex-box(column, $align: center);
+                    gap: 0.5rem;
+                }
+
+                //파일
+                .form__input--file {
+                    display: none;
+                }
+
+                //아이콘
+                .icon {
+                    width: 5rem;
+                    max-width: 80px;
+                    height: 5rem;
+                    max-height: 80px;
+                    fill: none;
+                    stroke: $color-gray-500;
+
+                    //등록 가능한 상태
+                    &--enabled {
+                        //마우스 올린 상태
+                        &:hover {
+                            cursor: pointer;
+                        }
+                    }
+
+                    //등록 불가능한 상태
+                    &--disabled {
+                        path:nth-of-type(2) {
+                            fill: $color-gray-500;
+                            stroke: none;
+                        }
+                    }
+                }
+
+                //--- 미리보기 영역 ---
+                .photo__preview {
+                    width: 5rem;
+                    max-width: 80px;
+                    height: 5rem;
+                    padding: 3px;
+                    box-sizing: border-box;
+                    cursor: pointer;
+                }
+            }
+        }
+
+        //--- 버튼 영역 ---
+        .form__actions {
+            @include flex-box( $justify: space-evenly );
+            padding-top: 3rem;
+        }
+    }
+
+    //--- 수입 작성 영역 ---
+    &.income {
+        //--- 유형 영역 ---
+        .budget-header__type::after {
+            content: '수입';
+            color: $color-income-text;
+        }
+
+        .form__field {
+            //라벨
+            > .form__label:first-child {
+                color: $color-income-border
+            }
+
+            //--- 라벨 제외한 영역 ---
+            > div:first-of-type {
+                border-color: $color-income-border;
+
+                //마우스 올린 상태
+                &:hover {
+                    background-color: $color-income-background-opacity-10;
+                }
+            }
+
+            //라디오 버튼
+            .form__input-container--fix .form__input--radio {
+                accent-color: $color-income-text;
+            }
+
+            //선택박스
+            .form__input-box--category .form__select {
+                border: 2px solid lightblue;
+            }
+
+            //금액 유형
+            .form__input-box--type {
+                input[type="radio"]:checked + svg {
+                    fill: $color-income-icon;
+                }
+            }
+
+            //사진
+            .form__input-box--photo {
+                //마우스 올린 상태
+                .icon--enabled:hover {
+                    stroke: $color-income-border;
+                }
+
+                //사진 등록된 상태
+                .photo__preview {
+                    border: 2px solid lightblue;
+                }
+            }
+        }
+    }
+
+    //--- 지출 상세 작성 영역 ---
+    &.outlay {
+        //--- 유형 영역 ---
+        .budget-header__type::after {
+            content: '지출';
+            color: $color-outlay-text;
+        }
+
+        .form__field {
+            //라벨
+            > .form__label:first-child {
+                color: $color-outlay-text;
+            }
+
+            //--- 라벨 제외한 영역 ---
+            > div:first-of-type {
+                border-color: $color-outlay-text;
+
+                //마우스 올린 상태
+                &:hover {
+                    background-color: $color-outlay-background-opacity-10;
+                }
+            }
+
+            //라디오 버튼
+            .form__input-container--fix .form__input--radio {
+                accent-color: $color-outlay-text;
+            }
+
+            //선택박스
+            .form__input-box--category .form__select {
+                border: 2px solid lightpink;
+            }
+
+            //금액 유형
+            .form__input-box--type {
+                input[type="radio"]:checked + svg {
+                    fill: $color-outlay-icon;
+                }
+            }
+
+            //사진
+            .form__input-box--photo {
+                //마우스 올린 상태
+                .icon--enabled:hover {
+                    stroke: $color-outlay-icon;
+                }
+
+                //사진 등록된 상태
+                .photo__preview {
+                    border: 2px solid lightpink;
+                }
+            }
+        }
+    }
+}
+
+
+
+/*==============================
+             📁 가계부  초기 작성 화면
+==============================*/
+.page-budget-write.common {
+    @include flex-box( column, center, center );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    padding: 5rem;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    //======= ▼ 상단 =======
+    .write-header {
+        @include flex-box( column, center, center );
+        flex: 1;
+
+        //제목
+        &__title {
+            font-size: 2.5rem;
+            font-family: var(--title-font);
+        }
+    }
+
+    //======= ▼ 본문 =======
+    .write-body {
+        @include flex-box( column, center, center );
+        flex: 3;
+        width: 100%;
+
+        .write-type {
+            @include flex-box(column, center, center);
+            flex: 1;
+            width: 100%;
+            gap: 1.5rem;
+
+            //안내문구
+            &__guide {
+                font-size: 1.2rem;
+            }
+
+            //수입&지출 선택 영역
+            &__options {
+                @include flex-box( $justify: space-evenly, $align: center );
+                width: 100%;
+                height: 100%;
+
+                //라디오 버튼
+                input[type="radio"] {
+                    position: relative;
+                    display: none;
+                }
+
+                //라디오 선택된 상태
+                input[type="radio"]:checked + label::after {
+                    color: $color-white;
+                    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+                    transform: translateY(2px);
+                    transition: none !important;
+                }
+
+                //수입 라디오 선택된 상태(기본)
+                input[value="income"]:checked + label{
+                    &::after {
+                        background-color: $color-income-background;
+                    }
+
+                    //마우스 올린 상태
+                    &:hover::after {
+                        background-color: $color-income-background !important;
+                        color: $color-white !important;
+                        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3) !important;
+                        transform: translateY(2px) !important;
+                        transition: none !important;
+                    }
+                }
+
+                //지출 라디오 선택된 상태
+                input[value="outlay"]:checked + label {
+                    &::after {
+                        background-color: $color-outlay-background;
+                    }
+
+                    //마우스 올린 상태
+                    &:hover::after {
+                        background-color: $color-outlay-background !important;
+                        color: $color-white !important;
+                        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3) !important;
+                        transform: translateY(2px) !important;
+                        transition: none !important;
+                    }
+                }
+
+                //라벨
+                .form__label {
+                    position: relative;
+
+                    &::after {
+                        content: "";
+                        @include flex-box( $justify: center, $align: center );
+                        width: 8rem;
+                        height: 4rem;
+                        font-size: 1.5rem;
+                        color: $color-gray-400;
+                        background-color: $color-gray-300;
+                        border-radius: 7px;
+                    }
+
+                    //마우스 올린 상태
+                    &:hover {
+                        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+                        border-radius: 7px;
+                        cursor: pointer;
+                        transform: translateY(2px);
+                    }
+                }
+
+                //수입 라벨
+                label[for="write-income"] {
+                    &::after {
+                        content: '수입';
+                    }
+
+                    //마우스 올린 상태
+                    &:hover::after {
+                        color: $color-white;
+                        background-color: $color-income-background-opacity-70;
+                    }
+                }
+
+                //지출 라벨
+                label[for="write-outlay"] {
+                    &::after {
+                        content: '지출';
+                    }
+
+                    //마우스 올린 상태
+                    &:hover::after {
+                        color: $color-white;
+                        background-color: $color-outlay-background-opacity-70;
+                    }
+                }
+            }
+        }
+
+        //--- 날짜선택 영역 ---
+        .write-date {
+            @include flex-box( column, $align: center );
+            flex: 2;
+            padding: 7rem 0;
+
+            //안내문구
+            &__guide {
+                font-size: 1.2rem;
+            }
+
+            //날짜 선택박스
+            &__select-box {
+                @include flex-box();
+                gap: 3.5rem;
+                margin-top: 2rem;
+                margin-bottom: 5rem;
+
+                .write__select {
+                    width: 150px;
+                    height: 40px;
+                    font-size: 18px;
+                    border: none;
+                    box-shadow: 2px 3px 5px rgba(0, 0, 0, 0.3);
+                }
+            }
+
+            &__result {
+                font-size: 2rem;
+                font-weight: bold;
+                color: $color-gray-800;
+            }
+        }
+    }
+
+    //======= ▼ 하단 =======
+    .write-footer {
+        @include flex-box( column, $align: center );
+        flex: 1;
+    }
+}
+
+
+
+
+
+/*==============================
+                 📁 가계부 조회 화면
+==============================*/
+.page-budget-list {
+    @include flex-box( column, $align: center );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    gap: 1.2rem;
+    padding: 5rem 3rem;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    //--- 날짜선택 영역 ---
+    .budget-date {
+        @include flex-box( $align: center );
+        flex: 0.5;
+        width: 100%;
+        gap: 1rem;
+        font-size: 1.2rem;
+
+        //캘린더 아이콘
+        .icon--calendar {
+            width: 1.5rem;
+            height: 1.5rem;
+            fill: var(--icon-calendar-color);
+            cursor: pointer;
+        }
+
+        //--- 선택박스 영역 ---
+        .budget-select__label {
+            position: relative;
+            @include flex-box();
+            width: 6rem;
+            height: 2rem;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+
+            select {
+                position: relative;
+                z-index: 1;
+                width: inherit;
+                height: inherit;
+                padding: 0 5px;
+                font-size: 1em;
+                background: transparent;
+                border: 0 none;
+                outline: 0 none;
+                cursor: pointer;
+
+                //선택박스 기본 화살표 없애기
+                -o-appearance: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+
+                &::-ms-expand {
+                    display: none;
+                }
+
+                //포커스된 상태
+                &:focus-within + .budget-select__icon svg {
+                    transform: rotate(180deg);
+                }
+            }
+
+            option {
+                padding: 3px 0;
+                font-size: 1rem;
+                color: var(--text-color-primary);
+                background: #fff;
+            }
+
+            //아이콘
+            .budget-select__icon {
+                position: absolute;
+                top: 0;
+                right: 0;
+                z-index: 1;
+                @include flex-box( column, center, center );
+                width: 1.3em;
+                height: inherit;
+                border-left: 2px solid var(--border-color);
+
+                svg {
+                    transition: 0.3s;
+                }
+            }
+        }
+    }
+
+    //--- 금액 통계 영역 ---
+    .budget-stats {
+        @include flex-box();
+        flex: 1.5;
+        width: 100%;
+        gap: 3rem;
+        padding: 0.2rem 10rem;
+        box-sizing: border-box;
+
+        div{
+            @include flex-box( column, $align: center );
+            flex: 1;
+            padding: 1.3rem;
+            box-sizing: border-box;
+        }
+
+        //통계 제목
+        dt {
+            @include flex-box( $justify:center, $align: center );
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            font-size: 1.2rem;
+            background-color: var(--background-selected);
+            border: 2px solid var(--border-color);
+            border-top-left-radius: $budget-stats-border-radius;
+            border-top-right-radius: $budget-stats-border-radius;
+        }
+
+        //통계 금액
+        dd {
+            @include flex-box( $justify:center, $align: center );
+            flex: 2;
+            width: 100%;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 2px solid $color-gray-400;
+            border-top: 0;
+            border-bottom-left-radius: $budget-stats-border-radius;
+            border-bottom-right-radius: $budget-stats-border-radius;
+        }
+    }
+
+    //--- 그래프 영역 ---
+    .budget-graph {
+        width: 100%;
+        padding: 0 3rem;
+        box-sizing: border-box;
+        color: $color-gray-400;
+        overflow: hidden;
+
+        //제목
+        &__title {
+            list-style: none;
+            cursor: pointer;
+
+            &::-webkit-details-marker {
+                display: none;
+            }
+        }
+
+        //화살표 아이콘
+        &__icon {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        //내용
+        &__content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        //그래프 열린 상태
+        &[open] {
+            //화살표 아이콘
+            .budget-graph__icon {
+                transform: rotate(180deg);
+            }
+
+            //내용
+            .budget-graph__content {
+                max-height: 250px;
+            }
+        }
+    }
+
+    //--- 메뉴 영역 ---
+    .budget-menu {
+        @include flex-box( column, $align: center );
+        flex: 0.5;
+        width: 100%;
+        padding: 0 6rem;
+        box-sizing: border-box;
+
+        //--- 기본 메뉴 영역 ---
+        &__top {
+            @include flex-box( $justify: space-between, $align: center );
+            width: 100%;
+
+            //메뉴 탭
+            .budget-menu__filter {
+                @include flex-box( $align: center );
+            }
+
+            //메뉴 리스트
+            .budget-menu__list {
+                @include flex-box( $justify: center );
+                width: $budget-menu-width;
+
+                * {
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+
+            //메뉴 각 요소
+            .budget-menu__item {
+                flex: 1;
+                border-right: 1px solid $color-gray-500;
+
+                button {
+                    color: $color-gray-500;
+                }
+
+                //마우스 올린 상태
+                &:hover > button {
+                    color: var(--text-color-primary);
+                    cursor: pointer;
+                }
+
+                //선택된 상태
+                &--active > button {
+                    position: relative;
+                    font-weight: bold;
+                    color: var(--text-color);
+                    cursor: default;
+
+                    //마우스 올린 상태
+                    &:hover {
+                        color: var(--text-color);
+                        cursor: default;
+                    }
+
+                    &::before {
+                        content: '';
+                        position: absolute;
+                        top: 100%;
+                        left: 40%;
+                        width: 0;
+                        height: 0;
+                        border-left: 10px solid transparent;
+                        border-right: 10px solid transparent;
+                        border-bottom: 12px solid var(--search-menu-background);
+                    }
+                }
+            }
+
+            //--- 삭제버튼 영역 ---
+            .budget-menu__action {
+                @include flex-box( $justify: center, $align: center );
+                gap: 1rem;
+                color: $color-gray-500;
+
+                //쓰레기 아이콘
+                .icon--basket {
+                    width: 1.2rem;
+                    height: 1.2rem;
+                    fill: $color-gray-500;
+                }
+
+                //삭제모드 활성화 상태
+                &--delete {
+                    //문구
+                    .delete__count {
+                        cursor: pointer;
+                    }
+
+                    //취소버튼
+                    .button--cancel {
+                        width: 3rem;
+                        font-size: 0.85rem;
+                        color: $color-red-800;
+                        background: none;
+                        box-shadow: none;
+                        cursor: pointer;
+                    }
+                }
+            }
+        }
+
+        //--- 메뉴 검색 영역 ---
+        &__bottom {
+            @include flex-box();
+            width: 100%;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            box-sizing: border-box;
+            border: 1px dashed var(--border-color);
+            border-radius: 10px;
+
+            //검색버튼
+            .button {
+                box-shadow: none;
+            }
+        }
+    }
+
+    //--- 내역 리스트 영역 ---
+    .budget-list {
+        flex: 6;
+        width: 100%;
+        max-height: 500px;
+        box-sizing: border-box;
+        overflow-y: auto;
+
+        //스크롤 미표시
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        //내역 없는 상태
+        &.empty {
+            @include flex-box( column, center, center );
+            gap: 0.5rem;
+            font-size: 1.2rem;
+
+            div {
+                @include flex-box( column, $align: center );
+            }
+            svg {
+                width: 3rem;
+                height: 3rem;
+                fill: $color-gray-600;
+            }
+        }
+
+        //내역이 있는 상태
+        &.filled {
+            @include flex-box( column, $justify: flex-start );
+            gap: 2rem;
+            padding: 0 6rem;
+
+            div {
+                @include flex-box( column );
+
+                //제목
+                .budget-list__title {
+                    @include flex-box( $align: center );
+                    padding: 0 20px;
+                    line-height: 1.7rem;
+                    color: $color-white;
+                    background: var(--background-color);
+                    opacity: 80%;
+                }
+
+                //--- 내역 리스트 영역 ---
+                .budget-list__cards {
+                    @include flex-box( $justify: space-between );
+                    flex-wrap: wrap;
+                    flex: 1;
+                    gap: 1rem;
+
+                    //첫번째 내역 줄
+                    &:first-of-type {
+                        margin-top: 0;
+
+                        .budget-card {
+                            border-top: 0px;
+                        }
+                    }
+
+                    //첫번째 내역 줄 제외한 나머지 줄
+                    &:not(:first-of-type) {
+                        margin-top: 1rem;
+                    }
+                }
+
+                //--- 내역 영역 ---
+                .budget-card {
+                    position: relative;
+                    @include flex-box( column, $align: center );
+                    flex: 1;
+                    min-height: 7rem;
+                    max-height: 7rem;
+                    gap: 0.2rem;
+                    padding: 0.55rem;
+                    box-sizing: border-box;
+                    border: 1px solid $color-gray-500;
+
+                    //타입 구분
+                    &__type {
+                        width: 0.5rem;
+                        height: 0.5rem;
+                        border-radius: 100%;
+                    }
+
+                    //아이콘
+                    &__icon {
+                        position: absolute;
+                        top: 5%;
+                        right: 5%;
+                        display: none;
+                        width: 1.2rem;
+                        height: 1.2rem;
+                        fill: $color-gray-500;
+                    }
+
+                    //카테고리
+                    &__category {
+                        font-size: 1.15rem;
+                        font-weight: bold;
+                    }
+
+                    //금액
+                    &__price {
+                        margin: 0.2rem 0;
+                    }
+
+                    //메모
+                    &__memo {
+                        @include flex-box( $justify: center, $align: center );
+                        flex: 1;
+                        width: 90%;
+                        font-size: 0.9rem;
+                        text-align: center;
+                    }
+
+                    //--- 빈카드 영역 ---
+                    &.empty {
+                        cursor: default;
+
+                        //타입구분 아이콘
+                        .budget-card__type {
+                            border: 2px solid $color-gray-500;
+                        }
+                    }
+
+                    //--- 수입카드 영역 ---
+                    &.income {
+                        //타입구분 아이콘
+                        .budget-card__type {
+                            background-color: $color-income-icon;
+                            border: 2px solid $color-income-icon;
+                        }
+
+                        //가격
+                        .budget-card__price {
+                            color: $color-income-text;
+                        }
+                    }
+
+                    //--- 지출카드 영역 ---
+                    &.outlay {
+                        //타입구분 아이콘
+                        .budget-card__type {
+                            background-color: $color-outlay-icon;
+                            border: 2px solid $color-outlay-icon;
+                        }
+
+                        //가격
+                        .budget-card__price {
+                            color: $color-outlay-text;
+                        }
+                    }
+                }
+            }
+
+            //삭제모드 활성화 상태
+            &.budget-list--delete {
+                //카드 요소
+                .budget-card {
+                    //선택된 카드
+                    &.checked {
+                        border: 2px solid $color-red-800;
+
+                        //선택된 상태의 아이콘
+                        .budget-card__icon {
+                            fill: $color-red-800;
+                        }
+                    }
+                }
+
+                //아이콘
+                .budget-card__icon {
+                    display: block;
+                    z-index: 2;
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    //--- FAB 버튼 ---
+    .button--fab {
+        position: fixed;
+        top: 90%;
+        right: 10%;
+        z-index: 5;
+        width: 50px;
+        height: 50px;
+        background-color: var(--fab-background);
+        border-radius: 100%;
+        transition: transform 0.3s ease;
+
+        &:after {
+            content: '+';
+            color: var(--fab-color);
+            font-size: 2rem;
+        }
+
+        //마우스 올린 상태
+        &:hover {
+            opacity: 70%;
+        }
+    }
+}
+
+
+
+/*==============================
+               📁 가계부 상세 화면
+==============================*/
+.page-budget-detail {
+    //--- 공통 상세 영역 ---
+    @include flex-box( column, $align: center );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    gap: 1.2rem;
+    padding: 5rem 3rem;
+    box-sizing: border-box;
+
+    //--- 수입 상세 영역 ---
+    &--income {
+        //--- 필수정보 영역 ---
+        .detail-essential {
+            //금액
+            &__price {
+                color: $color-income-text;
+
+                &::before {
+                    content: '+';
+                    margin-right: 0.2rem;
+                    color: $color-income-text;
+                }
+            }
+        }
+    }
+
+    //--- 지출 상세 영역 ---
+    &--outlay {
+        //--- 필수정보 영역 ---
+        .detail-essential {
+            //금액
+            &__price {
+                color: $color-outlay-text;
+
+                &::before {
+                    content: '-';
+                    margin-right: 0.2rem;
+                    color: $color-outlay-text;
+                }
+            }
+        }
+    }
+
+    //======= ▼ 상단 =======
+    .detail-header {
+        flex: 1;
+        width: 100%;
+
+        //--- 제목 영역 ---
+        &__title {
+            @include flex-box( $align: center );
+            width: 100%;
+            height: 100%;
+        }
+
+        //내용
+        &__text {
+            font-size: 1.5rem;
+        }
+
+        //아이콘
+        .icon--back {
+            width: 3.3rem;
+            fill: none;
+            cursor: pointer;
+        }
+    }
+
+    //======= ▼ 본문 =======
+    .detail-body {
+        @include flex-box( column );
+        flex: 10;
+        width: 100%;
+        height: 100%;
+        gap: 2rem;
+        padding: 0px 8rem;
+        box-sizing: border-box;
+
+        //--- 필수정보 영역 ---
+        .detail-essential {
+            @include flex-box();
+            flex: 1;
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+
+            //--- 왼쪽 영역 ---
+            .detail-box--left {
+                @include flex-box( $align: center, $justify: center );
+                flex: 1;
+                background-color: var(--background-selected);
+                border-top-left-radius: 10px;
+                border-bottom-left-radius: 10px;
+
+                //원형 아이콘
+                .detail-essential__icon {
+                    width: 1.5rem;
+                    height: 1.5rem;
+                    background-color: var(--background-accent);
+                    border-radius: 100%;
+                }
+            }
+
+            //--- 오른쪽 영역 ---
+            .detail-box--right {
+                @include flex-box( $align: center );
+                flex: 10;
+                padding: 0 5rem;
+
+                .detail-essential {
+                    //--- 필수정보 영역 ---
+                    &__info {
+                        @include flex-box( column );
+                        flex: 1;
+                        gap: 0.8rem;
+                        text-align: center;
+                    }
+
+                    //--- 부가정보 영역 ---
+                    &__meta {
+                        @include flex-box( $justify: center );
+                        gap: 1rem;
+                        font-size: 1.2rem;
+                    }
+
+                    //금액
+                    &__price {
+                        @include flex-box( $justify: center );
+                        flex: 1;
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                    }
+
+                    //날짜
+                    &__date {
+                        color: $color-gray-500;
+                    }
+
+                    //금액 유형
+                    &__payment {
+                        @include flex-box( $justify: center );
+                        gap: 0.2rem;
+
+                        .icon {
+                            width: 1rem;
+                            height: 1rem;
+                        }
+                    }
+                }
+
+
+            }
+        }
+
+        //--- 부가정보 영역 ---
+        .detail-additional {
+            @include flex-box( column );
+            flex: 5;
+            gap: 1rem;
+            padding: 1.5rem 5rem;
+            box-sizing: border-box;
+            background-color: var(--background-selected);
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+
+            //--- 메모 영역 ---
+            &__memo {
+                @include flex-box( column );
+                gap: 0.5rem;
+                flex: 1;
+
+                //제목
+                &-title {
+                    @include additional-title;
+
+                    &::after {
+                        content: '메모';
+                    }
+                }
+
+                //--- 내용 영역 ---
+                > :nth-child(2) {
+                    @include additional-content;
+                }
+            }
+
+            //--- 사진 영역 ---
+            &__photo {
+                @include flex-box( column );
+                gap: 0.5rem;
+                flex: 3;
+
+                //제목
+                &-title {
+                    @include additional-title;
+
+                    &::after {
+                        content: '사진';
+                    }
+                }
+
+                //--- 내용 영역 ---
+                > :nth-child(2) {
+                    @include flex-box();
+                    @include additional-content;
+                    gap: 7rem;
+                    width: 80%;
+                    margin: auto;
+                }
+
+                //각 요소
+                &-item {
+                    @include flex-box( $justify: center, $align: center );
+                    flex: 1;
+                    background-color: $color-white;
+                    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+                    aspect-ratio: 1/1;
+                    cursor: default;
+                    overflow: hidden;
+                }
+
+                //등록된 상태
+                &--filled {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: center;
+                    cursor: pointer;
+                }
+
+                //등록 전 상태
+                &--empty {
+                    @include flex-box( column, $align: center );
+                    gap: 0.5rem;
+
+                    //사진 아이콘
+                    .icon {
+                        width: 5rem;
+                        height: 5rem;
+                        fill: $color-gray-500;
+                    }
+                }
+            }
+
+            //--- 위치 영역 ---
+            &__location {
+                @include flex-box( column );
+                gap: 0.5rem;
+                flex: 1;
+
+                //제목
+                &-title {
+                    @include additional-title;
+
+                    &::after {
+                        content: '위치';
+                    }
+                }
+
+                //--- 내용 영역 ---
+                > :nth-child(2) {
+                    @include additional-content;
+                }
+
+                //등록된 상태
+                &--filled {
+                    @include flex-box();
+                    gap: 2rem;
+
+                    //장소명
+                    .location__name {
+                        font-weight: bold;
+                    }
+                }
+            }
+        }
+    }
+
+    //======= ▼ 사진 미리보기 =======
+    .detail-photo__viewer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 5;
+        @include flex-box( column, center, center );
+        width: 100%;
+        height: 100%;
+        background-color: rgba( 0, 0, 0, 0.9 );
+        cursor: pointer;
+
+        &::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        //안내문구
+        &-guide {
+            z-index: 5;
+            margin-bottom: 1rem;
+            color: $color-white;
+        }
+
+        //미리보기 이미지
+        &-image {
+            z-index: 5;
+            max-width: 80%;
+            max-height: 80%;
+            background-color: $color-white;
+        }
+    }
+
+    //======= ▼ 하단 =======
+    .detail-footer {
+        @include flex-box( $justify: space-evenly, $align: center );
+        flex: 1;
+        width: 50%;
+    }
+}

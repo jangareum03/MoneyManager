@@ -1,0 +1,66 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/loginLayout}" th:with="pageTitle='아이디 찾기 : 돈매니저'">
+<th:block layout:fragment="main">
+<main class="page page-member-recovery">
+    <div class="recovery-box">
+        <!-- 상단 -->
+        <section class="recovery-header">
+            <h1 class="recovery-header__title">
+              계정찾기
+              <small>돈매니저</small>
+            </h1>
+        </section>
+
+        <!-- 본문 -->
+        <section class="recovery-body">
+            <!-- 본문: 서브탭 -->
+            <nav class="recovery-menu">
+                <ul class="recovery-menu__list">
+                  <li class="recovery-menu__item recovery-menu__item--selected" data-menu="id">아이디 찾기</li>
+                  <li class="recovery-menu__item" data-menu="password">비밀번호 찾기</li>
+                </ul>
+            </nav>
+
+          <!-- 본문: 작성 -->
+            <article class="recovery-form">
+                <!-- 가이드 문구 영역 -->
+                <p class="recovery-form__guide">
+                  <span>아이디가 기억나지 않으세요?</span>
+                  <span>가입하신 이름과 생년월일을 입력하시면, 아이디를 찾아드릴게요!</span>
+                </p>
+
+                <form class="form" action="/recovery/id" method="post" th:attr="data-form='id'">
+                    <!-- 이름 입력 영역 -->
+                    <div class="form__field form__field--name">
+                        <label class="form__label" for="recovery-name">이름</label>
+                        <div class="form__input-box">
+                            <input id="recovery-name" class="form__input form__input--text" name="name" type="text"  placeholder="이름을 입력해주세요.">
+                        </div>
+                    </div>
+
+                    <!-- 생년월일 입력 영역 -->
+                    <div class="form__field form__field--birth">
+                        <label class="form__label" for="recovery-birth">생년월일</label>
+                        <div class="form__input-box">
+                          <input id="recovery-birth" class="form__input form__input--text" name="birth" type="text" placeholder="생년월일을 입력해주세요. ex) 19900101">
+                        </div>
+                    </div>
+
+                    <div class="form__actions">
+                      <button class="button button--large button--submit" type="submit">찾기</button>
+                    </div>
+              </form>
+          </article>
+        </section>
+
+        <!-- 하단 -->
+        <section class="recovery-footer">
+            <a class="link" href="/">로그인</a>
+            <a class="link" href="/signup">회원가입</a>
+        </section>
+    </div>
+</main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script src="/js/pages/member-recovery.js"></script>
+</th:block>
+</html>

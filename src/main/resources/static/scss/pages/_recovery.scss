@@ -1,0 +1,269 @@
+/*==============================
+                 📁 계정찾기 화면
+==============================*/
+@use '../mixins' as *;
+@use '../variables' as *;
+
+
+
+.page-member-recovery {
+    @include flex-box( column, center, center );
+    width: 100%;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+        background:$image-body-background;
+        background-size: contain;
+        background-repeat: round;
+        opacity: 0.8;
+    }
+
+    //--- 전체 영역 ---
+    .recovery-box {
+        @include flex-box( column, $align: center );
+        z-index: 0;
+        width: 75%;
+        height: 85%;
+        padding-top: 2rem;
+        box-sizing: border-box;
+        background-color: $color-box-background;
+    }
+
+
+    //======= ▼ 상단 =======
+    .recovery-header {
+        flex: 1;
+        width: 100%;
+
+        //--- 제목 영역 ---
+        &__title {
+            @include flex-box( column, center, center );
+            height: 100%;
+            gap: 0.5rem;
+            font-size: 3.5rem;
+            font-family: var(--title-font);
+
+            > small {
+                font-size: 0.35em;
+            }
+        }
+    }
+
+
+    //======= ▼ 본문 =======
+    .recovery-body {
+        @include flex-box(column, $align: center);
+        flex: 3;
+        width: 70%;
+
+
+        //--- 서브탭 영역 ---
+        .recovery-menu {
+            flex: 0.8;
+            width: 100%;
+
+            &__list {
+                @include flex-box( $justify: space-evenly, $align: center );
+                height: 100%;
+                color: $color-tab-text;
+            }
+
+            &__item {
+                @include flex-box( $align: center, $justify: center );
+                flex: 1;
+                height: 100%;
+                box-sizing: border-box;
+                font-size: 1.7rem;
+                border-bottom: 3px solid $color-tab-border;
+
+                //마우스 올린 상태
+                &:hover {
+                    color: var(--text-color-primary);
+                    border-color: var(--border-color);
+                }
+
+                //서브탭 선택 상태
+                &--selected {
+                    font-weight: bold;
+                    color: var(--text-color-primary);
+                    border-color: var(--border-color);
+                }
+            }
+        }
+
+
+        //--- 전송 폼 영역 ---
+        .recovery-form {
+            @include flex-box(column, center, center);
+            flex: 5;
+            width: 100%;
+            padding-top: 0.5rem;
+            box-sizing: border-box;
+
+            //가이드문구
+            &__guide {
+                @include flex-box( column, center, center );
+                flex: 1;
+                width: 100%;
+                height: 100%;
+                gap: 0.3rem;
+
+                > span:first-child {
+                    font-size: 1.55rem;
+                }
+
+                > span:last-child {
+                    font-size: 1.1em;
+                }
+            }
+
+            //--- 전송 폼 ---
+            .form {
+                @include flex-box( column );
+                flex: 3;
+                width: 65%;
+
+                //--- 입력 영역 ---
+                &__field {
+                    position: relative;
+                    @include flex-box( $align: center );
+                    flex: 1;
+                    box-sizing: border-box;
+                    transition: margin-bottom 0.2s ease;
+
+                    //메시지를 가지고 있는 상태
+                    &.has-error,
+                    &.has-success {
+                        margin-bottom: 1rem;
+                    }
+                    .message--error,
+                    .message--success {
+                        position: absolute;
+                        top: 100%;
+                    }
+                }
+
+                //라벨
+                &__label {
+                    width: 7rem;
+                }
+
+                //--- 입력박스 영역 ---
+                &__input-box {
+                    display: flex;
+                    width: 100%;
+
+                    .form__input {
+                        width: 100%;
+                        height: 3.5rem;
+                        font-size: 0.9rem;
+                        border-radius: 5px;
+                    }
+                }
+
+                //--- 버튼 영역 ---
+                &__actions {
+                    @include flex-box( $align: center, $justify: center );
+                    flex: 2;
+                }
+            }
+        }
+
+        //--- 공통 결과 영역 ---
+        .recovery-result {
+            @include flex-box( column, $align: center );
+            flex: 5;
+            width: 100%;
+            padding-top: 3rem;
+            box-sizing: border-box;
+
+            &__guide {
+                flex: 1;
+                width: 100%;
+                padding-left: 20px;
+                font-size: 18px;
+                box-sizing: border-box;
+            }
+
+            //--- 성공 영역 ---
+            &--success {
+                //안내문구
+                .recovery-result__guide {
+                    @include flex-box(column);
+                    flex: 1;
+                    width: 100%;
+                    gap: 0.5rem;
+                    padding-left: 1.5rem;
+                    box-sizing: border-box;
+                    font-size: 1.1rem;
+                }
+
+                //결과정보
+                .recovery-result__data {
+                    @include flex-box( column, center, center );
+                    flex: 3;
+                    width: 100%;
+                    gap: 0.9rem;
+                    font-size: 1.1rem;
+
+                    span {
+                        font-size: 1.6rem;
+                    }
+
+                    strong {
+                        font-size: 1.1em;
+                        font-weight: bold;
+                        color: var(--text-color-primary);
+                    }
+
+                    small {
+                        color: $color-text-gray;
+                    }
+                }
+            }
+
+            //--- 실패 영역 ---
+            &--fail {
+                .recovery-result {
+                    //안내 문구
+                    &__guide {
+                        @include flex-box( column, center,center );
+                        gap: 0.5rem;
+                        font-size: 1.15rem;
+                    }
+
+                    &__text {
+                        &--strong {
+                            font-size: 1.5rem;
+                            font-weight: bold;
+                            color: $color-text-error;
+                        }
+                    }
+
+                    //아이콘
+                    &__icon {
+                        width: 13rem;
+                        height: 13rem;
+
+                        svg {
+                            fill: $color-icon-warning;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //======= ▼ 하단 =======
+    .recovery-footer {
+        @include flex-box( $align: center, $justify: space-evenly );
+        flex: 1;
+        width: 50%;
+    }
+}

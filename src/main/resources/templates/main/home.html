@@ -1,91 +1,68 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>메인 : 돈매니저</title>
-    <!-- css -->
-    <link rel="stylesheet" th:href="@{/css/home.css}">
-    <!-- js -->
-    <script th:inline="javascript">
-    function attendCheck(date) {
-        let today = new Date().getDate();
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='홈 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-member-home">
+        <!-- 상단  -->
+        <section class="home-header">
+            <!-- 이전 버튼-->
+            <button class="button button--prev" aria-label="이전달 이동">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+                    <path fill="currentColor" d="M685.248 104.704a64 64 0 0 1 0 90.496L368.448 512l316.8 316.8a64 64 0 0 1-90.496 90.496L232.704 557.248a64 64 0 0 1 0-90.496l362.048-362.048a64 64 0 0 1 90.496 0"/>
+                </svg>
+            </button>
 
-        if( date == today ){
-            let xhr = new XMLHttpRequest();
-            xhr.open('GET', '/home/attendOne', true);
-            xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
-            xhr.send();
+            <article class="home-movement">
+                <time class="home-movement__date">
+                    <span class="home-movement__month">
+                        <em class="home-movement__month--strong" th:text="${month}"></em>월
+                    </span>
+                    <small class="home__movement-year" th:text="${year}"></small>
+                </time>
+            </article>
 
-            xhr.onload = function() {
-                if( xhr.status == 200 ){
-                    if( xhr.response == date ) {
-                        alert('오늘 출석은 이미 완료했습니다. 내일 다시 해주세요!');
-                    }else{
-                        xhr.open('GET', '/home/attendCheck', true);
-                        xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
-                        xhr.send();
+            <!-- 다음 버튼 -->
+            <button class="button button--next" aria-label="다음달 이동">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+                    <path fill="currentColor" d="M338.752 104.704a64 64 0 0 0 0 90.496l316.8 316.8l-316.8 316.8a64 64 0 0 0 90.496 90.496l362.048-362.048a64 64 0 0 0 0-90.496L429.248 104.704a64 64 0 0 0-90.496 0"/>
+                </svg>
+            </button>
+        </section>
 
-                        xhr.onload = function() {
-                            if( xhr.status == 200 ) {
-                                alert('출석 완료 했습니다.');
-                                let img = document.getElementsByClassName('tableImg')[today+1];
-                                img.style.visibility = 'visible';
-                            }else{
-                                alert('통신 실패했습니다. 잠시 후 다시 시도해주세요.');
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    function attendList(){
-        let list = [[${attendList}]];
-        let start = [[${start}]] - 1;
-
-        for( let i=0; i<list.length; i++ ) {
-            for( let j=0; j<=[[${end}]]; j++ ) {
-                if( list[i].date == j ) {
-                    let img = document.getElementsByClassName('tableImg')[j+start];
-                    img.style.visibility = 'visible';
-                }
-            }
-        }
-    }
- </script>
-</head>
-<body onload="attendList()">
-<nav th:replace="/include/menu.html :: menu"></nav>
-<div id="calendar">
-        <!-- 년도 -->
-        <div id="year">
-            <a th:href="@{/home/moveCal(year=${year-1}, month=${month})}">&lt;</a>
-            <span>[[${year}]]</span>년
-            <a th:href="@{/home/moveCal(year=${year+1}, month=${month})}">&gt;</a>
-        </div>
-        <!-- 출석테이블 -->
-        <div id="dateTable">
-            <table>
-                <tr th:each="row : ${#numbers.sequence(1, rows)}">
-                    <th:block th:each="col : ${#numbers.sequence(1, 7)}">
-                        <td th:with="date=${ ((col + (7-col)) * (row-1) + col) - start}" th:style="${ ((col + (7-col)) * (row-1) + col) - start == today} ? 'border: 5px solid #EA3B20; cursor: pointer' : '' " th:onclick="attendCheck([[${ ((col + (7-col)) * (row-1) + col) - start}]])">
-                            <span th:if="${ (date > 0) && (date <= end) }" th:style="${ date == today ? 'color:#EA3B20; top: 2px; left:4px': ''}">
-                                <th:block th:if="${date < 10}">0[[${date}]]</th:block>
-                                <th:block th:unless="${date < 10}">[[${date}]]</th:block>
-                            </span>
-                            <img th:src="@{/image/cat.png}" class="tableImg" th:style="${ ((col + (7-col)) * (row-1) + col) - start == today} ? 'top:16px; left:18px' : '' ">
+        <!-- 본문 : 출석현황 -->
+        <section class="home-body">
+            <table class="table table--home">
+                <thead class="table__head">
+                    <tr class="table__row">
+                        <th class="table__cell table__cell--header">일</th>
+                        <th class="table__cell table__cell--header">월</th>
+                        <th class="table__cell table__cell--header">화</th>
+                        <th class="table__cell table__cell--header">수</th>
+                        <th class="table__cell table__cell--header">목</th>
+                        <th class="table__cell table__cell--header">금</th>
+                        <th class="table__cell table__cell--header">토</th>
+                    </tr>
+                </thead>
+                <tbody class="table__body">
+                    <tr th:each="week : ${calendar}" class="table__row">
+                        <td th:each="day : ${week}" class="table__cell table__cell--day" th:classappend="${day != null && day == today} ? 'table__cell--today'">
+                            <span th:text="${day}"></span>
                         </td>
-                    </th:block>
-                </tr>
+                    </tr>
+                </tbody>
             </table>
-        </div>
-        <!-- 월 -->
-        <div id="month">
-                <span th:each="m : ${#numbers.sequence(1, 12)}">
-                    <a th:href="@{/home/moveCal(year=${year}, month=${m})}" th:style="${(m == month) ? 'color:#EA3B20' : 'color: #585858'}"> [[${m}]]월</a>
-                </span>
-        </div>
-</div>
-</body>
+        </section>
+
+        <!-- 하단 -->
+        <section class="home-footer">
+            <span>명언 준비중...</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="Face-Sad-Cry--Streamline-Font-Awesome">
+                <desc>Face Sad Cry Streamline Icon: https://streamlinehq.com</desc>
+                <path d="M12.5 12.690625V9c0 -0.415625 -0.334375 -0.75 -0.75 -0.75s-0.75 0.334375 -0.75 0.75v4.76875c-0.896875 0.46875 -1.91875 0.73125 -3 0.73125s-2.103125 -0.265625 -3 -0.73125V9c0 -0.415625 -0.334375 -0.75 -0.75 -0.75s-0.75 0.334375 -0.75 0.75v3.690625C2.26875 11.50625 1.5 9.84375 1.5 8c0 -3.590625 2.909375 -6.5 6.5 -6.5s6.5 2.909375 6.5 6.5c0 1.84375 -0.76875 3.50625 -2 4.690625zM8 16a8 8 0 1 0 0 -16 8 8 0 1 0 0 16zm-3.0125 -9.125c0.33125 0 0.621875 0.11875 0.79375 0.303125 0.2375 0.253125 0.63125 0.265625 0.884375 0.028125s0.265625 -0.63125 0.028125 -0.884375C6.240625 5.8375 5.59375 5.625 4.9875 5.625s-1.253125 0.2125 -1.70625 0.696875c-0.2375 0.253125 -0.221875 0.646875 0.028125 0.884375s0.646875 0.221875 0.884375 -0.028125c0.171875 -0.18125 0.4625 -0.303125 0.79375 -0.303125zm5.20625 0.303125c0.171875 -0.18125 0.4625 -0.303125 0.79375 -0.303125s0.621875 0.11875 0.79375 0.303125c0.2375 0.253125 0.63125 0.265625 0.884375 0.028125s0.265625 -0.63125 0.028125 -0.884375C12.240625 5.8375 11.59375 5.625 10.9875 5.625s-1.253125 0.2125 -1.70625 0.696875c-0.2375 0.253125 -0.221875 0.646875 0.028125 0.884375s0.646875 0.221875 0.884375 -0.028125zM6.5 10v1c0 0.828125 0.671875 1.5 1.5 1.5s1.5 -0.671875 1.5 -1.5v-1c0 -0.828125 -0.671875 -1.5 -1.5 -1.5s-1.5 0.671875 -1.5 1.5z" stroke-width="0.0313"></path>
+            </svg>
+        </section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script src="/js/pages/home.js"></script>
+</th:block>
 </html>

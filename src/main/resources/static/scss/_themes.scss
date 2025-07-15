@@ -1,0 +1,21 @@
+/*==============================
+           📁 테마별 값을 구분하여 정의
+==============================*/
+$themes: (
+    default: (
+        primary-color: #14918A,
+        primary-text: #000000,
+        primary-background: #FFFFFF,
+        primary-point: #FFD24C,
+
+        selected-background: #D2F3F0,
+        hover-background: #26AFA8,
+
+        focus-border:#00bcd4,
+        focus-shadow: #b2ebf2,
+
+        font-title: 'SEBANG_Gothic_Bold',
+        font-content: 'Pretendard-Regular',
+        icon-fill: invert(50%) sepia(85%) saturate(1251%) hue-rotate(321deg) brightness(105%) contrast(100%)
+    )
+);

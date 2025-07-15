@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='작성하기 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-budget-write common">
+        <!-- 상단 : 제목 -->
+        <section class="write-header">
+            <h1 class="write-header__title">작성하기</h1>
+        </section>
+
+        <!-- 본문 : 유형과 날짜 선택 -->
+        <section class="write-body">
+            <!-- 수입/지출 선택 -->
+            <div class="write-type">
+                <span class="write-type__guide">아래에서 수입/지출 중 하나를 선택해주세요.</span>
+
+                <div class="write-type__options">
+                    <input id="write-income" class="form__input form__input--radio" name="type" type="radio" value="income" checked>
+                    <label class="form__label" for="write-income"></label>
+
+                    <input id="write-outlay" class="form__input form__input--radio" name="type" type="radio" value="outlay">
+                    <label class="form__label" for="write-outlay"></label>
+                </div>
+            </div>
+
+            <!-- 날짜 선택 -->
+            <div class="write-date">
+                <p class="write-date__guide">작성할 날짜를 선택해주세요.</p>
+
+                <div class="write-date__select-box">
+                    <label class="write-date__label">
+                        <select class="write__select" name="year">
+                            <option disabled >년</option>
+                            <option th:each="y : ${#numbers.sequence( year-5, year )}" th:value="${y}" th:selected="${y} == ${year}">
+                                [[${y}]]년
+                            </option>
+                        </select>
+                    </label>
+                    <label class="write__date-label">
+                        <select class="write__select" name="month">
+                            <option disabled>월</option>
+                            <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}" th:selected="${m} == ${month}">
+                                [[${m}]]월
+                            </option>
+                        </select>
+                    </label>
+                    <label class="write__date-label">
+                        <select class="write__select" name="day">
+                            <option disabled>일</option>
+                            <option th:each="d : ${#numbers.sequence(1, lastDay)}" th:value="${d}" th:selected="${d} == ${day}">
+                                [[${d}]]일
+                            </option>
+                        </select>
+                    </label>
+                </div>
+
+                <!-- 선택한 날짜 문구 표시 -->
+                <div class="write-date__result">
+                    <strong th:text="${today}"></strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- 하단 -->
+        <section class="write-footer">
+            <button class="button button--medium button--default">다음</button>
+        </section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script src="/js/pages/budgetBook-write.js"></script>
+</th:block>
+</html>

@@ -1,0 +1,21 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title th:text="${pageTitle != null} ? ${pageTitle} : '돈매니저'"></title>
+
+    <!-- 공통 CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+
+<body class="web theme--default">
+<!-- 메인 -->
+<th:block layout:fragment="main">
+</th:block>
+
+<!-- 스크립트 -->
+<th:block th:replace="/layout/fragments/script :: script"></th:block>
+<th:block layout:fragment="pageScript"></th:block>
+</body>
+</html>

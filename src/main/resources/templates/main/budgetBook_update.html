@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='가계부 수정 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-budget page-budget-update" th:classappend="${#strings.startsWith( budgetBook.category.code, '01')} ? 'income' : 'outlay'">
+        <!-- 상단 : 제목 -->
+        <section class="budget-header">
+            <header>
+                <h1 class="budget-header__title" th:text="${budgetBook.date.text}"></h1>
+                <small class="budget-header__type"></small>
+            </header>
+        </section>
+
+        <!-- 본문 : 작성폼 -->
+        <section class="budget-body">
+            <form class="form">
+                <!-- 고정/변동 -->
+                <div class="form__field form__field--fix">
+                    <label class="form__label">고정/변동</label>
+                    <div class="form__input-container form__input-container--fix">
+                        <section class="form__input-box form__input-box--main">
+                            <label class="form__label">
+                                <input class="form__input form__input--radio" name="option" type="radio" value="y" th:checked="${budgetBook.fix == 'y'}">고정
+                            </label>
+                            <label class="form__label">
+                                <input class="form__input form__input--radio" name="option" type="radio" value="n" th:checked="${budgetBook.fix == 'n'}"> 변동
+                            </label>
+                        </section>
+                        <section th:if="${budgetBook.fix == 'y'}" class="form__input-box form__input-box--option">
+                            <label class="form__label">
+                                <input class="form__input form__input--radio" name="cycle" type="radio" value="y" th:checked="${budgetBook.fixCycle == 'y'}">일년
+                            </label>
+                            <label class="form__label">
+                                <input class="form__input form__input--radio" name="cycle" type="radio" value="m" th:checked="${budgetBook.fixCycle == 'm'}">한달
+                            </label>
+                            <label class="form__label">
+                                <input class="form__input form__input--radio" name="cycle" type="radio" value="w" th:checked="${budgetBook.fixCycle == 'w'}">일주일
+                            </label>
+                        </section>
+                    </div>
+                </div>
+
+                <!-- 카테고리 -->
+                <fieldset class="form__field form__field--category">
+                    <legend class="form__label form__label--essential">카테고리</legend>
+                    <div class="form__input-box form__input-box--category">
+                        <select class="form__select form__select--middle">
+                            <option value="" disabled>-- 선택없음 --</option>
+                            <option th:each="category : ${category[middle]}" th:value="${category.code}" th:text="${category.name}" th:selected="${category.code} == ${selectCategory[1].code}"></option>
+                        </select>
+                        <select class="form__select form__select--sub" name="category">
+                            <option value="" disabled>-- 선택없음 --</option>
+                            <option th:each="category : ${category[bottom]}" th:value="${category.code}" th:text="${category.name}" th:selected="${category.code} == ${selectCategory[2].code}"></option>
+                        </select>
+                    </div>
+                </fieldset>
+
+                <!-- 메모 -->
+                <div class="form__field form__field--memo">
+                    <label class="form__label">메모</label>
+                    <div class="form__input-box form__input-box--memo">
+                        <label>
+                            <textarea class="budget__field budget__memo" th:field="${budgetBook.memo}" placeholder="메모를 입력해주세요." cols="60" rows="4" maxlength="150">[[${budgetBook.memo}]]</textarea>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 금액 -->
+                <div class="form__field form__field--price">
+                    <label class="form__label form__label--essential">금액</label>
+                    <div class="form__input-container form__input-container--price">
+                        <!-- 금액 입력 -->
+                        <section class="form__input-box form__input-box--main">
+                            <label>
+                                <input class="form__input form__input--text" name="price" type="text" placeholder="금액을 입력해주세요." th:value="${budgetBook.price}">
+                            </label>
+                        </section>
+
+                        <!-- 금액 유형 -->
+                        <div class="form__input-box form__input-box--type">
+                            <label>
+                                <input class="form__input form__input--radio" name="paymentType" type="radio"  value="none" th:checked="${budgetBook.paymentType == 'none'}">
+                                <svg class="icon icon--none" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M5.2 0.584473C4.35505 0.584436 3.52784 0.826843 2.81655 1.28292C2.10526 1.73899 1.53977 2.38958 1.18721 3.15746C0.834646 3.92534 0.709815 4.77825 0.827534 5.61496C0.945253 6.45166 1.30058 7.23702 1.85133 7.87781L1.298 8.43114C1.26616 8.46189 1.24077 8.49867 1.2233 8.53934C1.20583 8.58001 1.19663 8.62375 1.19625 8.66801C1.19586 8.71227 1.2043 8.75616 1.22106 8.79712C1.23782 8.83809 1.26257 8.87531 1.29387 8.9066C1.32516 8.9379 1.36238 8.96265 1.40335 8.97941C1.44431 8.99617 1.4882 9.00461 1.53246 9.00422C1.57672 9.00384 1.62046 8.99464 1.66113 8.97717C1.7018 8.9597 1.73858 8.93431 1.76933 8.90247L2.32266 8.34914C3.167 9.07544 4.25463 9.45583 5.36759 9.41407C6.48055 9.37231 7.53661 8.91149 8.32414 8.12395C9.11168 7.33642 9.5725 6.28035 9.61426 5.1674C9.65602 4.05444 9.27563 2.96681 8.54933 2.12247L9.10266 1.56914C9.13366 1.53815 9.15824 1.50135 9.17501 1.46086C9.19179 1.42037 9.20042 1.37697 9.20042 1.33314C9.20042 1.28931 9.19179 1.24591 9.17501 1.20542C9.15824 1.16492 9.13366 1.12813 9.10266 1.09714C9.07167 1.06615 9.03488 1.04156 8.99439 1.02479C8.95389 1.00802 8.91049 0.999385 8.86666 0.999385C8.82283 0.999385 8.77943 1.00802 8.73894 1.02479C8.69845 1.04156 8.66166 1.06615 8.63066 1.09714L8.07733 1.65047C7.27711 0.961627 6.25586 0.583511 5.2 0.585139M7.628 2.10114C6.90328 1.49357 5.97724 1.17955 5.03244 1.22101C4.08765 1.26247 3.19267 1.65638 2.52395 2.3251C1.85524 2.99381 1.46132 3.88879 1.41987 4.83359C1.37841 5.77838 1.69243 6.70442 2.3 7.42914L7.628 2.10114ZM2.772 7.89981C3.49671 8.50738 4.42276 8.82139 5.36755 8.77994C6.31235 8.73848 7.20733 8.34456 7.87604 7.67585C8.54475 7.00714 8.93867 6.11215 8.98013 5.16736C9.02158 4.22257 8.70757 3.29652 8.1 2.57181L2.772 7.89981Z"/>
+                                </svg>
+                            </label>
+                            <label>
+                                <input class="form__input form__input--radio" name="paymentType" type="radio" value="cash" th:checked="${budgetBook.paymentType == 'cash'}">
+                                <svg class="icon icon--cash" viewBox="0 0 11 10" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.075 9.375C7.73804 9.375 8.37392 9.11161 8.84276 8.64277C9.3116 8.17393 9.575 7.53804 9.575 6.875C9.575 6.21196 9.3116 5.57607 8.84276 5.10723C8.37392 4.63839 7.73804 4.375 7.075 4.375C6.41196 4.375 5.77607 4.63839 5.30723 5.10723C4.83839 5.57607 4.575 6.21196 4.575 6.875C4.575 7.53804 4.83839 8.17393 5.30723 8.64277C5.77607 9.11161 6.41196 9.375 7.075 9.375ZM10.2 6.875C10.2 7.7038 9.87076 8.49866 9.28471 9.08471C8.69865 9.67076 7.9038 10 7.075 10C6.2462 10 5.45134 9.67076 4.86529 9.08471C4.27924 8.49866 3.95 7.7038 3.95 6.875C3.95 6.0462 4.27924 5.25134 4.86529 4.66529C5.45134 4.07924 6.2462 3.75 7.075 3.75C7.9038 3.75 8.69865 4.07924 9.28471 4.66529C9.87076 5.25134 10.2 6.0462 10.2 6.875Z"/>
+                                    <path d="M6.09875 7.465C6.12813 7.8375 6.4225 8.1275 6.95063 8.1625V8.4375H7.185V8.16062C7.73188 8.1225 8.05125 7.83 8.05125 7.40625C8.05125 7.02 7.8075 6.82125 7.37 6.71875L7.185 6.675V5.925C7.42 5.95187 7.56875 6.08 7.60438 6.2575H8.01563C7.98625 5.89813 7.67813 5.6175 7.185 5.58688V5.3125H6.95063V5.59375C6.48375 5.63937 6.16625 5.92 6.16625 6.3175C6.16625 6.66875 6.4025 6.8925 6.79563 6.98375L6.95063 7.02187V7.81687C6.71063 7.78062 6.55125 7.64813 6.51563 7.465H6.09875ZM6.94875 6.61875C6.71813 6.56563 6.59313 6.45625 6.59313 6.2925C6.59313 6.10875 6.72813 5.97125 6.95063 5.93125V6.61875H6.94875ZM7.21875 7.085C7.49938 7.15 7.62813 7.255 7.62813 7.44062C7.62813 7.6525 7.4675 7.7975 7.185 7.82438V7.0775L7.21875 7.085Z"/>
+                                    <path d="M0.824997 0C0.659237 0 0.500265 0.065848 0.383055 0.183058C0.265845 0.300269 0.199997 0.45924 0.199997 0.625L0.199997 5.625C0.199997 5.79076 0.265845 5.94973 0.383055 6.06694C0.500265 6.18415 0.659237 6.25 0.824997 6.25H3.37687C3.41354 6.03458 3.46729 5.82625 3.53812 5.625H2.075C2.075 5.29348 1.9433 4.97554 1.70888 4.74112C1.47446 4.5067 1.15652 4.375 0.824997 4.375V1.875C1.15652 1.875 1.47446 1.7433 1.70888 1.50888C1.9433 1.27446 2.075 0.956521 2.075 0.625H8.325C8.325 0.956521 8.45669 1.27446 8.69111 1.50888C8.92553 1.7433 9.24348 1.875 9.575 1.875V4.08C9.8125 4.2925 10.0231 4.535 10.2 4.80125V0.625C10.2 0.45924 10.1341 0.300269 10.0169 0.183058C9.89973 0.065848 9.74076 0 9.575 0L0.824997 0Z"/>
+                                    <path d="M6.44875 3.17711L6.45 3.12523C6.44987 2.90998 6.39416 2.6984 6.28825 2.511C6.18235 2.3236 6.02985 2.16672 5.84552 2.05556C5.66119 1.94439 5.45128 1.88272 5.23611 1.8765C5.02095 1.87028 4.80782 1.91973 4.61738 2.02006C4.42693 2.12039 4.26563 2.2682 4.14908 2.44917C4.03253 2.63014 3.96469 2.83815 3.95213 3.05303C3.93957 3.26792 3.98271 3.48241 4.07738 3.67573C4.17205 3.86905 4.31504 4.03465 4.4925 4.15648C5.03274 3.64284 5.71382 3.30187 6.44875 3.17711Z"/>
+                                </svg>
+                            </label>
+                            <label>
+                                <input class="form__input form__input--radio" name="paymentType" type="radio" value="card" th:checked="${budgetBook.paymentType == 'card'}">
+                                <svg class="icon icon--card" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M7.11666 0.666504C7.44818 0.666504 7.76612 0.7982 8.00054 1.03262C8.23496 1.26704 8.36666 1.58498 8.36666 1.9165V6.08317C8.36666 6.41469 8.23496 6.73263 8.00054 6.96705C7.76612 7.20147 7.44818 7.33317 7.11666 7.33317H1.28333C0.951805 7.33317 0.633862 7.20147 0.399442 6.96705C0.165021 6.73263 0.0333252 6.41469 0.0333252 6.08317V1.9165C0.0333252 1.58498 0.165021 1.26704 0.399442 1.03262C0.633862 0.7982 0.951805 0.666504 1.28333 0.666504H7.11666ZM7.53333 3.1665H0.866659V6.08317C0.866672 6.18523 0.90414 6.28373 0.971956 6.35999C1.03977 6.43626 1.13322 6.48498 1.23458 6.49692L1.28333 6.49984H7.11666C7.21871 6.49982 7.31722 6.46235 7.39348 6.39454C7.46974 6.32672 7.51847 6.23327 7.53041 6.13192L7.53333 6.08317V3.1665ZM6.28333 4.4165C6.38952 4.41662 6.49167 4.45729 6.56889 4.53019C6.64612 4.60309 6.69259 4.70273 6.69881 4.80875C6.70504 4.91477 6.67054 5.01916 6.60238 5.1006C6.53422 5.18204 6.43753 5.23438 6.33208 5.24692L6.28333 5.24984H5.03333C4.92713 5.24972 4.82498 5.20905 4.74776 5.13615C4.67053 5.06325 4.62406 4.96361 4.61784 4.85759C4.61161 4.75157 4.64611 4.64718 4.71427 4.56574C4.78243 4.4843 4.87912 4.43196 4.98458 4.41942L5.03333 4.4165H6.28333ZM7.11666 1.49984H1.28333C1.17282 1.49984 1.06684 1.54374 0.988697 1.62188C0.910557 1.70002 0.866659 1.806 0.866659 1.9165V2.33317H7.53333V1.9165C7.53333 1.806 7.48943 1.70002 7.41129 1.62188C7.33315 1.54374 7.22717 1.49984 7.11666 1.49984Z"/>
+                                </svg>
+                            </label>
+                            <label>
+                                <input class="form__input form__input--radio" name="paymentType" type="radio" value="bank" th:checked="${budgetBook.paymentType == 'bank'}">
+                                <svg class="icon icon--bank" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4.2 0L0.699997 2V2.5H7.7V2L4.2 0ZM1.7 3L1.6 6.5H2.85L2.7 3H1.7ZM3.7 3L3.6 6.5H4.85L4.7 3H3.7ZM5.7 3L5.6 6.5H6.85L6.7 3H5.7ZM0.699997 8H7.7V7H0.699997V8Z"/>
+                                </svg>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 사진 -->
+                <div class="form__field form__field--photo">
+                    <label class="form__label">사진</label>
+                    <div class="form__input-box form__input-box--photo">
+                        <label th:each="image, imageStat : ${budgetBook.images}" class="form__label">
+                            <th:block th:if="${imageStat.count <= max and image == null}">
+                                <input class="form__input form__input--file" type="file" accept=".gif, .jpg, .png">
+                                <svg class="icon icon--enabled" viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M24.1667 1H3.33333C2.18274 1 1.25 1.93274 1.25 3.08333V23.9167C1.25 25.0673 2.18274 26 3.33333 26H24.1667C25.3173 26 26.25 25.0673 26.25 23.9167V3.08333C26.25 1.93274 25.3173 1 24.1667 1Z" stroke-linejoin="round"/>
+                                    <path d="M13.75 7.94434V19.0554M8.19446 13.4999H19.3056" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </th:block>
+                            <th:block th:if="${imageStat.count <= max and image != null}">
+                                <input class="form__input form__input--file" type="file" accept=".gif, .jpg, .png">
+                                <img class="photo__preview" th:src="@{/image/budgetBook/{fileName}(fileName=${image})}" alt="" src="">
+                                <button class="button button--nano button--danger">삭제</button>
+                            </th:block>
+                            <th:block th:if="${imageStat.count > max}">
+                                <svg class="icon icon--disabled" viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M23.9167 1H3.08333C1.93274 1 1 1.93274 1 3.08333V23.9167C1 25.0673 1.93274 26 3.08333 26H23.9167C25.0673 26 26 25.0673 26 23.9167V3.08333C26 1.93274 25.0673 1 23.9167 1Z" stroke-linejoin="round"/>
+                                    <path d="M10.2361 17.6668V12.1113H11.6647V11.1853C11.6647 10.6696 11.8496 10.2321 12.2194 9.87285C12.589 9.51328 13.039 9.3335 13.5694 9.3335C14.0999 9.3335 14.5501 9.51328 14.9199 9.87285C15.2898 10.2324 15.4745 10.6699 15.4742 11.1853V12.1113H16.9028V17.6668H10.2361ZM13.5694 15.5835C13.7704 15.5835 13.9396 15.5165 14.0771 15.3826C14.2148 15.2489 14.2837 15.0844 14.2837 14.8891C14.2837 14.6937 14.2148 14.5292 14.0771 14.3955C13.9393 14.2619 13.7701 14.1949 13.5694 14.1946C13.3688 14.1943 13.1996 14.2613 13.0618 14.3955C12.9241 14.5292 12.8552 14.6937 12.8552 14.8891C12.8552 15.0844 12.9241 15.2489 13.0618 15.3826C13.1993 15.5165 13.3685 15.5835 13.5694 15.5835ZM12.1409 12.1113H14.998V11.1853C14.998 10.7995 14.8591 10.4716 14.5814 10.2016C14.3036 9.93149 13.9663 9.79646 13.5694 9.79646C13.1726 9.79646 12.8353 9.93149 12.5575 10.2016C12.2798 10.4716 12.1409 10.7995 12.1409 11.1853V12.1113Z"/>
+                                </svg>
+                            </th:block>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 위치 -->
+                <div class="form__field form__field--location">
+                    <label class="form__label">위치</label>
+                    <div class="form__input-container form__input-container--location">
+                        <div th:if="${budgetBook.place == null}" class="form__input-box form__input-box--empty">
+                            <img th:src="@{/image/location.png}" alt="위치 아이콘">
+                            <span>위치를 입력해주세요</span>
+                        </div>
+                        <div th:unless="${budgetBook.place == null}" class="form__input-box form__input-box--filled">
+                            <span class="location__name" th:text="${budgetBook.place.name}"></span>
+                            <span class="location__road" th:text="${budgetBook.place.roadAddress}"></span>
+                            <span class="location__add" th:text="${budgetBook.place.address}"></span>
+                        </div>
+                        <svg th:unless="${budgetBook.place == null}" class="icon icon--del" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M3.121 17.85a3 3 0 0 1 0-4.243l7.071-7.072l8.486 8.486l-3.243 3.242H20a1 1 0 1 1 0 2H6.778a3 3 0 0 1-2.121-.878L3.12 17.849zm16.97-4.243l1.415-1.415a3 3 0 0 0 0-4.242l-4.243-4.243a3 3 0 0 0-4.242 0l-1.414 1.414z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 버튼 -->
+                <div class="form__actions">
+                    <button type="button" class="button button--medium button--cancel">취소</button>
+                    <button type="button" class="button button--medium button--default">저장</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script src="/js/pages/budgetBook-update.js"></script>
+</th:block>
+<th:block layout:fragment="pageStyle"></th:block>
+</html>

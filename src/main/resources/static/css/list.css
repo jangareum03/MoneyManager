@@ -162,7 +162,6 @@ nav{
     margin-bottom: 20px;
 }
 #searchMenu .menu {
-    display: none;
     position: absolute;
     left: 38%
 }
@@ -203,6 +202,8 @@ nav{
     border-left: 1px solid #aaa;
     border-right: 1px solid #aaa;
     border-bottom: 1px solid #aaa;
+    text-align: center;
+    vertical-align: middle;
 }
 #table_top {
     position: sticky;
@@ -229,16 +230,16 @@ nav{
 #table_body tr{
     height: 50px;
 }
-.table_bottom {
+#table_bottom {
     position: sticky;
     bottom: 0px;
     height: 50px;
 }
-.table_bottom  th {
+#table_bottom  th {
     background-color: #AEBFF7;
     vertical-align: middle;
 }
-.table_bottom  td {
+#table_bottom  td {
     background-color: #F9FAFF;
     vertical-align: middle;
 }

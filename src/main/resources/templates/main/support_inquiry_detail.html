@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='1:1 문의하기 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-inquiry-detail">
+        <!-- 상단 : 제목 -->
+        <section class="inquiry-header">
+            <h1 class="inquiry-header__title">
+                <svg class="icon icon--back" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15.0938 7.53125L9.625 13L15.0938 18.4688" stroke="black"/>
+                </svg>
+                문의사항 상세
+            </h1>
+        </section>
+
+        <!-- 본문 -->
+        <section class="inquiry-body">
+            <!-- 본문: 질문영역 -->
+            <div class="detail-question">
+                <span class="detail-question__title" th:text="${question.title}"></span>
+                <div class="detail-question__content">
+                    <p class="detail-question__meta">
+                        <span class="detail-question__date" th:text="${question.date}"></span>
+                        <span class="detail-question__writer" th:text="${question.writer}"></span>
+                    </p>
+                    <p class="detail-question__body" th:text="${question.content}"></p>
+                </div>
+            </div>
+
+            <!-- 본문: 답변영역 -->
+            <div class="detail-answer">
+                <span class="detail-answer__title">답변</span>
+                <div th:if="${answer == null}" class="detail-answer__content detail-answer__content--empty">
+                    <span>아직 답변이 등록되지 않았어요!</span>
+                </div>
+                <div th:unless="${answer == null}" class="detail-answer__content detail-answer__content--filled">
+                    <p class="detail-answer__body" th:text="${answer.content}"></p>
+                    <p class="detail-answer__meta">
+                        <span class="detail-answer__date" th:text="${answer.date}"></span>
+                        <span class="detail-answer__nickname" th:text="${answer.writer}"></span>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 하단 -->
+        <section class="inquiry-footer">
+            <div th:if="${isWriter && answer == null}" class="inquiry__actions">
+                <button class="button button--medium button--default" type="button" th:attr="data-mode='edit'">수정</button>
+                <button class="button button--medium button--danger" type="button" th:attr="data-mode='delete'">삭제</button>
+            </div>
+            <div th:unless="${isWriter && answer == null}" class="inquiry__actions">
+                <button class="button button--medium button--default" th:attr="data-mode='prev'">이전</button>
+            </div>
+        </section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+  <script th:src="@{/js/pages/support.js}"></script>
+</th:block>
+</html>

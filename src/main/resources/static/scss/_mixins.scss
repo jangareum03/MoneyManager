@@ -1,0 +1,153 @@
+/*==============================
+         📁 반복되는 스타일 조합을 정의
+==============================*/
+@use 'sass:map';
+@use 'variables' as *;
+@use 'themes' as themes;
+
+
+
+@mixin theme($name) {
+    $theme: map.get(themes.$themes, $name);
+        --title-font: #{map.get($theme, font-title)};                                                                               /* 제목 폰트 */
+        --content-font: #{map.get($theme, font-content)};                                                                   /* 내용 폰트 */
+
+        --text-color: #{map.get($theme, primary-text)};                                                                          /* 일반 본문 */
+        --text-color-primary: #{map.get($theme, primary-color)};                                                           /* 강조 내용 */
+        --text-color-accent: #{map.get($theme, primary-point)};                                                             /* 살짝 강조된 내용 */
+        --text-color-link-hover: #{map.get($theme, primary-color)};                                                     /* 마우스 오버된 링크 */
+
+        --background-color: #{map.get($theme, primary-color)};                                                              /* 강조 배경 */
+        --background-selected: #{map.get($theme, selected-background)};                                             /* 선택된 배경 */
+        --background-hover: #{map.get($theme, hover-background)};                                                      /* 마우스 오버된 배경 */
+        --background-accent: var(--text-color-accent);                                                                              /* 살짝 강조 배경 */
+
+        --border-color: #{map.get($theme, primary-color)};                                                                    /* 테두리 */
+        --border-color-focus: #{map.get($theme, focus-border)};                                                         /* 포커스된 테두리 */
+
+        --shadow-color-focus: #{map.get($theme, focus-shadow)};                                                      /* 포커스된 그림자 */
+
+        --button-primary-color: #{$color-white};                                                                                    /* 버튼 글자 */
+        --button-primary-background: var(--background-color);                                                           /* 버튼 배경 */
+        --button-primary-background-hover: var(--background-hover);                                             /* 마우스 오버된 버튼 배경  */
+
+        --icon-attendance-color: #{map.get($theme, icon-fill)};                                                          /* 출석 아이콘 */
+        --icon-calendar-color: #{map.get($theme, primary-color)};                                                       /* 달력 아이콘 */
+        --icon-color: #{map.get($theme, primary-color)};                                                                        /* 아이콘 색상 */
+
+        --sidebar-text-color: #{$color-white};                                                                                      /* 사이드바 글자 */
+        --sidebar-text-color-hover: var(--text-color-primary);                                                          /* 마우스 오버된 사이드바 글자 */
+        --sidebar-text-color-selected: var(--text-color-primary);                                                        /* 선택된 사이드바 글자 */
+        --sidebar-background: #{$color-white};                                                                                       /* 사이드바 배경 */
+        --sidebar-background-point: var(--background-color);                                                             /* 사이드바 중요 배경 */
+        --sidebar-background-hover: var(--background-selected);                                                     /* 마우스 오버된 사이드바 중요 배경 */
+        --sidebar-background-selected: var(--background-selected);                                                  /* 선택된 사이드바 배경 */
+        --sidebar-icon-color: var(--background-color);                                                                          /* 사이드바 아이콘 */
+        --sidebar-icon-color-hover: var(--background-color);                                                            /* 마우스 오버된 사이드바 아이콘 */
+
+        --calendar-background-today: var(--background-selected);                                                 /* 출석 달력 오늘 날짜 배경 */
+        --calendar-border-today: var(--border-color);                                                                       /* 출석 달력 오늘 날짜 테두리 */
+
+        --fab-color: var(--text-color-primary);                                                                                       /* fab 글자 */
+        --fab-background: var(--background-accent);                                                                         /* fab 글자 */
+
+        --search-menu-background: rgba( --background-color, 0.3 );                                         /* 가게부 검색 */
+}
+
+
+@mixin flex-box( $direction: row, $justify: null, $align: null ) {
+    display: flex;
+    flex-direction: $direction;
+
+    @if $justify != null {
+        justify-content: $justify;
+    }
+
+    @if $align != null {
+        align-items: $align;
+    }
+}
+
+
+@mixin button-size($size) {
+    @if $size == large {
+        padding: 0.5em 7em;
+        font-size: 1.8em;
+    }
+
+    @else if $size == middle {
+        padding: 0.8rem 3rem;
+        font-size: 1.2em;
+    }
+
+    @else if $size == small {
+        padding: 0.6em 1.5em;
+        font-size: 0.8em;
+    }
+
+    @else if $size == nano {
+        padding: 0.6em 1.2em;
+        font-size: 0.5em;
+    }
+}
+
+
+//가계부 부가정보 제목
+@mixin additional-title {
+    @include flex-box( $align: center );
+    gap: 0.2rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--background-color);
+
+    .icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        fill: var(--icon-color);
+    }
+}
+
+
+//가계부 부가정보 내용
+@mixin additional-content {
+    height: 100%;
+    padding: 0.5rem 1rem;
+    box-sizing: border-box;
+}
+
+
+//테이블 가운데 정렬
+@mixin table-cell-align-center {
+    text-align: center;
+    vertical-align: middle;
+}
+
+
+
+
+
+
+
+
+
+@mixin visually-hidden() {
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+
+    &:not(caption) {
+        position: absolute !important;
+    }
+}
+
+
+
+
+@mixin button-style($bgColor) {
+   background-color : $bgColor;
+}

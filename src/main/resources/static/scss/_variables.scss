@@ -1,0 +1,200 @@
+/*==============================
+                 🎨 색상 팔레트
+==============================*/
+// ❤️ Red  //
+$color-red-100:  #FFCDD2;
+$color-red-200:  #EF9A9A;
+$color-red-300:  #E57373;
+$color-red-400:  #EF5350;
+$color-red-500:  #F44336;
+$color-red-600:  #E53935;
+$color-red-700:  #D32F2F;
+$color-red-800:  #C62828;
+$color-red-900:  #B71C1C;
+
+// 💚 Green //
+$color-green-100: #C8E6C9;
+$color-green-200: #A5D6A7;
+$color-green-300: #81C784;
+$color-green-400: #66BB6A;
+$color-green-500: #4CAF50;
+$color-green-600: #43A047;
+$color-green-700: #388E3C;
+$color-green-800: #2E7D32;
+$color-green-900: #1B5E20;
+
+// 🤍 White //
+$color-white: #FFFFFF;
+
+// 🖤 Gray //
+$color-gray-100: #F5F5F5;
+$color-gray-200: #EEEEEE;
+$color-gray-300: #E0E0E0;
+$color-gray-400: #BDBDBD;
+$color-gray-500: #9E9E9E;
+$color-gray-600: #757575;
+$color-gray-700: #616161;
+$color-gray-800: #424242;
+$color-gray-900: #212121;
+
+
+
+/*==============================
+      📁 전반적인 색상,폰트 등 값을 정의
+--------------------------------
+⁎ 색상 변수: $color-[컴포넌트]-[요소]-[상태]
+⁎ 상태 색상 변수: $color-[요소]-[속성]-[상태]
+⁎ 이미지변수: $image-[컴포넌트]-[요소]-[상태]
+⁎ 요소 변수 : $[컴포넌트]-[속성]
+⁎ [상태 종류] : disabled / error / success / hover / focus / selected / default / active / highlighted / opacity
+==============================*/
+
+/* input */
+$color-input-background-default: $color-white;                      //입력창 배경 기본 색상
+$color-input-border-default: $color-gray-400;                       //입력창 테두리 기본 색상
+$color-input-border-success: $color-green-900;                     //입력창 테두리 성공 색상
+$color-input-shadow-success: $color-green-200;                   //입력창 그림자 성공 색상
+$color-input-border-error: $color-red-900;                             //입력창 테두리 에러 색상
+$color-input-shadow-error: $color-red-200;                          //입력창 그림자 에러 색상
+
+
+/* button */
+$color-button-background-default: $color-gray-900;          //버튼 배경 기본 색상
+$color-button-text-default: $color-white;                             //버튼 글자 기본 색상
+
+$color-button-background-cancel: $color-gray-600;           //취소버튼 배경 색상
+$color-button-text-cancel: $color-white;                               //취소버튼 글자 색상
+
+$color-button-background-disabled: $color-gray-400;         //버튼의 비활성화 배경
+$color-button-text-disabled: $color-gray-600;                       //버튼의 비활성화 글자 색상
+
+$color-button-background-danger: $color-red-500;             //경고버튼 배경 색상
+$color-button-text-danger: $color-white;                             //경고버튼 글자 색상
+
+
+/* text */
+$color-text-disabled : $color-gray-800;              //비활성화 글자 색상
+$color-text-link: $color-gray-700;                      //링크 글자 색상
+$color-text-error: $color-red-800;                      //에러 글자 색상
+$color-text-success: $color-green-800;              //성공 글자 색상
+$color-text-timer: $color-red-600;                      //타이머 글자 색상
+
+
+/* sidebar */
+$color-sidebar-profile-fill: $color-gray-900;       //미등록된 프로필 아이콘 색상
+$color-sidebar-text: $color-gray-400;                   //메뉴 글자 색상
+$color-sidebar-icon-fill: $color-gray-400;           //메뉴 아이콘 색상
+$sidebar-width: 350px;
+$sidebar-toggle-height: 150px;                                  //토글 높이
+
+
+/* 메뉴 및 아이콘 */
+$color-tab-text: $color-gray-500;                               //탭 글자 색상
+$color-tab-border: $color-gray-500;                         //탭 테두리 색상
+$color-icon-warning: $color-gray-500;                   //경고 아이콘 색상
+
+
+/* 캘린더 */
+$color-calender-text-disabled: $color-gray-400;                      //비활성화된 캘린더 글자 색상
+$color-calender-border-disabled: $color-gray-400;                //비활성화된 캘린더 테두리 색상
+
+
+/* 로그인 */
+$image-body-background:  url('/image/default/login_background.jpg'); //로그인, 회원가입, 계정찾기의 배경화면
+$color-box-background: rgba(255, 255, 255, 0.7); //로그인, 회원가입, 계정찾기의 박스 배경 색상
+$color-login-slogan-background: #26AFA8;  //로그인 슬로건 배경 색상
+$color-login-slogan-text: $color-white;    //로그인 슬로건 글자 색상
+
+
+/* 가계부 */
+$color-income-text: #007bff;                        //수입 글자 색상
+$color-income-icon: #007bff;                        //수입 아이콘 색상
+$color-income-border: #007bff;                     //수입 테두리 색상
+$color-income-background: #007bff;           //수입 배경 색상
+$color-income-background-opacity-10: rgba( $color-income-background, 0.1 );      //불투명도 10%
+$color-income-background-opacity-70: rgba( $color-income-background, 0.7 );     //불투명도 70%
+
+$color-outlay-text: #dc3545;                        //지출 글자 색상
+$color-outlay-icon: #dc3545;                       //지출 아이콘 색상
+$color-outlay-background: #dc3545;           //지출 배경색
+$color-outlay-background-opacity-10: rgba( $color-outlay-background, 0.1 );      //불투명도 10%
+$color-outlay-background-opacity-70: rgba( $color-outlay-background, 0.7 );     //불투명도 70%
+
+$budget-stats-border-radius: 10px;              //통계 테두리 반지름
+$budget-menu-width: 600px;                          //검색 메뉴 넓이
+
+
+
+/* 뱃지 */
+$badge-member-common: #26AFA8;                //일반회원 뱃지 색상
+$badge-member-kakao: #F4C542;                   //카카오회원 뱃지 색상
+$badge-member-google: #E74C3C;                  //구글회원 뱃지 색상
+$badge-member-naver: #03CF5D;                   //네이버회원 뱃지 색상
+
+$badge-inquiry-waiting: #FFA500;                     //문의사항 답변준비 색상
+$badge-inquiry-completed: #28A745;                //문의사항 답변완료 색상
+
+$badge-notice-none: #444444;                                   //일반 공지사항 색상
+$badge-notice-event: #E91E63;                                   //이벤트 공지사항 색상
+$badge-notice-press: #FF5722;                                   //긴급 공지사항 색상
+
+
+
+
+
+$color-text-gray: #444444;  //회색 글자 색상
+
+
+
+
+
+
+//배경 색상
+$background-color: (
+    default: #FFFFFF,
+    primary : #14918A,
+    point: #FFD24C,
+    focus: #D2F3F0
+);
+
+//글씨 색상
+$text-color: (
+    black: #2E2E2E,
+    gray: #444444,
+    white: #FFFFFF,
+    income: #007bff,    //수입
+    outlay: #dc3545,      //지출
+    error: #e60023,
+    success: #145329,
+    placeholder: #B3B3B3,
+    link: #B0B0B0
+);
+
+
+
+//뱃지 색상
+$badge-color: (
+    default: #26AFA8,
+    kakako: #F4C542,
+    google: #E74C3C,
+    naver: #03CF5D,
+
+    event: #E91E63,
+    press: #FF5722,
+    none: #444444,
+
+    waiting: #FFA500,
+    completed: #28A745
+);
+
+//상태 색상
+$status-color: (
+    process: #FFA500,
+    complete: #28A745
+);
+
+//아이콘 색상
+$icon-color: (
+    default: invert(50%) sepia(85%) saturate(1251%) hue-rotate(321deg) brightness(105%) contrast(100%),
+    gray : #444444
+);

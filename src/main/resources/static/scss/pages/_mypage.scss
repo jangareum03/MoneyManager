@@ -1,0 +1,846 @@
+@use '../mixins' as *;
+@use '../variables' as *;
+
+
+
+/*==============================
+                📁 마이페이지 화면
+==============================*/
+.page-member-index {
+    @include flex-box( column, center, center );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    padding: 5rem 10rem;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    //======= ▼ 상단 =======
+    .index-header {
+        @include flex-box( column, $align: center );
+        flex: 1;
+
+        //제목
+        &__title {
+            font-size: 2.5rem;
+            font-family: var(--title-font);
+        }
+    }
+
+    //======= ▼ 본문 =======
+    .index-body {
+        @include flex-box( column );
+        flex: 8;
+        width: 100%;
+        height: 100%;
+        gap: 3rem;
+
+        //--- 내 정보 영역 ---
+        .index-top {
+            @include flex-box();
+            flex: 1;
+            width: 100%;
+            padding: 1rem 5rem;
+            box-sizing: border-box;
+
+            //--- 프로필 영역 ---
+            .index-profile {
+                @include flex-box();
+                flex: 1;
+                object-fit: cover;
+                background-color: $color-white;
+                border-radius: 50%;
+
+                //프로필 이미지
+                &__image {
+                    width: 100%;
+                    height: 100%;
+                    padding: 0.5rem;
+                    box-sizing: border-box;
+
+                    //등록 전 상태
+                    &--empty {
+                        fill: $color-sidebar-profile-fill;
+                    }
+
+                    //등록 후 상태
+                    &--filled {
+                        object-fit: cover;
+                        border-radius: 50%;
+                    }
+                }
+            }
+
+            //--- 회원정보 영역 ---
+            .index-content {
+                @include flex-box( column, $justify: center );
+                flex: 5;
+                gap: 0.5rem;
+                height: 100%;
+                padding: 0 5rem;
+                box-sizing: border-box;
+
+                //링크
+                .index-link--edit {
+                    display: inline-block;
+                    white-space: nowrap;
+                    align-self: flex-end;
+                    font-size: 0.9rem;
+                    color: $color-gray-500;
+                }
+
+                //회원 유형
+                &__membership {
+                    @include flex-box( $justify: center, $align: center );
+                    width: 5rem;
+                    padding: 0.3rem;
+                    font-size: 0.9rem;
+                    border-radius: 20px;
+                    color: $color-white;
+
+                    //일빈회원 상태
+                    &.C {
+                        background-color: $badge-member-common;
+                    }
+
+                    //카카오회원 상태
+                    &.K {
+                        background-color: $badge-member-kakao;
+                    }
+
+                    //구글회원 상태
+                    &.G {
+                        background-color: $badge-member-google;
+                    }
+
+                    //네이버회원 상태
+                    &.N {
+                        background-color: $badge-member-naver;
+                    }
+                }
+
+                //인사
+                &__greeting {
+                    font-size: 1.3rem;
+                }
+
+                //닉네임
+                &__nickname {
+                    font-size: 1.5em;
+                    font-weight: bold;
+                }
+
+                //마지막 접속날짜
+                &__date {
+                    color: $color-gray-500;
+                }
+            }
+        }
+
+        //--- 메뉴 영역 ---
+        .index-bottom {
+            @include flex-box( column );
+            flex: 3.5;
+            gap: 3rem;
+            padding: 0 5rem;
+            box-sizing: border-box;
+
+            //--- 공통 메뉴 영역 ---
+            .index-menu {
+                @include flex-box( column );
+                flex: 1;
+                max-height: 150px;
+                border-radius: 10px;
+                box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+
+                //--- 제목 영역 ---
+                &__header {
+                    @include flex-box( $justify: space-between, $align: center );
+                    height: 2rem;
+                    padding: 0.2rem 1rem;
+                    color: $color-white;
+                    background-color: var(--background-color);
+                    border-top-left-radius: 10px;
+                    border-top-right-radius: 10px;
+
+                    h2 {
+                        @include flex-box( $align: center );
+                        gap: 0.5rem;
+                        font-size: 1.2rem;
+
+                        //아이콘
+                        .icon {
+                            width: 1.5rem;
+                            height: 1.5rem;
+                            fill: $color-white;
+                        }
+                    }
+
+                    //링크
+                    .index-link {
+                        font-size: 0.9rem;
+                        color: $color-gray-200;
+                    }
+                }
+
+                //--- 본문 영역 ---
+                &__content {
+                    @include flex-box();
+                    height: 100%;
+                    background-color: var(--background-selected);
+                    border-bottom-right-radius: 10px;
+                    border-bottom-left-radius: 10px;
+
+
+                    > * {
+                        @include flex-box( column, space-between );
+                        flex: 1;
+                        padding: 1rem;
+
+                        //마지막 요소 제외한 나머지
+                        &:not(:last-child) {
+                            border-right: 1px dotted $color-gray-700;
+                        }
+                    }
+
+                    //내용
+                    p {
+                        @include flex-box( $justify: end, $align: end );
+                        gap: 0.5rem;
+                        font-size: 1.3rem;
+
+                        strong,
+                        b {
+                            font-size: 2em;
+                        }
+
+                        //중요 내용
+                        .index-point__current--strong,
+                        .index-setting__standard--strong {
+                            font-weight: bold;
+                            color: var(--text-color-primary);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+/*==============================
+                    📁 내정보 화면
+==============================*/
+.page-member-info {
+    @include flex-box( column, center, center );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    padding: 5rem;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    //======= ▼ 상단 =======
+    .info-header {
+        @include flex-box( column, center, center );
+        flex: 1;
+
+        //제목
+        &__title {
+            font-size: 2.5rem;
+            font-family: var(--title-font);
+        }
+    }
+
+    //======= ▼ 본문 =======
+    .info-body {
+        @include flex-box( column );
+        flex: 8;
+        width: 100%;
+        padding: 2.5rem 10rem;
+        box-sizing: border-box;
+
+        //제목
+        &__title {
+            @include flex-box( $justify: center, $align: center );
+            padding: 5px 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: $color-white;
+            background: var(--background-color);
+        }
+
+        //--- 상단 영역 ---
+        .info-top {
+            @include flex-box( $align: center );
+            flex: 1;
+            gap: 1.5rem;
+            width: 100%;
+            padding: 1rem 3rem;
+            box-sizing: border-box;
+            border-bottom: 2px solid $color-gray-400;
+
+            //--- 프로필 영역 ---
+            .info-profile {
+                position: relative;
+                @include flex-box( $align: center );
+                flex: 1;
+
+                //프로필 이미지
+                img {
+                    position: relative;
+                    width: 120px;
+                    height: 120px;
+                    padding: 0.5rem;
+                    border: 2px solid $color-gray-300;
+                    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+                    border-radius: 50%;
+                    object-fit: cover;
+                    cursor: pointer;
+                }
+
+                svg {
+                    fill: $color-sidebar-profile-fill;
+                }
+
+               //마우스 올린 상태
+                &:hover .info-profile__tooltip {
+                    opacity: 1;
+                    visibility: visible;
+                }
+
+                //툴팁
+                .info-profile__tooltip {
+                    position: absolute;
+                    top: 0%;
+                    left: 140%;
+                    padding: 0.2rem;
+                    color: $color-white;
+                    white-space: nowrap;
+                    background-color: $color-gray-400;
+                    opacity: 0;
+                    border-radius: 5px;
+                    transition: opacity 0.3s, visibility 0.3s;
+                    visibility: hidden;
+                    transform: translateX(-50%);
+                }
+
+                //수정 상태
+                &--edit {
+                    @include flex-box( column );
+                    gap: 0.5rem;
+
+                    input[type="file"] {
+                        display: none;
+                    }
+
+                    //--- 버튼 영역 ---
+                    > div {
+                        @include flex-box( $justify: space-evenly );
+                        width: 100%;
+                    }
+
+                    //삭제 아이콘
+                    .icon {
+                        position: absolute;
+                        left: 100%;
+                        width: 15px;
+                        height: 15px;
+                        fill: $color-red-600;
+                        cursor: pointer;
+                    }
+
+                    //마우스 올린 상태 + 툴팁
+                    &:hover .info-profile__tooltip {
+                        visibility: hidden;
+                    }
+                }
+            }
+
+            //--- 회원정보 영역 ---
+            .info-content {
+                @include flex-box( column, $justify: center );
+                flex: 5;
+                gap: 0.5rem;
+                height: 100%;
+                padding: 0 5rem;
+                box-sizing: border-box;
+
+                //회원 유형
+                &__membership {
+                    @include flex-box( $justify: center, $align: center );
+                    width: 5rem;
+                    padding: 0.3rem;
+                    font-size: 0.9rem;
+                    border-radius: 20px;
+                    color: $color-white;
+
+                    //일빈회원 상태
+                    &.C {
+                        background-color: $badge-member-common;
+                    }
+
+                    //카카오회원 상태
+                    &.K {
+                        background-color: $badge-member-kakao;
+                    }
+
+                    //구글회원 상태
+                    &.G {
+                        background-color: $badge-member-google;
+                    }
+
+                    //네이버회원 상태
+                    &.N {
+                        background-color: $badge-member-naver;
+                    }
+                }
+
+                //인사
+                &__greeting {
+                    font-size: 1.3rem;
+                }
+
+                //닉네임
+                &__nickname {
+                    font-size: 1.5em;
+                    font-weight: bold;
+                }
+
+                //마지막 접속날짜
+                &__date {
+                    color: $color-gray-500;
+                }
+            }
+        }
+
+        //--- 하단 영역 ---
+        .info-bottom {
+            @include flex-box( column );
+            flex: 4;
+
+            //--- 공통 정보 영역 ---
+            .info-item {
+                @include flex-box( $align: center );
+                flex: 1;
+                padding: 0 4rem;
+                border-bottom: 2px solid $color-gray-400;
+
+                //라벨
+                dt {
+                    flex: 1;
+                    font-weight: bold;
+                    color: $color-gray-700;
+                }
+
+                //--- 정보 내용 영역 ---
+                dd {
+                    @include flex-box( $align: center );
+                    flex: 5;
+                    gap: 0.2rem;
+                    font-size: 1rem;
+
+                    //수정 아이콘
+                    .icon {
+                        width: 1rem;
+                        height: 1rem;
+                        fill: $color-gray-900;
+                        cursor: pointer;
+                        transition: fill 0.3s ease;
+
+                        //마우스 올린 상태
+                        &:hover {
+                            fill: var(--icon-color);
+                        }
+                    }
+                }
+
+                //--- 이름 수정모드 ---
+                &__name--edit {
+                    dd {
+                        @include flex-box( column, $align: flex-start );
+                        height: 100%;
+                    }
+
+                    .info__input-box {
+                        @include flex-box( $align: center );
+                        height: 100%;
+                        gap: 1rem;
+
+                        input {
+                            height: 40%;
+                        }
+
+                        //--- 버튼 영역 ---
+                        > div {
+                            @include flex-box( $justify: space-evenly );
+                            width: 150px;
+                        }
+                    }
+                }
+
+                //--- 성별 수정모드 ---
+                &__gender--edit {
+                    .info__input-box {
+                        @include flex-box( $align: center );
+                        height: 100%;
+                        gap: 1rem;
+
+                        input {
+                            height: 100%;
+                        }
+
+                        //--- 버튼 영역 ---
+                        > div {
+                            @include flex-box( $justify: space-evenly );
+                            width: 150px;
+                        }
+                    }
+                }
+
+                //--- 이메일 수정모드 ---
+                &__email--edit {
+                    dd{
+                        @include flex-box( column, $align: flex-start );
+                    }
+
+                    .info__input-box {
+                        @include flex-box( $align: center );
+
+                        //이메일
+                        &--email {
+                            //--- 버튼 영역 ---
+                            > div {
+                                @include flex-box( $justify: space-evenly );
+                                width: 150px;
+                            }
+                        }
+
+                        //인증코드
+                        &--code {
+                            @include flex-box( $align: center );
+                            gap: 0.8rem;
+
+
+                            //--- 버튼 영역 ---
+                            > div {
+                                @include flex-box( $justify: space-evenly );
+                                width: 150px;
+                            }
+                        }
+
+                        input {
+                            height: 100%;
+                        }
+                    }
+                }
+
+                //--- 비밀번호 수정모드 ---
+                &__password--edit {
+                    dd {
+                        @include flex-box( column, $align: flex-start );
+                    }
+
+                    .info__input-box {
+                        @include flex-box( $align: center );
+                        gap: 1rem;
+
+                        //--- 버튼 영역 ---
+                        > div {
+                            @include flex-box( $justify: space-evenly );
+                            width: 150px;
+                        }
+                    }
+
+                    input {
+
+                    }
+                }
+
+                //--- 연속출석 영역 ---
+                &__day {
+                    b {
+                        font-weight: bold;
+                        color: var(--text-color-primary);
+                    }
+                }
+            }
+        }
+    }
+
+    //======= ▼ 하단 =======
+    .info-footer {
+        @include flex-box( $justify: end );
+        width: 100%;
+        padding: 0 10rem;
+        box-sizing: border-box;
+    }
+}
+
+
+
+/*==============================
+                    📁 회원탈퇴 화면
+==============================*/
+.page-member-delete {
+    @include flex-box( column, center, center );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    padding: 5rem;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    //======= ▼ 상단 =======
+    .delete-header {
+        @include flex-box( column, center, center );
+        flex: 1;
+
+        //--- 제목 ---
+        &__title {
+            font-family: SEBANG_Gothic_Bold;
+            font-size: 2.5rem;
+        }
+    }
+
+    //======= ▼ 본문 =======
+    .delete-body {
+        @include flex-box( column );
+        flex: 6;
+        width: 100%;
+        padding: 0 10rem;
+        box-sizing: border-box;
+
+        //--- 안내사항 영역 ---
+        .delete-guide {
+            @include flex-box( column, $align: center );
+            flex: 1;
+            gap: 1rem;
+
+            //제목
+            &__title {
+                flex: 1;
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: $color-text-error;
+            }
+
+            //--- 안내사항 리스트 ---
+            &__list {
+                @include flex-box( column );
+                flex: 3;
+                width: 100%;
+                gap: 2rem;
+                padding: 1rem 2rem;
+                box-sizing: border-box;
+                background-color: var(--background-selected);
+
+                //--- 공통 요소 ---
+                .delete-guide__item {
+                    @include flex-box( $align: center );
+                    flex: 1;
+                    gap: 1rem;
+
+                    //체크 아이콘
+                    .icon--check {
+                        width: 1rem;
+                        height: 1rem;
+                    }
+                }
+            }
+
+            //안내사항 문구
+            &__text {
+                strong,
+                b{
+                    font-size: 1.1em;
+                    font-weight: bold;
+                    color: var(--text-color-primary);
+                }
+            }
+        }
+
+        //--- 삭제 영역 ---
+        .form {
+            @include flex-box( column );
+            flex: 3;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
+
+            //--- 각 필드 요소 ---
+            .form__field {
+                @include flex-box( column, $align: flex-start );
+                flex: 1;
+                margin: 1rem 0;
+                box-sizing: border-box;
+
+                //--- 아이디 영역 ---
+                &--id {
+                    span {
+                        font-size: 1.3rem;
+                    }
+                }
+
+                //--- 비밀번호 영역 ---
+                &--password {
+                    .form__input {
+                        width: 50%;
+                        height: 2.2rem;
+                    }
+                }
+
+                //--- 탈퇴사유 영역 ---
+                &--cause {
+                    gap: 0.3rem;
+
+                    .form__select {
+                        width: 50%;
+                        height: 2.2rem;
+                    }
+
+                    .form__input {
+                        width: 50%;
+                        height: 2.2rem;
+                    }
+                }
+            }
+
+            //라벨
+            .form__label {
+                margin-bottom: 0.3rem;
+                font-size: 0.9rem;
+                font-weight: bold;
+            }
+
+            //--- 버튼 영역 ---
+            &__actions {
+                @include flex-box( column, center, center );
+            }
+        }
+    }
+}
+
+
+
+/*==============================
+               📁 회원 포인트 내역 화면
+==============================*/
+.page-member-point {
+    @include flex-box( column, center, center );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    padding: 5rem;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    //======= ▼ 상단 =======
+    .point-header {
+        @include flex-box( column, center, center );
+        flex: 1;
+
+        //--- 제목 ---
+        &__title {
+            font-family: SEBANG_Gothic_Bold;
+            font-size: 2.5rem;
+        }
+    }
+
+    //======= ▼ 본문 =======
+    .point-body {
+        @include flex-box( column );
+        flex: 8;
+        width: 100%;
+        height: 100%;
+        gap: 3rem;
+        padding: 0 10rem;
+        box-sizing: border-box;
+
+        //--- 포인트 정보 영역 ---
+        .point-summary {
+            @include flex-box( column );
+            flex: 1;
+            max-height: 150px;
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+
+            //--- 머리 영역 ---
+            &__header {
+                @include flex-box( $justify: space-between, $align: center );
+                height: 2rem;
+                padding: 0.2rem 1rem;
+                color: $color-white;
+                background-color: var(--background-color);
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+            }
+
+            //제목
+            &__title {
+                @include flex-box( $align: center );
+                gap: 0.5rem;
+                font-size: 1.2rem;
+            }
+
+            //--- 내용 영역 ---
+            &__content {
+                @include flex-box();
+                height: 100%;
+                background-color: var(--background-selected);
+                border-bottom-right-radius: 10px;
+                border-bottom-left-radius: 10px;
+
+                > * {
+                    @include flex-box( column, space-between );
+                    flex: 1;
+                    padding: 1rem;
+
+                    //마지막 요소 제외한 나머지
+                    &:not(:last-child) {
+                        border-right: 1px dotted $color-gray-700;
+                    }
+                }
+
+                //내용
+                p {
+                    @include flex-box( $justify: end, $align: end );
+                    gap: 0.5rem;
+                    font-size: 1.3rem;
+
+                    strong,
+                    b {
+                        font-size: 2em;
+                    }
+
+                    //중요 내용
+                    .point-summary__current--strong {
+                        font-weight: bold;
+                        color: var(--text-color-primary);
+                    }
+                }
+            }
+        }
+
+        //--- 사용 내역 영역 ---
+        .point-details {
+            @include flex-box( column );
+            flex: auto;
+
+            //제목
+            &__title {
+                min-height: 2rem;
+                color: $color-gray-600;
+            }
+
+            //내역 리스트
+            .point-details__list {
+                flex: auto;
+                border-top: 1px solid $color-gray-600;
+                border-bottom: 1px solid $color-gray-600;
+
+                //사용 내역이 없는 경우
+                &--empty {
+                    @include flex-box( column, center, center );
+                    font-size: 1.2rem;
+                }
+            }
+        }
+    }
+}

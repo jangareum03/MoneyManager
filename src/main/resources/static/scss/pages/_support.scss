@@ -1,0 +1,671 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+
+
+/*==============================
+                📁 고객센터 공통 화면
+==============================*/
+.page-support {
+    @include flex-box( column );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    padding: 3rem;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    //======= ▼ 상단 =======
+    .support-header {
+        @include flex-box( column, center, center );
+        flex: 1;
+
+        //--- 제목 ---
+        &__title {
+            font-family: SEBANG_Gothic_Bold;
+            font-size: 2.5rem;
+        }
+    }
+
+    //======= ▼ 본문 =======
+    .support-body {
+        max-height: 600px;
+
+        @include flex-box( column );
+        flex: 5;
+        padding: 0 8rem;
+        box-sizing: border-box;
+
+        //--- 메뉴 영역 ---
+        .support-menu {
+            height: 40px;
+            box-sizing: border-box;
+
+            &__list {
+                @include flex-box();
+                height: 100%;
+            }
+
+            //각 메뉴 요소
+            &__item {
+                @include flex-box( $justify: center, $align: center );
+                flex: 1;
+                color: $color-gray-500;
+                background-color: $color-gray-300;
+                border-top: 1px solid $color-gray-500;
+                border-bottom: 1px solid $color-gray-500;
+                border-left: 1px solid $color-gray-500;
+                opacity: 0.8;
+
+                //메뉴 마지막 요소
+                &:last-child {
+                    border-right: 1px solid $color-gray-500;
+                }
+
+                &:not(.support-menu__item--selected):hover {
+                    color: $color-white;
+                    background-color: var(--background-hover);
+                }
+
+                //선택된 상태
+                &--selected {
+                    font-weight: bold;
+                    color: var(--text-color-primary);
+                    background-color: var(--background-selected);
+                    border: 2px solid var(--border-color);
+                    opacity: 1;
+                    cursor: default;
+                }
+            }
+        }
+
+        //--- 내역 리스트 영역 ---
+        .support-list {
+            @include flex-box( column );
+            width: 100%;
+            height: 100%;
+
+            .table {
+                width: 100%;
+                height: 100%;
+                border-collapse: collapse;
+                border-top: 2px solid var(--border-color);
+                border-bottom: 2px solid var(--border-color);
+                table-layout: fixed;
+
+                //--- 제목 영역 ---
+                &__head {
+                    height: 50px;
+                    font-size:  1.2rem;
+                    font-weight: bold;
+                    color: var(--text-color-primary);
+                    border-bottom: 2px solid var(--border-color);
+
+                    .table__cell {
+                        @include table-cell-align-center;
+                    }
+                }
+
+                //--- 내용 영역 ---
+                &__body {
+                    .table__row {
+                        height: 40px;
+                        border-bottom: 1px solid $color-gray-400;
+                    }
+
+                    .table__cell {
+                        @include table-cell-align-center;
+                    }
+
+                    //--- 제목 영역 ---
+                    .table__cell--title {
+                        //링크
+                        .table__link {
+                            color: $color-gray-900;
+
+                            &:hover {
+                                color: var(--text-color-link-hover);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //======= ▼ 하단 =======
+    .support-footer {
+        @include flex-box( $justify: center, $align: center );
+        flex: 1;
+
+        //--- 페이징 영역 ---
+        .pagination {
+            @include flex-box( $justify: space-evenly );
+            width: 50%;
+
+            .pagination__button {
+                width: 2rem;
+                height: 2rem;
+                border: 1px solid $color-gray-500;
+
+                //선택된 상태
+                &--selected {
+                    color: var(--button-primary-color);
+                    background-color: var(--button-primary-background);
+                    border: none;
+                }
+            }
+        }
+    }
+}
+
+
+
+/*==============================
+                📁 자주묻는질문 화면
+==============================*/
+.page-faq-list {
+    //======= ▼ 본문 =======
+    .support-body {
+        //--- 질문 내용 ---
+        .support-list {
+            border-bottom: 1px solid $color-gray-400;
+            overflow-y: scroll;
+
+            //스크롤 미표시
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
+            //각 요소
+            &__item {
+                @include flex-box( column );
+                padding: 1rem;
+                box-sizing: border-box;
+                border-bottom: 1px solid $color-gray-400;
+
+                //--- 질문 영역 ---
+                .support-list__question {
+                    @include flex-box( $align: center );
+                    gap: 1rem;
+                    font-size: 1.2rem;
+                    font-weight: bold;
+
+                    //아이콘
+                    .icon {
+                        width: 2.5rem;
+                        height: 2.5rem;
+                    }
+                }
+
+                //--- 답변 영역 ---
+                .support-list__answer {
+                    @include flex-box();
+                    padding: 0.5rem 4rem;
+                    color: $color-gray-700;
+                }
+            }
+        }
+    }
+
+    //======= ▼ 하단 =======
+    .support-footer {
+        visibility: hidden;
+    }
+}
+
+
+
+
+/*==============================
+             📁 문의사항 공통 화면
+==============================*/
+.page-inquiry {
+    @include flex-box( column );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    padding: 3rem;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    //======= ▼ 본문 =======
+    .inquiry-header {
+        @include flex-box( $align: center, $justify: center );
+        flex: 1;
+
+        // 제목
+        &__title {
+            font-family: SEBANG_Gothic_Bold;
+            font-size: 45px;
+        }
+    }
+
+    //======= ▼ 본문 =======
+    .inquiry-body {
+        @include flex-box( column, $justify: flex-start );
+        flex: 4;
+        padding: 0 10rem;
+        box-sizing: border-box;
+
+        //input, textarea 등 입력요소 테두기 없애기
+        input,
+        textarea {
+            border: none;
+            border-radius: 5px;
+            border-bottom: 1px solid $color-gray-200;
+        }
+
+        .form {
+            @include flex-box( column );
+            gap: 1.5rem;
+
+            //--- 각 요소 영역 ---
+            &__field {
+                position: relative;
+                @include flex-box( column );
+                flex: 1;
+                gap: 0.5rem;
+                border-radius: 5px;
+                box-shadow: 0 5px 5px rgba(0, 0, 0, 0.2);
+
+                //라벨
+                > .form__label:first-child {
+                    font-weight: bold;
+                }
+
+                //내용
+                &--content {
+                    flex: 7;
+
+                    textarea {
+                        width: 100%;
+                        height: 100%;
+                    }
+                }
+            }
+
+            //에러 메시지
+            .message--error {
+                position: absolute;
+                top: -3px;
+                left: 40px;
+            }
+
+            //--- 버튼 영역 ---
+            &__actions {
+                @include flex-box( $justify: space-evenly );
+                margin-top: 2rem;
+            }
+        }
+    }
+
+    //======= ▼ 하단 =======
+    .inquiry-footer {
+        @include flex-box();
+        flex: 1;
+    }
+}
+
+
+
+/*==============================
+               📁 문의사항 조회 화면
+==============================*/
+.page-inquiry-list {
+    //======= ▼ 본문 =======
+    .support-body {
+        //--- 검색 영역 ---
+        .support-tab {
+            @include flex-box();
+            padding: 1rem 0.5rem;
+            box-sizing: border-box;
+        }
+
+        //--- 내역 리스트 영역 ---
+        .support-list {
+            .table {
+                //--- 제목 영역 ---
+                &__head {
+                    //각 요소 넓이 정하기
+                    .table__cell {
+                        &:nth-child(1) { width: 10%; }
+                        &:nth-child(2) { width: 50%; }
+                    }
+                }
+
+                //--- 내용 영역 ---
+                &__body {
+                    //--- 제목 영역 ---
+                    .table__cell--title {
+                        //비밀글 상태
+                        .table__link--locked {
+                            @include flex-box( $justify: center, $align: center );
+
+                            &:before {
+                                content: '';
+                                background: url('/image/default/lock.svg');
+                                width: 1.5rem;
+                                height: 1.5rem;
+                            }
+                        }
+                    }
+
+                    //--- 답변여부 영역 ---
+                    .table__cell--answer {
+                        .table__status {
+                            padding: 0.3rem;
+                            font-size: 0.8rem;
+                            border-radius: 10px;
+
+                            //답변준비 상태
+                            &.waiting {
+                                background-color: $badge-inquiry-waiting;
+                            }
+
+                            //답변완료 상태
+                            &.completed {
+                                background-color: $badge-inquiry-completed;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //--- 버튼 영역 ---
+        .support__actions {
+            @include flex-box( $justify: flex-end );
+            height: 2rem;
+            margin: 0.5rem;
+
+            button {
+                @include flex-box( $justify: center, $align: center );
+                padding: 0.5rem;
+                color: var(--text-color-primary);
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+            }
+        }
+    }
+}
+
+
+
+/*==============================
+              📁 문의사항 상세 화면
+==============================*/
+.page-inquiry-detail {
+    @include flex-box( column );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    padding: 3rem;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    //======= ▼ 상단 =======
+    .inquiry-header {
+        flex: 1;
+
+        &__title {
+            @include flex-box( $align: center );
+            width: 100%;
+            height: 80%;
+            padding: 3rem;
+            box-sizing: border-box;
+            font-size: 1.5rem;
+
+            .icon {
+                width: 3rem;
+                height: 3rem;
+
+                //마우스 올린 상태
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    //======= ▼ 본문 =======
+    .inquiry-body {
+        @include flex-box( column );
+        flex: 3;
+        gap: 2.8rem;
+        padding: 0 10rem;
+        box-sizing: border-box;
+
+        //--- 질문 영역 ---
+        .detail-question {
+            @include flex-box( column );
+            flex: 2;
+            width: 100%;
+
+            //제목
+            &__title {
+                @include flex-box( $justify: center, $align: center );
+                width: 100%;
+                height: 3rem;
+                font-size: 1.8rem;
+                font-weight: bold;
+                color: var(--text-color-primary);
+                background-color: var(--background-selected);
+                border-top: 2px solid var(--border-color);
+                border-bottom: 2px solid var(--border-color);
+            }
+
+            //--- 질문내용 영역 ---
+            &__content {
+                @include flex-box( column );
+                flex: 1;
+                width: 100%;
+                gap: 2rem;
+                padding: 1.5rem;
+                box-sizing: border-box;
+                border-bottom: 2px solid var(--border-color);
+            }
+
+            //--- 서브정보 영역 ---
+            .detail-question__meta {
+                @include flex-box( column, $align: end );
+                color: $color-gray-700;
+            }
+
+            //--- 메인정보 영역 ---
+            .detail-question__body {
+                font-size: 1.1rem;
+            }
+        }
+
+        //--- 답변 영역 ---
+        .detail-answer {
+            @include flex-box( column );
+            flex: 1;
+            width: 100%;
+
+            //제목
+            &__title {
+                @include flex-box( $justify: center, $align: center );
+                width: 100%;
+                height: 3rem;
+                font-size: 1.8rem;
+                font-weight: bold;
+                color: var(--text-color-primary);
+                background-color: var(--background-selected);
+                border-top: 2px solid var(--border-color);
+                border-bottom: 2px solid var(--border-color);
+            }
+
+            //--- 답변내용 영역 ---
+            .detail-answer__content {
+                @include flex-box( column );
+                flex: 1;
+                width: 100%;
+                padding: 1.5rem;
+                box-sizing: border-box;
+                border-bottom: 2px solid var(--border-color);
+
+                //답변 미등록 상태
+                &--empty {
+                    @include flex-box( $justify: center, $align: center );
+                    font-size: 1.2rem;
+                }
+
+                //답변이 등록된 상태
+                &--filled {
+                    .detail-answer__body {
+                        flex: 1;
+                    }
+
+                    .detail-answer__meta {
+                        @include flex-box( $justify: flex-end );
+                        color: $color-gray-700;
+                    }
+                }
+            }
+        }
+    }
+
+    //======= ▼ 하단 =======
+    .inquiry-footer {
+        @include flex-box( $justify: center, $align: center );
+        flex: 1;
+
+        .inquiry__actions {
+            @include flex-box( $justify: center );
+            width: 30%;
+            gap: 150px;
+        }
+    }
+}
+
+
+
+/*==============================
+                📁 공지사항 화면
+==============================*/
+.page-notice-list {
+    //======= ▼ 본문 =======
+    .support-body {
+        //--- 내역 리스트 영역 ---
+        .support-list {
+            .table {
+                margin: 1rem 0;
+                box-sizing: border-box;
+
+                //--- 제목 영역 ---
+                &__head {
+                    //각 요소 넓이 정하기
+                    .table__cell {
+                        &:nth-child(1) { width: 10%; }
+                        &:nth-child(2) { width: 60%; }
+                        &:nth-child(3) { width: 15%; }
+                        &:nth-child(4) { width: 15%; }
+                    }
+                }
+
+                //--- 내용 영역 ---
+                &__body {
+                    //--- 제목 영역 ---
+                    .table__cell--title {
+                        //뱃지
+                        .notice__badge {
+                            display: inline-flex;
+                            justify-content: center;
+                            align-items: center;
+                            width: 50px;
+                            height: 20px;
+                            color: $color-white;
+                            border-radius: 5px;
+
+                            //일반 공지사항 상태
+                            &--none {
+                                background-color: $badge-notice-none;
+                            }
+
+                            //이벤트 공지사항 상태
+                            &--event {
+                                background-color: $badge-notice-event;
+                            }
+
+                            //긴급 공지사항 상태
+                            &--press {
+                                background-color: $badge-notice-press;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+/*==============================
+              📁 공지사항 상세 화면
+==============================*/
+.page-notice-detail {
+    @include flex-box( column );
+    width: calc( 100% - $sidebar-width );
+    height: 100vh;
+    padding: 3rem;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    //======= ▼ 상단 =======
+    .notice-header {
+        @include flex-box( column, center, center );
+        flex: 1;
+
+        //--- 제목 ---
+        &__title {
+            font-family: SEBANG_Gothic_Bold;
+            font-size: 2.5rem;
+        }
+    }
+
+    //======= ▼ 본문 =======
+    .notice-body {
+        @include flex-box( column );
+        flex: 4;
+        width: 70%;
+        margin: auto;
+
+        //--- 제목 영역 ---
+        .notice__header {
+            @include flex-box( column, $justify: center );
+            flex: 1;
+            width: 100%;
+            gap: 20px;
+            padding-left: 10px;
+            box-sizing: border-box;
+            background-color:var(--background-selected);
+            border-top: 2px solid var(--border-color);
+            border-bottom: 2px solid var(--border-color);
+
+            //제목
+            .notice__title {
+                font-size: 30px;
+                font-weight: bold;
+                color: var(--text-color-primary);
+            }
+        }
+
+        //--- 내용 영역 ---
+        .notice__content {
+            flex: 6;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            border-bottom: 2px solid var(--border-color);
+        }
+    }
+
+    //======= ▼ 하단 =======
+    .notice-footer {
+        @include flex-box( $justify:center, $align: center );
+        flex: 1;
+        width: 100%;
+    }
+}

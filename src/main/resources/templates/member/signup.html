@@ -1,0 +1,103 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"  layout:decorate="~{/layout/loginLayout}" th:with="pageTitle='회원가입'">
+<th:block layout:fragment="main">
+    <main class="page page-member-signup">
+        <!-- 상단 -->
+        <section class="signup-header">
+            <h1 class="signup-header__title">
+                회원가입
+                <small>돈 매니저</small>
+            </h1>
+        </section>
+
+        <!-- 본문: 입력폼 -->
+        <section class="signup-body">
+            <form class="form" action="/signup" method="post">
+                <!-- 아이디 입력 영역 -->
+                <div class="form__field form__field--id">
+                    <label class="form__label" for="signup-id">아이디</label>
+                    <input id="signup-id" class="form__input form__input--text" name="id" type="text" placeholder="아이디를 입력해주세요." minlength="4" maxlength="15">
+                </div>
+
+                <!-- 비밀번호 입력 영역 -->
+                <div class="form__field form__field--password">
+                    <label class="form__label"  for="signup-password">비밀번호</label>
+                    <input id="signup-password" class="form__input form__input--password" name="password" type="password" placeholder="비밀번호를 입력해주세요." minlength="8" maxlength="20">
+                </div>
+
+                <!-- 비밀번호 확인 입력 영역 -->
+                <div class="form__field form__field--rePassword">
+                    <label class="form__label" for="signup-rePassword">비밀번호 확인</label>
+                    <input id="signup-rePassword" class="form__input form__input--password" name="rePassword" type="password" placeholder="비밀번호를 재입력해주세요." minlength="8" maxlength="20">
+                </div>
+
+                <!-- 이름 입력 영역 -->
+                <div class="form__field form__field--name">
+                    <label class="form__label" for="signup-name">이름</label>
+                    <input id="signup-name" class="form__input form__input--text" name="name" type="text" placeholder="이름을 입력해주세요." minlength="2" maxlength="5">
+                </div>
+
+                <!-- 생년월일 입력 영역 -->
+                <div class="form__field form__field--birth">
+                    <label class="form__label" for="signup-birth">생년월일</label>
+                    <input  id="signup-birth" class="form__input form__input--text" name="birth" type="text" placeholder="생년월일을 입력해주세요. (ex: 19900101)" minlength="8" maxlength="8">
+                </div>
+
+                <!-- 닉네임 입력 영역 -->
+                <div class="form__field form__field--nickname">
+                    <label class="form__label" for="signup-nickname">닉네임</label>
+                    <input id="signup-nickname" class="form__input form__input--text" name="nickName" type="text" placeholder="닉네임을 입력해주세요." minlength="2" maxlength="10">
+                </div>
+
+                <!-- 이메일 입력 영역 -->
+                <div class="form__field form__field--email">
+                    <label class="form__label" for="signup-email">이메일</label>
+                    <div class="form__input-container">
+                        <div class="form__input-box form__input-box--email">
+                            <input id="signup-email" class="form__input form__input--text" name="email" type="text" placeholder="이메일을 입력해주세요.">
+                            <button type="button" class="button button--small button--default">전송</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 성별 입력 영역 -->
+                <div class="form__field form__field--gender">
+                    <label class="form__label" for="signup-gender">성별</label>
+
+                    <article id="signup-gender" class="form__input-container">
+                        <section class="form__input-box">
+                            <input id="signup-gender--none" class="form__input form__input--radio" name="gender" type="radio" value="n" checked>
+                            <label for="signup-gender--none">선택안함</label>
+                        </section>
+
+                        <section class="form__input-box">
+                            <input id="signup-gender--men" class="form__input form__input--radio" name="gender" type="radio" value="m">
+                            <label for="signup-gender--men">남자</label>
+                        </section>
+
+                        <section class="form__input-box">
+                            <input id="signup-gender--women" class="form__input form__input--radio" name="gender" type="radio" value="w">
+                            <label for="signup-gender--women">여자</label>
+                        </section>
+                    </article>
+                </div>
+
+                <!-- 이용약관 체크박스-->
+                <div class="form__field form__field--agree">
+                    <label class="form__label" for="signup-agree">
+                        <input id="signup-agree" class="form__input form__input--checkbox" type="checkbox" >이용약관에 동의합니다.
+                    </label>
+                </div>
+
+                <!-- 버튼 -->
+                <div class="form__actions">
+                    <button type="button" class="button button--medium button--cancel">취소</button>
+                    <button type="button" class="button button--medium button--submit">가입</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script src="/js/pages/member-signup.js"></script>
+</th:block>
+</html>

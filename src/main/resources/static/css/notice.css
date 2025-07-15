@@ -64,72 +64,72 @@ body{
     margin: 0 auto;
     font-family: 'Pretendard-Regular';
 }
-a, li{
+button {
+    border-style: none;
+    border-radius: 10px;
     cursor: pointer;
 }
+button:hover {
+    border-radius: 10px;
+    background-color: #EA3B20;
+    color: white;
+    cursor: pointer;
+}
+a {
+    text-decoration: none;
+}
 
-/* 메뉴상단 */
-nav{
-    width: 300px;
-    height: 100%;
-    border-left: 2px solid #1E1E1E;
-    border-right: 2px solid #1E1E1E;
-}
-#menu_top {
+
+
+
+
+/* 공지사항 */
+
+
+
+
+
+
+
+
+/* 공지사항 상세 */
+.notice__item:first-child {
     display: flex;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 18%;
-    border-bottom: 1px solid #EA3B20;
+    justify-content: center;
+    flex-direction: column;
+    height: 15%;
 }
-.profile {
-    display: inline-flex;
+.notice__item > span {
+    position: relative;
+    top: 25%;
+    left: 36px;
+    color: gray;
+}
+.container-title {
+    position: absolute;
+    font-size: 25px;
+    font-weight: 600;
+}
+.notice__item:last-child {
+    padding: 30px;
+}
+.notice__actions {
+    display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
-    width: 100%;
-    height: 80%;
+    gap: 100px;
+    margin: 5%;
+    height: 6%;
 }
-.profile > img {
-    width: 100px;
-    height: 100px;
-    margin-left: 15px;
+.button-confirm {
+    width: 10%;
+    height: 100%;
+    background-color: #121212;
+    color: white;
 }
-.profile > div {
-    padding-bottom: 25px;
-    width: 70%;
-    text-align: center;
-}
-.profile  span {
-    color: #EA3B20;
-    font-weight: 800;
-    font-size: 20px;
-}
-.profile a {
-    position: absolute;
-    top: 60%;
-    left: 55%;
-    text-decoration: none;
-    font-size: 15px;
-    color: black;
-}
-.profile a:hover {
-    text-decoration: underline;
-    color: #0B3B78;
-}
-
-/* 메뉴 하단 */
-#menu_bottom, ul {
-    width: 100%;
-    height: 70%;
-}
-.liMenu {
-    width: 100%;
-    height: 13%;
-    font-size: 20px;
-}
-.liMenu:hover {
-    background-color: #1E1E1E;
+.button-confirm:hover {
+    width: 15%;
+    height: 100%;
+    background-color: #121212;
     color: white;
 }

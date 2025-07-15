@@ -1,0 +1,176 @@
+/*==============================
+                 📁 회원가입 화면
+==============================*/
+@use '../mixins' as *;
+@use '../variables' as *;
+
+
+
+.page-member-signup {
+    @include flex-box( column, $align: center );
+    width: 70%;
+    height: 100vh;
+    background-color: $color-box-background;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+        background:$image-body-background;
+        background-size: contain;
+        background-repeat: round;
+        opacity: 0.8;
+    }
+}
+
+
+//======= ▼ 상단 =======
+.signup-header {
+    flex: 1;
+    width: 100%;
+
+    //--- 제목 영역 ---
+    &__title {
+        @include flex-box( column, center, center );
+        width: 100%;
+        height: 100%;
+        gap: 0.3rem;
+        font-family: var(--title-font);
+        font-size: 3.5rem;
+
+        small {
+            font-size: 0.35em;
+        }
+    }
+}
+
+
+//======= ▼ 본문 =======
+.signup-body {
+    flex:5;
+    width: 100%;
+
+    //--- 공통 폼 전체 ---
+    .form {
+        @include flex-box(column, $align: center);
+        gap: 0.5rem;
+
+        //--- 공통 입력 필드 ---
+        &__field {
+            position: relative;
+            @include flex-box(column);
+            flex: 1;
+            width: 100%;
+            gap: 0.3em;
+            padding: 0.3rem 25%;
+            box-sizing: border-box;
+            transition: margin-bottom 0.2s ease;
+
+            //메시지를 가지고 있을 때
+            &.has-error,
+            &.has-success {
+                margin-bottom: 1rem;
+            }
+
+            .message--error,
+            .message--success {
+                position: absolute;
+                top: 100%;
+            }
+        }
+
+        //--- 공통 라벨 ---
+        &__label {
+            //첫번째 라벨
+            &:first-child {
+                font-size: 0.9rem;
+                font-weight: bold;
+            }
+        }
+
+        //--- 공통 입력창 ---
+        &__input {
+            height: 100%;
+        }
+    }
+
+    //--- 이메일 입력 영역 ---
+    .form__field--email {
+        //인증코드를 가지고 있을 때
+        &.form__field--code {
+            flex: 2;
+        }
+
+        .form__input-container {
+            @include flex-box( column );
+            height: 100%;
+            gap: 0.5rem;
+
+            //이메일
+            .form__input-box--email,
+            .form__input-box--code {
+                @include flex-box($justify: space-between );
+                height: 100%;
+
+                .form__input {
+                    width: 90%;
+                }
+            }
+
+            //인증코드
+            .form__input-box--code {
+                position: relative;
+
+                .form__input  {
+                    width: 100%;
+                }
+
+                //타이머
+                .timer {
+                    position: absolute;
+                    top: 30%;
+                    left: 90%;
+                    font-size: 0.95em;
+                    font-weight: bold;
+                }
+            }
+        }
+    }
+
+    //--- 이메일 인증코드 입력 영역 ---
+    .form__field--code {
+        flex: 2;
+    }
+
+    //--- 성별 입력 영역 ---
+    .form__field--gender {
+        .form__input-container {
+            @include flex-box( $justify: space-evenly );
+        }
+
+        .form__input-box {
+            @include flex-box( $align: center );
+            gap: 0.5rem;
+        }
+    }
+
+    //--- 이용약관 입력 영역 ---
+    .form__field--agree {
+        .form__label {
+            @include flex-box( $align: center );
+            gap: 0.5rem;
+            font-weight: normal;
+        }
+    }
+
+    //--- 버튼 영역 ---
+    .form__actions {
+        @include flex-box( $justify: space-evenly, $align: center );
+        flex: 2;
+        width: 50%;
+    }
+}

@@ -1,0 +1,114 @@
+/*==============================
+                    📁 로그인 화면
+==============================*/
+@use '../mixins' as *;
+@use '../variables' as *;
+
+
+
+.page-member-login {
+    @include flex-box( row, center, center );
+    height: 100vh;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+        background: $image-body-background;
+        background-size: contain;
+        background-repeat: round;
+        opacity: 0.5;
+    }
+
+    //======= ▼ 좌측 =======
+    .login-box--left {
+        @include flex-box( row, center, center );
+        position: relative;
+        left: 15px;
+        z-index: -1;
+        width: 11em;
+        height: 10em;
+        font-size: 4.5rem;
+        font-weight: 400;
+        background-color: $color-login-slogan-background;
+        border-radius: 60px 0 0 60px;
+
+        //--- 슬로건 영역 ---
+        .login-box__slogan {
+            @include flex-box( column, center, center );
+            gap: 10px;
+            color: $color-login-slogan-text;
+
+            &--small {
+                font-size: 0.65em;
+            }
+        }
+    }
+
+    //======= ▼ 우측 =======
+    .login-box--right {
+        width: 30rem;
+        height: 35rem;
+        padding: 5em;
+        background-color: $color-box-background;
+        border-radius: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+
+        .login-form {
+            @include flex-box(column);
+            gap: 3rem;
+
+            //--- 제목 영역 ---
+            &__title {
+                @include flex-box( column, center, center );
+                gap: 5px;
+                font-family: var(--title-font, 'sans-serif');
+                font-size: 3.5rem;
+
+                &--english {
+                    font-size: 0.35em;
+                }
+            }
+        }
+
+        //--- 입력 폼 영역 ---
+        .form {
+            @include flex-box(column, center, center);
+            gap: 2rem;
+
+            //--- 각 입력창 ---
+            &__field {
+                @include flex-box( column );
+                 width: 100%;
+            }
+
+            //라벨
+            &__label {
+                margin: 0.3rem;
+                font-size: 15px;
+            }
+
+            //입력창
+            &__input {
+                padding: 1rem;
+            }
+
+            //전송 버튼
+            .button {
+                margin-top: 2.5rem;
+            }
+        }
+
+        //--- 링크 영역 ---
+        .login-box__actions {
+            @include flex-box( $justify: space-evenly );
+            width: 100%;
+            margin-top: 3.5em;
+            font-size: 1.13em;
+        }
+    }
+}

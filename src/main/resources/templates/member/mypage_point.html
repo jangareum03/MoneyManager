@@ -1,0 +1,47 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='마이페이지 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-member-point">
+        <!-- 상단 -->
+        <section class="point-header">
+            <h1 class="point-header__title">마이페이지</h1>
+        </section>
+
+        <!-- 본문 -->
+        <section class="point-body">
+            <!-- 본문: 포인트정보 -->
+            <section class="point-summary">
+                <header class="point-summary__header">
+                    <h2 class="point-summary__title">포인트 정보</h2>
+                </header>
+                <div class="point-summary__content">
+                    <div class="point-summary__current">
+                        <h3>현재 포인트</h3>
+                        <p><strong class="point-summary__current--strong" th:text="${point.currentPoint}"></strong>point</p>
+                    </div>
+                    <div class="point-summary__earm">
+                        <h3>누적 포인트</h3>
+                        <p><strong th:text="${point.earmPoint}"></strong>point</p>
+                    </div>
+                    <div class="point-summary__used">
+                        <h3>사용된 포인트</h3>
+                        <p><strong th:text="${point.usePoint}"></strong>point</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 본문: 사용 내역 -->
+            <section class="point-details">
+                <h4 class="point-details__title">사용 내역</h4>
+
+                <article th:if="${list == null}" class="point-details__list point-details__list--empty">
+                    사용 내역이 없습니다.
+                </article>
+
+                <article th:unless="${list == null}" class="point-details__list point-details__list--filled">
+                    사용 내역이 있습니다.
+                </article>
+            </section>
+        </section>
+    </main>
+</th:block>
+</html>

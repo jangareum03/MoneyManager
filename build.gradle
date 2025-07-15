@@ -2,6 +2,7 @@ plugins {
 	id 'org.springframework.boot' version '2.7.4'
 	id 'io.spring.dependency-management' version '1.0.14.RELEASE'
 	id 'java'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
 group = 'com.areum'
@@ -21,35 +22,44 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.oracle.database.jdbc:ojdbc8'
-	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	/* lombok */
+	compileOnly 'org.projectlombok:lombok'
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
 	/*Thymeleaf */
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
-	/* MapStruct */
-	annotationProcessor 'org.mapstruct:mapstruct-processor:1.4.1.Final'
-	implementation 'org.mapstruct:mapstruct:1.4.2.Final'
+	/* Security */
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 	/* SMTP */
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '2.7.1'
 	/* file */
 	implementation 'commons-io:commons-io:2.11.0'
 	/* jUnit */
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
-	testImplementation 'org.mockito:mockito-core:4.8.0'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+	testImplementation 'org.mockito:mockito-core:4.11.0'
+	testImplementation 'org.mockito:mockito-junit-jupiter:4.11.0'
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 	/* json */
 	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
-	/* log */
-	/*implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    /* log */
+	implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
+	implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.20.0'
+	implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
 	configurations {
 		all {
-			exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+			exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
+			exclude group: 'ch.qos.logback', module: 'logback-classic'
 		}
-	}*/
+	}
+	/* 정적파일 실시간 적용 */
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+	tasks.named('test') {
+		useJUnitPlatform()
+	}
+compileKotlin {
 }
