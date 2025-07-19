@@ -32,6 +32,7 @@
 - [회원가입 기능 문서(Notion)](https://www.notion.so/15e0b05cea748094b757c4d8748d3177?source=copy_link)
 - [로그인/로그아웃 기능 문서{Notion}](https://www.notion.so/15e0b05cea748091987cc7f2a8b15846?source=copy_link)
 - [회원수정 기능 문서(Notion)](https://www.notion.so/15e0b05cea74807ab876dbb8f8954364?source=copy_link)
+- [회원탈퇴 기능 문서(Notion)](https://www.notion.so/15e0b05cea7480f8b032fae6cf0ec950?source=copy_link)
 > 문서는 현재 회원가입 기능부터 정리 중이며, 지속적으로 다른 기능도 업데이트될 예정입니다.
 
 ## 2025 리팩토링 개선 내용
