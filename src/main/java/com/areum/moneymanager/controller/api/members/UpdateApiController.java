@@ -2,7 +2,6 @@ package com.areum.moneymanager.controller.api.members;
 
 import com.areum.moneymanager.dto.request.member.UpdateRequestDTO;
 import com.areum.moneymanager.dto.response.ApiResponseDTO;
-import com.areum.moneymanager.dto.response.ValidationResponseDTO;
 import com.areum.moneymanager.exception.ErrorException;
 import com.areum.moneymanager.service.member.ImageServiceImpl;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
@@ -11,15 +10,36 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.servlet.http.HttpSession;
 
 
+
 /**
- * 회원정보 수정을 담당하는 클래스</br>
- * 이름, 비밀번호, 이메일 등의 정보 수정을 처리
- *
- * @version 1.0
+ * <p>
+ *  * 패키지이름    : com.areum.moneymanager.controller.api.members<br>
+ *  * 파일이름       : UpdateApiController<br>
+ *  * 작성자          : areum Jang<br>
+ *  * 생성날짜       : 25. 7. 15<br>
+ *  * 설명              : 회원정보 수정 API를 제공하는 클래스
+ * </p>
+ * <br>
+ * <p color='#FFC658'>📢 변경이력</p>
+ * <table border="1" cellpadding="5" cellspacing="0" style="width: 100%">
+ *		<thead>
+ *		 	<tr style="border-top: 2px solid; border-bottom: 2px solid">
+ *		 	  	<td>날짜</td>
+ *		 	  	<td>작성자</td>
+ *		 	  	<td>변경내용</td>
+ *		 	</tr>
+ *		</thead>
+ *		<tbody>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 7. 15</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	</tr>
+ *		</tbody>
+ * </table>
  */
 @RestController
 @RequestMapping("/api/member")
@@ -67,21 +87,15 @@ public class UpdateApiController {
 	 * @return	안내 메시지
 	 */
 	@PostMapping("/profile")
-	public ResponseEntity<ApiResponseDTO> updateProfile(@RequestParam boolean isReset, @RequestParam(required = false) MultipartFile profile, HttpSession session ) {
+	public ResponseEntity<ApiResponseDTO> updateProfile( @RequestParam boolean isReset, @RequestParam(required = false) MultipartFile profile, HttpSession session ) {
 		String memberId = (String)session.getAttribute("mid");
 
-		try{
-			memberService.changeProfile( memberId, isReset, profile );
+		memberService.changeProfile( memberId, isReset, profile );
 
-			String profileImageName = imageService.findImage(memberId);
-			session.setAttribute("profile", profileImageName);
+		String profileImageName = imageService.findImage(memberId);
+		session.setAttribute("profile", profileImageName);
 
-			return ResponseEntity.ok( ApiResponseDTO.builder().success(true).message(profileImageName).build() );
-		}catch ( ErrorException e ) {
-			logger.debug("{} 회원의 프로필이 수정 불가합니다.", memberId);
-
-			return ResponseEntity.ok( ApiResponseDTO.builder().success(false).message(e.getErrorMessage()).build() );
-		}
+		return ResponseEntity.ok( ApiResponseDTO.builder().success(true).message(profileImageName).build() );
 	}
 
 
@@ -95,25 +109,17 @@ public class UpdateApiController {
 	 */
 	@PostMapping("/password")
 	public ResponseEntity<ApiResponseDTO> putUpdatePassword( HttpSession session, @RequestBody UpdateRequestDTO.Password password ) {
-		logger.debug("비밀번호: {}", password.getPassword());
 		String memberId = (String) session.getAttribute("mid");
 
-		try{
-			memberService.changePassword( memberId, password.getPassword() );
+		memberService.changePassword( memberId, password.getPassword() );
 
-			return ResponseEntity.ok(ApiResponseDTO.builder().success(true).message("변경한 비밀번호로 로그인해주세요.").build());
-		}catch ( ErrorException e ) {
-			logger.debug("{} 회원의 비밀번호가 변경 불가능합니다.", memberId);
-
-			return ResponseEntity.ok(ApiResponseDTO.builder().success(false).message(e.getErrorMessage()).build());
-		}
+		return ResponseEntity.ok(ApiResponseDTO.builder().success(true).message("변경한 비밀번호로 로그인해주세요.").build());
 	}
 
 
 
 	@DeleteMapping
 	public ResponseEntity<ApiResponseDTO> deleteMember(HttpSession session, @RequestBody UpdateRequestDTO.Delete delete ) {
-		logger.debug("🍒아이디: {}, 비밀번호: {}, 코드: {}, 원인: {}", delete.getId(), delete.getPassword(), delete.getCode(), delete.getCause());
 		String memberId = (String) session.getAttribute("mid");
 
 		try{

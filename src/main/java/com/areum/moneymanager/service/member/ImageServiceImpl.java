@@ -19,15 +19,36 @@ import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.areum.moneymanager.enums.ErrorCode.MEMBER_UPDATE_PROFILE;
 
 
 /**
- * 회원 이미지와 관련된 작업을 처리하는 클래스</br>
- * 폴더 생성, 이미지 저장, 이미지 이름 설정 등의 메서드 구현
- *
- * @version 1.0
+ * <p>
+ *  * 패키지이름    : com.areum.moneymanager.service.member<br>
+ *  * 파일이름       : ImageServiceImpl<br>
+ *  * 작성자          : areum Jang<br>
+ *  * 생성날짜       : 25. 7. 15<br>
+ *  * 설명              : 회원 프로필 이미지 관련 비즈니스 로직을 처리하는 클래스
+ * </p>
+ * <br>
+ * <p color='#FFC658'>📢 변경이력</p>
+ * <table border="1" cellpadding="5" cellspacing="0" style="width: 100%">
+ *		<thead>
+ *		 	<tr style="border-top: 2px solid; border-bottom: 2px solid">
+ *		 	  	<td>날짜</td>
+ *		 	  	<td>작성자</td>
+ *		 	  	<td>변경내용</td>
+ *		 	</tr>
+ *		</thead>
+ *		<tbody>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 7. 15</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	</tr>
+ *		</tbody>
+ * </table>
  */
+
 @Service("profileImage")
 public class ImageServiceImpl {
 
@@ -45,10 +66,6 @@ public class ImageServiceImpl {
 
 
 	public void saveProfile( String fileName, MultipartFile file ) throws IOException {
-		if( Objects.isNull(file) || file.isEmpty() ) {
-			throw new ErrorException( MEMBER_UPDATE_PROFILE );
-		}
-
 		//폴더와 저장할 이미지 얻은 후 서버에 저장
 		File folder = makeDirectory();
 		File saveImage = new File( folder, fileName );
@@ -58,20 +75,14 @@ public class ImageServiceImpl {
 
 
 
-	public void changeProfile(String memberId, UpdateRequestDTO.Profile profile ) {
-		try{
-			//기존 프로필 삭제
-			boolean isDelete = Objects.isNull(profile.getBeforeImage()) || profile.getBeforeImage().isBlank() || deleteProfile(profile.getBeforeImage());
-			if( isDelete ) {
-				//프로필 삭제 성공 후 데이터베이스 변경 완료
-				if( memberInfoDao.updateProfile( memberId, profile.getAfterImage() ) ) {
-					saveProfile( profile.getAfterImage(), profile.getFile() );
-				}
+	public void changeProfile( String memberId, UpdateRequestDTO.Profile profile ) throws IOException {
+		//기존 프로필 삭제
+		boolean isDelete = Objects.isNull(profile.getBeforeImage()) || profile.getBeforeImage().isBlank() || deleteProfile(profile.getBeforeImage());
+		if( isDelete ) {
+			//프로필 삭제 성공 후 데이터베이스 변경 완료
+			if( memberInfoDao.updateProfile( memberId, profile.getAfterImage() ) ) {
+				saveProfile( profile.getAfterImage(), profile.getFile() );
 			}
-
-		}catch ( IOException e ) {
-			logger.debug("삭제할 프로필 이미지 미존재로 삭제 불가");
-			throw new ErrorException(MEMBER_UPDATE_PROFILE);
 		}
 	}
 

@@ -1,10 +1,48 @@
 package com.areum.moneymanager.exception.code;
 
+import com.areum.moneymanager.enums.SystemMessage;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
+
+/**
+ * <p>
+ *  * 패키지이름    : com.areum.moneymanager.exception.code<br>
+ *  * 파일이름       : ErrorCode<br>
+ *  * 작성자          : areum Jang<br>
+ *  * 생성날짜       : 25. 7. 15<br>
+ *  * 설명              : 서비스 문제 상황을 에러코드로 정의한 클래스
+ * </p>
+ * <br>
+ * <p color='#FFC658'>📢 변경이력</p>
+ * <table border="1" cellpadding="5" cellspacing="0" style="width: 100%">
+ *		<thead>
+ *		 	<tr style="border-top: 2px solid; border-bottom: 2px solid">
+ *		 	  	<td>날짜</td>
+ *		 	  	<td>작성자</td>
+ *		 	  	<td>변경내용</td>
+ *		 	</tr>
+ *		</thead>
+ *		<tbody>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>22. 7. 15</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	</tr>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>22. 7. 23</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>에러코드 규칙 변경</td>
+ *		 	</tr>
+ *		</tbody>
+ * </table>
+ */
 @Getter
 public enum ErrorCode {
+
 	/** 로그인 에러메시지 **/
 	LOGIN_ID_MISSING("C010101", "아이디를 입력해주세요."),
 	LOGIN_ID_FORMAT("C010102", "4~15자 사이의 영어와 숫자만 입력 가능합니다."),
@@ -114,7 +152,7 @@ public enum ErrorCode {
 	MEMBER_UPDATE_PASSWORD_MISMATCH("C090204", "비밀번호가 일치하지 않습니다. 다시 확인해주세요."),
 	MEMBER_UPDATE_NEW_PASSWORD_MISSING("C090201", "비밀번호를 입력해주세요."),
 	MEMBER_UPDATE_NEW_PASSWORD_FORMAT("C090202", "8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다."),
-	MEMBER_UPDATE_NEW_PASSWORD_DUPLICATE("C090203", "현재 비밀번호와 동일합니다. 다른 비밀번호를 입력해주세요."),
+	MEMBER_UPDATE_NEW_PASSWORD_DUPLICATE("C090203", "현재 비밀번호와 동일합니다. 다른 비밀번호를 입력해주세요.", "사용자: {}, 원인: 기존 비밀번호와 동일"),
 	MEMBER_UPDATE_RE_PASSWORD_MISSING("C090301", "새 비밀번호를 먼저 입력해주세요."),
 	MEMBER_UPDATE_RE_PASSWORD_FORMAT("C090302", "8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다."),
 	MEMBER_UPDATE_RE_PASSWORD_MISMATCH("C090304", "새 비밀번호와 일치하지 않습니다. 다시 입력해주세요."),
@@ -139,12 +177,12 @@ public enum ErrorCode {
 	INQUIRY_UPDATE_CONTENT_FORMAT("C120302", "1~300자까지만 입력 가능합니다."),
 	/**	문의사항 조회  에러메시지 **/
 	INQUIRY_READ_UNAUTHORIZED("C130007", "작성자가 아니라서 접근이 불가능합니다."),
+	/** 시스템 문제 에러메시지 **/
+	SYSTEM_LOGIC_ERRORCODE_NULL("S010101", SystemMessage.SYSTEM.getMessage(), "메서드: {}, 요청값: {}, 원인: 에러코드 NULL"),
 
 
 
-	/** 회원정보 변경 에러메시지 **/
 
-	MEMBER_UPDATE_PASSWORD("MEMBER_124", "현재 비밀번호와 동일합니다. 다른 비밀번호를 입력해주세요."),
 	/**
 	 * 회원 탈퇴 에러메시지
 	 */
@@ -245,6 +283,35 @@ public enum ErrorCode {
 		this.code = code;
 		this.message = message;
 		this.logMessage = logMessage;
+	}
+
+
+	/**
+	 *	prefix 로 시작되는 에러코드들을 가져옵니다.
+	 *
+	 * @param prefix		필터링 기준
+	 * @return	필터링된 에러코드 리스트
+	 */
+	public static List<ErrorCode> getGroupByPrefix( String prefix ) {
+		return Arrays.stream(values())
+				.filter( error -> error.code.startsWith(prefix.toUpperCase()) )
+				.collect(Collectors.toList());
+	}
+
+
+
+	/**
+	 * 에러코드 리스트 중에 name이 포함된 에러코드를 찾습니다.
+	 *
+	 * @param errorCodes		에러코드 리스트
+	 * @param name				에러코드 이름
+	 * @return	에러코드
+	 */
+	public static ErrorCode getByName( List<ErrorCode> errorCodes, String name ) {
+		return errorCodes.stream()
+				.filter( error -> error.name().contains(name.toUpperCase()) )
+				.findFirst()
+				.orElse(SYSTEM_LOGIC_ERRORCODE_NULL);
 	}
 
 }

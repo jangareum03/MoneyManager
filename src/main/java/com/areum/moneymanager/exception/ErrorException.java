@@ -1,6 +1,7 @@
 package com.areum.moneymanager.exception;
 
-import com.areum.moneymanager.enums.ErrorCode;
+import com.areum.moneymanager.exception.code.ErrorCode;
+
 
 
 public class ErrorException extends RuntimeException {

@@ -1,4 +1,5 @@
-package com.areum.moneymanager.dto.response;
+package com.areum.moneymanager.dto.request;
+
 
 import lombok.Builder;
 import lombok.Getter;
@@ -6,11 +7,11 @@ import lombok.Getter;
 
 /**
  * <p>
- *  * 패키지이름    : com.areum.moneymanager.dto.response<br>
- *  * 파일이름       : ErrorResponseDTO<br>
+ *  * 패키지이름    : com.areum.moneymanager.dto.request<br>
+ *  * 파일이름       : AttendanceRequestDTO<br>
  *  * 작성자          : areum Jang<br>
- *  * 생성날짜       : 25. 7. 15<br>
- *  * 설명              : 사용자에게 오류 결과를 전달하기 위한 클래스
+ *  * 생성날짜       : 25. 7. 22<br>
+ *  * 설명              : 검증 및 로그 기록 데이터를 전달하기 위한 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -24,17 +25,19 @@ import lombok.Getter;
  *		</thead>
  *		<tbody>
  *		 	<tr style="border-bottom: 1px dotted">
- *		 	  <td>25. 7. 15</td>
+ *		 	  <td>25. 7. 22</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>최초 생성 (버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
  */
-@Getter
 @Builder
-public class ErrorResponseDTO {
-	private boolean success;
-	private String code;
-	private String message;
+@Getter
+public class ValidRequestDTO<T> {
+
+	Object key;
+	String errorPrefix;
+	T requestData;
+
 }

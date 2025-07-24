@@ -5,7 +5,7 @@ import com.areum.moneymanager.dao.HistoryDao;
 import com.areum.moneymanager.dto.response.member.MemberResponseDTO;
 import com.areum.moneymanager.entity.Member;
 import com.areum.moneymanager.entity.PointHistory;
-import com.areum.moneymanager.enums.ErrorCode;
+import com.areum.moneymanager.exception.code.ErrorCode;
 import com.areum.moneymanager.exception.ErrorException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -18,14 +18,34 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Objects;
 
 
 /**
- * 회원 포인트의 수정내역을 처리하는 클래스</br>
- * 회원 포인트 내역을 조회, 수정, 삭제 등의 메서드 구현
- *
- * @version 1.0
+ * <p>
+ *  * 패키지이름    : com.areum.moneymanager.dao.member.history<br>
+ *  * 파일이름       : PointHistoryDaoImpl<br>
+ *  * 작성자          : areum Jang<br>
+ *  * 생성날짜       : 25. 7. 15<br>
+ *  * 설명              : 회원 포인트 기록을 조작하는 클래스
+ * </p>
+ * <br>
+ * <p color='#FFC658'>📢 변경이력</p>
+ * <table border="1" cellpadding="5" cellspacing="0" style="width: 100%">
+ *		<thead>
+ *		 	<tr style="border-top: 2px solid; border-bottom: 2px solid">
+ *		 	  	<td>날짜</td>
+ *		 	  	<td>작성자</td>
+ *		 	  	<td>변경내용</td>
+ *		 	</tr>
+ *		</thead>
+ *		<tbody>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 7. 15</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	</tr>
+ *		</tbody>
+ * </table>
  */
 @Repository
 public class PointHistoryDaoImpl implements HistoryDao<PointHistory, Long> {

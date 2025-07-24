@@ -1,7 +1,6 @@
 package com.areum.moneymanager.service.member;
 
 
-import com.areum.moneymanager.dao.member.MemberInfoDao;
 import com.areum.moneymanager.dao.member.MemberInfoDaoImpl;
 import com.areum.moneymanager.dto.request.member.LoginRequestDTO;
 import com.areum.moneymanager.dto.request.member.LogRequestDTO;
@@ -10,13 +9,14 @@ import com.areum.moneymanager.dto.response.member.LoginResponseDTO;
 import com.areum.moneymanager.dto.response.member.MemberResponseDTO;
 import com.areum.moneymanager.entity.Member;
 import com.areum.moneymanager.entity.MemberInfo;
-import com.areum.moneymanager.enums.ErrorCode;
+import com.areum.moneymanager.exception.code.ErrorCode;
 import com.areum.moneymanager.enums.type.GenderType;
 import com.areum.moneymanager.enums.type.HistoryType;
 import com.areum.moneymanager.enums.type.MemberType;
 import com.areum.moneymanager.exception.ErrorException;
 import com.areum.moneymanager.service.member.history.UpdateLogService;
 import com.areum.moneymanager.service.member.validation.MemberValidationService;
+import com.areum.moneymanager.service.validation.FileValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,20 +35,49 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
-import static com.areum.moneymanager.enums.ErrorCode.*;
+import static com.areum.moneymanager.exception.code.ErrorCode.*;
 
 
 /**
- * 회원정보와 관련된 작업을 처리하는 클래스</br>
- * 회원가입, 회원정보 조회, 정보 수정 등의 메서드를 구현
- *
- * @version 1.0
+ * <p>
+ *  * 패키지이름    : com.areum.moneymanager.service.member<br>
+ *  * 파일이름       : MemberServiceImpl<br>
+ *  * 작성자          : areum Jang<br>
+ *  * 생성날짜       : 22. 10. 24<br>
+ *  * 설명              : 회원정보 관련 비즈니스 로직을 처리하는 클래스
+ * </p>
+ * <br>
+ * <p color='#FFC658'>📢 변경이력</p>
+ * <table border="1" cellpadding="5" cellspacing="0" style="width: 100%">
+ *		<thead>
+ *		 	<tr style="border-top: 2px solid; border-bottom: 2px solid">
+ *		 	  	<td>날짜</td>
+ *		 	  	<td>작성자</td>
+ *		 	  	<td>변경내용</td>
+ *		 	</tr>
+ *		</thead>
+ *		<tbody>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>22. 10. 24</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>최초 생성(버전 1.0)</td>
+ *		 	</tr>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 7. 15</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	</tr>
+ *		</tbody>
+ * </table>
  */
 @Service
 public class MemberServiceImpl {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	private FileValidator imageValidator;
+
 
 	private final ImageServiceImpl imageService;
 	private final UpdateLogService historyService;
@@ -58,11 +87,13 @@ public class MemberServiceImpl {
 	private final Logger logger = LogManager.getLogger(this);
 
 	@Autowired
-	public MemberServiceImpl(@Qualifier("profileImage") ImageServiceImpl imageService, UpdateLogService historyService, MailService mailService, MemberInfoDaoImpl memberDAO ) {
+	public MemberServiceImpl(@Qualifier("profileImage") ImageServiceImpl imageService, UpdateLogService historyService, MailService mailService, MemberInfoDaoImpl memberDAO, FileValidator imageValidator ) {
 		this.imageService = imageService;
 		this.historyService = historyService;
 		this.mailService = mailService;
 		this.memberDAO = memberDAO;
+
+		this.imageValidator = imageValidator;
 	}
 
 
@@ -339,7 +370,7 @@ public class MemberServiceImpl {
 				}
 			}
 		}catch ( IOException e ) {
-			throw  new ErrorException(MEMBER_UPDATE_PROFILE);
+
 		}
 	}
 
@@ -454,13 +485,7 @@ public class MemberServiceImpl {
 						return LoginResponseDTO.FindPwd.builder().email( maskEmail ).message(message).build();
 					}
 				}catch ( ErrorException e ) {
-					if( e.getErrorCode().equals("MEMBER_PASSWORD_EXITS") ) {
-						logger.debug("{} 회원의 현재 비밀번호와 동일하게 비밀번호를 변경할 수 없습니다.", member.getId());
-					}else {
-						logger.debug("{} 회원의 이메일로 임시 비밀번호가 전송할 수 없습니다.", member.getId());
-					}
-
-					throw  e;
+					logger.debug("");
 				}
 			default:
 				logger.debug("{} 회원 상태가 알 수 없기  상태({})이기 때문에 비밀번호를 찾을 수 없습니다.", member.getId(), member.getStatus());
@@ -477,19 +502,18 @@ public class MemberServiceImpl {
 	 * @param memberId 		회원번호
 	 * @param password 			변경할 비밀번호
 	 */
-		public void changePassword( String memberId, String password ) {
+	public void changePassword( String memberId, String password ) {
 		String id = memberDAO.findUsernameByMemberId(memberId);
 		String currentPassword = memberDAO.findPasswordByUsername( id );
 
 		LogRequestDTO.Member updateHistory = LogRequestDTO.Member.builder().memberId(memberId).success(false).type("UPDATE").item("비밀번호").build();
 
 		if( passwordEncoder.matches( password, currentPassword ) ) {
-			logger.debug("현재 비밀번호와 동일하여 변경할 수 없습니다. (현재 비밀번호: {}, 변경할 비밀번호: {})", currentPassword, password);
-
 			LogRequestDTO.Member failHistory = updateHistory.toBuilder().failureReason("기존 비밀번호와 동일하여 변경 불가").build();
+
 			historyService.createHistory(failHistory);
 
-			throw new ErrorException(ErrorCode.MEMBER_UPDATE_PASSWORD);
+			throw new IllegalStateException();
 		}else {
 			if( memberDAO.updatePassword( id, passwordEncoder.encode(password) ) ) {
 				LogRequestDTO.Member successHistory = updateHistory.toBuilder().success(true).build();
