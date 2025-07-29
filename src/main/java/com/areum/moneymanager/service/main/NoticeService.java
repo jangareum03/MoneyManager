@@ -1,8 +1,10 @@
 package com.areum.moneymanager.service.main;
 
 import com.areum.moneymanager.dao.main.NoticeDao;
-import com.areum.moneymanager.dto.request.main.SupportRequestDTO;
-import com.areum.moneymanager.dto.response.main.SupportResponseDTO;
+import com.areum.moneymanager.dto.common.request.PageRequest;
+import com.areum.moneymanager.dto.common.response.PageResponse;
+import com.areum.moneymanager.dto.notice.response.NoticeDetailResponse;
+import com.areum.moneymanager.dto.notice.response.NoticeListResponse;
 import com.areum.moneymanager.entity.Notice;
 import com.areum.moneymanager.enums.type.NoticeType;
 import org.apache.logging.log4j.LogManager;
@@ -44,7 +46,7 @@ import static com.areum.moneymanager.exception.code.ErrorCode.NOTICE_FIND_NONE;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -62,23 +64,23 @@ public class NoticeService {
 
 
 
-	public SupportResponseDTO.NoticeList getNoticesByPage(SupportRequestDTO.Page page) {
+	public NoticeListResponse getNoticesByPage(PageRequest page) {
 		//페이징 처리
-		SupportRequestDTO.Page currentPage = initPage(page);
+		PageRequest currentPage = initPage(page);
 
 		int totalCount = noticeDao.countAll();
-		SupportResponseDTO.Page noticePage = getPage( currentPage, totalCount );
+		PageResponse noticePage = getPage( currentPage, totalCount );
 
-		List<SupportResponseDTO.NoticeRow> noticeRows = new ArrayList<>();
-		for( Notice notice : noticeDao.findNoticesByPage( (currentPage.getNum() - 1) * currentPage.getSize(), currentPage.getSize() )) {
+		List<NoticeListResponse.Row> noticeRows = new ArrayList<>();
+		for( Notice notice : noticeDao.findNoticesByPage( (currentPage.getPage() - 1) * currentPage.getSize(), currentPage.getSize() )) {
 			//날짜 포맷
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy. MM. dd");
 			String formatDate = notice.getCreatedDate().toLocalDate().format(formatter);
 
-			noticeRows.add( SupportResponseDTO.NoticeRow.builder().id(notice.getId()).title(notice.getTitle()).type( SupportResponseDTO.NoticeType.builder().code( notice.getType() ).text( NoticeType.match(notice.getType()) ).build() ).date(formatDate).view(notice.getViewCount()).build() );
+			noticeRows.add( NoticeListResponse.Row.builder().id(notice.getId()).title(notice.getTitle()).type( NoticeListResponse.Type.builder().code( notice.getType() ).text( NoticeType.match(notice.getType()) ).build() ).date(formatDate).view(notice.getViewCount()).build() );
 		}
 
-		return SupportResponseDTO.NoticeList.builder().notices( noticeRows ).page( noticePage ).build();
+		return NoticeListResponse.builder().list( noticeRows ).page( noticePage ).build();
 	}
 
 
@@ -90,11 +92,11 @@ public class NoticeService {
 	 * @param page			선택 페이지 정보
 	 * @return	공지사항 정보
 	 */
-	private SupportRequestDTO.Page initPage( SupportRequestDTO.Page page ) {
-		int currentPage = Objects.isNull(page.getNum()) ? 1 : page.getNum();
+	private PageRequest initPage( PageRequest page ) {
+		int currentPage = Objects.isNull(page.getPage()) ? 1 : page.getPage();
 		int size = Objects.isNull(page.getSize()) ? 10: page.getSize();
 
-		return SupportRequestDTO.Page.builder().num(currentPage).size(size).build();
+		return new PageRequest( currentPage, size );
 	}
 
 
@@ -106,11 +108,11 @@ public class NoticeService {
 	 * @param totalCount				총 공지사항 개수
 	 * @return	공지사항에 따른 페이징 처리
 	 */
-	private SupportResponseDTO.Page getPage(SupportRequestDTO.Page page, int totalCount ) {
+	private PageResponse getPage(PageRequest page, int totalCount ) {
 		int limit = 5;
 		boolean isPrev = true, isNext = true;
 
-		int end = (int) Math.ceil( page.getNum() / (double)limit ) * limit;
+		int end = (int) Math.ceil( page.getPage() / (double)limit ) * limit;
 		int start = end - (limit - 1);
 
 		//마지막 페이지 설정
@@ -124,7 +126,7 @@ public class NoticeService {
 			isPrev = false;
 		}
 
-		return SupportResponseDTO.Page.builder().page( page.getNum() ).size( page.getSize() ).start( start ).end( end ).isPrev( isPrev ).isNext( isNext ).build();
+		return PageResponse.builder().page( page.getPage() ).size( page.getSize() ).startPage( start ).endPage( end ).isPrev( isPrev ).isNext( isNext ).build();
 	}
 
 
@@ -137,7 +139,7 @@ public class NoticeService {
 	 * @param id			공지사항 번호
 	 * @return	공지사항 정보
 	 */
-	public SupportResponseDTO.Notice getNoticeById( String id ) {
+	public NoticeDetailResponse getNoticeById(String id ) {
 		int count = noticeDao.countNoticeById(id);
 
 		if( count != 1 ) {
@@ -151,7 +153,7 @@ public class NoticeService {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 E요일");
 		String formatDate = notice.getCreatedDate().toLocalDate().format(formatter);
 
-		return SupportResponseDTO.Notice.builder().title( notice.getTitle() ).content(notice.getContent()).date(formatDate).build();
+		return NoticeDetailResponse.builder().title( notice.getTitle() ).content(notice.getContent()).date(formatDate).build();
 	}
 
 

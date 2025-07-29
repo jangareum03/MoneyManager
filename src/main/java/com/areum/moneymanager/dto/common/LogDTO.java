@@ -1,7 +1,9 @@
 package com.areum.moneymanager.dto.common;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 
 /**
@@ -24,28 +26,31 @@ import java.time.LocalDateTime;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 7. 25.</td>
+ * 		 	  <td>25. 7. 25</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 7. 30</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[이름 변경] browser → userAgent</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
  */
+@SuperBuilder
 @Getter
 public class LogDTO {
 	//성공여부
 	protected boolean success;
-	//실패 사유
-	protected String cause;
-	//접속 IP 주소
-	protected String ip;
+	//접속 브라우저
+	protected String userAgent;
 	//접속 일시
 	protected LocalDateTime dateTime;
 
-	public LogDTO() {
-		this.success = false;
-		this.cause = "";
-		this.ip = "";
+	public LogDTO(boolean success, HttpServletRequest request ) {
+		this.success = success;
+		this.userAgent = request.getHeader("User-Agent");
 		this.dateTime = LocalDateTime.now();
 	}
 }

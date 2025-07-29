@@ -2,7 +2,7 @@ package com.areum.moneymanager.dao.member.history;
 
 
 import com.areum.moneymanager.dao.HistoryDao;
-import com.areum.moneymanager.dto.response.member.MemberResponseDTO;
+import com.areum.moneymanager.dto.member.response.MemberMyPageResponse;
 import com.areum.moneymanager.entity.Member;
 import com.areum.moneymanager.entity.PointHistory;
 import com.areum.moneymanager.exception.code.ErrorCode;
@@ -42,7 +42,7 @@ import java.sql.SQLException;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -113,7 +113,7 @@ public class PointHistoryDaoImpl implements HistoryDao<PointHistory, Long> {
 	 * @param memberId		회원 식별번호
 	 * @return	포인트 유형별 합계
 	 */
-	public MemberResponseDTO.Point findSumPointByType(String memberId ) {
+	public MemberMyPageResponse.Point findSumPointByType(String memberId ) {
 		String query = "SELECT NVL(EARM, 0) 적립, NVL(USE, 0) 사용 " +
 									"FROM (" +
 										"SELECT type, points " +
@@ -122,7 +122,7 @@ public class PointHistoryDaoImpl implements HistoryDao<PointHistory, Long> {
 									") " +
 									"PIVOT ( SUM(points) FOR type IN('EARM' as EARM, 'USE' as USE ) )";
 
-		return jdbcTemplate.queryForObject( query, ( (rs, rowNum) -> MemberResponseDTO.Point.builder()
+		return jdbcTemplate.queryForObject( query, ( (rs, rowNum) -> MemberMyPageResponse.Point.builder()
 				.earmPoint( rs.getLong("적립") ).usePoint( rs.getLong("사용") )
 				.build()
 				), memberId );

@@ -1,12 +1,11 @@
 package com.areum.moneymanager.controller.web.members;
 
-import com.areum.moneymanager.dto.request.member.LoginRequestDTO;
+import com.areum.moneymanager.dto.member.request.MemberSignUpRequest;
 import com.areum.moneymanager.exception.ErrorException;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -33,7 +32,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -55,14 +54,10 @@ public class SignupController {
 	/**
 	 * 회원가입을 진행하기 위해 회원가입 페이지 요청을 처리합니다.
 	 *
-	 * @param model		View 전달할 데이터 객체
 	 * @return 회원가입 페이지
 	 */
 	@GetMapping
-	public String getSignUpPage( Model model ) {
-
-		model.addAttribute("member", LoginRequestDTO.SignUp.builder().gender("n").build());
-
+	public String getSignUpPage( ) {
 		return "/member/signup";
 	}
 
@@ -76,11 +71,11 @@ public class SignupController {
 	 * @return	로그인 페이지
 	 */
 	@PostMapping
-	public String postSignUp(@ModelAttribute("member") LoginRequestDTO.SignUp signUp, RedirectAttributes redirect ) {
+	public String postSignUp(@ModelAttribute("member") MemberSignUpRequest signUp, RedirectAttributes redirect ) {
 		try{
 			memberService.createMember(signUp);
 
-			redirect.addFlashAttribute("member", LoginRequestDTO.Login.builder().id(signUp.getId()).build());
+			redirect.addFlashAttribute("member", signUp.getId());
 
 			return "redirect:/";
 		}catch ( ErrorException e ) {

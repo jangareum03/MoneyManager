@@ -2,13 +2,13 @@ package com.areum.moneymanager.service.member;
 
 import com.areum.moneymanager.dao.member.MemberInfoDao;
 import com.areum.moneymanager.dao.member.MemberInfoDaoImpl;
-import com.areum.moneymanager.dto.request.member.UpdateRequestDTO;
+import com.areum.moneymanager.dto.common.ImageDTO;
+import com.areum.moneymanager.dto.member.request.MemberUpdateRequest;
 import com.areum.moneymanager.exception.ErrorException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -43,12 +43,11 @@ import java.util.UUID;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
  */
-
 @Service("profileImage")
 public class ImageServiceImpl {
 
@@ -64,32 +63,50 @@ public class ImageServiceImpl {
 	}
 
 
+	/**
+	 * 파일의 확장자를 반환합니다.
+	 *
+	 * @param file	파일
+	 * @return	파일 확장자
+	 */
+	public static String getExtension( MultipartFile file ) {
+		String fileName = file.getOriginalFilename();
 
-	public void saveProfile( String fileName, MultipartFile file ) throws IOException {
+		int index = fileName.indexOf('.');
+		if( index == -1 ) {
+			throw new IllegalArgumentException();
+		}
+
+		return fileName.substring( ++index );
+	}
+
+
+	public void saveProfile( ImageDTO image ) throws IOException {
 		//폴더와 저장할 이미지 얻은 후 서버에 저장
 		File folder = makeDirectory();
-		File saveImage = new File( folder, fileName );
+		File saveImage = new File( folder, image.getFileName() );
 
-		file.transferTo(saveImage);
+		image.getFile().transferTo(saveImage);
 	}
 
 
 
-	public void changeProfile( String memberId, UpdateRequestDTO.Profile profile ) throws IOException {
+	public void changeProfile( String memberId, MemberUpdateRequest.Profile profile ) throws IOException {
 		//기존 프로필 삭제
 		boolean isDelete = Objects.isNull(profile.getBeforeImage()) || profile.getBeforeImage().isBlank() || deleteProfile(profile.getBeforeImage());
+
 		if( isDelete ) {
 			//프로필 삭제 성공 후 데이터베이스 변경 완료
-			if( memberInfoDao.updateProfile( memberId, profile.getAfterImage() ) ) {
-				saveProfile( profile.getAfterImage(), profile.getFile() );
+			if( memberInfoDao.updateProfile( memberId, profile.getAfterImage().getFileName() ) ) {
+				saveProfile( profile.getAfterImage() );
 			}
 		}
 	}
 
 
 
-	public String changeFileName( MultipartFile file ) {
-		return	String.format("%s.%s", UUID.randomUUID(), StringUtils.getFilenameExtension(file.getOriginalFilename()));
+	public String changeFileName( ImageDTO imageDTO ) {
+		return	String.format("%s.%s", UUID.randomUUID(), imageDTO.getFileExtension());
 	}
 
 

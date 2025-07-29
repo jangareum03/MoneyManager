@@ -1,6 +1,6 @@
 package com.areum.moneymanager.service.validation;
 
-import com.areum.moneymanager.dto.request.ValidRequestDTO;
+import com.areum.moneymanager.dto.common.ErrorDTO;
 import com.areum.moneymanager.exception.code.ErrorCode;
 import com.areum.moneymanager.exception.custom.ClientException;
 import org.springframework.stereotype.Component;
@@ -46,31 +46,31 @@ public class FileValidator {
 	/**
 	 * 프로필 파일이 정상적인지 확인합니다.
 	 *
-	 * @param	requestDTO				요청정보를 담은 객체
+	 * @param	errorDTO					에러정보를 담은 객체
 	 * @throws	ClientException 		이미지가 유효하지 않을 경우 발생
 	 */
-	public <T> void validateProfileImage( ValidRequestDTO<T> requestDTO ) {
-		MultipartFile file = (MultipartFile) requestDTO.getRequestData();
-		List<ErrorCode> errorCodes = ErrorCode.getGroupByPrefix(requestDTO.getErrorPrefix());
+	public <T> void validateProfileImage( ErrorDTO<T> errorDTO ) {
+		MultipartFile file = (MultipartFile) errorDTO.getRequestData();
+		List<ErrorCode> errorCodes = ErrorCode.getGroupByPrefix(errorDTO.getCode());
 
 		//파일이 없는 경우
 		if( Objects.isNull(file) || file.isEmpty() ) {
-			throw new ClientException( ErrorCode.getByName(errorCodes, "MISSING"), requestDTO );
+			throw new ClientException(ErrorCode.getByName(errorCodes, "MISSING"), errorDTO);
 		}
 
 		//파일 사이즈가 0인 경우
 		if( file.getSize() == 0 ) {
-			throw new ClientException( ErrorCode.getByName(errorCodes,"EMPTY"), requestDTO);
+			throw new ClientException( ErrorCode.getByName(errorCodes,"EMPTY"), errorDTO);
 		}
 
 		//미지원 파일
 		if( !checkFileExtension(file) ) {
-			throw new ClientException( ErrorCode.getByName(errorCodes, "NOT_SUPPORTED") , requestDTO);
+			throw new ClientException( ErrorCode.getByName(errorCodes, "NOT_SUPPORTED") , errorDTO);
 		}
 
 		//파일 사이즈가 큰 경우
 		if( file.getSize() > MAX_SIZE ) {
-			throw new ClientException( ErrorCode.getByName(errorCodes,"SIZE_EXCEEDED"), requestDTO);
+			throw new ClientException( ErrorCode.getByName(errorCodes,"SIZE_EXCEEDED"), errorDTO);
 		}
 	}
 

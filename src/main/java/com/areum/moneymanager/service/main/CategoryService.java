@@ -1,7 +1,7 @@
 package com.areum.moneymanager.service.main;
 
 import com.areum.moneymanager.dao.main.CategoryDao;
-import com.areum.moneymanager.dto.response.main.CategoryResponseDTO;
+import com.areum.moneymanager.dto.budgetBook.CategoryDTO;
 import com.areum.moneymanager.entity.Category;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,7 +31,7 @@ import java.util.*;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -54,11 +54,11 @@ public class CategoryService {
 	 *
 	 * @return 최상위 카테고리 리스트
 	 */
-	public List<CategoryResponseDTO.Read> getTopCategories() {
-		List<CategoryResponseDTO.Read> readList = new ArrayList<>();
+	public List<CategoryDTO> getTopCategories() {
+		List<CategoryDTO> readList = new ArrayList<>();
 
 		for ( Category category : categoryDAO.findCategory() ) {
-			readList.add(CategoryResponseDTO.Read.builder().name(category.getName()).code(category.getCode()).build());
+			readList.add(CategoryDTO.builder().name(category.getName()).code(category.getCode()).build());
 		}
 
 		return readList;
@@ -72,11 +72,11 @@ public class CategoryService {
 	 * @param code 카테고리 코드
 	 * @return 하위 카테고리 리스트
 	 */
-	public List<CategoryResponseDTO.Read> getMySubCategories( String code) {
-		List<CategoryResponseDTO.Read> categoryList = new ArrayList<>();
+	public List<CategoryDTO> getMySubCategories( String code) {
+		List<CategoryDTO> categoryList = new ArrayList<>();
 
 		for (Category entity : categoryDAO.findCategoryByCode(code)) {
-			categoryList.add(CategoryResponseDTO.Read.builder().name(entity.getName()).code(entity.getCode()).build());
+			categoryList.add(CategoryDTO.builder().name(entity.getName()).code(entity.getCode()).build());
 		}
 
 
@@ -90,11 +90,11 @@ public class CategoryService {
 	 * @param code	하위 카테고리 코
 	 * @return	상위 카테고리의 이름과 코드를 담은 리스트
 	 */
-	public List<CategoryResponseDTO.Read> getMyParentCategories( String code ) {
-		List<CategoryResponseDTO.Read> categoryList = new ArrayList<>();
+	public List<CategoryDTO> getMyParentCategories(String code ) {
+		List<CategoryDTO> categoryList = new ArrayList<>();
 
 		for( Category entity : categoryDAO.findCategoryByStep(code) ) {
-			categoryList.add( CategoryResponseDTO.Read.builder().name(entity.getName()).code(entity.getCode()).build() );
+			categoryList.add( CategoryDTO.builder().name(entity.getName()).code(entity.getCode()).build() );
 		}
 
 		return categoryList;

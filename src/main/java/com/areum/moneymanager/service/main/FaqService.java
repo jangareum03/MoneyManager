@@ -1,6 +1,6 @@
 package com.areum.moneymanager.service.main;
 
-import com.areum.moneymanager.dto.response.main.FaqResponseDTO;
+import com.areum.moneymanager.dto.faq.response.FaqListResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +35,7 @@ import java.util.List;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -52,10 +52,10 @@ public class FaqService {
 	 * @return	FAQ의 질문과 답변 리스트
 	 * @throws IOException
 	 */
-	public List<FaqResponseDTO.Read> getFqaList() throws IOException {
+	public List<FaqListResponse> getFqaList() throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		InputStream is = getClass().getResourceAsStream("/static/data/faq.json");
 
-		return Arrays.asList( mapper.readValue( is, FaqResponseDTO.Read[].class) );
+		return Arrays.asList( mapper.readValue( is, FaqListResponse[].class) );
 	}
 }

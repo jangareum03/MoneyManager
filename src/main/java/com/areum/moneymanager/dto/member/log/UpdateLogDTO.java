@@ -1,8 +1,12 @@
 package com.areum.moneymanager.dto.member.log;
 
 import com.areum.moneymanager.dto.common.LogDTO;
+import com.areum.moneymanager.enums.type.HistoryType;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
+
+import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -32,26 +36,19 @@ import lombok.Getter;
  * 		</tbody>
  * </table>
  */
+@SuperBuilder
 @Getter
 public class UpdateLogDTO extends LogDTO {
 	//회원 식별번호
 	private final String memberId;
 	//수정 행동(추가, 수정, 삭제)
-	private final String action;
+	private final String type;
 	//수정 항목(비밀번호, 이름)
-	private final String item;
+	private final HistoryType item;
 	//기존정보
 	private final String beforeInfo;
 	//변경정보
 	private final String afterInfo;
-
-	public UpdateLogDTO( String memberId, String action, String item, String beforeInfo, String afterInfo ) {
-		super();
-
-		this.memberId = memberId;
-		this.action = action;
-		this.item = item;
-		this.beforeInfo = beforeInfo;
-		this.afterInfo = afterInfo;
-	}
+	//실패 사유
+	private final String cause;
 }

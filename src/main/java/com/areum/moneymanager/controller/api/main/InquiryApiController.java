@@ -1,9 +1,9 @@
 package com.areum.moneymanager.controller.api.main;
 
-import com.areum.moneymanager.dto.request.main.QnARequestDTO;
-import com.areum.moneymanager.dto.request.main.SupportRequestDTO;
-import com.areum.moneymanager.dto.response.ApiResponseDTO;
-import com.areum.moneymanager.dto.response.main.SupportResponseDTO;
+import com.areum.moneymanager.dto.common.ApiResultDTO;
+import com.areum.moneymanager.dto.inquiry.request.InquiryAccessRequest;
+import com.areum.moneymanager.dto.inquiry.request.InquirySearchRequest;
+import com.areum.moneymanager.dto.inquiry.response.InquiryListResponse;
 import com.areum.moneymanager.exception.ErrorException;
 import com.areum.moneymanager.service.main.InquiryService;
 import org.apache.logging.log4j.LogManager;
@@ -36,7 +36,7 @@ import javax.servlet.http.HttpSession;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -55,15 +55,15 @@ public class InquiryApiController {
 
 	//질문 검색
 	@PutMapping("/search")
-	public ResponseEntity<SupportResponseDTO.InquiryList> putSearch(@RequestBody SupportRequestDTO.SearchAPI searchAPI ) {
-		return ResponseEntity.ok().body(inquiryService.getInquiriesBySearch( searchAPI.getPagination(), searchAPI.getSearch()));
+	public ResponseEntity<InquiryListResponse> putSearch(@RequestBody InquirySearchRequest search ) {
+		return ResponseEntity.ok().body(inquiryService.getInquiriesBySearch( search ));
 	}
 
 
 	//작성자 확인
 	@GetMapping("/{id}/writer")
 	public ResponseEntity<Boolean> getWriter(HttpSession session, @PathVariable Long id ){
-		QnARequestDTO.CheckWriter writer = new QnARequestDTO.CheckWriter( id, (String)session.getAttribute("mid") );
+		InquiryAccessRequest writer = new InquiryAccessRequest(id, (String)session.getAttribute("mid"));
 
 		return ResponseEntity.ok().body(inquiryService.isWriter(writer));
 	}
@@ -71,13 +71,13 @@ public class InquiryApiController {
 
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<ApiResponseDTO> delete(@PathVariable Long id, HttpSession session ) {
+	public ResponseEntity<ApiResultDTO> delete(@PathVariable Long id, HttpSession session ) {
 		try{
 			inquiryService.deleteInquiry( (String)session.getAttribute("mid"), id );
 
-			return ResponseEntity.ok( ApiResponseDTO.builder().success(true).message("문의사항을 삭제했습니다.").build() );
+			return ResponseEntity.ok( ApiResultDTO.builder().success(true).message("문의사항을 삭제했습니다.").build() );
 		}catch ( ErrorException e ) {
-			return ResponseEntity.ok( ApiResponseDTO.builder().success(false).message(e.getErrorMessage()).build() );
+			return ResponseEntity.ok( ApiResultDTO.builder().success(false).message(e.getErrorMessage()).build() );
 		}
 	}
 }

@@ -2,7 +2,7 @@ package com.areum.moneymanager.dao.member.history;
 
 import com.areum.moneymanager.dao.HistoryDao;
 import com.areum.moneymanager.entity.Member;
-import com.areum.moneymanager.entity.MemberHistory;
+import com.areum.moneymanager.entity.MemberLog;
 import com.areum.moneymanager.exception.code.ErrorCode;
 import com.areum.moneymanager.exception.ErrorException;
 import org.apache.logging.log4j.LogManager;
@@ -42,13 +42,13 @@ import java.util.Objects;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
  */
 @Repository
-public class MemberHistoryDaoImpl implements HistoryDao<MemberHistory, Long> {
+public class MemberHistoryDaoImpl implements HistoryDao<MemberLog, Long> {
 
 	private final Logger logger = LogManager.getLogger(this);
 	private final JdbcTemplate jdbcTemplate;
@@ -66,7 +66,7 @@ public class MemberHistoryDaoImpl implements HistoryDao<MemberHistory, Long> {
 	 * @param updateHistory	수정된 회원정보
 	 */
 	@Override
-	public MemberHistory saveHistory( MemberHistory updateHistory ) {
+	public MemberLog saveHistory(MemberLog updateHistory ) {
 		String sql = "INSERT INTO tb_member_logs VALUES(seq_memberLogs.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
 		List<Object> params = new ArrayList<>();
 
@@ -121,11 +121,11 @@ public class MemberHistoryDaoImpl implements HistoryDao<MemberHistory, Long> {
 	 * @return	수정내역 번호에 해당하는 수정내역
 	 */
 	@Override
-	public MemberHistory findHistory( Long id) {
+	public MemberLog findHistory(Long id) {
 		String sql = "SELECT * FROM tb_member_logs WHERE id = ?";
 
 		return jdbcTemplate.queryForObject( sql, (ResultSet rs, int row) -> {
-			return MemberHistory.builder().id(rs.getLong("id"))
+			return MemberLog.builder().id(rs.getLong("id"))
 							.member(Member.builder().id(rs.getString("member_id")).build())
 							.success(rs.getString("success").charAt(0)).type(rs.getString("type"))
 							.item(rs.getString("item"))
@@ -144,16 +144,16 @@ public class MemberHistoryDaoImpl implements HistoryDao<MemberHistory, Long> {
 	 * @param item						수정항목
 	 * @return	회원번호가 있으면 최근 수정내역, 없으면 null
 	 */
-	public MemberHistory findUpdateHistoryByMemberIdAndItem( String memberId, String item ) {
+	public MemberLog findUpdateHistoryByMemberIdAndItem(String memberId, String item ) {
 		String sql = "SELECT * " +
 								"FROM tb_member_logs	" +
 								"WHERE type = 'UPDATE' AND success = 'Y' " +
 									"AND member_id  = ? AND item = ? " +
 								"ORDER BY updated_at DESC";
 
-		List<MemberHistory> updateHistoryList = jdbcTemplate.query(
+		List<MemberLog> updateHistoryList = jdbcTemplate.query(
 						sql, (ResultSet rs, int row) -> {
-							return MemberHistory.builder().id(rs.getLong("id")).member(Member.builder().id(rs.getString("member_id")).build())
+							return MemberLog.builder().id(rs.getLong("id")).member(Member.builder().id(rs.getString("member_id")).build())
 											.success(rs.getString("success").charAt(0)).type(rs.getString("type")).item(rs.getString("item"))
 											.beforeInfo(rs.getString("before_info")).afterInfo(rs.getString("after_info"))
 											.failureReason(rs.getString("failure_reason")).updatedAt(rs.getTimestamp("updated_at"))

@@ -24,7 +24,7 @@ import lombok.Getter;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>22. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -43,13 +43,13 @@ public enum GenderType {
 	}
 
 
-	public static String match( char type ) {
+	public static GenderType match( char type ) {
 		for( GenderType g : values() ) {
 			if( g.getType() == type ) {
-				return g.getText();
+				return g;
 			}
 		}
 
-		return GenderType.DEFAULT.getText();
+		return GenderType.DEFAULT;
 	}
 }

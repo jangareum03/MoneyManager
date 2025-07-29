@@ -1,6 +1,6 @@
 package com.areum.moneymanager.dao.main;
 
-import com.areum.moneymanager.dto.request.main.SupportRequestDTO;
+import com.areum.moneymanager.dto.inquiry.request.InquirySearchRequest;
 import com.areum.moneymanager.entity.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,7 +44,7 @@ import java.util.Objects;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -98,7 +97,7 @@ public class QnADao {
 	 * @param search	질문 검색 조건
 	 * @return 총 질문 개수
 	 */
-	public Integer countQuestionBySearch( SupportRequestDTO.Search search ) {
+	public Integer countQuestionBySearch( InquirySearchRequest search ) {
 		StringBuilder query = new StringBuilder("SELECT COUNT(*) FROM tb_qa_question");
 
 		List<Object> params = new ArrayList<>();
@@ -173,11 +172,9 @@ public class QnADao {
 	 * Q&A 번호 사이에 존재하는 질문들을 조회하는 메서드
 	 *
 	 * @param search		검색조건
-	 * @param offset		게시물 시작 번호
-	 * @param size			한 페이지당 보여질 게시물 개수
 	 * @return	시작번호와 종료번호에 해당하는 질문
 	 */
-	public List<Question> getQuestionsBySearch( SupportRequestDTO.Search search, int offset, int size ) {
+	public List<Question> getQuestionsBySearch( InquirySearchRequest search ) {
 		StringBuilder query
 				= new StringBuilder("SELECT tq.*, tm.nickname " +
 				"FROM tb_qa_question tq, tb_member tm " +
@@ -235,8 +232,8 @@ public class QnADao {
 							index = i+1;
 							stmt.setObject(index, params.get(i));
 						}
-						stmt.setInt( ++index, offset );
-						stmt.setInt( ++index, size );
+						stmt.setInt( ++index, (search.getPage().getSize() - 1) * search.getPage().getSize() );
+						stmt.setInt( ++index, search.getPage().getSize() );
 
 						return stmt;
 					}

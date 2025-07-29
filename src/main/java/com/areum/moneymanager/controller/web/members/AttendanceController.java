@@ -1,6 +1,7 @@
 package com.areum.moneymanager.controller.web.members;
 
-import com.areum.moneymanager.dto.request.member.AttendanceRequestDTO;
+import com.areum.moneymanager.dto.common.request.DateRequest;
+import com.areum.moneymanager.dto.member.request.MemberAttendanceRequest;
 import com.areum.moneymanager.service.main.validation.DateValidationService;
 import com.areum.moneymanager.service.member.AttendanceService;
 import org.apache.logging.log4j.LogManager;
@@ -9,11 +10,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * <p>
@@ -37,7 +35,7 @@ import java.util.Objects;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -66,28 +64,29 @@ public class AttendanceController {
 	 * @return	홈 페이지
 	 */
 	@GetMapping
-	public String getAttendancePage( Model model, @ModelAttribute AttendanceRequestDTO.Move moveDate ) {
+	public String getAttendancePage( Model model, @ModelAttribute MemberAttendanceRequest.CalendarMove moveDate ) {
+		DateRequest date = new DateRequest(moveDate.getDate());
 		LocalDate today = LocalDate.now();
 
 		//파라미터에서 날짜값이 없는 경우
-		if( DateValidationService.isNullOrZero( moveDate.getYear() ) || DateValidationService.isNullOrZero( moveDate.getMonth() ) ) {
+		if( DateValidationService.isNullOrZero( date.getYear() ) || DateValidationService.isNullOrZero( date.getMonth() ) ) {
 			return "redirect:/attendance?year=" + today.getYear() + "&month=" + today.getMonthValue();
 		}
 
-		LocalDate date = LocalDate.of(moveDate.getYear(), moveDate.getMonth(), 1);
+		LocalDate firstDay = LocalDate.of(date.getYear(), date.getMonth(), 1);
 
 		//달력 생성
-		List<List<Integer>> calendar = attendanceService.createCalendar( date );
+		List<List<Integer>> calendar = attendanceService.createCalendar( firstDay );
 
 
-		if( moveDate.getYear() == today.getYear() && moveDate.getMonth() == today.getMonthValue() ) {
+		if( date.getYear() == today.getYear() && date.getMonth() == today.getMonthValue() ) {
 			model.addAttribute("today", today.getDayOfMonth());
 		}
 
 
 		//사용자에게 전달할 정보
 		model.addAttribute("year", date.getYear());
-		model.addAttribute("month", date.getMonthValue());
+		model.addAttribute("month", date.getMonth());
 		model.addAttribute("calendar", calendar);
 
 

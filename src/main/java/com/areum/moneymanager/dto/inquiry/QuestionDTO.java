@@ -36,7 +36,7 @@ public class QuestionDTO {
 	//문의사항 제목
 	private String title;
 	//비밀글 여부(true: 모든회원 접근 O, false: 작성자만 접근 O)
-	private Boolean isOpen;
+	private boolean isOpen;
 	//문의사항 내용
 	private String content;
 }

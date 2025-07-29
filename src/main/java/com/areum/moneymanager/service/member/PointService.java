@@ -3,7 +3,7 @@ package com.areum.moneymanager.service.member;
 import com.areum.moneymanager.dao.member.MemberInfoDao;
 import com.areum.moneymanager.dao.member.MemberInfoDaoImpl;
 import com.areum.moneymanager.dao.member.history.PointHistoryDaoImpl;
-import com.areum.moneymanager.dto.response.member.MemberResponseDTO;
+import com.areum.moneymanager.dto.member.response.MemberMyPageResponse;
 import com.areum.moneymanager.entity.Member;
 import com.areum.moneymanager.entity.PointHistory;
 import com.areum.moneymanager.exception.code.ErrorCode;
@@ -39,7 +39,7 @@ import java.util.Objects;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -94,12 +94,12 @@ public class PointService {
 	 * @param memberId		회원 식별번호
 	 * @return	현재, 누적, 사용된 포인트 정보를 반환합니다.
 	 */
-	public MemberResponseDTO.Point getMemberPointSummary( String memberId ) {
-		 MemberResponseDTO.Point daoResult = historyDAO.findSumPointByType( memberId );
+	public MemberMyPageResponse.Point getMemberPointSummary(String memberId ) {
+		MemberMyPageResponse.Point daoResult = historyDAO.findSumPointByType( memberId );
 		Long point = memberInfoDao.findPointByMemberId( memberId );
 
 
-		return MemberResponseDTO.Point.builder()
+		return MemberMyPageResponse.Point.builder()
 				.currentPoint(point).earmPoint(daoResult.getEarmPoint()).usePoint(daoResult.getUsePoint())
 				.build();
 	}

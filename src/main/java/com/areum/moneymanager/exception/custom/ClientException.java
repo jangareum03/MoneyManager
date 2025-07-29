@@ -1,6 +1,6 @@
 package com.areum.moneymanager.exception.custom;
 
-import com.areum.moneymanager.dto.request.ValidRequestDTO;
+import com.areum.moneymanager.dto.common.ErrorDTO;
 import com.areum.moneymanager.exception.code.ErrorCode;
 import lombok.Getter;
 
@@ -35,9 +35,9 @@ import lombok.Getter;
 @Getter
 public class ClientException extends RuntimeException {
     private final ErrorCode errorCode;
-	private final ValidRequestDTO requestDTO;
+	private final ErrorDTO<?> requestDTO;
 
-	public ClientException( ErrorCode errorCode, ValidRequestDTO requestDTO ) {
+	public ClientException( ErrorCode errorCode, ErrorDTO<?> requestDTO ) {
 		super(errorCode.getMessage());
 
 		this.errorCode = errorCode;

@@ -2,7 +2,7 @@ package com.areum.moneymanager.service.member.validation;
 
 import com.areum.moneymanager.dao.member.MemberInfoDao;
 import com.areum.moneymanager.dao.member.MemberInfoDaoImpl;
-import com.areum.moneymanager.dto.request.member.validation.MemberRequestDTO;
+import com.areum.moneymanager.dto.member.validation.EmailCheckDTO;
 import com.areum.moneymanager.enums.RegexPattern;
 import com.areum.moneymanager.exception.ErrorException;
 import org.apache.logging.log4j.LogManager;
@@ -41,7 +41,7 @@ import static com.areum.moneymanager.enums.RegexPattern.MEMBER_BIRTH;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -233,25 +233,25 @@ public class MemberValidationService {
 	 * 인증코드 입력시간이 초과, 패턴 불일치, 코드값 불일치면 {@link ErrorException}이 발생합니다.
 	 * 인증코드가 일치하면 session에 저장된 email이 지워집니다.
 	 *
-	 * @param session	사용자 식별 및 정보를 저장하는 객체
-	 * @param inputCode		이메일 인증 코드
+	 * @param session						사용자 식별 및 정보를 저장하는 객체
+	 * @param emailCheckDTO		이메일 인증 코드 정보를 담은 객체
 	 */
-	public void checkEmailCode( HttpSession session, MemberRequestDTO.EmailCodeCheck inputCode ) {
-		if( Objects.isNull(inputCode.getEmail()) ) {
+	public void checkEmailCode( HttpSession session, EmailCheckDTO emailCheckDTO ) {
+		if( Objects.isNull(emailCheckDTO.getEmail()) ) {
 			throw new ErrorException(MEMBER_EMAIL_NONE);
 		}
 
-		String sentCode = (String)session.getAttribute( inputCode.getEmail() );
+		String sentCode = (String)session.getAttribute( emailCheckDTO.getEmail() );
 
-		if( inputCode.getTime().getMinute() <= 0 && inputCode.getTime().getSecond() <= 0 ) {	//인증시간 초과한 경우
+		if( emailCheckDTO.getTimer().getMinute() <= 0 && emailCheckDTO.getTimer().getSecond() <= 0 ) {	//인증시간 초과한 경우
 			throw new ErrorException(MEMBER_JOIN_TIMEOUT);
 		}else {
-			if( !inputCode.getCode().matches(RegexPattern.MEMBER_EMAIL_CODE.getPattern()) ) {
+			if( !emailCheckDTO.getCode().matches(RegexPattern.MEMBER_EMAIL_CODE.getPattern()) ) {
 				throw new ErrorException(MEMBER_CODE_FORMAT);
 			}
 
-			if( sentCode.equals(inputCode.getCode()) ){
-				session.removeAttribute(inputCode.getEmail());
+			if( sentCode.equals(emailCheckDTO.getCode()) ){
+				session.removeAttribute(emailCheckDTO.getEmail());
 			}else {
 				throw new ErrorException(MEMBER_CODE_MISMATCH);
 			}

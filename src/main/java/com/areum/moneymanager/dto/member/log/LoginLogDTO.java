@@ -1,8 +1,9 @@
 package com.areum.moneymanager.dto.member.log;
 
 import com.areum.moneymanager.dto.common.LogDTO;
-import lombok.Builder;
 import lombok.Getter;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * <p>
@@ -24,9 +25,14 @@ import lombok.Getter;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 7. 25.</td>
+ * 		 	  <td>25. 7. 25</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 7. 25</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[필드 추가] 문자열 ip</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
@@ -35,13 +41,16 @@ import lombok.Getter;
 public class LoginLogDTO extends LogDTO {
 	//아이디
 	private final String id;
-	//접속 브라우저
-	private final String browser;
+	//접속 IP 주소
+	protected String ip;
+	//실패 사유
+	private final String cause;
 
-	public LoginLogDTO( String id, String browser ) {
-		super();
+	public LoginLogDTO(boolean success, HttpServletRequest request, String id, String cause) {
+		super( success, request );
 
 		this.id = id;
-		this.browser = browser;
+		this.ip = request.getRemoteAddr();
+		this.cause = cause;
 	}
 }

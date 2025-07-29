@@ -1,7 +1,8 @@
 package com.areum.moneymanager.dao.main;
 
-import com.areum.moneymanager.dto.request.main.BudgetBookRequestDTO;
-import com.areum.moneymanager.dto.response.main.BudgetBookResponseDTO;
+import com.areum.moneymanager.dto.budgetBook.request.BudgetBookSearchRequest;
+import com.areum.moneymanager.dto.budgetBook.response.BudgetBookListResponse;
+import com.areum.moneymanager.dto.external.google.GoogleChartResponse;
 import com.areum.moneymanager.entity.BudgetBook;
 import com.areum.moneymanager.entity.Category;
 import com.areum.moneymanager.entity.Member;
@@ -53,7 +54,7 @@ import java.util.*;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -157,7 +158,7 @@ public class BudgetBookDao {
 	 * @param search				검색유형이 담긴 객체
 	 * @return	검색유형에 해당하는 가계부 리스트
 	 */
-	public Map<String, List<BudgetBookResponseDTO.Summary>> findBudgetBooksBySearch( String memberId, LocalDate[] date, BudgetBookRequestDTO.Search search ) {
+	public List<BudgetBookListResponse.DayCards> findBudgetBooksBySearch(String memberId, LocalDate[] date, BudgetBookSearchRequest search ) {
 		StringBuilder query
 				= new StringBuilder("SELECT book_date, " +
 													"JSON_ARRAYAGG( " +
@@ -228,22 +229,25 @@ public class BudgetBookDao {
 			},
 
 			rs -> {
-				Map<String, List<BudgetBookResponseDTO.Summary>> resultMap = new HashMap<>();
+				List<BudgetBookListResponse.DayCards> result = new ArrayList<>();
 
 				while ( rs.next() ) {
 					String bookDate = rs.getString("book_date");
 					String jsonList = rs.getString("datas");
 
 					try{
-						List<BudgetBookResponseDTO.Summary> budgetBooks = objectMapper.readValue(jsonList, new TypeReference<>() {});
+						List<BudgetBookListResponse.Card> cards = objectMapper.readValue(jsonList, new TypeReference<>() {});
 
-						resultMap.computeIfAbsent(bookDate, v -> new ArrayList<>()).addAll(budgetBooks);
+						BudgetBookListResponse.DayCards dayCards = BudgetBookListResponse.DayCards.builder()
+								.date(bookDate).cardList(cards).build();
+
+						result.add(dayCards);
 					}catch ( JsonProcessingException e ) {
 						throw new RuntimeException("JSON 파싱 오류");
 					}
 				}
 
-			return resultMap;
+			return result;
 		});
 	}
 
@@ -256,8 +260,8 @@ public class BudgetBookDao {
 	 * @param dates					월별로 가계부 검색기간
 	 * @return	월별 금액의 총합을 담은 리스트
 	 */
-	public List<BudgetBookResponseDTO.YearChart> findSumPriceByYear( String memberId, List<LocalDate[]> dates ) {
-		List<BudgetBookResponseDTO.YearChart> resultList = new ArrayList<>();
+	public List<GoogleChartResponse> findSumPriceByYear( String memberId, List<LocalDate[]> dates ) {
+		List<GoogleChartResponse> resultList = new ArrayList<>();
 		String sql = "SELECT " +
 														"NVL(SUM( CASE WHEN SUBSTR(category_id, 1,2) = '01' THEN price ELSE 0 END ), 0) AS income, " +
 														"NVL(SUM( CASE WHEN SUBSTR(category_id, 1,2) = '02' THEN price ELSE 0 END ), 0) AS outlay " +
@@ -268,10 +272,10 @@ public class BudgetBookDao {
 		for( int i=0; i<dates.size(); i++ ) {
 			final int month = i+1;
 
-			BudgetBookResponseDTO.YearChart yearChart = jdbcTemplate.queryForObject(
+			GoogleChartResponse yearChart = jdbcTemplate.queryForObject(
 							sql,
 							(ResultSet rs, int row) -> {
-								return BudgetBookResponseDTO.YearChart.builder().month(month + "월").incomePrice(rs.getLong("income")).outlayPrice(rs.getLong("outlay")).build();
+								return GoogleChartResponse.builder().label(month + "월").incomePrice(rs.getLong("income")).outlayPrice(rs.getLong("outlay")).build();
 							},
 							memberId,
 							dates.get(i)[0].format(DateTimeFormatter.ofPattern("yyyyMMdd")), dates.get(i)[1].format(DateTimeFormatter.ofPattern("yyyyMMdd"))
@@ -293,7 +297,7 @@ public class BudgetBookDao {
 	 * @param date					가계부 검색기간
 	 * @return	카테고리별 지출금액을 담은 리스트
 	 */
-	public List<BudgetBookResponseDTO.MonthChart> findSumPriceByCategoryAndMonth( String memberId, LocalDate[] date ) {
+	public List<GoogleChartResponse> findSumPriceByCategoryAndMonth(String memberId, LocalDate[] date ) {
 		String sql = "SELECT tcc.name, NVL(SUM(tbb.price), 0) price " +
 														"FROM tb_category tc " +
 																"LEFT JOIN tb_category tcc ON tc.parent_code  = tcc.code " +
@@ -309,7 +313,7 @@ public class BudgetBookDao {
 		return jdbcTemplate.query(
 						sql,
 						(ResultSet rs, int row) -> {
-							return BudgetBookResponseDTO.MonthChart.builder().name(rs.getString("name")).price(rs.getLong("price")).build();
+							return GoogleChartResponse.builder().label(rs.getString("name")).outlayPrice(rs.getLong("price")).build();
 						},
 						memberId, date[0].format(DateTimeFormatter.ofPattern("yyyyMMdd")), date[1].format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 						);
@@ -324,8 +328,8 @@ public class BudgetBookDao {
 	 * @param dates					주차별로 가계부 검색기간
 	 * @return	주차별 금액의 총합을 담은 리스트
 	 */
-	public List<BudgetBookResponseDTO.WeekChart> findSumPriceByWeek( String memberId, List<LocalDate[]> dates ) {
-		List<BudgetBookResponseDTO.WeekChart> resultList = new ArrayList<>();
+	public List<GoogleChartResponse> findSumPriceByWeek( String memberId, List<LocalDate[]> dates ) {
+		List<GoogleChartResponse> resultList = new ArrayList<>();
 		String sql = "SELECT " +
 														"NVL(SUM( CASE WHEN SUBSTR(category_id, 1,2) = '01' THEN price ELSE 0 END ), 0) AS income, " +
 														"NVL(SUM( CASE WHEN SUBSTR(category_id, 1,2) = '02' THEN price ELSE 0 END ), 0) AS outlay " +
@@ -336,10 +340,10 @@ public class BudgetBookDao {
 		for( int i=0; i<dates.size(); i++ ) {
 			final int week = i+1;
 
-			BudgetBookResponseDTO.WeekChart weekChart = jdbcTemplate.queryForObject(
+			GoogleChartResponse weekChart = jdbcTemplate.queryForObject(
 							sql,
 							(ResultSet rs, int row) -> {
-								return BudgetBookResponseDTO.WeekChart.builder().week(week + "주").incomePrice(rs.getLong("income")).outlayPrice(rs.getLong("outlay")).build();
+								return GoogleChartResponse.builder().label(week + "주").incomePrice(rs.getLong("income")).outlayPrice(rs.getLong("outlay")).build();
 							},
 							memberId,
 							dates.get(i)[0].format(DateTimeFormatter.ofPattern("yyyyMMdd")), dates.get(i)[1].format(DateTimeFormatter.ofPattern("yyyyMMdd"))

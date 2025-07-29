@@ -534,6 +534,7 @@ function getDatePickerOptions( closeOptions = {} ) {
 //----------[ ▼ 메뉴에 따른 내역을 조회합니다. ]---------
 async function renderSearchResults( mode ) {
     const data = getSearchData( mode );
+    console.log(data);
     const {price, info} = await fetchBudgetSearch( data );
 
     updateSummaryStats(price);
@@ -564,7 +565,7 @@ function getSearchData( mode ) {
     return {
         mode: mode,
         keywords: keywords,
-        range: {...getDate( title.textContent ), type: title.dataset.type}
+        date: {...getDate( title.textContent ), type: title.dataset.type}
     }
 }
 
@@ -618,7 +619,8 @@ function getDate( title ) {
         return {
             year : parseInt(year),
             month : month ? parseInt(month) : null,
-            week : week ? parseInt(week) : null
+            week : week ? parseInt(week) : null,
+            day : null
         };
     }
 

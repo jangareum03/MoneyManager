@@ -1,7 +1,7 @@
 package com.areum.moneymanager.exception.handler;
 
-import com.areum.moneymanager.dto.request.ValidRequestDTO;
-import com.areum.moneymanager.dto.response.ErrorResponseDTO;
+import com.areum.moneymanager.dto.common.ApiResultDTO;
+import com.areum.moneymanager.dto.common.ErrorDTO;
 import com.areum.moneymanager.exception.code.ErrorCode;
 import com.areum.moneymanager.exception.custom.ClientException;
 import lombok.extern.slf4j.Slf4j;
@@ -43,13 +43,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class ApiExceptionHandler {
 
 	@ExceptionHandler(ClientException.class)
-	public ResponseEntity<ErrorResponseDTO> handleClientException( ClientException ce ) {
+	public ResponseEntity<ApiResultDTO> handleClientException(ClientException ce ) {
 		ErrorCode error = ce.getErrorCode();
-		ValidRequestDTO requestDTO = ce.getRequestDTO();
+		ErrorDTO<?> requestDTO = ce.getRequestDTO();
 
-		log.warn("[{}] {}", error.getCode(), String.format(error.getLogMessage(), requestDTO.getKey()));
+		log.warn("[{}] {}", error.getCode(), String.format(error.getLogMessage(), requestDTO.getErrorId()));
 
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body( ErrorResponseDTO.builder().success(false).code(error.getCode()).message(error.getMessage()).build());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body( ApiResultDTO.builder().success(false).message(error.getMessage()).build());
 	}
 
 }

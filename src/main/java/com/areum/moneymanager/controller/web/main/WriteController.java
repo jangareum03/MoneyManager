@@ -1,7 +1,7 @@
 package com.areum.moneymanager.controller.web.main;
 
-import com.areum.moneymanager.dto.request.main.BudgetBookRequestDTO;
-import com.areum.moneymanager.dto.response.main.BudgetBookResponseDTO;
+import com.areum.moneymanager.dto.budgetBook.request.BudgetBookWriteRequest;
+import com.areum.moneymanager.dto.budgetBook.response.BudgetBookWriteResponse;
 import com.areum.moneymanager.exception.ErrorException;
 import com.areum.moneymanager.service.main.BudgetBookService;
 import com.areum.moneymanager.service.main.validation.DateValidationService;
@@ -39,7 +39,7 @@ import java.time.format.DateTimeFormatter;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -102,11 +102,11 @@ public class WriteController {
 			DateValidationService.checkDateAvailability( date );
 
 
-			BudgetBookRequestDTO.Setting set = BudgetBookRequestDTO.Setting.builder().type(type).date(date).build();
-			BudgetBookResponseDTO.Write write = budgetBookService.getWriteByData( (String)session.getAttribute("mid"), set );
+			BudgetBookWriteRequest.InitialBudget set = BudgetBookWriteRequest.InitialBudget.builder().type(type).date(date).build();
+			BudgetBookWriteResponse.InitialBudget write = budgetBookService.getWriteByData( (String)session.getAttribute("mid"), set );
 
 			model.addAttribute("write", write);
-			model.addAttribute("budgetBook", BudgetBookRequestDTO.Create.builder().fix( new BudgetBookRequestDTO.Fix() ).place( new BudgetBookRequestDTO.Place() ).build());
+			model.addAttribute("budgetBook", BudgetBookWriteResponse.DetailedBudget.builder().build());
 
 			return "/main/budgetBook_writeStep2";
 		} catch ( IllegalArgumentException | ParseException e) {
@@ -150,7 +150,7 @@ public class WriteController {
 	 * @return	가계부 리스트 페이지
 	 */
 	@PostMapping
-	public String postWrite( @ModelAttribute("budgetBook") BudgetBookRequestDTO.Create create, HttpSession session, Model model ) {
+	public String postWrite( @ModelAttribute("budgetBook") BudgetBookWriteRequest.DetailedBudget create, HttpSession session, Model model ) {
 		String memberId = (String)session.getAttribute("mid");
 
 		try{

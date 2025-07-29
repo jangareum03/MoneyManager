@@ -1,7 +1,7 @@
 package com.areum.moneymanager.service.main;
 
 import com.areum.moneymanager.dao.main.BudgetBookDao;
-import com.areum.moneymanager.dto.request.main.BudgetBookRequestDTO;
+import com.areum.moneymanager.dto.common.ImageDTO;
 import com.areum.moneymanager.entity.BudgetBook;
 import com.areum.moneymanager.enums.RegexPattern;
 import com.areum.moneymanager.exception.ErrorException;
@@ -44,7 +44,7 @@ import static com.areum.moneymanager.exception.code.ErrorCode.BUDGET_REGISTER_IM
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -87,30 +87,29 @@ public class ImageServiceImpl {
 	/**
 	 * 업로드한 이미지 파일 리스트를 List로 반환합니다.
 	 *
-	 * @param memberId					회원 고유번호
-	 * @param multipartFileList		업로드 파일 리스트
+	 * @param memberId					회원 식별번호
+	 * @param fileList						업로드 파일 리스트
 	 * @return	파일 List
 	 */
-	public List<BudgetBookRequestDTO.FileMeta> getImageList( String memberId, List<MultipartFile> multipartFileList ) {
-		List<BudgetBookRequestDTO.FileMeta> fileMetaList = new ArrayList<>();
+	public List<ImageDTO> getImageList( String memberId, List<MultipartFile> fileList ) {
+		List<ImageDTO> fileMetaList = new ArrayList<>();
 
 		int min = getLimitImageCount(memberId);
 
 		for( int i = 0; i < MAX_IMAGE; i++ ) {
-			MultipartFile file = (i < multipartFileList.size()) ? multipartFileList.get(i) : null;
+			MultipartFile file = (i < fileList.size()) ? fileList.get(i) : null;
 
 			if( i < min && file != null && !file.isEmpty() ) {
-				//확장자
-				String ext = FilenameUtils.getExtension(file.getOriginalFilename());
-
 				//파일 이름
 				String originName = FilenameUtils.getBaseName(file.getOriginalFilename());
 				String safeName = originName.replaceAll(RegexPattern.BUDGET_IMAGE.getPattern(), "");
+				String ext = FilenameUtils.getExtension(originName);
+
 				String fileName = String.format("%s.%s", safeName, ext);
 
-				fileMetaList.add( BudgetBookRequestDTO.FileMeta.builder().file( file ).imageName(fileName).build() );
+				fileMetaList.add( ImageDTO.builder().file( file ).fileName(fileName).fileExtension(ext).build() );
 			} else {
-				fileMetaList.add( BudgetBookRequestDTO.FileMeta.builder().file(null).imageName(null).build() );
+				fileMetaList.add(null);
 			}
 		}
 
@@ -226,7 +225,7 @@ public class ImageServiceImpl {
 	 *
 	 * @throws IOException  사용자가 업로드한 이미지 문제 시
 	 */
-	public void changeImage( String memberId, BudgetBook budgetBook, List<BudgetBookRequestDTO.FileMeta> imageList ) throws IOException {
+	public void changeImage( String memberId, BudgetBook budgetBook, List<ImageDTO> imageList ) throws IOException {
 		File directory = makeDirectory( memberId, budgetBook.getBookDate().substring(0, 4) );
 
 		//기존 이미지 삭제

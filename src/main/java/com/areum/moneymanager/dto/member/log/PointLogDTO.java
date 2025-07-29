@@ -3,6 +3,7 @@ package com.areum.moneymanager.dto.member.log;
 import com.areum.moneymanager.dto.common.LogDTO;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 /**
  * <p>
@@ -31,6 +32,7 @@ import lombok.Getter;
  * 		</tbody>
  * </table>
  */
+@SuperBuilder
 @Getter
 public class PointLogDTO extends LogDTO {
 	//회원 식별번호
@@ -41,14 +43,4 @@ public class PointLogDTO extends LogDTO {
 	private final Integer points;
 	//잔여 포인트
 	private final Integer balancePoints;
-
-	@Builder
-	public PointLogDTO( String memberId, String type, int points, int balancePoints ) {
-		super();
-
-		this.memberId = memberId;
-		this.type = type;
-		this.points = points;
-		this.balancePoints = balancePoints;
-	}
 }

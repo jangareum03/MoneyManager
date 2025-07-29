@@ -1,7 +1,7 @@
 package com.areum.moneymanager.controller.web.members;
 
-import com.areum.moneymanager.dto.request.member.LoginRequestDTO;
-import com.areum.moneymanager.dto.response.member.LoginResponseDTO;
+import com.areum.moneymanager.dto.member.request.MemberRecoveryRequest;
+import com.areum.moneymanager.dto.member.response.MemberRecoveryResponse;
 import com.areum.moneymanager.exception.ErrorException;
 import com.areum.moneymanager.service.member.MemberServiceImpl;
 import org.apache.logging.log4j.LogManager;
@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletRequest;
  *		 	<tr style="border-bottom: 1px dotted">
  *		 	  <td>25. 7. 15</td>
  *		 	  <td>areum Jang</td>
- *		 	  <td>클래스 전체 리팩토링(버전 2.0)</td>
+ *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
  *		</tbody>
  * </table>
@@ -77,12 +77,12 @@ public class AccountRecoveryController {
 	 * @return	아이디가 있으면 아이디 찾기 성공 페이지, 없으면 아이디 찾기 실패 페이지
 	 */
 	@PostMapping("/id")
-	public String postId( LoginRequestDTO.FindID findID, Model model ) {
+	public String postId(MemberRecoveryRequest.Id findID, Model model ) {
 		String page = "/member/recovery_id_fail";
 
 		try{
-			LoginResponseDTO.FindID id = memberService.findMaskedIdAndMessage( findID );
-			model.addAttribute("find", id );
+			MemberRecoveryResponse.Id result = memberService.findMaskedIdAndMessage( findID );
+			model.addAttribute("find", result );
 
 			page = "/member/recovery_id_success";
 		}catch ( ErrorException e ) {
@@ -118,11 +118,11 @@ public class AccountRecoveryController {
 	 * @return 정보가 있으면 비밀번호 성공 페이지, 없으면 비밀번호 실패 페이지
 	 */
 	@PostMapping("/password")
-	public String findPassword( HttpServletRequest request, LoginRequestDTO.FindPwd findPwd, Model model ) {
+	public String findPassword( HttpServletRequest request, MemberRecoveryRequest.Password findPwd, Model model ) {
 		String page = "/member/recovery_password_fail";
 
 		try{
-			LoginResponseDTO.FindPwd email = memberService.sendTemporaryPassword( request, findPwd);
+			MemberRecoveryResponse.Password email = memberService.sendTemporaryPassword( request, findPwd);
 			model.addAttribute("find", email);
 
 			page = "/member/recovery_password_success";
