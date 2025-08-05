@@ -1,0 +1,22 @@
+package com.moneymanager.exception;
+
+import com.moneymanager.exception.code.ErrorCode;
+
+
+
+public class ErrorException extends RuntimeException {
+	private final ErrorCode errorCode;
+
+	public ErrorException( ErrorCode errorCode ) {
+		super(errorCode.getMessage());
+		this.errorCode = errorCode;
+	}
+
+	public String getErrorCode() {
+		return errorCode.getCode();
+	}
+
+	public String getErrorMessage() {
+		return errorCode.getMessage();
+	}
+}
