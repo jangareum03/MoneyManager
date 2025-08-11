@@ -1,6 +1,8 @@
 package com.moneymanager.service.member;
 
 import com.moneymanager.dao.member.MemberDaoImpl;
+import com.moneymanager.dto.member.response.MemberLoginResponse;
+import com.moneymanager.entity.Member;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -42,14 +44,15 @@ public class AuthService {
 		this.memberDao = memberDao;
 	}
 
-//	public MemberLoginResponse.Success getLoginMember( String username ) {
-//		Member member = memberDao.findAuthMemberByUsername(username);
-//
-//		return MemberLoginResponse.Success.builder()
-//				.memberId(member.getId())
-//				.nickName(member.getNickName())
-//				.profile(member.get);
-//	}
+	public MemberLoginResponse.Success getLoginMember(String username ) {
+		Member member = memberDao.findLoginInfoByUsername(username);
+
+		return MemberLoginResponse.Success.builder()
+				.memberId(member.getId())
+				.nickName(member.getNickName())
+				.profile(member.getInfo().getProfile())
+				.build();
+	}
 
 
 

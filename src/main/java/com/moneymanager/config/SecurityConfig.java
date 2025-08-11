@@ -1,20 +1,18 @@
 package com.moneymanager.config;
 
-import com.moneymanager.service.member.AuthService;
-import com.moneymanager.service.member.auth.CustomAuthFailureHandler;
-import com.moneymanager.service.member.auth.CustomAuthSuccessHandler;
-import com.moneymanager.service.member.auth.CustomAuthenticationProvider;
-import com.moneymanager.service.member.auth.CustomUserDetailService;
+import com.moneymanager.service.member.auth.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
 
 
 /**
@@ -58,51 +56,53 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public AuthenticationProvider authenticationProvider(CustomUserDetailService detailService) {
-		return new CustomAuthenticationProvider( detailService, passwordEncoder() );
+	public CustomAuthenticationProvider authenticationProvider(CustomUserDetailService userDetailService ) {
+		return new CustomAuthenticationProvider(userDetailService, passwordEncoder());
 	}
 
 	@Bean
-	public SecurityFilterChain securityFilterChain( HttpSecurity http, AuthenticationProvider authenticationProvider ) throws Exception{
-		http
-						.csrf(csrf -> csrf.disable()) // CSRF 비활성화 (API 호출 시 필요)
-						.cors(Customizer.withDefaults())
-						.headers((headers) ->
-								headers.xssProtection(Customizer.withDefaults())
-										.contentSecurityPolicy( csp ->
-												csp.policyDirectives("default-src 'self'; " +
-																				 "script-src 'self' https://dapi.kakao.com https://t1.daumcdn.net https://www.gstatic.com 'unsafe-eval'; " +
-																				 "connect-src 'self' https://dapi.kakao.com; " +
-														 						 "font-src 'self' https://cdn.jsdelivr.net; " +
-																				"style-src 'self' 'unsafe-inline' https://www.gstatic.com; " +
-																				"img-src 'self' blob: https://t1.daumcdn.net https://mts.daumcdn.net; " +
-																				"object-src 'none';")
-										)
-						)	 //xss설정
-						.authorizeHttpRequests(auth -> auth
-										.antMatchers("/css/**", "/js/**", "/image/**").permitAll()
-										.antMatchers("/", "/signup", "/api/members/**","/recovery/id", "/recovery/password").permitAll()	//누구나 접근 가능
-										.anyRequest().hasAuthority("USER") // 나머지는 인증 필요
-						)
-						.formLogin(login -> login // 기본 로그인 페이지 사용
-										.loginPage("/") // 커스텀 로그인 페이지 설정 가능
-										.usernameParameter("id")
-										.passwordParameter("password")
-										.successHandler(successHandler)
-										.loginProcessingUrl("/login")														//로그인 처리
-										.defaultSuccessUrl("/attendance")											//로그인 성공 시 URL
-										.failureHandler(failureHandler)
-										.failureUrl("/")							//로그인 실패 시 URL
-										.permitAll()
-						)
-						.logout(logout -> logout // 로그아웃 설정
-										.logoutUrl("/logout")
-										.logoutSuccessUrl("/")
-										.permitAll()
-						)
-						.authenticationProvider(authenticationProvider)
-						.requiresChannel().anyRequest().requiresSecure();	//https 요청으로 변경
-		return http.build();
+	public AuthenticationManager authenticationManager(CustomAuthenticationProvider authenticationProvider) {
+		return new ProviderManager(authenticationProvider);
 	}
 
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+		http
+				.csrf(csrf -> csrf.disable())
+				.cors(Customizer.withDefaults())
+				.headers(headers -> headers
+						.xssProtection(Customizer.withDefaults())
+						.contentSecurityPolicy(csp -> csp.policyDirectives(
+								"default-src 'self'; " +
+										"script-src 'self' https://dapi.kakao.com https://t1.daumcdn.net https://www.gstatic.com 'unsafe-eval'; " +
+										"connect-src 'self' https://dapi.kakao.com; " +
+										"font-src 'self' https://cdn.jsdelivr.net; " +
+										"style-src 'self' 'unsafe-inline' https://www.gstatic.com; " +
+										"img-src 'self' blob: https://t1.daumcdn.net https://mts.daumcdn.net; " +
+										"object-src 'none';"
+						))
+				)
+				.authorizeHttpRequests(auth -> auth
+						.antMatchers("/css/**", "/js/**", "/image/**").permitAll()
+						.antMatchers("/", "/signup", "/api/members/**", "/recovery/id", "/recovery/password").permitAll()
+						.anyRequest().hasRole("USER")
+				)
+				.authenticationManager(authenticationManager)
+				.formLogin(login -> login
+						.loginPage("/")
+						.loginProcessingUrl("/login")
+						.usernameParameter("username")
+						.passwordParameter("password")
+						.successHandler(successHandler)
+						.failureHandler(failureHandler)
+						.permitAll()
+				)
+				.logout(logout -> logout
+						.logoutUrl("/logout")
+						.logoutSuccessUrl("/")
+						.permitAll()
+				);
+		return http.build();
+	}
 }
+
