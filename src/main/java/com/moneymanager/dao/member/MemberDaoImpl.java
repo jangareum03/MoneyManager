@@ -163,7 +163,7 @@ public class MemberDaoImpl {
 	/**
 	 * 로그인 시 입력한 아이디(username)에 해당하는 회원의 기본 정보를 데이터베이스에서 조회합니다.
 	 * <p>
-	 * 조회 컬럼은 회원 식별자(id), 아이디(username), 비밀번호(password), 권한(role)이며, {@link Member}객체로 매핑 후 반환됩니다.<br>
+	 * 조회 컬럼은 회원 식별자(id), 아이디(username), 비밀번호(password), 권한(role), 상태(status), 실패횟수(failure_count)이며, {@link Member}객체로 매핑 후 반환됩니다.<br>
 	 * 로그인 인증 처리할때 사용됩니다.
 	 * </p>
 	 *
@@ -172,13 +172,17 @@ public class MemberDaoImpl {
 	 * @return 아이디에 매칭되는 회원 인증정보 객체
 	 */
 	public Member findAuthMemberByUsername(String username) {
-		String query = String.format("SELECT id, username, password, role FROM %s WHERE username = ?", TABLE);
+		String query = String.format(
+				"SELECT username, password, role, status " +
+						"FROM %s tm INNER JOIN tb_member_info tmi " +
+						"ON tm.id = tmi.id " +
+						"WHERE username = ?", TABLE);
 
 		return jdbcTemplate.queryForObject(
 				query,
 				(rs, rowNum) ->
 						Member.builder()
-								.id(rs.getString("id")).role(rs.getString("role"))
+								.role(rs.getString("role")).status(MemberStatus.valueOf( rs.getString("status").charAt(0) ))
 								.userName(rs.getString("username")).password(rs.getString("password"))
 								.build(),
 				username

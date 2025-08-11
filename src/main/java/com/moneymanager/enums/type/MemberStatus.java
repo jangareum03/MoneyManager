@@ -2,8 +2,6 @@ package com.moneymanager.enums.type;
 
 import lombok.Getter;
 
-import java.util.Arrays;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.enums.type<br>
@@ -24,16 +22,26 @@ import java.util.Arrays;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 8. 4.</td>
+ * 		 	  <td>25. 8. 4</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 8. 10</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[필드 추가] REPAIR</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 8. 11</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[메서드 추가] valueOf - type 매개변수와 일치하는 상수 반환</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
  */
 @Getter
 public enum MemberStatus {
-	ACTIVE('A'), LOCKED('L'),DELETE('D');
+	ACTIVE('A'), LOCKED('L'), REPAIR('R'),DELETE('D'), UNKNOWN('U');
 
 	private final char type;
 
@@ -41,4 +49,13 @@ public enum MemberStatus {
 		this.type = type;
 	}
 
+	public static MemberStatus valueOf( char type ) {
+		for( MemberStatus status : values() ) {
+			if( status.getType() == type ) {
+				return status;
+			}
+		}
+
+		return MemberStatus.UNKNOWN;
+	}
 }
