@@ -3,6 +3,7 @@ package com.moneymanager.service.member.auth;
 import com.moneymanager.dto.member.response.MemberLoginResponse;
 import com.moneymanager.service.member.AuthService;
 import com.moneymanager.utils.LoggerUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -40,6 +41,7 @@ import java.io.IOException;
  * 		</tbody>
  * </table>
  */
+@Slf4j
 @Component
 public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
@@ -59,7 +61,8 @@ public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHand
 		HttpSession session = request.getSession();
 		session.setAttribute("mid", member.getMemberId());
 		session.setAttribute("nickName", member.getNickName());
-		session.setAttribute("profile", member.getMemberId());
+		session.setAttribute("profile", member.getProfile());
+
 
 		LoggerUtil.logSystemInfo("로그인 성공 - 사용자ID: {}", userDetails.getUsername());
 

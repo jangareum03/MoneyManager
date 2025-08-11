@@ -50,7 +50,7 @@ public class AuthService {
 		return MemberLoginResponse.Success.builder()
 				.memberId(member.getId())
 				.nickName(member.getNickName())
-				.profile(member.getInfo().getProfile())
+				.profile(ImageServiceImpl.getBasePath() + member.getInfo().getProfile())
 				.build();
 	}
 

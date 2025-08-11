@@ -44,6 +44,11 @@ import java.util.UUID;
  *		 	  <td>areum Jang</td>
  *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 8. 11</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>[메서드 추가] getBasePath - 프로필 기본 경로 반환</td>
+ *		 	</tr>
  *		</tbody>
  * </table>
  */
@@ -53,6 +58,7 @@ public class ImageServiceImpl {
 
 	@Value("${image.profile.downPath}")
 	private String downPath;
+	private static final String BASE_PATH = "/image/profile/";
 
 	private final MemberInfoDaoImpl memberInfoDao;
 
@@ -77,6 +83,16 @@ public class ImageServiceImpl {
 		}
 
 		return fileName.substring( ++index );
+	}
+
+
+	/**
+	 * 프로필 이미지를 보기위한 기본 경로를 반환합니다.
+	 *
+	 * @return 프로필 기존 경로
+	 */
+	public static String getBasePath() {
+		return BASE_PATH;
 	}
 
 
