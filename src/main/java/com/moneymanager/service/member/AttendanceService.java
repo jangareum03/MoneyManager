@@ -6,6 +6,7 @@ import com.moneymanager.dto.member.request.MemberAttendanceRequest;
 import com.moneymanager.dto.member.response.MemberAttendanceResponse;
 import com.moneymanager.entity.Attendance;
 import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.vo.YearMonthDayVO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -71,16 +72,17 @@ public class AttendanceService {
 	 * 달력은 일요일이 시작일이고 토요일이 끝일이며, 주의 빈 날짜는 null로 설정됩니다.<br>
 	 * 각 주는 List로 저장되며, 주의 각 날짜는 Integer로 저장됩니다.
 	 *
-	 * @param date 달력 날짜
+	 * @param vo 	달력 날짜
 	 * @return 달력 날짜를 담은 리스트
 	 */
-	public List<List<Integer>> createCalendar(LocalDate date) {
+	public List<List<Integer>> createCalendar(YearMonthDayVO vo) {
 		List<List<Integer>> resultList = new ArrayList<>();
 
 		/*
 			- start	: 달의 1일의 시작 요일	(1: 월요일 ~ 7:일요일)
 			- end	:	달의 마지막 일
 		*/
+		LocalDate date = vo.toLocalDate();
 		int start = date.withDayOfMonth(1).get(ChronoField.DAY_OF_WEEK);
 		start = (start == 7) ? 0 : start;
 		int last = date.lengthOfMonth();

@@ -1,8 +1,8 @@
 package com.moneymanager.controller.web.members;
 
-import com.moneymanager.dto.member.request.MemberLoginRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -46,9 +46,15 @@ public class LoginController {
 	 *
 	 * @return 로그인 페이지
 	 */
-	@GetMapping
-	public String getLoginPage(@ModelAttribute("member") MemberLoginRequest member) {
-		return "/member/member_login";
+	@GetMapping("/")
+	public String getLoginPage(HttpSession session, Model model) {
+		String error = (String) session.getAttribute("error");
+		if( error != null ) {
+			model.addAttribute("error", error);
+			session.removeAttribute("error");
+		}
+
+		return "member/member_login";
 	}
 
 

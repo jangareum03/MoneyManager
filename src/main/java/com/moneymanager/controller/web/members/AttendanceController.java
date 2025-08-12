@@ -4,6 +4,7 @@ import com.moneymanager.dto.common.request.DateRequest;
 import com.moneymanager.dto.member.request.MemberAttendanceRequest;
 import com.moneymanager.service.main.validation.DateValidationService;
 import com.moneymanager.service.member.AttendanceService;
+import com.moneymanager.vo.YearMonthDayVO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
@@ -60,38 +61,28 @@ public class AttendanceController {
 	 * 달력의 년(month)과 월(year)이 0이면 현재 날짜로 설정되며, 선택한 달력이 현재 년도와 월과 같다면 오늘 날짜가 포함됩니다.<br>
 	 * 달력 날짜를 기준으로 해당 월의 첫째 날부터 마지막 날까지 회원의 출석 날짜와 달력 리스트를 전달합니다.
 	 *
-	 * @param moveDate		이동할 달력 날짜
 	 * @param model					뷰에 전달할 객체
+	 * @param year						이동할 날짜 년도
+	 * @param month					이동할 날짜 월
 	 * @return	홈 페이지
 	 */
 	@GetMapping("/attendance")
-	public String getAttendancePage( Model model, @ModelAttribute MemberAttendanceRequest.CalendarMove moveDate ) {
-		DateRequest date;
-		LocalDate today = LocalDate.now();
-
-		if(Objects.isNull(moveDate.getDate())) {
-			DateRequest.MonthRange monthRange
-					= DateRequest.MonthRange.builder().year(String.valueOf(today.getYear())).month(String.valueOf(today.getMonthValue())).build();
-			date = new DateRequest(monthRange);
-		}else {
-			date = new DateRequest(moveDate.getDate());
-		}
-
-
-		LocalDate firstDay = LocalDate.of(date.getYear(), date.getMonth(), 1);
+	public String getAttendancePage( Model model, @RequestParam(required = false) String year, @RequestParam(required = false) String month ) {
+		YearMonthDayVO vo = YearMonthDayVO.builder().year(year).month(month).build();
 
 		//달력 생성
-		List<List<Integer>> calendar = attendanceService.createCalendar( firstDay );
+		List<List<Integer>> calendar = attendanceService.createCalendar( vo );
 
-
-		if( date.getYear() == today.getYear() && date.getMonth() == today.getMonthValue() ) {
+		//오늘날짜와 동일한지 확인
+		LocalDate today = LocalDate.now();
+		if( today.isEqual(vo.toLocalDate()) ) {
 			model.addAttribute("today", today.getDayOfMonth());
 		}
 
 
 		//사용자에게 전달할 정보
-		model.addAttribute("year", date.getYear());
-		model.addAttribute("month", date.getMonth());
+		model.addAttribute("year", vo.getYearMonthVO().getYearVO().getYear());
+		model.addAttribute("month", vo.getYearMonthVO().getMonth());
 		model.addAttribute("calendar", calendar);
 
 
