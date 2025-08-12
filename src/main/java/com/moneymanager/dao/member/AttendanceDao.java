@@ -36,13 +36,21 @@ import java.util.List;
  *		 	  <td>areum Jang</td>
  *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 8. 12</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>
+ *		 	      [메서드 수정] findCompleteAttendBetweenDate - 매개변수 타입 String → LocalDate 변경<br>
+ *		 	      [상수 추가] TABLE
+ *		 	  </td>
+ *		 	</tr>
  *		</tbody>
  * </table>
  */
 @Repository
 public class AttendanceDao {
 
-	private final Logger logger = LogManager.getLogger(this);
+	private static final String TABLE = "tb_member_attendance";
 	private final JdbcTemplate jdbcTemplate;
 
 
@@ -101,23 +109,34 @@ public class AttendanceDao {
 
 
 	/**
-	 * 검색 기간 내에 완료된 출석날짜를 조회합니다.
+	 * 시작일(start)과 종료일(end) 사이 날짜에서 회원번호(ID)에 해당하는 회원의 출석정보를 데이터베이스에서 조회합니다.
+	 * <p>
+	 *     조회 컬럼은 출석일(attendance_date)이며, {@link Attendance}객체로 매핑 후 반환됩니다.<br>
+	 *     주로 회원의 출석정보가 필요할 때 사용됩니다.
+	 * </p>
 	 *
 	 *
-	 * @param memberId		회원번호
-	 * @param start						검색 시작일
-	 * @param end							검색 종료일
-	 * @return	기간 내에 완료된 출석날짜
+	 * @param id				회원의 고유 식별자(PK)
+	 * @param start			출석 조회기간 시작일
+	 * @param end			출석 조회기간 종료일
+	 * @return	기간 내 해당 ID에 매칭되는 출석 완료된 {@link Attendance}객체를 담은 {@link List}
+	 * @throws org.springframework.dao.EmptyResultDataAccessException	조회 결과가 없을 경우 발생
 	 */
-	public List<Attendance> findCompleteAttendBetweenDate( String memberId, String start, String end ) {
-		String sql = "SELECT attendance_date " +
-													"FROM tb_member_attendance " +
-													"WHERE member_id = ? " +
-														"AND attendance_date BETWEEN TO_DATE(?, 'YYYY-MM-DD') AND TO_DATE(?, 'YYYY-MM-DD') " +
-													"ORDER BY attendance_date";
+	public List<Attendance> findCompleteAttendBetweenDate( String id, LocalDate start, LocalDate end ) {
+		String query = String.format(
+				"SELECT attendance_date " +
+					"FROM %s " +
+					"WHERE member_id = ? " +
+						"AND attendance_date >= ? AND attendance_date < ? " +
+					"ORDER BY attendance_date",
+				TABLE
+		);
 
-		return jdbcTemplate.query( sql,( ResultSet rs, int row ) ->
-			Attendance.builder().attendanceDate(rs.getDate("attendance_date")).build()
-		, memberId, start, end );
+		return jdbcTemplate.query(
+				query,
+				( ResultSet rs, int row ) ->
+						Attendance.builder().attendanceDate(rs.getDate("attendance_date").toLocalDate()).build(),
+				id, Date.valueOf(start),  Date.valueOf(end.plusDays(1))
+		);
 	}
 }

@@ -35,5 +35,5 @@ import java.util.List;
 @Getter
 public class MemberAttendanceResponse {
 	//출석 완료한 날짜 리스트
-	private List<String > dates;
+	private List<String> dates;
 }

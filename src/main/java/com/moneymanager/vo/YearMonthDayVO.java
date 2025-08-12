@@ -2,6 +2,7 @@ package com.moneymanager.vo;
 
 import lombok.Builder;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -33,40 +34,73 @@ import java.time.LocalDate;
  * 		</tbody>
  * </table>
  */
+@Slf4j
 @Value
 public class YearMonthDayVO {
+	LocalDate date;
+
 	YearMonthVO yearMonthVO;
 	int day;
 
 	@Builder
 	public YearMonthDayVO( String year, String month, String day ) {
 		this.yearMonthVO = new YearMonthVO( year, month );
-
-		int parsedDay;
-		try {
-			if( day == null ) {
-				throw new IllegalArgumentException("일은 null이 될 수 없습니다.");
-			}
-
-			parsedDay = Integer.parseInt(day);
-			if( !isValidDayRange(parsedDay) ) {
-				throw new IllegalArgumentException("일은 1~N일까지만 가능합니다.");
-			}
-
-		}catch ( IllegalArgumentException e ) {
-			parsedDay = 1;
-		}
-
-		this.day = parsedDay;
+		this.day = parseDayOrDefault(day, 1);
+		this.date = LocalDate.of(
+				yearMonthVO.getYearVO().getYear(),
+				yearMonthVO.getMonth(),
+				this.day
+		);
 	}
 
 
-	private boolean isValidDayRange( int day ) {
-		int year = yearMonthVO.getYearVO().getYear();
-		int month = yearMonthVO.getMonth();
+	/**
+	 *	주어진 일(day)을 정수로 변환하여 반환합니다.
+	 *<p>
+	 *     아래와 같은 경우에는 기본값으로 반환됩니다.
+	 *     <ul>
+	 *         <li>입력 문자열이 {@code null}인 경우</li>
+	 *         <li>문자열이 숫자로 변환할 수 없는 경우</li>
+	 *         <li>변환된 숫자가 유효한 일의 범위가 아닌 경우</li>
+	 *     </ul>
+	 *</p>
+	 *
+	 * @param day					사용자가 입력한 일
+	 * @param defaultDay		변환 실패 시 반환할 기본 일
+	 * @return	유효한 일 값 또는 기본값
+	 */
+	private int parseDayOrDefault(String day, int defaultDay) {
+		if( day == null ) return defaultDay;
 
+		try {
+			int parsedDay = Integer.parseInt(day);
+			if( isValidDayRange(parsedDay) ) {
+				return parsedDay;
+			}
+		}catch ( NumberFormatException e ) {
+			log.debug("숫자 포맷 예외 발생하여 day가 기본값인 {}로 설정됩니다.", defaultDay);
+		}
+
+		return defaultDay;
+	}
+
+
+	/**
+	 * 주어진 일(day)이 해당 연과월 내에서 유효한 날짜인지 확인합니다.
+	 * <p>
+	 *     유효하지 않은 날짜면 {@link DateTimeException} 예외가 발생하여 false을 반환됩니다.
+	 * </p>
+	 *
+	 * @param day		유효 검사할 일
+	 * @return	유효한 값이면 true, 아니면 false
+	 */
+	private boolean isValidDayRange( int day ) {
 		try{
-			LocalDate date = LocalDate.of(year, month, day);
+			LocalDate.of(
+					yearMonthVO.getYearVO().getYear(),
+					yearMonthVO.getMonth(),
+					day
+			);
 			return true;
 		}catch ( DateTimeException e ) {
 			return false;
@@ -74,10 +108,28 @@ public class YearMonthDayVO {
 	}
 
 
-	public LocalDate toLocalDate() {
-		YearMonthVO monthVO = getYearMonthVO();
-		YearVO yearVO = monthVO.getYearVO();
+	/**
+	 * 연과 월의 첫째 일(=1일)을 반환합니다.
+	 * <p>
+	 *     예를 들어, 2025년 8월이면 2025-08-01이 반환됩니다.
+	 * </p>
+	 *
+	 * @return	연과 월의 첫째 날을 나타내는 {@link LocalDate} 객체
+	 */
+	public LocalDate firstDayOfMonth() {
+		return date.withDayOfMonth(1);
+	}
 
-		return LocalDate.of( yearVO.getYear(), monthVO.getMonth(), day );
+
+	/**
+	 * 연과 월의 마지막 일을 반환합니다.
+	 * <p>
+	 *     예를 들어, 2025년 8월이면 2025-08-31이 반환됩니다.
+	 * </p>
+	 *
+	 * @return	연과 월의 마지막 날을 나타내는 {@link LocalDate} 객체
+	 */
+	public LocalDate lastDayOfMonth() {
+		return date.withDayOfMonth(date.lengthOfMonth());
 	}
 }

@@ -7,6 +7,7 @@ import com.moneymanager.dto.member.response.MemberAttendanceResponse;
 import com.moneymanager.entity.Attendance;
 import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.vo.YearMonthDayVO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -50,6 +52,7 @@ import java.util.List;
  * 		</tbody>
  * </table>
  */
+@Slf4j
 @Service
 public class AttendanceService {
 
@@ -82,7 +85,7 @@ public class AttendanceService {
 			- start	: 달의 1일의 시작 요일	(1: 월요일 ~ 7:일요일)
 			- end	:	달의 마지막 일
 		*/
-		LocalDate date = vo.toLocalDate();
+		LocalDate date = vo.getDate();
 		int start = date.withDayOfMonth(1).get(ChronoField.DAY_OF_WEEK);
 		start = (start == 7) ? 0 : start;
 		int last = date.lengthOfMonth();
@@ -116,27 +119,25 @@ public class AttendanceService {
 
 
 	/**
-	 * 날짜 범위 내에서 회원이 출석을 완료한 날짜들을 반환합니다.<p>
-	 * 예를 들어, N월의 1일부터 3일까지 출석이 완료되었다면 1, 2, 3을 리스트에 저장합니다.
+	 * 회원({@code id})의 해당 연월({@link YearMonthDayVO})에 출석이 완료된 날짜들의 목록을 조회힙니다.
+	 * <p>
+	 *		내부적으로 해당 연월의 첫째날부터 마지막 날까지의 기간을 기준으로 출석 완료된 날짜 데이터를 조회합니다. <br>
+	 *		그 후, 출석한 날짜(=일자)만 문자열 리스트로 추출하여 {@link MemberAttendanceResponse}로 반환합니다. <br>
+	 *		예를 들어, N월의 1일부터 3일까지 출석이 완료되었다면 1, 2, 3을 리스트에 저장합니다.
+	 * </p>
 	 *
-	 * @param memberId 회원 식별번호
-	 * @param view     달력 표시를 위한 날짜정보를 담은 객체
-	 * @return 회원의 완료된 출석 일자 리스트
+	 *
+	 * @param id			 	회원 식별번호
+	 * @param vo     		완료된 출석 리스트를 조회하기 위한 날짜 객체
+	 * @return 출석 완료된 일자를 리스트로 담은 {@link MemberAttendanceResponse} 객체
 	 */
-	public MemberAttendanceResponse getDayByCompleteAttend(String memberId, MemberAttendanceRequest.CalendarView view) {
-		DateRequest date = new DateRequest( view.getDate() );
-
-		LocalDate start = LocalDate.of(date.getYear(), date.getMonth(), 1);
-		LocalDate end = LocalDate.of(date.getYear(), date.getMonth(), start.lengthOfMonth()).plusDays(1);
-
+	public MemberAttendanceResponse getDayByCompleteAttend(String id, YearMonthDayVO vo) {
 		//회원의 출석완료 리스트 조회
-		List<Attendance> entityList = attendanceDAO.findCompleteAttendBetweenDate(memberId, start.toString(), end.toString());
+		List<Attendance> entityList = attendanceDAO.findCompleteAttendBetweenDate(id, vo.firstDayOfMonth(), vo.lastDayOfMonth());
 
-		List<String> dayList = new ArrayList<>();
-		for (Attendance entity : entityList) {
-			String day = String.valueOf(entity.getAttendanceDate().toLocalDate().getDayOfMonth());
-			dayList.add(day);
-		}
+		List<String> dayList = entityList.stream()
+				.map(entity -> String.valueOf(entity.getAttendanceDate().getDayOfMonth()))
+				.collect(Collectors.toList());
 
 		return MemberAttendanceResponse.builder().dates(dayList).build();
 	}
