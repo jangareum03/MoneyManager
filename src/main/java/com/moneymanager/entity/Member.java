@@ -3,6 +3,9 @@ package com.moneymanager.entity;
 import com.moneymanager.enums.type.MemberStatus;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -39,7 +42,11 @@ import java.time.LocalDateTime;
  */
 @Builder
 @Getter
-public class Member {
+@ToString
+public class Member implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     /* 회원번호(PK) */
     private String id;
     /* 회원유형 */

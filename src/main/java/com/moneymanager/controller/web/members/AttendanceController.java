@@ -75,7 +75,7 @@ public class AttendanceController {
 
 		//오늘날짜와 동일한지 확인
 		LocalDate today = LocalDate.now();
-		if( today.isEqual(vo.toLocalDate()) ) {
+		if( today.isEqual(vo.getDate()) ) {
 			model.addAttribute("today", today.getDayOfMonth());
 		}
 

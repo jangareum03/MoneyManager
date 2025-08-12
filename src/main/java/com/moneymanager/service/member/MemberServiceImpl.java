@@ -84,7 +84,6 @@ public class MemberServiceImpl {
 	private final MailService mailService;
 
 
-	@Autowired
 	public MemberServiceImpl(@Qualifier("profileImage") ImageServiceImpl imageService, MailService mailService, MemberDaoImpl memberDao, MemberInfoDaoImpl memberInfoDao, PasswordEncoder passwordEncoder) {
 		this.imageService = imageService;
 		this.mailService = mailService;
@@ -181,6 +180,7 @@ public class MemberServiceImpl {
 
 		return String.valueOf(valueArr);
 	}
+
 
 
 	/**

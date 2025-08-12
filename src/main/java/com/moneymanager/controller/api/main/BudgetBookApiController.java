@@ -57,7 +57,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/budgetBook")
 public class BudgetBookApiController {
 
-	private final Logger logger = LogManager.getLogger(this);
 	private final BudgetBookService budgetBookService;
 	private final GoogleChartService chartService;
 

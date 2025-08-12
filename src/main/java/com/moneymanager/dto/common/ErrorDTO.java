@@ -46,7 +46,7 @@ import java.util.UUID;
 public class ErrorDTO<T> {
 	//식별번호
 	@Builder.Default
-	private String errorId = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + '-' + UUID.randomUUID().toString().substring(0, 8);
+	private String errorId = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + '-' + UUID.randomUUID().toString().substring(0, 8);
 	//요청 데이터
 	private T requestData;
 	//에러코드

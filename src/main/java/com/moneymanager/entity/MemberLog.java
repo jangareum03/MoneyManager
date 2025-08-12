@@ -10,7 +10,7 @@ import java.sql.Timestamp;
  *  * 파일이름       : MemberLog<br>
  *  * 작성자          : areum Jang<br>
  *  * 생성날짜       : 23. 1. 28<br>
- *  * 설명              : TB_MEMBER_HISTORY 테이블과 매칭되는 엔티티 클래스
+ *  * 설명              : TB_MEMBER_LOG 테이블과 매칭되는 엔티티 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>

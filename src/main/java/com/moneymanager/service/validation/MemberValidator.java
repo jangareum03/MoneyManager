@@ -1,19 +1,19 @@
 package com.moneymanager.service.validation;
 
+
 import com.moneymanager.dto.common.ErrorDTO;
-import com.moneymanager.dto.member.request.MemberLoginRequest;
+import com.moneymanager.enums.RegexPattern;
 import com.moneymanager.exception.code.ErrorCode;
-import com.moneymanager.exception.custom.ClientException;
-import com.moneymanager.utils.ValidationUtil;
+import com.moneymanager.exception.custom.LoginException;
 
 
 /**
  * <p>
- * * 패키지이름    : com.areum.moneymanager.service.validation<br>
- * * 파일이름       : MemberValidator<br>
- * * 작성자          : areum Jang<br>
- * * 생성날짜       : 25. 7. 24<br>
- * * 설명              : 회원 관련 검증 로직을 처리하는 클래스
+ * 패키지이름    : com.moneymanager.service.validation<br>
+ * 파일이름       : MemberValidator<br>
+ * 작성자          : areum Jang<br>
+ * 생성날짜       : 25. 8. 7.<br>
+ * 설명              :	회원 관련 검증 로직을 처리하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -27,38 +27,81 @@ import com.moneymanager.utils.ValidationUtil;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 7. 24</td>
+ * 		 	  <td>25. 8. 7.</td>
  * 		 	  <td>areum Jang</td>
- * 		 	  <td>최초 생성(버전 2.0)</td>
+ * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
  */
+
 public class MemberValidator {
 
 	/**
-	 * 사용자 로그인 시 입력한 값들의 기본 형식을 검사합니다.
+	 * 로그인 시 전달받은 <code>id</code>와 <code>password</code>가 유효한지  검증합니다.
+	 * <p>
+	 *     아이디(id) 또는 비밀번호(password) 둘 중 하나라도 유효하지 않으면 {@link LoginException}을 발생시킵니다.
+	 * </p>
 	 *
-	 * @param request 로그인 요청정보를 담은 객체
-	 * @throws ClientException 입력값이 로그인 불가능할 시
+	 * @param id					로그인 한 아이디
+	 * @param password		로그인 한 비밀번호
+	 * @throws LoginException	유효하지 않은 아이디/비밀번호 입력한 경우 발생
 	 */
-	public static void validateLogin(MemberLoginRequest request) {
-		//아이디 확인
-		if (ValidationUtil.isEmptyInput(request.getId())) {
-			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.LOGIN_ID_MISSING).requestData(request.getId()).build());
+	public static void validateLogin( String id, String password ) {
+		ErrorDTO<String> errorDTO = validateId(id);
+
+		//아이디 검증 실패한 상태
+		if( errorDTO != null ) {
+			throw new LoginException(errorDTO);
 		}
 
-		if (!ValidationUtil.isMatchPattern(request.getId(), "MEMBER_ID")) {
-			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.LOGIN_ID_FORMAT).requestData(request.getId()).build());
+		errorDTO = validatePassword(password);
+		if( errorDTO != null ) {
+			throw new LoginException(errorDTO);
+		}
+	}
+
+
+	/**
+	 * 회원의 아이디를 검증합니다.
+	 * <p>
+	 *     로그인 시 전달받은 <code>id</code>의 입력 여부와 형식을 확인합니다.
+	 * </p>
+	 *
+	 * @param id		검증할 회원의 아이디
+	 * @return 검증에 통과하면 <code>null</code>, 실패하면  {@link ErrorDTO}
+	 */
+	private static ErrorDTO<String> validateId( String id ) {
+		ErrorDTO<String> errorDTO = null;
+
+		if( id == null || id.isBlank() ) {	//아이디 미입력한 상태
+			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.LOGIN_ID_MISSING).requestData(id).build();
+		}else if( !id.matches(RegexPattern.MEMBER_ID.getPattern()) ) {	//아이디 형식 불일치한 상태
+			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.LOGIN_ID_FORMAT).requestData(id).build();
 		}
 
-		//비밀번호 확인
-		if (ValidationUtil.isEmptyInput(request.getPassword())) {
-			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.LOGIN_PASSWORD_MISSING).requestData(request.getPassword()).build());
+		return errorDTO;
+	}
+
+
+	/**
+	 * 회원의 비밀번호를 검증합니다.
+	 * <p>
+	 *     로그인 시 전달받은 <code>password</code>의 입력 여부와 형식을 확인합니다.
+	 * </p>
+	 *
+	 * @param password		검증할 회원의 비밀번호
+	 * @return 검증에 통과하면 <code>null</code>, 실패하면  {@link ErrorDTO}
+	 */
+	private static ErrorDTO<String> validatePassword( String password ) {
+		ErrorDTO<String> errorDTO = null;
+
+		if( password == null || password.isBlank() ) {	//비밀번호 미입력한 상태
+			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.LOGIN_PASSWORD_MISSING).requestData(password).build();
+		}else if( !password.matches(RegexPattern.MEMBER_PWD.getPattern()) ) {	//아이디 형식 불일치한 상태
+			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.LOGIN_PASSWORD_FORMAT).requestData(password).build();
 		}
 
-		if (!ValidationUtil.isMatchPattern(request.getPassword(), "MEMBER_PWD")) {
-			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.LOGIN_PASSWORD_FORMAT).requestData(request.getPassword()).build());
-		}
+		return errorDTO;
 	}
 }

@@ -33,6 +33,11 @@ import java.time.LocalDateTime;
  *		 	  <td>areum Jang</td>
  *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 8. 10</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>[필드 추가] failureCount</td>
+ *		 	</tr>
  *		</tbody>
  * </table>
  */
@@ -53,4 +58,6 @@ public class MemberInfo {
     private int imageLimit;
     /* 마지막 접속일 */
     private LocalDateTime loginAt;
+    /* 실패횟수 */
+    private int failureCount;
 }

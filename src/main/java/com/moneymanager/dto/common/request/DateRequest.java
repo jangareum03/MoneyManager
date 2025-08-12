@@ -1,11 +1,10 @@
 package com.moneymanager.dto.common.request;
 
 import com.moneymanager.enums.type.DateType;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 /**
  * <p>
@@ -71,7 +70,7 @@ public class DateRequest {
 	public DateRequest(MonthRange monthRange ) {
 		this.type = DateType.MONTH;
 		this.year = Integer.parseInt(monthRange.getYear());
-		this.month = Integer.parseInt(monthRange.getMonth());
+		this.month =  Integer.parseInt(monthRange.getMonth());
 		this.week = null;
 		this.day = null;
 	}
