@@ -12,6 +12,7 @@ import com.moneymanager.dto.member.request.MemberAttendanceRequest;
 import com.moneymanager.exception.ErrorException;
 import com.moneymanager.service.main.BudgetBookService;
 import com.moneymanager.service.main.api.GoogleChartService;
+import com.moneymanager.vo.YearMonthDayVO;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,10 +74,11 @@ public class BudgetBookApiController {
 	 * @return 월의 마지막 일
 	 */
 	@PostMapping("/lastDay")
-	public int postLastDay(@RequestBody MemberAttendanceRequest.CalendarView calendar) {
-		DateRequest.MonthRange date = calendar.getDate();
+	public int postLastDay(@RequestParam String year, @RequestParam String month) {
+		//요청값 → VO 변환
+		YearMonthDayVO vo = YearMonthDayVO.builder().year(year).month(month).build();
 
-		return LocalDate.of(Integer.parseInt(date.getYear()), Integer.parseInt(date.getMonth()), 1).lengthOfMonth();
+		return vo.getDate().lengthOfMonth();
 	}
 
 

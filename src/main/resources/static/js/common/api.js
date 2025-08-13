@@ -8,7 +8,7 @@ function fetchAttendance( year, month ) {
 
 //----------[ ▼ 오늘날짜로 출석을 진행합니다. ]----------
 function fetchAttendToday( year, month, day ) {
-    return fetch('k', {
+    return fetch('/api/attendance', {
        method: 'POST',
        headers: {
            'Content-Type' : 'application/json'

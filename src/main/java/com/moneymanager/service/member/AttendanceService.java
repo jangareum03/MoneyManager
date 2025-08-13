@@ -1,11 +1,12 @@
 package com.moneymanager.service.member;
 
 import com.moneymanager.dao.member.AttendanceDao;
-import com.moneymanager.dto.common.request.DateRequest;
-import com.moneymanager.dto.member.request.MemberAttendanceRequest;
+import com.moneymanager.dto.common.ErrorDTO;
 import com.moneymanager.dto.member.response.MemberAttendanceResponse;
 import com.moneymanager.entity.Attendance;
 import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.exception.custom.ClientException;
+import com.moneymanager.utils.LoggerUtil;
 import com.moneymanager.vo.YearMonthDayVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
@@ -18,6 +19,7 @@ import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 
 /**
@@ -56,11 +58,8 @@ import java.util.stream.Collectors;
 @Service
 public class AttendanceService {
 
-	private final int DEFAULT_POINT = 5;
-
 	private final PointService pointService;
 	private final AttendanceDao attendanceDAO;
-	;
 
 	public AttendanceService(AttendanceDao attendanceDAO, PointService pointService) {
 		this.attendanceDAO = attendanceDAO;
@@ -144,56 +143,83 @@ public class AttendanceService {
 
 
 	/**
-	 * 회원의 출석을 진행합니다. <br>
-	 * 이미 출석 완료했을 경우 {@link IllegalArgumentException} 예외가 발생합니다.<br>
-	 * 어제 출석을 햇으면 연속 출석 일수를 증가시키고, 아니라면 초기화합니다.
-	 * 출석 완료 후 회원의 포인트가 추가됩니다.
+	 * 회원<code>id</code>의 오늘 날짜로 출석을 등록합니다.
+	 * <p>
+	 *     이미 출석을 완료한 상태라면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다. <br>
+	 *     출석 완료 후 포인트룰 추가 후 연속 출석이라면 연속출석일에 1을 추가합니다.
+	 * </p>
 	 *
-	 * @param memberId 회원번호
-	 * @param date     출석 진행할 날짜
+	 * @param id 		회원 식별번호
+	 * @param vo     출석 진행할 날짜
 	 */
 	@Transactional
-	public void createAttendance(String memberId, DateRequest date) {
-		LocalDate clientDate = LocalDate.of(date.getYear(), date.getMonth(), date.getDay());
-		LocalDate today = LocalDate.now();
+	public void createAttendance(String id, YearMonthDayVO vo) {
+		validateToday(id, vo.getDate());
+		validateDuplication(id, vo.getDate());
 
-		if (!clientDate.equals(today)) {
-			throw new IllegalArgumentException(ErrorCode.MEMBER_DATE_FORMAT.getMessage());
-		}
+		//출석 저장 및 포인트 추가
+		int point = 5;
+		attendanceDAO.saveContinuousAttend(id);
+		pointService.addPointForAttendance(id, point);
 
-		//오늘 날짜 출석여부 확인
-		boolean isTodayComplete = attendanceDAO.hasCheckedInDate(memberId, clientDate);
-		if (isTodayComplete) {
-			throw new IllegalArgumentException(ErrorCode.MEMBER_ATTENDANCE_COMPLETE.getMessage());
-		}
-
-		attendanceDAO.saveContinuousAttend(memberId);
-
-		//연속출석 확인
-		boolean isContinuous = attendanceDAO.hasCheckedInDate(memberId, clientDate.minusDays(1));
-		if (!isContinuous) {
-			attendanceDAO.resetContinuousDate(memberId);
-		}
-
-		//포인트 추가
-		pointService.addPointForAttendance(memberId, DEFAULT_POINT);
-
-		logger.debug("{} 회원 출석 성공", memberId);
+		//연속 출석
+		updateContinuousAttendance(id, vo.getDate().minusDays(1));
 	}
 
 
 	/**
-	 * 이동할 달력이 현재 날짜인지 확인합니다.<p>
-	 * 현재 날짜와 같다면 true를 반환하고, 그렇지 않다면 false를 반환합니다.
+	 * 날짜(date)가 오늘인지 확인합니다.
+	 * <p>
+	 *     오늘 날짜가 아니라면 {@link ClientException}예외가 발생합니다.
+	 * </p>
 	 *
-	 * @param moveDate 이동할 달력 날짜
-	 * @return 현재 날짜면 true, 아니라면 false
+	 * @param id			회원 식별번호
+	 * @param date		검증할 출석날짜
 	 */
-	public boolean isToday(MemberAttendanceRequest.CalendarMove moveDate) {
-		DateRequest date = new DateRequest( moveDate.getDate() );
+	private void validateToday( String id, LocalDate date ) {
 		LocalDate today = LocalDate.now();
+		if (!today.isEqual(date)) {
+			ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.ATTEND_TODAY_INVALID).requestData(String.format("id=%s, date=%s", id, date)).build();
 
-		return date.getYear() == today.getYear() && date.getMonth() == today.getMonthValue();
+			LoggerUtil.logUserWarn(errorDTO);
+			throw new ClientException(errorDTO);
+		}
 	}
 
+
+	/**
+	 * 회원의 출석완료 리스트 중에서 날짜(date)가 있는지 확인합니다.
+	 * <p>
+	 *     날짜로 회원이 출석을 이미 완료했다면 {@link ClientException}예외가 발생합니다.
+	 * </p>
+	 *
+	 * @param id			회원 식별번호
+	 * @param date		확인할 출석날짜
+	 */
+	private void validateDuplication(String id, LocalDate date) {
+		if(attendanceDAO.hasCheckedInDate(id, date) ) {
+			ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.ATTEND_TODAY_DUPLICATE).requestData(String.format("id=%s, date=%s", id, date)).build();
+
+			LoggerUtil.logUserWarn(errorDTO);
+			throw new ClientException(errorDTO);
+		}
+	}
+
+
+	/**
+	 * 회원<code>id</code>의 완료된 출석 리스트 중에서 날짜<code>date</code>가 존재하는지 확인합니다.
+	 * <p>
+	 *     날짜(=어제 날짜)가 존재하지 않는다면, 연속 출석이 아니므로 연속출석일자를 0으로 초기화합니다.<br>
+	 *     예를 들어, 회원의 출석 리스트에서 8월 2일(=어제 날짜)이 존재하지 않는다면 연속출석이 아니므로 0으로 초기화가 됩니다.
+	 * </p>
+	 *
+	 * @param id			회원 식별번호
+	 * @param date		연속 출석 확인할 날짜(=어제 날짜)
+	 */
+	private void updateContinuousAttendance(String id, LocalDate date) {
+		boolean isContinuous = attendanceDAO.hasCheckedInDate(id, date);
+		if(!isContinuous) {
+			attendanceDAO.resetContinuousDate(id);
+		}
+	}
 }

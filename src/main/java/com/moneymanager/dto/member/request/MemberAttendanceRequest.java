@@ -1,7 +1,6 @@
 package com.moneymanager.dto.member.request;
 
-import com.moneymanager.dto.common.request.DateRequest;
-import lombok.*;
+import lombok.Getter;
 
 /**
  * <p>
@@ -30,37 +29,9 @@ import lombok.*;
  * 		</tbody>
  * </table>
  */
+@Getter
 public class MemberAttendanceRequest {
-
-	/**
-	 * 출석 정보를 표시하기 위한 DTO
-	 */
-	@Builder
-	@Getter
-	@NoArgsConstructor(access = AccessLevel.PROTECTED)
-	@AllArgsConstructor
-	public static class CalendarView {
-		private DateRequest.MonthRange date;
-	}
-
-	/**
-	 * 달력 이동하기 위한 DTO
-	 */
-	@Builder
-	@Getter
-	public static class CalendarMove {
-		private DateRequest.MonthRange date;
-	}
-
-	/**
-	 * 회원의 출석체크를 진행하기 위한 DTO
-	 */
-	@Builder
-	@Getter
-	@NoArgsConstructor(access = AccessLevel.PROTECTED)
-	@AllArgsConstructor
-	public static class AttendToday {
-		private DateRequest.DayRange today;
-	}
-
+	String year;
+	String month;
+	String day;
 }

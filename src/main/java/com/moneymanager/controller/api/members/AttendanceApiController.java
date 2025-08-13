@@ -2,13 +2,12 @@ package com.moneymanager.controller.api.members;
 
 
 import com.moneymanager.dto.common.ApiResultDTO;
-import com.moneymanager.dto.common.request.DateRequest;
 import com.moneymanager.dto.member.request.MemberAttendanceRequest;
 import com.moneymanager.dto.member.response.MemberAttendanceResponse;
+import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.AttendanceService;
+import com.moneymanager.utils.LoggerUtil;
 import com.moneymanager.vo.YearMonthDayVO;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
@@ -49,7 +48,6 @@ import javax.servlet.http.HttpSession;
 @RequestMapping("/api/attendance")
 public class AttendanceApiController {
 
-	private final Logger logger = LogManager.getLogger(this);
 	private final AttendanceService attendanceService;
 
 	public AttendanceApiController(AttendanceService attendanceService) {
@@ -79,22 +77,30 @@ public class AttendanceApiController {
 
 
 	/**
-	 * 오늘 날짜의 출석 요청을 처리합니다.<br>
-	 * 출석 완료여부에 따라 안내 메시지가 달라지며, 출석하지 않았다면 출석 완료합니다.
+	 * 특정 회원의 출석 요청을 처리합니다.<br>
+	 * 세션에서 현재 로그인된 회원 ID를 가져와서 지정된 날짜에 출석을 진행합니다.
+	 * <ul>
+	 *     <li>출석이 성공하면 출석 완료 메시지를 반환합니다.</li>
+	 *     <li>출석이 실패하면 예외 메시지를 반환합니다.</li>
+	 * </ul>
 	 *
-	 * @param session 사용자 식별 및 정보를 저장하는 객체
-	 * @param attendToday   출석체크 진행할 날짜
+	 * @param session 			사용자 식별 및 정보를 저장하는 객체
+	 * @param date				   	출석체크 진행할 날짜
 	 */
 	@PostMapping
-	public ResponseEntity<ApiResultDTO> postAttendance(HttpSession session, @RequestBody MemberAttendanceRequest.AttendToday attendToday) {
+	public ResponseEntity<ApiResultDTO> postAttendance(HttpSession session, @RequestBody MemberAttendanceRequest date) {
 		String memberId = (String) session.getAttribute("mid");
+		YearMonthDayVO vo = YearMonthDayVO.builder().year(date.getYear()).month(date.getMonth()).day(date.getDay()).build();
+
+		LoggerUtil.logSystemInfo("출석 시작 - 회원: {}, 날짜: {}", memberId, vo.getDate());
 
 		try {
-			DateRequest date = new DateRequest( attendToday.getToday() );
-			attendanceService.createAttendance(memberId, date);
+			attendanceService.createAttendance(memberId, vo);
 
+			LoggerUtil.logSystemInfo("출석 성공 - 회원: {}, 날짜: {}", memberId, vo.getDate());
 			return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("출석 완료했습니다.").build());
-		} catch (IllegalArgumentException e) {
+		} catch (ClientException e) {
+			LoggerUtil.logSystemInfo("출석 실패 - 회원: {}, 날짜: {}", memberId, vo.getDate());
 			return ResponseEntity.ok(ApiResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}

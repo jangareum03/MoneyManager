@@ -95,8 +95,8 @@ public enum ErrorCode {
 	/**
 	 * 출석 에러 메시지
 	 **/
-	ATTEND_TODAY_INVALID("C040005", "오늘 날짜가 아니므로 출석이 불가능합니다."),
-	ATTEND_TODAY_DUPLICATE("C040003", "오늘은 이미 출석 완료했습니다. 내일 다시 출석해주세요!"),
+	ATTEND_TODAY_INVALID("C040005", "오늘 날짜가 아니므로 출석이 불가능합니다.", "금일이 아니므로 출석 불가"),
+	ATTEND_TODAY_DUPLICATE("C040003", "오늘은 이미 출석 완료했습니다. 내일 다시 출석해주세요!", "중복 출석으로 인한 출석 불가"),
 	/**
 	 * 가게부 작성 에러메시지
 	 **/
@@ -265,9 +265,7 @@ public enum ErrorCode {
 	/* 데이터베이스 에러 메시지 */
 	DB_PK_FOUND("PK_ABSENT", "테이블의 데이터 추가로 생성된 PK값을 찾지 못 했습니다."),
 
-
-	MEMBER_ATTENDANCE_COMPLETE("MEMBER_", "오늘은 이미 출석하셨어요. 내일 다시 출석해주세요!"),
-	MEMBER_DATE_FORMAT("MEMBER_", "오늘 날짜가 아니므로 출석이 불가능합니다."),
+	
 	MEMBER_ATTENDANCE_UNKNOWN("MEMBER_", "일시적인 문제로 출석이 불가능합니다 .잠시 후 다시 시도해주세요."),
 	MEMBER_FIND_NONE("MEMBER_123", "입력하신 정보로 일치하는 사용자가 없습니다."),
 	MEMBER_FIND_ID("MEMBER_203", "현재 일시적인 문제로 아이디 찾기가 불가능합니다. 잠시 후 다시 시도해 주세요."),

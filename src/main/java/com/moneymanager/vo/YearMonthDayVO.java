@@ -45,7 +45,7 @@ public class YearMonthDayVO {
 	@Builder
 	public YearMonthDayVO( String year, String month, String day ) {
 		this.yearMonthVO = new YearMonthVO( year, month );
-		this.day = parseDayOrDefault(day, 1);
+		this.day = parseDayOrDefault(day, LocalDate.now().getDayOfMonth());
 		this.date = LocalDate.of(
 				yearMonthVO.getYearVO().getYear(),
 				yearMonthVO.getMonth(),

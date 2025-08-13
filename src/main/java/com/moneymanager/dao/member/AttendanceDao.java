@@ -88,24 +88,32 @@ public class AttendanceDao {
 	}
 
 
-
 	/**
-	 * 회원의 출석정보에서 날짜가 있는지 확인합니다.<br>
-	 * 해당 날짜로 출석이 된 상태면 true, 아니면 false 반환합니다.
+	 * 날짜(date)가 회원의 출석정보에 저장되어 있는지 데이터베이스에서 조회합니다.
+	 * <p>
+	 *     조회된 컬럼의 총 건수를 조회 후 건수가 1인지 확인합니다.
+	 * </p>
 	 *
-	 * @param memberId	회원번호
+	 * @param id				회원의 고유 식별자(PK)
 	 * @param date			확인할 날짜
-	 * @return	날짜로 출석 완료된 상태면 true, 아니면 false
+	 * @return	날짜가 있으면 true, 없으면 false
+	 * @throws org.springframework.dao.EmptyResultDataAccessException	조회 결과가 없을 경우 발생
 	 */
-	public boolean hasCheckedInDate(String memberId, LocalDate date ) {
-		String query = "SELECT COUNT(*) " +
-									"FROM tb_member_attendance " +
-									"WHERE member_id = ? " +
-										"AND TO_DATE(attendance_date) = TO_DATE(?, 'YYYY-MM-DD')";
+	public boolean hasCheckedInDate(String id, LocalDate date ) {
+		String query = String.format(
+				"SELECT COUNT(*) " +
+					"FROM %s " +
+					"WHERE member_id = ? " +
+						"AND TO_DATE(attendance_date) = ?",
+				TABLE
+		);
 
-		return jdbcTemplate.queryForObject( query, Integer.class, memberId, date.toString() ) == 1;
+		return jdbcTemplate.queryForObject(
+				query,
+				Integer.class,
+				id, Date.valueOf(date)
+		) == 1;
 	}
-
 
 
 	/**
