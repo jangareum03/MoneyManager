@@ -26,9 +26,14 @@ import java.util.Objects;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 8. 1.</td>
+ * 		 	  <td>25. 8. 1</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 8. 20</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[메서드 추가] logSystemError - 시스템 오류 기록</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
@@ -59,5 +64,21 @@ public class LoggerUtil {
 	 */
 	public static void logSystemInfo(String message, Object... args) {
 		log.info(String.format("[SYSTEM_INFO] %s", message), args);
+	}
+
+
+	/**
+	 * 서비스 에러 로그를 작성합니다.
+	 *
+	 * @param errorDTO	에러 정보를 담은 객체
+	 * @param <T>	요청 데이터 타입
+	 */
+	public static <T> void logSystemError(ErrorDTO<T> errorDTO) {
+		ErrorCode errorCode = errorDTO.getErrorCode();
+
+		log.error("[ERROR] errorCode={}, LogMessage={}", errorCode.getCode(), errorCode.getLogMessage());
+		log.error("▶ errorId={}", errorDTO.getErrorId());
+		log.error("▶ UserMessage={}", errorCode.getMessage());
+		log.error("▶ requestData={}", Objects.isNull(errorDTO.getRequestData()) ? "없음" : errorDTO.getRequestData());
 	}
 }

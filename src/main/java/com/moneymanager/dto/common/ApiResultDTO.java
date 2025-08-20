@@ -32,9 +32,41 @@ import lombok.Getter;
  */
 @Builder
 @Getter
-public class ApiResultDTO {
-	//결과
+public class ApiResultDTO<T> {
+	//결과 : true(성공), false(실패)
 	private boolean success;
-	//메시지
+	//실패 시 원인
 	private String message;
+	//성공 시 반환할 값
+	private T data;
+
+
+	/**
+	 * API 응답이 성공일 때 반환합니다.
+	 *
+	 * @param data		반환할 값
+	 * @return	성공한 응답을 저장한 객체
+	 * @param <T>	반환할 값의 유형
+	 */
+	public static <T> ApiResultDTO<T> success( T data ) {
+		return ApiResultDTO.<T>builder()
+				.success(true)
+				.data(data)
+				.build();
+	}
+
+
+	/**
+	 * API 응답이 실패일 때 반환합니다.
+	 *
+	 * @param message	실패 메시지
+	 * @return	실패한 응답을 저장한 객체
+	 * @param <T>	반환할 값의 유형
+	 */
+	public static <T> ApiResultDTO<T> failure(String message) {
+		return ApiResultDTO.<T>builder()
+				.success(false)
+				.message(message)
+				.build();
+	}
 }

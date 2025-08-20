@@ -3,7 +3,7 @@ package com.moneymanager.vo;
 import lombok.Builder;
 import lombok.Value;
 
-import java.time.YearMonth;
+import java.time.LocalDate;
 
 /**
  * <p>
@@ -43,17 +43,13 @@ public class YearMonthVO {
 
 		int parsedMonth;
 		try{
-			if( month == null ) {
-				throw new IllegalArgumentException("월은 null이 될 수 없습니다.");
-			}
+			parsedMonth = (month == null) ? LocalDate.now().getMonthValue() : Integer.parseInt(month);
+		}catch ( NumberFormatException e ) {
+			throw new IllegalArgumentException("MONTH_FORMAT");
+		}
 
-			parsedMonth = Integer.parseInt(month);
-
-			if(!isValidMonthRange(parsedMonth)) {
-				throw new IllegalArgumentException("월은 1~12 범위여야 합니다.");
-			}
-		}catch ( IllegalArgumentException e ) {
-			parsedMonth = YearMonth.now().getMonthValue();
+		if(!isValidMonthRange(parsedMonth)) {
+			throw new IllegalArgumentException("MONTH_INVALID");
 		}
 
 		this.month = parsedMonth;

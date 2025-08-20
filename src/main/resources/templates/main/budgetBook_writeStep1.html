@@ -30,7 +30,7 @@
                     <label class="write-date__label">
                         <select class="write__select" name="year">
                             <option disabled >년</option>
-                            <option th:each="y : ${#numbers.sequence( year-5, year )}" th:value="${y}" th:selected="${y} == ${year}">
+                            <option th:each="y : ${#numbers.sequence( year-4, year )}" th:value="${y}" th:selected="${y} == ${year}">
                                 [[${y}]]년
                             </option>
                         </select>

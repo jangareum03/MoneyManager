@@ -178,7 +178,8 @@ function fetchLastDay( year, month ) {
         method: 'POST',
         headers: { 'Content-Type' : 'application/json' },
         body: JSON.stringify({ year: year, month: month })
-    });
+    })
+    .then( response => response.json() );
 }
 
 

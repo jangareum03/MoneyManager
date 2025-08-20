@@ -249,17 +249,14 @@ async function updateDayOptions() {
 
     if( !year || !month || !daySelect || !validYearMonth(year, month).isPass ) return;
 
-    try {
-        const response = await fetchLastDay( year, month );
-
-        if( !response.ok ) return;
-
-        const lastDay = await response.text();
+    const response = await fetchLastDay( year, month );
+    if( response.success ) {
+        const day = response.data;
         const beforeValue = daySelect.value;    //선택한 일 값
 
         daySelect.replaceChildren();    //일자 option 초기화
 
-        for( let i=1; i <= lastDay; i++ ) {
+        for( let i=1; i <= day; i++ ) {
             const option = document.createElement('option');
             option.value = i;
             option.textContent = `${i}일`;
@@ -270,8 +267,8 @@ async function updateDayOptions() {
 
             daySelect.appendChild(option);
         }
-    }catch( err ) {
-        console.log('날짜 불러오기 실패했습니다.');
+    }else {
+        alert( response.message );
     }
 }
 

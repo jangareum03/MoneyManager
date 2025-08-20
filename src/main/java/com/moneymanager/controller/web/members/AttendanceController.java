@@ -68,22 +68,25 @@ public class AttendanceController {
 	 */
 	@GetMapping("/attendance")
 	public String getAttendancePage( Model model, @RequestParam(required = false) String year, @RequestParam(required = false) String month ) {
-		YearMonthDayVO vo = YearMonthDayVO.builder().year(year).month(month).build();
+		try{
+			YearMonthDayVO vo = YearMonthDayVO.builder().year(year).month(month).build();
 
-		//달력 생성
-		List<List<Integer>> calendar = attendanceService.createCalendar( vo );
+			//달력 생성
+			List<List<Integer>> calendar = attendanceService.createCalendar( vo );
 
-		//오늘날짜와 동일한지 확인
-		LocalDate today = LocalDate.now();
-		if( today.isEqual(vo.getDate()) ) {
-			model.addAttribute("today", today.getDayOfMonth());
+			//오늘날짜와 동일한지 확인
+			LocalDate today = LocalDate.now();
+			if( today.isEqual(vo.getDate()) ) {
+				model.addAttribute("today", today.getDayOfMonth());
+			}
+
+			//사용자에게 전달할 정보
+			model.addAttribute("year", vo.getYearMonthVO().getYearVO().getYear());
+			model.addAttribute("month", vo.getYearMonthVO().getMonth());
+			model.addAttribute("calendar", calendar);
+		}catch ( IllegalArgumentException e ) {
+
 		}
-
-
-		//사용자에게 전달할 정보
-		model.addAttribute("year", vo.getYearMonthVO().getYearVO().getYear());
-		model.addAttribute("month", vo.getYearMonthVO().getMonth());
-		model.addAttribute("calendar", calendar);
 
 
 		return "/main/home";

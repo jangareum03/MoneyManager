@@ -6,22 +6,22 @@ import com.moneymanager.dto.budgetBook.request.BudgetBookSearchRequest;
 import com.moneymanager.dto.budgetBook.request.BudgetBookUpdateRequest;
 import com.moneymanager.dto.budgetBook.response.BudgetBookListResponse;
 import com.moneymanager.dto.common.ApiResultDTO;
+import com.moneymanager.dto.common.ErrorDTO;
 import com.moneymanager.dto.common.ImageDTO;
 import com.moneymanager.dto.common.request.DateRequest;
-import com.moneymanager.dto.member.request.MemberAttendanceRequest;
+import com.moneymanager.dto.common.request.YearMonthRequest;
 import com.moneymanager.exception.ErrorException;
+import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.service.main.BudgetBookService;
 import com.moneymanager.service.main.api.GoogleChartService;
+import com.moneymanager.utils.LoggerUtil;
 import com.moneymanager.vo.YearMonthDayVO;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -68,17 +68,48 @@ public class BudgetBookApiController {
 
 
 	/**
-	 * 가계부 날짜의 마지막 일을 찾는 요청을 처리합니다.
+	 * 주어진 년도(year)와 월(month)에 해당하는 마지막 날짜(일)를 반환합니다.
+	 * <p>
+	 *     예를 들어 {@code year=2025, month=2}이면 2025년 2월의 마지막 날인 28을 반환합니다.
+	 * </p>
 	 *
-	 * @param calendar 값을 확인할 년도와 월
-	 * @return 월의 마지막 일
+	 * @param date		년도와 월 정보를 담은 객체
+	 * @return 해당 년월의 마지막 날짜(1~31)
 	 */
 	@PostMapping("/lastDay")
-	public int postLastDay(@RequestParam String year, @RequestParam String month) {
-		//요청값 → VO 변환
-		YearMonthDayVO vo = YearMonthDayVO.builder().year(year).month(month).build();
+	public ResponseEntity<ApiResultDTO<Integer>> postLastDay(@RequestBody YearMonthRequest date ) {
+		try{
+			//요청값 → VO 변환
+			YearMonthDayVO vo = YearMonthDayVO.builder().year(date.getYear()).month(date.getMonth()).build();
 
-		return vo.getDate().lengthOfMonth();
+			return ResponseEntity.ok(ApiResultDTO.success(vo.getDate().lengthOfMonth()));
+		}catch ( IllegalArgumentException e ) {
+			ErrorDTO<YearMonthRequest> errorDTO;
+				switch (e.getMessage()) {
+					case "YEAR_FORMAT" :
+						errorDTO = ErrorDTO.<YearMonthRequest>builder().errorCode(ErrorCode.BUDGET_WRITE_YEAR_FORMAT).requestData(date).build();
+						LoggerUtil.logUserWarn( errorDTO  );
+						break;
+					case "YEAR_INVALID" :
+						errorDTO = ErrorDTO.<YearMonthRequest>builder().errorCode(ErrorCode.BUDGET_WRITE_YEAR_INVALID).requestData(date).build();
+						LoggerUtil.logUserWarn( errorDTO );
+						break;
+					case "MONTH_FORMAT" :
+						errorDTO = ErrorDTO.<YearMonthRequest>builder().errorCode(ErrorCode.BUDGET_WRITE_MONTH_FORMAT).requestData(date).build();
+						LoggerUtil.logUserWarn( errorDTO );
+						break;
+					case "MONTH_INVALID" :
+						errorDTO = ErrorDTO.<YearMonthRequest>builder().errorCode(ErrorCode.BUDGET_WRITE_MONTH_INVALID).requestData(date).build();
+						LoggerUtil.logUserWarn( errorDTO );
+						break;
+					default :
+						errorDTO = ErrorDTO.<YearMonthRequest>builder().errorCode(ErrorCode.SYSTEM_LOGIC_ERROR_NONE).requestData(date).build();
+						LoggerUtil.logSystemError( errorDTO );
+						break;
+			};
+
+			return ResponseEntity.ok(ApiResultDTO.failure(errorDTO.getErrorCode().getMessage()));
+		}
 	}
 
 

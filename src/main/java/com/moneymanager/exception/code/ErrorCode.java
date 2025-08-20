@@ -119,6 +119,10 @@ public enum ErrorCode {
 	BUDGET_WRITE_PHOTO_CORRUPTED("C050909", "사진이 손상되어 등록할 수 없습니다."),
 	BUDGET_WRITE_PHOTO_NOT_SUPPORTED("C050910", "지원하지 않은 사진 형식입니다."),
 	BUDGET_WRITE_PHOTO_SIZE_EXCEEDED("C050911", "사진 크기가 너무 큽니다."),
+	BUDGET_WRITE_YEAR_FORMAT("C052002","선택한 년도가 올바르지 않습니다. 다시 선택해주세요.", "잘못된 년도 형식"),
+	BUDGET_WRITE_YEAR_INVALID("C052005","선택한 년도가 올바르지 않습니다. 다시 선택해주세요.","유효하지 않은 년도"),
+	BUDGET_WRITE_MONTH_FORMAT("C052102","선택한 월이 올바르지 않습니다. 다시 선택해주세요.","잘못된 월 형식"),
+	BUDGET_WRITE_MONTH_INVALID("C052105","선택한 월이 올바르지 않습니다. 다시 선택해주세요.","유효하지 않은 월"),
 	/**
 	 * 가게부 수정 에러메시지
 	 **/
@@ -208,7 +212,8 @@ public enum ErrorCode {
 	/**
 	 * 시스템 문제 에러메시지
 	 **/
-	SYSTEM_LOGIC_ERRORCODE_NULL("S010101", SystemMessage.SYSTEM.getMessage(), "메서드: {}, 요청값: {}, 원인: 에러코드 NULL"),
+	SYSTEM_LOGIC_ERROR_NONE("S010103", SystemMessage.SYSTEM.getMessage(), "알 수 없는 에러코드"),
+
 
 
 	/**
@@ -265,7 +270,7 @@ public enum ErrorCode {
 	/* 데이터베이스 에러 메시지 */
 	DB_PK_FOUND("PK_ABSENT", "테이블의 데이터 추가로 생성된 PK값을 찾지 못 했습니다."),
 
-	
+
 	MEMBER_ATTENDANCE_UNKNOWN("MEMBER_", "일시적인 문제로 출석이 불가능합니다 .잠시 후 다시 시도해주세요."),
 	MEMBER_FIND_NONE("MEMBER_123", "입력하신 정보로 일치하는 사용자가 없습니다."),
 	MEMBER_FIND_ID("MEMBER_203", "현재 일시적인 문제로 아이디 찾기가 불가능합니다. 잠시 후 다시 시도해 주세요."),

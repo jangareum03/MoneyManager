@@ -1,6 +1,8 @@
 package com.moneymanager.vo;
 
 import lombok.Value;
+
+import java.time.LocalDate;
 import java.time.Year;
 
 /**
@@ -38,20 +40,14 @@ public class YearVO {
 
 	public YearVO( String  year ) {
 		int parsedYear;
-
 		try{
-			if( year == null ) {
-				throw new IllegalArgumentException("년도는 null이 될 수 없습니다.");
-			}
+			parsedYear = (year == null) ? LocalDate.now().getYear() : Integer.parseInt(year);
+		}catch ( NumberFormatException e ) {
+			throw new IllegalArgumentException("YEAR_FORMAT");
+		}
 
-			parsedYear = Integer.parseInt(year);	//문자에서 숫자로 변환
-
-			//범위 검증
-			if( !isValidYearRange(parsedYear) ) {
-				throw new IllegalArgumentException("년은 현재년도부터 " + MAX_YEAR_RANGE + "년 전까지여야 합니다.");
-			}
-		}catch ( IllegalArgumentException e ) {
-			parsedYear = Year.now().getValue();
+		if( !isValidYearRange(parsedYear) ) {
+			throw new IllegalArgumentException("YEAR_INVALID");
 		}
 
 		this.year = parsedYear;

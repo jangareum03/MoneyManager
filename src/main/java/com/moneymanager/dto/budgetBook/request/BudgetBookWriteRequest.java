@@ -45,7 +45,8 @@ public class BudgetBookWriteRequest {
 	@NoArgsConstructor(access = AccessLevel.PROTECTED)
 	@AllArgsConstructor
 	public static class LastDay {
-		private DateRequest.MonthRange date;
+		private String year;
+		private String month;
 	}
 
 	/**

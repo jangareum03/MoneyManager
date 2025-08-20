@@ -106,6 +106,7 @@
             <AppenderRef ref="console"/>
             <AppenderRef ref="warn-client"/>
             <AppenderRef ref="system-info" />
+            <AppenderRef ref="error" />
         </Logger>
 
         <Logger name="org.springframework.web" level="error" additivity="false">
