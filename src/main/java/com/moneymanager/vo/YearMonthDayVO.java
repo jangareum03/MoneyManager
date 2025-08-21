@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 /**
  * <p>
@@ -27,9 +28,14 @@ import java.time.LocalDate;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 8. 12.</td>
+ * 		 	  <td>25. 8. 12</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 8. 21</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[메서드 추가] formatDate - 날짜를 포맷으로 변경 후 반환</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
@@ -72,13 +78,15 @@ public class YearMonthDayVO {
 	private int parseDayOrDefault(String day, int defaultDay) {
 		if( day == null ) return defaultDay;
 
+		int parsedDay;
 		try {
-			int parsedDay = Integer.parseInt(day);
-			if( isValidDayRange(parsedDay) ) {
-				return parsedDay;
-			}
+			parsedDay = Integer.parseInt(day);
 		}catch ( NumberFormatException e ) {
-			log.debug("숫자 포맷 예외 발생하여 day가 기본값인 {}로 설정됩니다.", defaultDay);
+			throw new IllegalArgumentException("COMMON_DAY_FORMAT");
+		}
+
+		if( !isValidDayRange(parsedDay) ) {
+			throw new IllegalArgumentException("COMMON_DAY_INVALID");
 		}
 
 		return defaultDay;
@@ -108,6 +116,18 @@ public class YearMonthDayVO {
 	}
 
 
+	public static YearMonthDayVO fromStringDate(String date) {
+		if( date == null ) throw new IllegalArgumentException("COMMON_DATE_MISSING");
+		if( date.length() != 8 ) throw new IllegalArgumentException("COMMON_DATE_FORMAT");
+
+		String year = date.substring(0, 4);
+		String month = date.substring(4, 6);
+		String day = date.substring(6);
+
+		return new YearMonthDayVO(year, month, day);
+	}
+
+
 	/**
 	 * 연과 월의 첫째 일(=1일)을 반환합니다.
 	 * <p>
@@ -131,5 +151,18 @@ public class YearMonthDayVO {
 	 */
 	public LocalDate lastDayOfMonth() {
 		return date.withDayOfMonth(date.lengthOfMonth());
+	}
+
+
+	/**
+	 * 날짜를 지정된 형식{@code pattern}으로 문자열로 반환합니다.
+	 *
+	 * @param pattern	날짜 포맷 패턴
+	 * @return
+	 */
+	public String formatDate(String pattern) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+
+		return date.format(formatter);
 	}
 }

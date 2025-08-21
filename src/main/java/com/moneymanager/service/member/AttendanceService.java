@@ -179,10 +179,7 @@ public class AttendanceService {
 	private void validateToday( String id, LocalDate date ) {
 		LocalDate today = LocalDate.now();
 		if (!today.isEqual(date)) {
-			ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.ATTEND_TODAY_INVALID).requestData(String.format("id=%s, date=%s", id, date)).build();
-
-			LoggerUtil.logUserWarn(errorDTO);
-			throw new ClientException(errorDTO);
+			//ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.ATTEND_TODAY_INVALID).requestData(String.format("id=%s, date=%s", id, date)).build();
 		}
 	}
 
@@ -198,10 +195,7 @@ public class AttendanceService {
 	 */
 	private void validateDuplication(String id, LocalDate date) {
 		if(attendanceDAO.hasCheckedInDate(id, date) ) {
-			ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.ATTEND_TODAY_DUPLICATE).requestData(String.format("id=%s, date=%s", id, date)).build();
-
-			LoggerUtil.logUserWarn(errorDTO);
-			throw new ClientException(errorDTO);
+			//ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.ATTEND_TODAY_DUPLICATE).requestData(String.format("id=%s, date=%s", id, date)).build();
 		}
 	}
 

@@ -49,8 +49,9 @@ public class CustomAuthFailureHandler implements AuthenticationFailureHandler {
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
 		ErrorDTO<?> errorDTO = ErrorDTO.builder().errorCode(ErrorCode.valueOf(exception.getMessage())).requestData(request.getParameter("username")).build();
-		LoggerUtil.logUserWarn(errorDTO);
-		request.getSession().setAttribute("error", errorDTO.getErrorCode().getMessage());
+		LoggerUtil.logUserWarn(errorDTO, "회원 로그인");
+
+		request.getSession().setAttribute("error", errorDTO.getErrorCode().getLogMessage());
 
 
 		LoggerUtil.logSystemInfo("로그인 실패 - 사용자ID: {}", request.getParameter("username") );

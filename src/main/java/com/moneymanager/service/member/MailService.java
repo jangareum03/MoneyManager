@@ -1,7 +1,6 @@
 package com.moneymanager.service.member;
 
 import com.moneymanager.enums.type.MailType;
-import com.moneymanager.exception.ErrorException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,8 +14,6 @@ import javax.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
 import java.util.Objects;
 import java.util.Random;
-
-import static com.moneymanager.exception.code.ErrorCode.*;
 
 
 /**
@@ -90,11 +87,11 @@ public class MailService {
 					break;
 				default:
 					logger.debug("		🍋[END] {} 이메일에 전송 실패했습니다. (원인: 이메일 형식 유형 알 수 없음)", to);
-					throw new ErrorException(EMAIL_SEND_FORMAT);
+					throw new RuntimeException("");
 			}
 		}catch ( MessagingException | UnsupportedEncodingException e ) {
 			logger.debug("		🍋[END] {} 이메일에 전송 실패했습니다. (원인: {})", to, e.getMessage());
-			throw new ErrorException(EMAIL_SEND_UNKNOWN);
+			throw new RuntimeException("");
 		}
 
 		return key;

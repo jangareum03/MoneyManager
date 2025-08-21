@@ -14,12 +14,10 @@ import com.moneymanager.dto.member.response.MemberRecoveryResponse;
 import com.moneymanager.entity.Member;
 import com.moneymanager.entity.MemberInfo;
 import com.moneymanager.enums.type.*;
-import com.moneymanager.exception.code.ErrorCode;
-import com.moneymanager.exception.ErrorException;
+import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.validation.MemberValidationService;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -32,11 +30,9 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
-import static com.moneymanager.exception.code.ErrorCode.*;
 
 
 /**
@@ -97,7 +93,7 @@ public class MemberServiceImpl {
 	 * 입력한 정보로 회원가입을 진행합니다.<br>
 	 *
 	 * @param signUp 회원가입 정보
-	 * @throws ErrorException 회원가입이 불가할 때 발생
+	 * @throws ClientException 회원가입이 불가할 때 발생
 	 */
 	@Transactional(rollbackFor = Exception.class)
 	public void createMember(MemberSignUpRequest signUp) {
@@ -109,9 +105,9 @@ public class MemberServiceImpl {
 			if (memberDao.saveMember(member) && memberInfoDao.saveMemberInfo(memberInfo)) {    //신규 회원 추가된 경우
 				log.debug("회원가입에 성공했습니다. (아이디: {}, 닉네임: {}, 이름: {}, 성별: {}, 이메일: {})", signUp.getId(), signUp.getNickName(), signUp.getName(), signUp.getGender(), signUp.getEmail());
 			}
-		} catch (IllegalArgumentException | DataAccessException | ErrorException e) {
+		} catch (IllegalArgumentException | DataAccessException | ClientException e) {
 			log.debug("원인: {}", e.getMessage());
-			throw new ErrorException(MEMBER_JOIN_UNKNOWN);
+			throw new RuntimeException("");
 		}
 	}
 
@@ -287,7 +283,7 @@ public class MemberServiceImpl {
 					value = getMemberInfo(memberId).getEmail();
 				}
 			}
-		} catch (DataAccessException | ErrorException e) {
+		} catch (DataAccessException | ClientException e) {
 
 		}
 
@@ -335,7 +331,7 @@ public class MemberServiceImpl {
 	 * 아이디 존재 여부를 판단합니다.<p>
 	 * 입력한 정보에 해당하는 아이디가 존재하면 아이디와 마지막 접속일을 반환합니다.<br>
 	 * 아이디는 일부가 마스킹 처리되며, 한 번도 접속 하지 않았다면 마지막 접속일은 제공되지 않습니다.<p>
-	 * 입력한 정보에 해당하는 아이다가 미존재면 {@link ErrorException}이 발생합니다.
+	 * 입력한 정보에 해당하는 아이다가 미존재면 {@link ClientException}이 발생합니다.
 	 *
 	 * @param findID 아이디를 찾기 위한 정보
 	 * @return 아이디가 있으면 마스킹된 아이디
@@ -343,7 +339,7 @@ public class MemberServiceImpl {
 	public MemberRecoveryResponse.Id findMaskedIdAndMessage(MemberRecoveryRequest.Id findID) {
 		Member member = memberDao.findMemberByNameAndBirth(findID.toEntity());
 		if (Objects.isNull(member)) {    //아이디가 존재하지 않은 경우
-			throw new ErrorException(ErrorCode.MEMBER_FIND_NONE);
+			throw new RuntimeException("");
 		}
 
 		String message = getIdGuideByStatus(member);    //회원 상태별 안내 메시지 얻기
@@ -412,7 +408,7 @@ public class MemberServiceImpl {
 		//회원 조회
 		Member member = memberDao.findMemberByUsernameAndName(findPwd.toEntity());
 		if (Objects.isNull(member)) {    //회원이 없는 경우
-			throw new ErrorException(ErrorCode.MEMBER_FIND_NONE);
+			throw new RuntimeException("");
 		}
 
 		//회원 상태별 안내문구
@@ -444,7 +440,7 @@ public class MemberServiceImpl {
 	 * @param member			임시 비밀번호로 변경할 회원
 	 * @param message		회원 상태별 안내 메시지
 	 * @return	마스킹된 이메일과 안내 메시지가 포함된 비밀번호 찾기 응답 객체
-	 * @throws ErrorException	이메일 전송 실패 또는 알 수 없는 오류가 발생할 경우 발생
+	 * @throws ClientException	이메일 전송 실패 또는 알 수 없는 오류가 발생할 경우 발생
 	 */
 	private MemberRecoveryResponse.Password sendTemporaryPasswordAndChange( HttpServletRequest request, Member member, String message ) {
 		String email = member.getEmail();
@@ -453,7 +449,7 @@ public class MemberServiceImpl {
 			String tempPassword = mailService.send(MailType.TEMP_PASSWORD, member.getName(), email);
 
 			if( tempPassword == null ) {
-				throw new ErrorException(EMAIL_SEND_UNKNOWN);
+				throw new RuntimeException("");
 			}
 
 			changePassword(member.getUserName(), tempPassword);
@@ -468,7 +464,7 @@ public class MemberServiceImpl {
 					.message(message)
 					.build();
 		}catch ( Exception e ) {
-			throw new ErrorException(EMAIL_SEND_UNKNOWN);
+			throw new RuntimeException("");
 		}
 	}
 
@@ -561,11 +557,11 @@ public class MemberServiceImpl {
 		if (delete.getCode().equals("00")) {
 			log.debug("회원탈퇴 실패 - 탈퇴사유 불문명");
 
-			throw new ErrorException(MEMBER_EXIT_REASON);
+			throw new RuntimeException("");
 		} else if (delete.getCode().equals("05") && Objects.isNull(delete.getCause())) {
 			log.debug("기타사항 미입력");
 
-			throw new ErrorException(MEMBER_EXIT_ETC);
+			throw new RuntimeException("");
 		}
 
 
@@ -575,7 +571,7 @@ public class MemberServiceImpl {
 			log.debug("비밀번호 불일치");
 
 
-			throw new ErrorException(MEMBER_PASSWORD_MISMATCH);
+			throw new RuntimeException("");
 		} else {
 			try {
 				changeStatus(memberId, MemberStatus.DELETE);
@@ -585,8 +581,7 @@ public class MemberServiceImpl {
 					log.debug("회원탈퇴 성공 - 회원: {}, 상태: 복구 가능한 상태로 전환", memberId);
 				}
 			} catch (IllegalArgumentException ie) {
-
-				throw new ErrorException(ErrorCode.MEMBER_EXIT_UNKNOWN);
+				throw new RuntimeException("");
 			}
 		}
 	}

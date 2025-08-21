@@ -4,7 +4,7 @@ import com.moneymanager.dto.common.ApiResultDTO;
 import com.moneymanager.dto.common.ImageDTO;
 import com.moneymanager.dto.member.request.MemberDeleteRequest;
 import com.moneymanager.dto.member.request.MemberUpdateRequest;
-import com.moneymanager.exception.ErrorException;
+import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.ImageServiceImpl;
 import com.moneymanager.service.member.MemberServiceImpl;
 import org.apache.logging.log4j.LogManager;
@@ -72,10 +72,10 @@ public class UpdateApiController {
 			String result = memberService.changeMember( (String)session.getAttribute("mid"), update );
 
 			return ResponseEntity.ok( ApiResultDTO.builder().success(true).message(result).build() );
-		}catch ( ErrorException e ) {
+		}catch ( ClientException e ) {
 			logger.debug("{} 회원의 정보가 수정 불가합니다.", (String)session.getAttribute("mid"));
 
-			return ResponseEntity.ok( ApiResultDTO.builder().success(false).message(e.getErrorMessage()).build() );
+			return ResponseEntity.ok( ApiResultDTO.builder().success(false).message(e.getMessage()).build() );
 		}
 	}
 
@@ -129,8 +129,8 @@ public class UpdateApiController {
 			memberService.deleteMember( memberId, delete );
 
 			return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("탈퇴가 완료되었습니다.\n그동안 저희 서비스를 이용해주셔서 감사합니다. :)").build());
-		}catch ( ErrorException e ) {
-			return ResponseEntity.ok( ApiResultDTO.builder().success(false).message(e.getErrorMessage()).build() );
+		}catch ( ClientException e ) {
+			return ResponseEntity.ok( ApiResultDTO.builder().success(false).message(e.getMessage()).build() );
 		}
 	}
 }

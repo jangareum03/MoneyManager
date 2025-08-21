@@ -4,7 +4,6 @@ import com.moneymanager.dao.member.MemberInfoDaoImpl;
 import com.moneymanager.dto.common.ImageDTO;
 import com.moneymanager.dto.member.request.MemberUpdateRequest;
 import com.moneymanager.entity.MemberInfo;
-import com.moneymanager.exception.ErrorException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

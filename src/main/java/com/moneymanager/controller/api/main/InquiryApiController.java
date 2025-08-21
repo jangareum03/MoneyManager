@@ -4,7 +4,7 @@ import com.moneymanager.dto.common.ApiResultDTO;
 import com.moneymanager.dto.inquiry.request.InquiryAccessRequest;
 import com.moneymanager.dto.inquiry.request.InquirySearchRequest;
 import com.moneymanager.dto.inquiry.response.InquiryListResponse;
-import com.moneymanager.exception.ErrorException;
+import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.InquiryService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -76,8 +76,8 @@ public class InquiryApiController {
 			inquiryService.deleteInquiry( (String)session.getAttribute("mid"), id );
 
 			return ResponseEntity.ok( ApiResultDTO.builder().success(true).message("문의사항을 삭제했습니다.").build() );
-		}catch ( ErrorException e ) {
-			return ResponseEntity.ok( ApiResultDTO.builder().success(false).message(e.getErrorMessage()).build() );
+		}catch ( ClientException e ) {
+			return ResponseEntity.ok( ApiResultDTO.builder().success(false).message(e.getMessage()).build() );
 		}
 	}
 }

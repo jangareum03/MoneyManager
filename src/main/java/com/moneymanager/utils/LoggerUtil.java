@@ -46,12 +46,12 @@ public class LoggerUtil {
 	 *
 	 * @param <T>	요청 데이터(requestData)에 들어가는 객체의 타입
 	 */
-	public static <T> void logUserWarn(ErrorDTO<T> errorDTO) {
+	public static <T> void logUserWarn(ErrorDTO<T> errorDTO, String service) {
 		ErrorCode errorCode = errorDTO.getErrorCode();
 
-		log.warn("[USER_WARN] errorCode={}, LogMessage={}", errorCode.getCode(), errorCode.getLogMessage());
+		log.warn("[USER_WARN] errorCode={}, serviceName={}, LogMessage={}", errorCode.getCode(), service, errorCode.getLogMessage());
 		log.warn("▶ errorId={}", errorDTO.getErrorId());
-		log.warn("▶ UserMessage={}", errorCode.getMessage());
+		log.warn("▶ UserMessage={}", errorCode.getLogMessage());
 		log.warn("▶ requestData={}", Objects.isNull(errorDTO.getRequestData()) ? "없음" : errorDTO.getRequestData());
 	}
 
@@ -78,7 +78,7 @@ public class LoggerUtil {
 
 		log.error("[ERROR] errorCode={}, LogMessage={}", errorCode.getCode(), errorCode.getLogMessage());
 		log.error("▶ errorId={}", errorDTO.getErrorId());
-		log.error("▶ UserMessage={}", errorCode.getMessage());
+		log.error("▶ UserMessage={}", errorCode.getLogMessage());
 		log.error("▶ requestData={}", Objects.isNull(errorDTO.getRequestData()) ? "없음" : errorDTO.getRequestData());
 	}
 }

@@ -1,5 +1,8 @@
 package com.moneymanager.vo;
 
+import com.moneymanager.dto.common.ErrorDTO;
+import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.exception.custom.ClientException;
 import lombok.Value;
 
 import java.time.LocalDate;
@@ -35,22 +38,23 @@ import java.time.Year;
 @Value
 public class YearVO {
 	int MAX_YEAR_RANGE = 5;
-
 	int year;
 
 	public YearVO( String  year ) {
-		int parsedYear;
+		if( year == null ) throw new ClientException(ErrorCode.COMMON_YEAR_MISSING, "년도를 입력해주세요.");
+
 		try{
-			parsedYear = (year == null) ? LocalDate.now().getYear() : Integer.parseInt(year);
+			int parsedYear = Integer.parseInt(year);
+
+			if( !isValidYearRange(parsedYear) ) {
+				int currentYear = LocalDate.now().getYear();
+				throw new ClientException(ErrorCode.COMMON_YEAR_INVALID, String.format("년도는 %d ~ %d까지만 입력가능합니다.", currentYear-MAX_YEAR_RANGE, currentYear));
+			}
+
+			this.year = parsedYear;
 		}catch ( NumberFormatException e ) {
-			throw new IllegalArgumentException("YEAR_FORMAT");
+			throw new ClientException(ErrorCode.COMMON_YEAR_FORMAT, "년도는 4자리 숫자만 입력 가능합니다.");
 		}
-
-		if( !isValidYearRange(parsedYear) ) {
-			throw new IllegalArgumentException("YEAR_INVALID");
-		}
-
-		this.year = parsedYear;
 	}
 
 

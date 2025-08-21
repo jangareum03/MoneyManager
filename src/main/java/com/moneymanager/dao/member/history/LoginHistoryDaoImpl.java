@@ -3,7 +3,7 @@ package com.moneymanager.dao.member.history;
 import com.moneymanager.dao.HistoryDao;
 import com.moneymanager.entity.LoginLog;
 import com.moneymanager.exception.code.ErrorCode;
-import com.moneymanager.exception.ErrorException;
+import com.moneymanager.exception.custom.ClientException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -89,7 +89,7 @@ public class LoginHistoryDaoImpl implements HistoryDao<LoginLog, Long> {
 
 			return findHistory(historyId);
 		}catch( NullPointerException e ) {
-			throw new ErrorException(ErrorCode.DB_PK_FOUND);
+			throw new RuntimeException();
 		}
 
 	}

@@ -39,7 +39,7 @@ public class ServerException extends RuntimeException {
 	private final ErrorDTO<?> errorDTO;
 
 	public ServerException( ErrorCode errorCode, ErrorDTO<?> errorDTO ) {
-		super(errorCode.getMessage());
+		super(errorCode.getLogMessage());
 
 		this.errorCode = errorCode;
 		this.errorDTO = errorDTO;

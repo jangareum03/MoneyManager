@@ -7,7 +7,7 @@ import com.moneymanager.dto.budgetBook.response.BudgetBookListResponse;
 import com.moneymanager.dto.budgetBook.response.BudgetBookSearchResponse;
 import com.moneymanager.dto.common.request.DateRequest;
 import com.moneymanager.enums.type.DateType;
-import com.moneymanager.exception.ErrorException;
+import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.BudgetBookService;
 import com.moneymanager.service.main.ImageServiceImpl;
 import com.moneymanager.service.main.validation.DateValidationService;
@@ -175,8 +175,8 @@ public class BudgetBookController {
 				return "/main/budgetBook_detail";
 			}
 
-		} catch (ErrorException e) {
-			model.addAttribute("error", e.getErrorMessage());
+		} catch (ClientException e) {
+			model.addAttribute("error", e.getMessage());
 			model.addAttribute("method", "get");
 			model.addAttribute("url", "/budgetBooks");
 

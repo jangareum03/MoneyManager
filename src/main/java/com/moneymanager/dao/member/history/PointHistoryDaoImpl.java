@@ -5,8 +5,6 @@ import com.moneymanager.dao.HistoryDao;
 import com.moneymanager.dto.member.response.MemberMyPageResponse;
 import com.moneymanager.entity.Member;
 import com.moneymanager.entity.PointHistory;
-import com.moneymanager.exception.code.ErrorCode;
-import com.moneymanager.exception.ErrorException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -90,7 +88,7 @@ public class PointHistoryDaoImpl implements HistoryDao<PointHistory, Long> {
 
 			return findHistory(historyId);
 		}catch ( NullPointerException e ) {
-			throw new ErrorException(ErrorCode.DB_PK_FOUND);
+			throw new RuntimeException("");
 		}
 
 	}

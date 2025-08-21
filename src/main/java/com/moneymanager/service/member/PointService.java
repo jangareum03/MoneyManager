@@ -6,8 +6,6 @@ import com.moneymanager.dto.member.response.MemberMyPageResponse;
 import com.moneymanager.entity.Member;
 import com.moneymanager.entity.MemberInfo;
 import com.moneymanager.entity.PointHistory;
-import com.moneymanager.exception.code.ErrorCode;
-import com.moneymanager.exception.ErrorException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +64,7 @@ public class PointService {
 	public void addPointForAttendance( String memberId, long point ) {
 		if(point == 0) {
 			log.debug("{} 회원에 추가할 포인트가 없습니다.", memberId);
-			throw new  ErrorException(ErrorCode.POINT_ADD_NONE);
+			throw new RuntimeException("");
 		}
 
 		//포인트 및 내역 추가
@@ -79,7 +77,7 @@ public class PointService {
 			PointHistory pointHistory =  historyDAO.saveHistory(entity);
 			log.debug("{} 회원 포인트 변경 성공 - 추가할 포인트: {}, 현재 사용자 포인트: {}", pointHistory.getMember().getId(), pointHistory.getPoints(), pointHistory.getBalancePoints());
 		}else  {
-			throw new ErrorException(ErrorCode.MEMBER_ATTENDANCE_UNKNOWN);
+			throw new RuntimeException("");
 		}
 	}
 

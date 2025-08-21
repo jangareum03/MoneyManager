@@ -3,10 +3,7 @@ package com.moneymanager.service.member.history;
 import com.moneymanager.dao.member.history.LoginHistoryDaoImpl;
 import com.moneymanager.dto.member.log.LoginLogDTO;
 import com.moneymanager.entity.LoginLog;
-import com.moneymanager.exception.ErrorException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;

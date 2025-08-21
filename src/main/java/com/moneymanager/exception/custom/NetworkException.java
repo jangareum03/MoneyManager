@@ -36,7 +36,7 @@ public class NetworkException extends RuntimeException {
     private final ErrorCode errorCode;
 
 	public NetworkException( ErrorCode errorCode )  {
-		super(errorCode.getMessage());
+		super(errorCode.getLogMessage());
         this.errorCode = errorCode;
 	}
 

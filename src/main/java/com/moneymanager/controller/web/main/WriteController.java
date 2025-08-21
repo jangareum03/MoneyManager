@@ -2,9 +2,11 @@ package com.moneymanager.controller.web.main;
 
 import com.moneymanager.dto.budgetBook.request.BudgetBookWriteRequest;
 import com.moneymanager.dto.budgetBook.response.BudgetBookWriteResponse;
-import com.moneymanager.exception.ErrorException;
+import com.moneymanager.dto.common.ErrorDTO;
+import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.BudgetBookService;
-import com.moneymanager.service.main.validation.DateValidationService;
+import com.moneymanager.utils.LoggerUtil;
+import com.moneymanager.vo.YearMonthDayVO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
@@ -12,7 +14,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -93,36 +94,21 @@ public class WriteController {
 	 * @return	수입 또는 지출 작성 페이지
 	 */
 	@PostMapping("/{type}")
-	public String getStep2Page( @PathVariable String type, @RequestParam  String date, HttpSession session, Model model ) {
-		try {
-			//날짜 검증
-			if( date.length() != 8 ) {
-				throw new IllegalArgumentException("날짜 값의 길이가 맞지 않습니다.");
-			}
-			DateValidationService.checkDateAvailability( date );
+	public String getStep2Page( @PathVariable String type, @RequestParam String date, HttpSession session, Model model ) {
+		try{
+			YearMonthDayVO vo = YearMonthDayVO.fromStringDate(date);
 
+			BudgetBookWriteResponse.InitialBudget write = budgetBookService.getWriteByData( (String)session.getAttribute("mid"), type, vo );
 
-			BudgetBookWriteRequest.InitialBudget set = BudgetBookWriteRequest.InitialBudget.builder().type(type).date(date).build();
-			BudgetBookWriteResponse.InitialBudget write = budgetBookService.getWriteByData( (String)session.getAttribute("mid"), set );
-
-			model.addAttribute("write", write);
-			model.addAttribute("budgetBook", BudgetBookWriteResponse.DetailedBudget.builder().build());
+			model.addAttribute("budgetBook", write);
 
 			return "/main/budgetBook_writeStep2";
-		} catch ( IllegalArgumentException | ParseException e) {
-			if( e instanceof ParseException ) {
-				model.addAttribute("error", "날짜 형식이 맞지 않습니다.");
-				logger.debug("가계부 날짜가 잘못된 형식입니다.");
-			}else {
-				model.addAttribute("error", e.getMessage());
-				logger.debug("가계부 날짜가 잘못되었습니다. (원인: {})", e.getMessage());
-			}
+		}catch ( ClientException e ) {
+			ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(e.getErrorCode()).message(e.getMessage()).requestData(date).build();
 
-			model.addAttribute("method", "get");
-			model.addAttribute("url", "/budgetBook/write");
+			LoggerUtil.logUserWarn(errorDTO, "가계부 작성");
 
-
-			return "alert";
+			return "/main/budgetBook_writeStep1";
 		}
 	}
 
@@ -157,8 +143,8 @@ public class WriteController {
 			budgetBookService.createBudgetBook( memberId, create );
 
 			return "redirect:/budgetBook/write";
-		}catch ( ErrorException  e ) {
-			model.addAttribute("error", e.getErrorMessage());
+		}catch ( ClientException  e ) {
+			model.addAttribute("error", e.getMessage());
 			model.addAttribute("method", "get");
 			model.addAttribute("url", "/budgetBook/write");
 

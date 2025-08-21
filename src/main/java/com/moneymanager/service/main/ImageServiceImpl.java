@@ -4,7 +4,6 @@ import com.moneymanager.dao.main.BudgetBookDao;
 import com.moneymanager.dto.common.ImageDTO;
 import com.moneymanager.entity.BudgetBook;
 import com.moneymanager.enums.RegexPattern;
-import com.moneymanager.exception.ErrorException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,8 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
-import static com.moneymanager.exception.code.ErrorCode.BUDGET_REGISTER_IMAGE;
 
 
 /**
@@ -128,10 +125,6 @@ public class ImageServiceImpl {
 	 * @throws IOException	가계부 이미지가 없을 시
 	 */
 	public void saveImage( BudgetBook budgetBook, MultipartFile image, int index ) throws IOException {
-		if( Objects.isNull(budgetBook) || Objects.isNull(image) ) {
-			throw new ErrorException( BUDGET_REGISTER_IMAGE );
-		}
-
 		//폴더와 저장할 이미지 얻은 후 서버에 저장
 		File directory = makeDirectory( budgetBook.getMember().getId(), budgetBook.getBookDate().substring(0, 4) );
 		String saveName = changeImageName( budgetBook.getId(), budgetBook.getBookDate(), index, image.getOriginalFilename() );

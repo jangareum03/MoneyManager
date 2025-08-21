@@ -6,15 +6,12 @@ import com.moneymanager.dto.budgetBook.request.BudgetBookSearchRequest;
 import com.moneymanager.dto.budgetBook.request.BudgetBookUpdateRequest;
 import com.moneymanager.dto.budgetBook.response.BudgetBookListResponse;
 import com.moneymanager.dto.common.ApiResultDTO;
-import com.moneymanager.dto.common.ErrorDTO;
 import com.moneymanager.dto.common.ImageDTO;
 import com.moneymanager.dto.common.request.DateRequest;
 import com.moneymanager.dto.common.request.YearMonthRequest;
-import com.moneymanager.exception.ErrorException;
-import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.BudgetBookService;
 import com.moneymanager.service.main.api.GoogleChartService;
-import com.moneymanager.utils.LoggerUtil;
 import com.moneymanager.vo.YearMonthDayVO;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.ResponseEntity;
@@ -78,38 +75,10 @@ public class BudgetBookApiController {
 	 */
 	@PostMapping("/lastDay")
 	public ResponseEntity<ApiResultDTO<Integer>> postLastDay(@RequestBody YearMonthRequest date ) {
-		try{
-			//요청값 → VO 변환
-			YearMonthDayVO vo = YearMonthDayVO.builder().year(date.getYear()).month(date.getMonth()).build();
+		//요청값 → VO 변환
+		YearMonthDayVO vo = YearMonthDayVO.builder().year(date.getYear()).month(date.getMonth()).build();
 
-			return ResponseEntity.ok(ApiResultDTO.success(vo.getDate().lengthOfMonth()));
-		}catch ( IllegalArgumentException e ) {
-			ErrorDTO<YearMonthRequest> errorDTO;
-				switch (e.getMessage()) {
-					case "YEAR_FORMAT" :
-						errorDTO = ErrorDTO.<YearMonthRequest>builder().errorCode(ErrorCode.BUDGET_WRITE_YEAR_FORMAT).requestData(date).build();
-						LoggerUtil.logUserWarn( errorDTO  );
-						break;
-					case "YEAR_INVALID" :
-						errorDTO = ErrorDTO.<YearMonthRequest>builder().errorCode(ErrorCode.BUDGET_WRITE_YEAR_INVALID).requestData(date).build();
-						LoggerUtil.logUserWarn( errorDTO );
-						break;
-					case "MONTH_FORMAT" :
-						errorDTO = ErrorDTO.<YearMonthRequest>builder().errorCode(ErrorCode.BUDGET_WRITE_MONTH_FORMAT).requestData(date).build();
-						LoggerUtil.logUserWarn( errorDTO );
-						break;
-					case "MONTH_INVALID" :
-						errorDTO = ErrorDTO.<YearMonthRequest>builder().errorCode(ErrorCode.BUDGET_WRITE_MONTH_INVALID).requestData(date).build();
-						LoggerUtil.logUserWarn( errorDTO );
-						break;
-					default :
-						errorDTO = ErrorDTO.<YearMonthRequest>builder().errorCode(ErrorCode.SYSTEM_LOGIC_ERROR_NONE).requestData(date).build();
-						LoggerUtil.logSystemError( errorDTO );
-						break;
-			};
-
-			return ResponseEntity.ok(ApiResultDTO.failure(errorDTO.getErrorCode().getMessage()));
-		}
+		return ResponseEntity.ok(ApiResultDTO.success(vo.getDate().lengthOfMonth()));
 	}
 
 
@@ -183,8 +152,8 @@ public class BudgetBookApiController {
 
 			budgetBookService.updateBudgetBook((String) session.getAttribute("mid"), id, updateReqDTO );
 			return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("수정 완료했습니다.").build());
-		} catch (ErrorException e) {
-			return ResponseEntity.ok(ApiResultDTO.builder().success(false).message(e.getErrorMessage()).build());
+		} catch (ClientException e) {
+			return ResponseEntity.ok(ApiResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
 
@@ -203,8 +172,8 @@ public class BudgetBookApiController {
 			budgetBookService.deleteBudgetBook((String) session.getAttribute("mid"), id);
 
 			return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("선택하신 가계부를 삭제했습니다.").build());
-		} catch (ErrorException e) {
-			return ResponseEntity.ok(ApiResultDTO.builder().success(false).message(e.getErrorMessage()).build());
+		} catch (ClientException e) {
+			return ResponseEntity.ok(ApiResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
 }

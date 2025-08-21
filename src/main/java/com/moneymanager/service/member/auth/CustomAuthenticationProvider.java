@@ -67,23 +67,23 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 					//비밀번호 불일치인 경우
 					if( !passwordEncoder.matches(userPassword, userDetails.getPassword()) ) {
 						if( userDetails.getFailureCount() == 5 ) {
-							throw new LoginException(ErrorDTO.builder().errorCode(ErrorCode.LOGIN_ACCOUNT_UNAUTHORIZED_LOCKED).requestData(username).build());
+							throw new LoginException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_STATUS_LOCKED).requestData(username).build());
 						}
-						throw new LoginException(ErrorDTO.builder().errorCode(ErrorCode.LOGIN_ACCOUNT_MISMATCH).requestData(username).build());
+						throw new LoginException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_STATUS_UNAUTHORIZED).requestData(username).build());
 					}
 
 					return new UsernamePasswordAuthenticationToken(userDetails, userPassword, userDetails.getAuthorities());
 				case LOCKED:
-					throw new LoginException(ErrorDTO.builder().errorCode(ErrorCode.LOGIN_ACCOUNT_UNAUTHORIZED_LOCKED).requestData(username).build());
+					throw new LoginException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_STATUS_LOCKED).requestData(username).build());
 				case REPAIR:
-					throw new LoginException(ErrorDTO.builder().errorCode(ErrorCode.LOGIN_ACCOUNT_UNAUTHORIZED_RESTORE).requestData(username).build());
+					throw new LoginException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_STATUS_WITHDRAW_RECOVERABLE).requestData(username).build());
 				case DELETE:
-					throw new LoginException( ErrorDTO.builder().errorCode(ErrorCode.LOGIN_ACCOUNT_UNAUTHORIZED_RESIGN).requestData(username).build() );
+					throw new LoginException( ErrorDTO.builder().errorCode(ErrorCode.MEMBER_STATUS_WITHDRAW_NONRECOVERABLE).requestData(username).build() );
 			}
 
-			throw new LoginException( ErrorDTO.builder().errorCode(ErrorCode.LOGIN_SECURITY_AUTHORIZATION_ACCESS_DENIED).requestData(username).build() );
+			throw new LoginException( ErrorDTO.builder().errorCode(ErrorCode.MEMBER_STATUS_UNKNOWN).requestData(username).build() );
 		}catch ( EmptyResultDataAccessException e ) {
-			throw new LoginException(ErrorDTO.builder().errorCode(ErrorCode.LOGIN_ID_NONE).requestData(username).build());
+			throw new LoginException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_ID_NONE).requestData(username).build());
 		}
 	}
 

@@ -75,9 +75,9 @@ public class MemberValidator {
 		ErrorDTO<String> errorDTO = null;
 
 		if( id == null || id.isBlank() ) {	//아이디 미입력한 상태
-			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.LOGIN_ID_MISSING).requestData(id).build();
+			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.MEMBER_ID_MISSING).requestData(id).build();
 		}else if( !id.matches(RegexPattern.MEMBER_ID.getPattern()) ) {	//아이디 형식 불일치한 상태
-			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.LOGIN_ID_FORMAT).requestData(id).build();
+			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.MEMBER_ID_FORMAT).requestData(id).build();
 		}
 
 		return errorDTO;
@@ -97,9 +97,9 @@ public class MemberValidator {
 		ErrorDTO<String> errorDTO = null;
 
 		if( password == null || password.isBlank() ) {	//비밀번호 미입력한 상태
-			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.LOGIN_PASSWORD_MISSING).requestData(password).build();
+			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.MEMBER_PASSWORD_MISSING).requestData(password).build();
 		}else if( !password.matches(RegexPattern.MEMBER_PWD.getPattern()) ) {	//아이디 형식 불일치한 상태
-			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.LOGIN_PASSWORD_FORMAT).requestData(password).build();
+			errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.MEMBER_PASSWORD_FORMAT).requestData(password).build();
 		}
 
 		return errorDTO;

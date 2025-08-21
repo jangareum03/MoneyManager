@@ -37,17 +37,6 @@ import java.util.List;
  */
 public class BudgetBookWriteRequest {
 
-	/**
-	 * 날짜의 마지막 일자를 알기 위한 DTO
-	 */
-	@Builder
-	@Getter
-	@NoArgsConstructor(access = AccessLevel.PROTECTED)
-	@AllArgsConstructor
-	public static class LastDay {
-		private String year;
-		private String month;
-	}
 
 	/**
 	 * 가계부 초기 설정(가계부 날짜, 가계부 유형)을 가져오기 위한 DTO<br>

@@ -3,7 +3,7 @@ package com.moneymanager.controller.api.members.validation;
 import com.moneymanager.dto.common.ValidationResultDTO;
 import com.moneymanager.dto.member.validation.*;
 import com.moneymanager.enums.type.MailType;
-import com.moneymanager.exception.ErrorException;
+import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.MailService;
 import com.moneymanager.service.member.validation.MemberValidationService;
 import org.apache.logging.log4j.LogManager;
@@ -72,10 +72,10 @@ public class MemberValidationApiController {
 			MemberValidationService.checkIdAvailability(checkDTO.getId());
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
-		}catch ( ErrorException e ) {
-			logger.debug("{} 아이디는 형식이 부적합합니다. ({}: {})", checkDTO.getId(), e.getErrorCode(), e.getErrorMessage());
+		}catch ( ClientException e ) {
+			logger.debug("{} 아이디는 형식이 부적합합니다. ({}: {})", checkDTO.getId(), e.getErrorCode(), e.getErrorCode());
 
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getErrorMessage()).build());
+			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
 
@@ -93,9 +93,8 @@ public class MemberValidationApiController {
 			validationService.checkIdExistence(checkDTO.getId());
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("사용 가능한 아이디입니다.").build());
-		}catch ( ErrorException e ) {
-			logger.debug("{} 아이디는 사용 불가능합니다. {{}: {}}", checkDTO.getId(), e.getErrorCode(), e.getErrorMessage());
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getErrorMessage()).build());
+		}catch ( ClientException e ) {
+			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
 
@@ -113,9 +112,8 @@ public class MemberValidationApiController {
 			MemberValidationService.checkPasswordAvailability( checkDTO.getPassword() );
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
-		}catch ( ErrorException e ) {
-			logger.debug("'{}' 비밀번호는 형식이 부적합합니다. ({}: {})", checkDTO.getPassword(), e.getErrorCode(), e.getErrorMessage());
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getErrorMessage()).build() );
+		}catch ( ClientException e ) {
+			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build() );
 		}
 	}
 
@@ -134,9 +132,9 @@ public class MemberValidationApiController {
 			validationService.checkPasswordIdentify( (String)session.getAttribute("mid"), checkDTO.getPassword() );
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("현재 비밀번호와 일치합니다.").build());
-		}catch( ErrorException e ) {
+		}catch( ClientException e ) {
 			logger.debug("{} 비밀번호는 현재 비밀번호와 일치하지 않습니다.", checkDTO.getPassword());
-			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getErrorMessage()).build() );
+			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getMessage()).build() );
 		}
 	}
 
@@ -154,10 +152,10 @@ public class MemberValidationApiController {
 			MemberValidationService.checkNameAvailability( checkDTO.getName() );
 
 			return ResponseEntity.ok( ValidationResultDTO.builder().success(true).build() );
-		}catch ( ErrorException e ) {
-			logger.debug("{} 이름은 형식이 부적합합니다. ({}: {})", checkDTO.getName(), e.getErrorCode(), e.getErrorMessage());
+		}catch ( ClientException e ) {
+			logger.debug("{} 이름은 형식이 부적합합니다. ({}: {})", checkDTO.getName(), e.getErrorCode(), e.getMessage());
 
-			return ResponseEntity.ok().body(ValidationResultDTO.builder().success(false).message(e.getErrorMessage()).build());
+			return ResponseEntity.ok().body(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
 
@@ -175,10 +173,10 @@ public class MemberValidationApiController {
 			MemberValidationService.checkBirthAvailability(checkDTO.getDate());
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
-		}catch ( ErrorException e ) {
+		}catch ( ClientException e ) {
 			logger.debug("{} 생년월일은 사용 불가능합니다.", checkDTO.getDate());
 
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getErrorMessage()).build());
+			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
 
@@ -196,9 +194,9 @@ public class MemberValidationApiController {
 			validationService.checkNicknameExistence(checkDTO.getNickname());
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("사용 가능한 닉네임입니다.").build());
-		}catch ( ErrorException e ) {
-			logger.debug("{} 닉네임은 사용 불가능합니다. ({}: {})", checkDTO.getNickname(), e.getErrorCode(), e.getErrorMessage());
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getErrorMessage()).build());
+		}catch ( ClientException e ) {
+			logger.debug("{} 닉네임은 사용 불가능합니다. ({}: {})", checkDTO.getNickname(), e.getErrorCode(), e.getMessage());
+			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
 
@@ -216,9 +214,9 @@ public class MemberValidationApiController {
 			MemberValidationService.checkEmailAvailability(checkDTO.getEmail());
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
-		}catch ( ErrorException e ) {
-			logger.debug("{} 이메일은 형식이 부적합합니다. ({}: {})", checkDTO.getEmail(), e.getErrorCode(), e.getErrorMessage());
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getErrorMessage()).build());
+		}catch ( ClientException e ) {
+			logger.debug("{} 이메일은 형식이 부적합합니다. ({}: {})", checkDTO.getEmail(), e.getErrorCode(), e.getMessage());
+			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
 
@@ -242,9 +240,9 @@ public class MemberValidationApiController {
 			}
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("작성한 이메일로 인증코드 전송했습니다.").build());
-		}catch ( ErrorException e ) {
-			logger.debug("{} 이메일은 사용 불가능합니다. ({}: {})", checkDTO.getEmail(), e.getErrorCode(), e.getErrorMessage());
-			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getErrorMessage()).build() );
+		}catch ( ClientException e ) {
+			logger.debug("{} 이메일은 사용 불가능합니다. ({}: {})", checkDTO.getEmail(), e.getErrorCode(), e.getMessage());
+			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getMessage()).build() );
 		}
 	}
 
@@ -263,9 +261,9 @@ public class MemberValidationApiController {
 			validationService.checkEmailCode( request.getSession(), checkDTO );
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("이메일 인증 완료했습니다.").build());
-		}catch ( ErrorException e ) {
-			logger.debug("{} 이메일로 전송한 인증코드와 불일치합니다. ({}: {})", checkDTO.getEmail(), e.getErrorCode(), e.getErrorMessage());
-			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getErrorMessage()).build() );
+		}catch ( ClientException e ) {
+			logger.debug("{} 이메일로 전송한 인증코드와 불일치합니다. ({}: {})", checkDTO.getEmail(), e.getErrorCode(), e.getMessage());
+			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getMessage()).build() );
 		}
 	}
 

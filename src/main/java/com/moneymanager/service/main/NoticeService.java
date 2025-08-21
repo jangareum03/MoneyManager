@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.moneymanager.exception.code.ErrorCode.NOTICE_FIND_NONE;
-
 
 /**
  * <p>
@@ -143,7 +141,7 @@ public class NoticeService {
 		int count = noticeDao.countNoticeById(id);
 
 		if( count != 1 ) {
-			throw new IllegalArgumentException(NOTICE_FIND_NONE.getMessage());
+
 		}
 
 		Notice notice = noticeDao.findNoticeById(id);

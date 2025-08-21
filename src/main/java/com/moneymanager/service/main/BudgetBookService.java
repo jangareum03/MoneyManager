@@ -17,9 +17,8 @@ import com.moneymanager.entity.BudgetBook;
 import com.moneymanager.entity.Category;
 import com.moneymanager.entity.Member;
 import com.moneymanager.enums.type.DateType;
-import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.enums.type.BudgetBookType;
-import com.moneymanager.exception.ErrorException;
+import com.moneymanager.vo.YearMonthDayVO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,15 +26,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.moneymanager.exception.code.ErrorCode.BUDGET_UPDATE_UNKNOWN;
 
 /**
  * <p>
@@ -88,28 +83,24 @@ public class BudgetBookService {
 	/**
 	 * 가계부 작성에 필요한 기본 정보를 반환합니다.<p>
 	 * 기본정보에는 제목, 카테고리 리스트, 등록 가능한 이미지 개수가 포함됩니다.<br>
-	 * 제목은 가계부 날짜를 'yyyy년 mm월 dd일 e요일' 형식으로 저장됩니다.
+	 * 제목은 가계부 날짜를 {@code yyyy년 mm월 dd일 E요일} 형식으로 저장됩니다.
 	 *
-	 * @param memberId 회원 고유번호
-	 * @param set      가계부 날짜를 저장한 객체
+	 * @param id 			회원 식별번호
+	 * @param type      작성할 가계부 유형
+	 * @param date		작성할 가계부 날짜 정보를 담은 객체
 	 * @return 작성에 필요한 기본 정보
 	 */
-	public BudgetBookWriteResponse.InitialBudget getWriteByData(String memberId, BudgetBookWriteRequest.InitialBudget set) throws ParseException {
-		String title = new SimpleDateFormat("yyyy년 MM월 dd일 E요일").format(new SimpleDateFormat("yyyyMMdd").parse(set.getDate()));
-		int availableCount = imageService.getLimitImageCount(memberId);        //등록 가능한 이미지 개수
+	public BudgetBookWriteResponse.InitialBudget getWriteByData(String id, String type, YearMonthDayVO date) {
+		String title = date.formatDate("yyyy년 MM월 dd일 E요일");
+
+		int availableCount = imageService.getLimitImageCount(id);        //등록 가능한 이미지 개수
 
 		//카테고리 리스트
 		List<CategoryDTO> topCategory = categoryService.getTopCategories();
 
-		String code;
-		if (set.getType().equalsIgnoreCase(BudgetBookType.INCOME.getType())) {
-			code = topCategory.get(0).getCode();
-		} else {
-			code = topCategory.get(1).getCode();
-		}
+		String code = type.equalsIgnoreCase(BudgetBookType.INCOME.getType()) ? topCategory.get(0).getCode() : topCategory.get(1).getCode();
 
-
-		return BudgetBookWriteResponse.InitialBudget.builder().date(title).type(set.getType()).maxImage(availableCount).categories(categoryService.getMySubCategories(code)).build();
+		return BudgetBookWriteResponse.InitialBudget.builder().date(title).type(type).maxImage(availableCount).categories(categoryService.getMySubCategories(code)).build();
 	}
 
 
@@ -124,7 +115,7 @@ public class BudgetBookService {
 	public void createBudgetBook(String memberId, BudgetBookWriteRequest.DetailedBudget create) {
 
 		if (Objects.isNull(create)) {
-			throw new ErrorException(ErrorCode.BUDGET_REGISTER_UNKNOWN);
+
 		}
 
 		//날짜 변환
@@ -163,7 +154,7 @@ public class BudgetBookService {
 			}
 
 		} catch (NullPointerException | IOException e) {
-			throw new ErrorException(ErrorCode.BUDGET_REGISTER_UNKNOWN);
+
 		}
 	}
 
@@ -412,7 +403,7 @@ public class BudgetBookService {
 					.build();
 		} else {
 			logger.debug("가계부 정보조회 실패 - 번호: {}, 작성자: {}, 접근자: {}", entity.getId(), entity.getMember().getId(), memberId);
-			throw new ErrorException(ErrorCode.BUDGET_AUTHOR_MISMATCH);
+			throw new RuntimeException("");
 		}
 	}
 
@@ -466,7 +457,6 @@ public class BudgetBookService {
 	public void updateBudgetBook(String memberId, Long id, BudgetBookUpdateRequest update) {
 
 		if (Objects.isNull(update)) {
-			throw new ErrorException(BUDGET_UPDATE_UNKNOWN);
 		}
 
 		//날짜 변환
@@ -495,14 +485,13 @@ public class BudgetBookService {
 			boolean isUpdate = budgetBookDAO.updateBudgetBook(entity);
 
 			if (!isUpdate) {
-				throw new ErrorException(BUDGET_UPDATE_UNKNOWN);
+
 			}
 
 			imageService.changeImage(memberId, entity, imageFiles);
 
 		} catch (IOException e) {
-			logger.debug("변경하려는 가계부 이미지 미존재로 저장 실패");
-			throw new ErrorException(BUDGET_UPDATE_UNKNOWN);
+			logger.debug("변경하려는 가계부 이미지 미존재로 저장 실패");;
 		}
 	}
 
@@ -517,7 +506,7 @@ public class BudgetBookService {
 		if (budgetBookDAO.deleteBudgetBookById(memberId, id)) {
 			logger.debug("{} 회원의 {} 가계부 삭제 완료", memberId, id);
 		} else {
-			throw new ErrorException(ErrorCode.BUDGET_DELETE_UNKNOWN);
+
 		}
 	}
 }

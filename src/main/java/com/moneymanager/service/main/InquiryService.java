@@ -16,7 +16,6 @@ import com.moneymanager.entity.Answer;
 import com.moneymanager.entity.Member;
 import com.moneymanager.entity.Question;
 import com.moneymanager.enums.type.AnswerStatus;
-import com.moneymanager.exception.ErrorException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -26,8 +25,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static com.moneymanager.exception.code.ErrorCode.QUESTION_DELETE_UNKNOWN;
 
 /**
  * <p>
@@ -292,9 +289,6 @@ public class InquiryService {
 
 
 	public void deleteInquiry(String memberId, Long id) {
-		if (!qnADao.deleteQuestion(memberId, id)) {
-			throw new ErrorException(QUESTION_DELETE_UNKNOWN);
-		}
 
 	}
 }

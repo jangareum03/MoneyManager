@@ -1,7 +1,7 @@
 package com.moneymanager.controller.web.members;
 
 import com.moneymanager.dto.member.request.MemberSignUpRequest;
-import com.moneymanager.exception.ErrorException;
+import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.MemberServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -78,8 +78,8 @@ public class SignupController {
 			redirect.addFlashAttribute("member", signUp.getId());
 
 			return "redirect:/";
-		}catch ( ErrorException e ) {
-			redirect.addAttribute("error", e.getErrorMessage());
+		}catch ( ClientException e ) {
+			redirect.addAttribute("error", e.getMessage());
 			redirect.addAttribute("method", "get");
 			redirect.addAttribute("url", "/signup");
 

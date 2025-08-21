@@ -51,4 +51,6 @@ public class ErrorDTO<T> {
 	private T requestData;
 	//에러코드
 	private ErrorCode errorCode;
+	//안내 메시지
+	private String message;
 }
