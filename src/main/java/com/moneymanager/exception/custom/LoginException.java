@@ -1,6 +1,7 @@
 package com.moneymanager.exception.custom;
 
 import com.moneymanager.dto.common.ErrorDTO;
+import com.moneymanager.exception.code.ErrorCode;
 import lombok.Getter;
 import org.springframework.security.core.AuthenticationException;
 
@@ -24,9 +25,14 @@ import org.springframework.security.core.AuthenticationException;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 8. 6.</td>
+ * 		 	  <td>25. 8. 6</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 8. 21</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[생성자 수정] 매개변수 ErrorDTO → ErrorCode, message</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
@@ -34,11 +40,11 @@ import org.springframework.security.core.AuthenticationException;
 @Getter
 public class LoginException extends AuthenticationException {
 
-	private final ErrorDTO<?> requestDTO;
+	private final ErrorDTO<?> errorDTO;
 
-	public LoginException(ErrorDTO<?> requestDTO) {
-		super(requestDTO.getErrorCode().toString());
+	public LoginException( ErrorDTO<?> errorDTO ) {
+		super(errorDTO.getMessage());
 
-		this.requestDTO = requestDTO;
+		this.errorDTO = errorDTO;
 	}
 }

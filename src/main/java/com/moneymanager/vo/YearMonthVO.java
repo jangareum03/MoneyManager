@@ -1,5 +1,7 @@
 package com.moneymanager.vo;
 
+import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.exception.custom.ClientException;
 import lombok.Builder;
 import lombok.Value;
 
@@ -41,18 +43,18 @@ public class YearMonthVO {
 	public YearMonthVO( String year, String month ) {
 		this.yearVO = new YearVO(year);
 
-		int parsedMonth;
+		if( month == null ) throw new ClientException(ErrorCode.COMMON_MONTH_MISSING, "월을 입력해주세요.");
 		try{
-			parsedMonth = (month == null) ? LocalDate.now().getMonthValue() : Integer.parseInt(month);
+			int parsedMonth = Integer.parseInt(month);
+
+			if(!isValidMonthRange(parsedMonth)) {
+				throw new ClientException(ErrorCode.COMMON_MONTH_INVALID, "월은 1~12까지만 입력 가능합니다.");
+			}
+
+			this.month = parsedMonth;
 		}catch ( NumberFormatException e ) {
-			throw new IllegalArgumentException("MONTH_FORMAT");
+			throw new ClientException(ErrorCode.COMMON_MONTH_FORMAT, "월은 숫자만 입력 가능합니다.");
 		}
-
-		if(!isValidMonthRange(parsedMonth)) {
-			throw new IllegalArgumentException("MONTH_INVALID");
-		}
-
-		this.month = parsedMonth;
 	}
 
 	private boolean isValidMonthRange(int month) {

@@ -49,10 +49,10 @@ public class LoggerUtil {
 	public static <T> void logUserWarn(ErrorDTO<T> errorDTO, String service) {
 		ErrorCode errorCode = errorDTO.getErrorCode();
 
-		log.warn("[USER_WARN] errorCode={}, serviceName={}, LogMessage={}", errorCode.getCode(), service, errorCode.getLogMessage());
-		log.warn("▶ errorId={}", errorDTO.getErrorId());
-		log.warn("▶ UserMessage={}", errorCode.getLogMessage());
-		log.warn("▶ requestData={}", Objects.isNull(errorDTO.getRequestData()) ? "없음" : errorDTO.getRequestData());
+		log.warn("[USER_WARN] errorId={}, errorCode={}", errorDTO.getErrorId(), errorCode.getCode());
+		log.warn("▶ service={}, cause={}", service, errorCode.getLogMessage());
+		log.warn("▶ UserMessage={}", errorDTO.getMessage());
+		log.warn("▶ requestData={}", Objects.isNull(errorDTO.getRequestData()) || errorDTO.getRequestData().toString().isBlank() ? "없음" : errorDTO.getRequestData());
 	}
 
 

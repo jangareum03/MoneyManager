@@ -1,5 +1,7 @@
 package com.moneymanager.vo;
 
+import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.exception.custom.ClientException;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +53,7 @@ public class YearMonthDayVO {
 	@Builder
 	public YearMonthDayVO( String year, String month, String day ) {
 		this.yearMonthVO = new YearMonthVO( year, month );
-		this.day = parseDayOrDefault(day, LocalDate.now().getDayOfMonth());
+		this.day = parseDayOrDefault(day);
 		this.date = LocalDate.of(
 				yearMonthVO.getYearVO().getYear(),
 				yearMonthVO.getMonth(),
@@ -62,34 +64,24 @@ public class YearMonthDayVO {
 
 	/**
 	 *	주어진 일(day)을 정수로 변환하여 반환합니다.
-	 *<p>
-	 *     아래와 같은 경우에는 기본값으로 반환됩니다.
-	 *     <ul>
-	 *         <li>입력 문자열이 {@code null}인 경우</li>
-	 *         <li>문자열이 숫자로 변환할 수 없는 경우</li>
-	 *         <li>변환된 숫자가 유효한 일의 범위가 아닌 경우</li>
-	 *     </ul>
-	 *</p>
 	 *
 	 * @param day					사용자가 입력한 일
-	 * @param defaultDay		변환 실패 시 반환할 기본 일
-	 * @return	유효한 일 값 또는 기본값
+	 * @return	유효한 일 값
 	 */
-	private int parseDayOrDefault(String day, int defaultDay) {
-		if( day == null ) return defaultDay;
+	private int parseDayOrDefault(String day) {
+		if( day == null ) throw new ClientException(ErrorCode.COMMON_DAY_MISSING, "일을 입력해주세요.");
 
-		int parsedDay;
 		try {
-			parsedDay = Integer.parseInt(day);
+			int parsedDay = Integer.parseInt(day);
+			if( !isValidDayRange(parsedDay) ) {
+				LocalDate now = LocalDate.of(yearMonthVO.getYearVO().getYear(), yearMonthVO.getMonth(), 1);
+				throw new ClientException(ErrorCode.COMMON_DAY_INVALID, String.format("일은 %d ~ %d까지만 입력 가능합니다.", 1, now.getDayOfMonth()));
+			}
+
+			return parsedDay;
 		}catch ( NumberFormatException e ) {
-			throw new IllegalArgumentException("COMMON_DAY_FORMAT");
+			throw new ClientException(ErrorCode.COMMON_DAY_FORMAT, "일은 2자리 숫자만 입력 가능합니다.");
 		}
-
-		if( !isValidDayRange(parsedDay) ) {
-			throw new IllegalArgumentException("COMMON_DAY_INVALID");
-		}
-
-		return defaultDay;
 	}
 
 
@@ -117,8 +109,8 @@ public class YearMonthDayVO {
 
 
 	public static YearMonthDayVO fromStringDate(String date) {
-		if( date == null ) throw new IllegalArgumentException("COMMON_DATE_MISSING");
-		if( date.length() != 8 ) throw new IllegalArgumentException("COMMON_DATE_FORMAT");
+		if( date == null ) throw new ClientException(ErrorCode.COMMON_DATE_MISSING, "날짜를 입력해주세요.");
+		if( date.length() != 8 ) throw new ClientException(ErrorCode.COMMON_DATE_FORMAT, "날짜를 YYYYMMDD 형식으로 입력해주세요.");
 
 		String year = date.substring(0, 4);
 		String month = date.substring(4, 6);
@@ -158,7 +150,7 @@ public class YearMonthDayVO {
 	 * 날짜를 지정된 형식{@code pattern}으로 문자열로 반환합니다.
 	 *
 	 * @param pattern	날짜 포맷 패턴
-	 * @return
+	 * @return	형변환한 날짜 문자열
 	 */
 	public String formatDate(String pattern) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);

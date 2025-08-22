@@ -85,9 +85,9 @@ public enum ErrorCode {
 	private final String code;
 	private final String logMessage;
 
-	ErrorCode(String code, String message) {
+	ErrorCode(String code, String logMessage) {
 		this.code = code;
-		this.logMessage = message;
+		this.logMessage = logMessage;
 	}
 
 

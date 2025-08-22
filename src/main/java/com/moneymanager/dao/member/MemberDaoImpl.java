@@ -173,7 +173,7 @@ public class MemberDaoImpl {
 	 */
 	public Member findAuthMemberByUsername(String username) {
 		String query = String.format(
-				"SELECT username, password, role, status " +
+				"SELECT username, password, role, status, failure_count " +
 						"FROM %s tm INNER JOIN tb_member_info tmi " +
 						"ON tm.id = tmi.id " +
 						"WHERE username = ?", TABLE);
@@ -184,6 +184,7 @@ public class MemberDaoImpl {
 						Member.builder()
 								.role(rs.getString("role")).status(MemberStatus.valueOf( rs.getString("status").charAt(0) ))
 								.userName(rs.getString("username")).password(rs.getString("password"))
+								.info(MemberInfo.builder().failureCount(rs.getInt("failure_count")).build())
 								.build(),
 				username
 		);
