@@ -27,9 +27,17 @@ import java.time.LocalDate;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 8. 12.</td>
+ * 		 	  <td>25. 8. 12</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 8. 22</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>
+ * 		 	      [메서드 추가] getFirstDate - 년도와 월의 첫째 날 반환<br>
+ * 		 	      [메서드 추가] getLastDate - 년도와 월의 마지막 날 반환
+ * 		 	  </td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
@@ -59,5 +67,33 @@ public class YearMonthVO {
 
 	private boolean isValidMonthRange(int month) {
 		return 1 <= month && month <= 12;
+	}
+
+
+	/**
+	 * 해당 년월의 첫째 날을 반환합니다.
+	 *
+	 * @return	년도와 월 값의 첫째날로 설정된 LocalDate 객체
+	 */
+	public LocalDate getFirstDate() {
+		return LocalDate.of(
+				yearVO.getYear(),
+				month,
+				1
+		);
+	}
+
+
+	/**
+	 * 해당 년월의 마지막 날을 반환합니다.
+	 *
+	 * @return	년도와 월 값의 마지막 날로 설정된 LocalDate 객체
+	 */
+	public LocalDate getLastDate() {
+		return LocalDate.of(
+				yearVO.getYear(),
+				month,
+				1
+		);
 	}
 }

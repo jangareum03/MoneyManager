@@ -2,9 +2,11 @@ package com.moneymanager.controller.web.members;
 
 import com.moneymanager.dto.common.request.DateRequest;
 import com.moneymanager.dto.member.request.MemberAttendanceRequest;
+import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.validation.DateValidationService;
 import com.moneymanager.service.member.AttendanceService;
 import com.moneymanager.vo.YearMonthDayVO;
+import com.moneymanager.vo.YearMonthVO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
@@ -68,26 +70,35 @@ public class AttendanceController {
 	 */
 	@GetMapping("/attendance")
 	public String getAttendancePage( Model model, @RequestParam(required = false) String year, @RequestParam(required = false) String month ) {
+		YearMonthVO vo = null;
 		try{
-			YearMonthDayVO vo = YearMonthDayVO.builder().year(year).month(month).build();
+			vo = YearMonthVO.builder().year(year).month(month).build();
 
-			//달력 생성
-			List<List<Integer>> calendar = attendanceService.createCalendar( vo );
-
-			//오늘날짜와 동일한지 확인
+			//년도와 월이 현재와 동일한 지 확인
 			LocalDate today = LocalDate.now();
-			if( today.isEqual(vo.getDate()) ) {
+			if( today.getYear() == vo.getYearVO().getYear() && today.getMonthValue() == vo.getMonth() ) {
 				model.addAttribute("today", today.getDayOfMonth());
 			}
+		}catch ( ClientException e ) {
+			//기본값(=오늘 날짜)으로 설정
+			LocalDate today = LocalDate.now();
 
-			//사용자에게 전달할 정보
-			model.addAttribute("year", vo.getYearMonthVO().getYearVO().getYear());
-			model.addAttribute("month", vo.getYearMonthVO().getMonth());
-			model.addAttribute("calendar", calendar);
-		}catch ( IllegalArgumentException e ) {
+			vo = YearMonthVO.builder()
+					.year(String.valueOf(today.getYear()))
+					.month(String.valueOf(today.getMonthValue()))
+					.build();
 
+			model.addAttribute("today", today.getDayOfMonth());
 		}
 
+
+		//달력 생성
+		List<List<Integer>> calendar = attendanceService.createCalendar( vo );
+
+		//사용자에게 전달할 정보
+		model.addAttribute("year", vo.getYearVO().getYear());
+		model.addAttribute("month", vo.getMonth());
+		model.addAttribute("calendar", calendar);
 
 		return "/main/home";
 	}

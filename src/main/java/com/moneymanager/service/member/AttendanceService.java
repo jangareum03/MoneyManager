@@ -8,6 +8,7 @@ import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.utils.LoggerUtil;
 import com.moneymanager.vo.YearMonthDayVO;
+import com.moneymanager.vo.YearMonthVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -77,17 +78,16 @@ public class AttendanceService {
 	 * @param vo 	달력 날짜
 	 * @return 달력 날짜를 담은 리스트
 	 */
-	public List<List<Integer>> createCalendar(YearMonthDayVO vo) {
+	public List<List<Integer>> createCalendar(YearMonthVO vo) {
 		List<List<Integer>> resultList = new ArrayList<>();
 
 		/*
 			- start	: 달의 1일의 시작 요일	(1: 월요일 ~ 7:일요일)
 			- end	:	달의 마지막 일
 		*/
-		LocalDate date = vo.getDate();
-		int start = date.withDayOfMonth(1).get(ChronoField.DAY_OF_WEEK);
+		int start = vo.getFirstDate().get(ChronoField.DAY_OF_WEEK);
 		start = (start == 7) ? 0 : start;
-		int last = date.lengthOfMonth();
+		int last = vo.getLastDate().lengthOfMonth();
 
 		//첫주 시작요일까지 빈칸 채우기
 		List<Integer> currentWeek = new ArrayList<>();
@@ -130,9 +130,9 @@ public class AttendanceService {
 	 * @param vo     		완료된 출석 리스트를 조회하기 위한 날짜 객체
 	 * @return 출석 완료된 일자를 리스트로 담은 {@link MemberAttendanceResponse} 객체
 	 */
-	public MemberAttendanceResponse getDayByCompleteAttend(String id, YearMonthDayVO vo) {
+	public MemberAttendanceResponse getDayByCompleteAttend(String id, YearMonthVO vo) {
 		//회원의 출석완료 리스트 조회
-		List<Attendance> entityList = attendanceDAO.findCompleteAttendBetweenDate(id, vo.firstDayOfMonth(), vo.lastDayOfMonth());
+		List<Attendance> entityList = attendanceDAO.findCompleteAttendBetweenDate(id, vo.getFirstDate(), vo.getLastDate());
 
 		List<String> dayList = entityList.stream()
 				.map(entity -> String.valueOf(entity.getAttendanceDate().getDayOfMonth()))
