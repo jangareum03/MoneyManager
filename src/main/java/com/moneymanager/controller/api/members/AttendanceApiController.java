@@ -8,9 +8,12 @@ import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.AttendanceService;
 import com.moneymanager.utils.LoggerUtil;
 import com.moneymanager.vo.YearMonthDayVO;
+import com.moneymanager.vo.YearMonthVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
+import java.time.LocalDate;
 
 /**
  * <p>
@@ -44,6 +47,7 @@ import javax.servlet.http.HttpSession;
  * 		</tbody>
  * </table>
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/attendance")
 public class AttendanceApiController {
@@ -70,7 +74,14 @@ public class AttendanceApiController {
 	@GetMapping
 	public MemberAttendanceResponse getCompletedList(HttpSession session, @RequestParam String year, @RequestParam String month) {
 		//요청값 → VO 변환
-		YearMonthDayVO vo = YearMonthDayVO.builder().year(year).month(month).build();
+		YearMonthVO vo;
+		try{
+			vo = YearMonthVO.builder().year(year).month(month).build();
+		}catch ( ClientException e ) {
+			LocalDate today = LocalDate.now();
+
+			vo = YearMonthVO.builder().year(String.valueOf(today.getYear())).month(String.valueOf(today.getMonthValue())).build();
+		}
 
 		return attendanceService.getDayByCompleteAttend((String) session.getAttribute("mid"), vo);
 	}

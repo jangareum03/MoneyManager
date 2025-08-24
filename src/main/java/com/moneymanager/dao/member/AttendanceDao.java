@@ -135,7 +135,7 @@ public class AttendanceDao {
 				"SELECT attendance_date " +
 					"FROM %s " +
 					"WHERE member_id = ? " +
-						"AND attendance_date >= ? AND attendance_date < ? " +
+						"AND attendance_date >= ? AND attendance_date <= ? " +
 					"ORDER BY attendance_date",
 				TABLE
 		);

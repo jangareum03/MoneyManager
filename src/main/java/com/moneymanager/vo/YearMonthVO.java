@@ -3,6 +3,7 @@ package com.moneymanager.vo;
 import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
 import lombok.Builder;
+import lombok.ToString;
 import lombok.Value;
 
 import java.time.LocalDate;
@@ -43,6 +44,7 @@ import java.time.LocalDate;
  * </table>
  */
 @Value
+@ToString
 public class YearMonthVO {
 	YearVO yearVO;
 	int month;
@@ -93,7 +95,7 @@ public class YearMonthVO {
 		return LocalDate.of(
 				yearVO.getYear(),
 				month,
-				1
+				getFirstDate().lengthOfMonth()
 		);
 	}
 }
