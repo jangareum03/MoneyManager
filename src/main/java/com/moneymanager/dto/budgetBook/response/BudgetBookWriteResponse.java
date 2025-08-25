@@ -52,15 +52,6 @@ public class BudgetBookWriteResponse {
 		private List<CategoryDTO> categories;
 		//등록 가능한 이미지 수
 		private int maxImage;
-	}
-
-
-	/**
-	 * 가계부 상세 정보 작성을 위한 DTO
-	 */
-	@Builder
-	@Getter
-	public static class DetailedBudget {
 		//가계부 등록 주기
 		@Builder.Default
 		private FixDTO fix = FixDTO.defaultValue();

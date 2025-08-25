@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='작성하기 : 돈매니저'">
 <th:block layout:fragment="main">
-    <main class="page page-budget page-budget-write" th:classappend="${write.type}">
+    <main class="page page-budget page-budget-write" th:classappend="${budgetBook.type}">
         <!-- 상단 : 제목 -->
         <section class="budget-header">
             <header>
-                <h1 class="budget-header__title" th:text="${write.date}"></h1>
+                <h1 class="budget-header__title" th:text="${budgetBook.date}"></h1>
                     <small class="budget-header__type"></small>
             </header>
         </section>
@@ -34,16 +34,17 @@
                     <div class="form__input-box form__input-box--category">
                         <select class="form__select form__select--middle" aria-labelledby="write-category">
                             <option value="">-- 선택없음 --</option>
-                            <option th:each="category : ${write.categories}" th:value="${category.code}">[[${category.name}]]</option>
+                            <option th:each="category : *{categories}" th:value="${category.code}">[[${category.name}]]</option>
                         </select>
                     </div>
                 </fieldset>
+
                 <!-- 메모 영역 -->
                 <div class="form__field form__field--memo">
                     <label class="form__label">메모</label>
                     <div class="form__input-box form__input-box--memo">
                         <label>
-                            <textarea placeholder="내용을 입력해주세요." cols="60" rows="4" maxlength="150" th:field="*{memo}"></textarea>
+                            <textarea name="memo" placeholder="내용을 입력해주세요." cols="60" rows="4" maxlength="150"></textarea>
                         </label>
                     </div>
                 </div>
@@ -55,7 +56,7 @@
                         <!-- 금액 입력 -->
                         <section class="form__input-box form__input-box--main">
                             <label>
-                                <input class="form__input form__input--text" type="text" placeholder="금액을 입력해주세요." th:field="*{price}">
+                                <input class="form__input form__input--text" name="price" type="text" placeholder="금액을 입력해주세요.">
                             </label>
                         </section>
 
@@ -97,14 +98,14 @@
                     <label class="form__label">사진</label>
                     <div class="form__input-box form__input-box--photo">
                         <label th:each="num : ${#numbers.sequence(1, 3)}" class="form__label">
-                            <th:block th:if="${num <= write.maxImage}">
-                                <input class="form__input form__input--file" type="file" th:field="*{image}" accept=".gif, .jpg, .png">
+                            <th:block th:if="${num <= budgetBook.maxImage}">
+                                <input class="form__input form__input--file" name="image" type="file" accept=".gif, .jpg, .png">
                                 <svg class="icon icon--enabled" viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M24.1667 1H3.33333C2.18274 1 1.25 1.93274 1.25 3.08333V23.9167C1.25 25.0673 2.18274 26 3.33333 26H24.1667C25.3173 26 26.25 25.0673 26.25 23.9167V3.08333C26.25 1.93274 25.3173 1 24.1667 1Z" stroke-linejoin="round"/>
                                     <path d="M13.75 7.94434V19.0554M8.19446 13.4999H19.3056" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </th:block>
-                            <th:block th:unless="${num <= write.maxImage}">
+                            <th:block th:unless="${num <= budgetBook.maxImage}">
                                 <svg class="icon icon--disabled" viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M23.9167 1H3.08333C1.93274 1 1 1.93274 1 3.08333V23.9167C1 25.0673 1.93274 26 3.08333 26H23.9167C25.0673 26 26 25.0673 26 23.9167V3.08333C26 1.93274 25.0673 1 23.9167 1Z" stroke-linejoin="round"/>
                                     <path d="M10.2361 17.6668V12.1113H11.6647V11.1853C11.6647 10.6696 11.8496 10.2321 12.2194 9.87285C12.589 9.51328 13.039 9.3335 13.5694 9.3335C14.0999 9.3335 14.5501 9.51328 14.9199 9.87285C15.2898 10.2324 15.4745 10.6699 15.4742 11.1853V12.1113H16.9028V17.6668H10.2361ZM13.5694 15.5835C13.7704 15.5835 13.9396 15.5165 14.0771 15.3826C14.2148 15.2489 14.2837 15.0844 14.2837 14.8891C14.2837 14.6937 14.2148 14.5292 14.0771 14.3955C13.9393 14.2619 13.7701 14.1949 13.5694 14.1946C13.3688 14.1943 13.1996 14.2613 13.0618 14.3955C12.9241 14.5292 12.8552 14.6937 12.8552 14.8891C12.8552 15.0844 12.9241 15.2489 13.0618 15.3826C13.1993 15.5165 13.3685 15.5835 13.5694 15.5835ZM12.1409 12.1113H14.998V11.1853C14.998 10.7995 14.8591 10.4716 14.5814 10.2016C14.3036 9.93149 13.9663 9.79646 13.5694 9.79646C13.1726 9.79646 12.8353 9.93149 12.5575 10.2016C12.2798 10.4716 12.1409 10.7995 12.1409 11.1853V12.1113Z"/>
@@ -124,6 +125,7 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- 버튼 -->
                 <div class="form__actions">
                     <button class="button button--medium button--cancel" type="button" >이전</button>

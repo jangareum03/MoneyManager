@@ -19,6 +19,7 @@ import com.moneymanager.entity.Member;
 import com.moneymanager.enums.type.DateType;
 import com.moneymanager.enums.type.BudgetBookType;
 import com.moneymanager.vo.YearMonthDayVO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -64,14 +65,13 @@ import java.util.stream.Collectors;
  * 		</tbody>
  * </table>
  */
+@Slf4j
 @Service
 public class BudgetBookService {
 
 	private final CategoryService categoryService;
 	private final ImageServiceImpl imageService;
 	private final BudgetBookDao budgetBookDAO;
-
-	private final Logger logger = LogManager.getLogger(this);
 
 	public BudgetBookService(CategoryService categoryService, @Qualifier("budgetImage") ImageServiceImpl imageService, BudgetBookDao budgetBookDAO) {
 		this.categoryService = categoryService;
@@ -97,16 +97,18 @@ public class BudgetBookService {
 
 		//카테고리 리스트
 		List<CategoryDTO> topCategory = categoryService.getTopCategories();
-
 		String code = type.equalsIgnoreCase(BudgetBookType.INCOME.getType()) ? topCategory.get(0).getCode() : topCategory.get(1).getCode();
 
-		return BudgetBookWriteResponse.InitialBudget.builder().date(title).type(type).maxImage(availableCount).categories(categoryService.getMySubCategories(code)).build();
+		return BudgetBookWriteResponse.InitialBudget.builder()
+				.date(title).type(type).maxImage(availableCount)
+				.categories(categoryService.getMySubCategories(code))
+				.build();
 	}
 
 
 	/**
 	 * 가계부를 등록합니다.<br>
-	 * 등록할 가계부 정보거 없거나 가계부 사진이 등록되지 않은 경우에는 {@link ErrorException}이 발생합니다.
+	 * 등록할 가계부 정보거 없거나 가계부 사진이 등록되지 않은 경우에는 이 발생합니다.
 	 *
 	 * @param memberId 회원번호
 	 * @param create   가계부 정보
@@ -359,7 +361,7 @@ public class BudgetBookService {
 
 	/**
 	 * 가계부 번호에 해당하는 가계부 정보를 반환합니다. <br>
-	 * 접근한 가계부 작성자를 확인하여 작성자가 아닌 다른 회원이 접근하면 {@link ErrorException} 이 발생합니다.
+	 * 접근한 가계부 작성자를 확인하여 작성자가 아닌 다른 회원이 접근하면 이 발생합니다.
 	 *
 	 * @param memberId 회원 식별번호
 	 * @param id       가계부 번호
@@ -402,7 +404,6 @@ public class BudgetBookService {
 					.id(entity.getId()).memo(entity.getMemo()).price(entity.getPrice()).paymentType(entity.getPaymentType().toLowerCase())
 					.build();
 		} else {
-			logger.debug("가계부 정보조회 실패 - 번호: {}, 작성자: {}, 접근자: {}", entity.getId(), entity.getMember().getId(), memberId);
 			throw new RuntimeException("");
 		}
 	}
@@ -491,7 +492,7 @@ public class BudgetBookService {
 			imageService.changeImage(memberId, entity, imageFiles);
 
 		} catch (IOException e) {
-			logger.debug("변경하려는 가계부 이미지 미존재로 저장 실패");;
+			log.debug("변경하려는 가계부 이미지 미존재로 저장 실패");;
 		}
 	}
 
@@ -504,7 +505,7 @@ public class BudgetBookService {
 	 */
 	public void deleteBudgetBook(String memberId, List<Long> id) {
 		if (budgetBookDAO.deleteBudgetBookById(memberId, id)) {
-			logger.debug("{} 회원의 {} 가계부 삭제 완료", memberId, id);
+			log.debug("{} 회원의 {} 가계부 삭제 완료", memberId, id);
 		} else {
 
 		}

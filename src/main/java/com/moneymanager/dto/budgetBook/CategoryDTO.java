@@ -2,6 +2,7 @@ package com.moneymanager.dto.budgetBook;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 /**
  * <p>
@@ -32,6 +33,7 @@ import lombok.Getter;
  */
 @Builder
 @Getter
+@ToString
 public class CategoryDTO {
 	//카테고리 이름
 	private String name;
