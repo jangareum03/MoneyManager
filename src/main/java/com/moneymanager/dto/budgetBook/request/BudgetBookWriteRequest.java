@@ -2,10 +2,11 @@ package com.moneymanager.dto.budgetBook.request;
 
 import com.moneymanager.dto.budgetBook.FixDTO;
 import com.moneymanager.dto.budgetBook.PlaceDTO;
-import com.moneymanager.dto.common.request.DateRequest;
+import com.moneymanager.vo.YearMonthDayVO;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 /**
@@ -35,47 +36,25 @@ import java.util.List;
  * 		</tbody>
  * </table>
  */
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString
 public class BudgetBookWriteRequest {
-
-
-	/**
-	 * 가계부 초기 설정(가계부 날짜, 가계부 유형)을 가져오기 위한 DTO<br>
-	 * 가계부 날짜는 'yyyymmdd' 형식이며, 가계부 유형은 'income(수입)/outlay(지출)'입니다.
-	 */
-	@Builder
-	@Getter
-	public static class InitialBudget {
-		//가계부 날짜 - 범위: 현재년도부터 5년전까지 사이의값
-		private String date;
-		//가계부 유형
-		private String type;
-	}
-
-	/**
-	 * 가계부 상세 정보를 작성하기 위한 DTO<br>
-	 * <span color='#BE2E22'>날짜, 고정, 카테고리, 금액</span>은 필수값입니다.
-	 */
-	@Builder
-	@Getter
-	@NoArgsConstructor(access = AccessLevel.PROTECTED)
-	@AllArgsConstructor
-	public static class DetailedBudget {
-		//가계부 날짜
-		private String date;
-		//가계부 등록 주기
-		private FixDTO fix = FixDTO.defaultValue();
-		//카테고리 코드
-		private String category;
-		//메모
-		private String memo;
-		//금액
-		private Long price;
-		//금액유형
-		private String paymentType;
-		//가계부 사진
-		private List<MultipartFile> image;
-		//위치
-		private PlaceDTO place = PlaceDTO.defaultValue();
-	}
-
+	//가계부 날짜
+	private String date;
+	//가계부 등록 주기
+	private FixDTO fix = FixDTO.defaultValue();
+	//카테고리 코드
+	private String category;
+	//메모
+	private String memo;
+	//금액
+	private Long price;
+	//금액유형
+	private String paymentType;
+	//가계부 사진
+	private List<MultipartFile> image;
+	//위치
+	private PlaceDTO place = PlaceDTO.defaultValue();
 }
