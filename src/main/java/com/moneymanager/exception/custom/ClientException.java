@@ -34,14 +34,12 @@ import lombok.Getter;
  */
 @Getter
 public class ClientException extends RuntimeException {
-	private final ErrorCode errorCode;
-	private final String message;
+	private final ErrorDTO<?> errorDTO;
 
-	public ClientException(ErrorCode errorCode, String message) {
-		super(message);
+	public ClientException( ErrorDTO<?> errorDTO ) {
+		super(errorDTO.getMessage());
 
-		this.errorCode = errorCode;
-		this.message = message;
+		this.errorDTO = errorDTO;
 	}
 
 }

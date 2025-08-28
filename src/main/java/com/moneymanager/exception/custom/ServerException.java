@@ -36,13 +36,11 @@ import lombok.Getter;
 @Getter
 public class ServerException extends RuntimeException {
 	private final ErrorCode errorCode;
-	private final ErrorDTO<?> errorDTO;
 
-	public ServerException( ErrorCode errorCode, ErrorDTO<?> errorDTO ) {
+	public ServerException( ErrorCode errorCode ) {
 		super(errorCode.getLogMessage());
 
 		this.errorCode = errorCode;
-		this.errorDTO = errorDTO;
 	}
 
 }

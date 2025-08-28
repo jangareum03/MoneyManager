@@ -1,5 +1,6 @@
 package com.moneymanager.exception.code;
 
+import com.moneymanager.exception.custom.ServerException;
 import lombok.Getter;
 
 
@@ -32,6 +33,11 @@ import lombok.Getter;
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>에러코드 규칙 변경</td>
  * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>22. 8. 28</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[메서드 추가] fromName() - 에러이름과 일치하는 에러코드 얻기</td>
+ * 		 	</tr>
  * 		</tbody>
  * </table>
  */
@@ -48,6 +54,9 @@ public enum ErrorCode {
 	COMMON_MONTH_MISSING("C991201","월 미입력"),
 	COMMON_MONTH_FORMAT("C991202", "월 형식 불일치"),
 	COMMON_MONTH_INVALID("C991203", "월 범위 벗어나게 입력"),
+	COMMON_WEEK_MISSING("C991301", "주 미입력"),
+	COMMON_WEEK_FORMAT("C991302", "주 형식 불일치"),
+	COMMON_WEEK_INVALID("C991303", "주 범위 벗어나게 입력"),
 	COMMON_DAY_MISSING("C001401","일 미입력"),
 	COMMON_DAY_FORMAT("C001402", "일 형식 불일치"),
 	COMMON_DAY_INVALID("C001403", "일 범위 벗어나게 입력"),
@@ -78,7 +87,14 @@ public enum ErrorCode {
 	MEMBER_STATUS_WITHDRAW_RECOVERABLE("C011523", "복구 가능한 계정으로 로그인 시도"),
 	MEMBER_STATUS_WITHDRAW_NONRECOVERABLE("C011524", "복구 불가능한 계정으로 로그인 시도"),
 	MEMBER_STATUS_LOCKED("C011525", "잠긴 계정으로 로그인 시도"),
-	MEMBER_STATUS_UNKNOWN("C011508", "알 수 없는 상태");
+	MEMBER_STATUS_UNKNOWN("C011508", "알 수 없는 상태"),
+	/**
+	 * 가계부 에러메시지
+	 */
+	BUDGET_DATE_MISSING("C030201", "가계부 날짜 미입력"),
+	BUDGET_DATE_FORMAT("C030202", "가계부 날짜 형식 불일치"),
+
+	SYSTEM_CODE_NULL("S010401", "없는 에러코드");
 
 
 
@@ -90,6 +106,26 @@ public enum ErrorCode {
 		this.logMessage = logMessage;
 	}
 
+
+	/**
+	 *	지정된 이름으로 {@link ErrorCode} enum 상수를 반환합니다.
+	 *<p>
+	 *     매개변수 {@code name}을 대소문자 구분 없이 비교하여 일치하는 {@link ErrorCode} enum 상수를 반환합니다.
+	 *</p>
+	 *
+	 * @param name	찾을 {@link ErrorCode} 상수 이름
+	 * @return	이름과 일치하는 enum 상수
+	 * @throws ServerException		{@code name}과 일치하는 상수가 없을 경우 발생
+	 */
+	public static ErrorCode fromName(String name) {
+		for(ErrorCode e : values()) {
+			if( e.name().equalsIgnoreCase(name) ) {
+				return e;
+			}
+		}
+
+		throw new ServerException(SYSTEM_CODE_NULL);
+	}
 
 
 	/**

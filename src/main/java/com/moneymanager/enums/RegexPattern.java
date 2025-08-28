@@ -32,6 +32,18 @@ import lombok.Getter;
 @Getter
 public enum RegexPattern {
 
+	/**
+	 * 날짜 관련된 정규식 패턴 모음
+	 * <ul>
+	 *     <li>년(DATE_YEAR) : 4자로 숫자만 입력 가능, 1과2로만 시작 가능</li>
+	 *     <li>월(DATE_MONTH) : 2자로 숫자만 입력 가능</li>
+	 *     <li>주(DATE_WEEK) : 2자로 숫자만 입력 가능</li>
+	 * </ul>
+	 */
+	DATE_YEAR("^(1|2)\\d{3}"),
+	DATE_MONTH("^(1[0-2]|[1-9])$"),
+	DATE_WEEK(""),
+
 
 	/**
 	* 회원 관련된 정규식 패턴 모음<br><br>
@@ -66,8 +78,7 @@ public enum RegexPattern {
 	 *
 	 *
 	 */
-	BUDGET_YEAR("^[1-9][\\d]{3}"),
-	BUDGET_MONTH("^(1[0-2]|[1-9])$"),
+
 	BUDGET_WEEK("^[1-5]$"),
 	BUDGET_DAY("^[0-3][\\d]{1}"),
 	BUDGET_IMAGE("[^a-zA-Z0-9가-힣_\\-\\.]"),
