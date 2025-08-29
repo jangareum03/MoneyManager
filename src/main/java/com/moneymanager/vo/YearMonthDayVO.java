@@ -1,7 +1,10 @@
 package com.moneymanager.vo;
 
+import com.moneymanager.dto.common.ErrorDTO;
+import com.moneymanager.enums.RegexPattern;
 import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
+import com.moneymanager.utils.ValidationUtil;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  * <p>
@@ -46,103 +50,155 @@ import java.time.format.DateTimeFormatter;
 @Value
 public class YearMonthDayVO {
 	LocalDate date;
-
-	YearMonthVO yearMonthVO;
+	int year;
+	int month;
 	int day;
 
+
 	@Builder
-	public YearMonthDayVO( String year, String month, String day ) {
-		this.yearMonthVO = new YearMonthVO( year, month );
-		this.day = parseDayOrDefault(day);
-		this.date = LocalDate.of(
-				yearMonthVO.getYearVO().getYear(),
-				yearMonthVO.getMonth(),
-				this.day
-		);
+	public YearMonthDayVO( YearMonthVO vo, String day ) {
+		this.year = vo.getYear();
+		this.month = vo.getMonth();
+		this.day = parseDay(day);
+		validateDay();
+
+		this.date = LocalDate.now();
 	}
 
 
 	/**
-	 *	주어진 일(day)을 정수로 변환하여 반환합니다.
-	 *
-	 * @param day					사용자가 입력한 일
-	 * @return	유효한 일 값
+	 * 다양한 형식의 문자열인 날짜({@code dateStr})를 {@link YearMonthDayVO} 객체로 변환합니다.
+	 * <p>
+	 *     날짜({@code dateStr})에서 년도, 월, 일을 숫자로 추출하여 "yyyyMMdd" 형식으로 변환 후 파싱합니다.<br>
+	 *     단, 존재하지 않은 날짜(예: "2025년 2월 31일")는 파싱 시 예외가 발생합니다.
+	 * </p>
+	 * <p>
+	 *     예시:
+	 *     <ul>
+	 *         <li>{@code dateStr} = "2025년 2월 28일"이면 YearMonthDayVO(YearMonthVO(YearVO("2025"), "2"), "28")</li>
+	 *         <li>{@code dateStr} = "20250228"이면 YearMonthDayVO(YearMonthVO(YearVO("2025"), "2"), "28")</li>
+	 *     </ul>
+	 * </p>
+	 * @param dateStr	변환할 날짜(년도, 월, 일을 포함) 문자열
+	 * @return 변환된 {@link YearMonthDayVO} 객체
 	 */
-	private int parseDayOrDefault(String day) {
-		if( day == null ) throw new ClientException(ErrorCode.COMMON_DAY_MISSING, "일을 입력해주세요.");
+	public static YearMonthDayVO fromString(String dateStr) {
+		if( dateStr == null || dateStr.isBlank() ) throw ValidationUtil.createClientException(ErrorCode.COMMON_DATE_MISSING, "날짜를 입력해주세요.");
 
-		try {
-			int parsedDay = Integer.parseInt(day);
-			if( !isValidDayRange(parsedDay) ) {
-				LocalDate now = LocalDate.of(yearMonthVO.getYearVO().getYear(), yearMonthVO.getMonth(), 1);
-				throw new ClientException(ErrorCode.COMMON_DAY_INVALID, String.format("일은 %d ~ %d까지만 입력 가능합니다.", 1, now.getDayOfMonth()));
-			}
+		try{
+			LocalDate date = parseDate(dateStr);
 
-			return parsedDay;
-		}catch ( NumberFormatException e ) {
-			throw new ClientException(ErrorCode.COMMON_DAY_FORMAT, "일은 2자리 숫자만 입력 가능합니다.");
+			YearVO yearVO = new YearVO(String.valueOf(date.getYear()));
+			YearMonthVO yearMonthVO = new YearMonthVO(yearVO, String.valueOf(date.getMonthValue()));
+
+			return new YearMonthDayVO(yearMonthVO, String.valueOf(date.getDayOfMonth()));
+		}catch (DateTimeException e) {
+			throw ValidationUtil.createClientException(ErrorCode.COMMON_DATE_FORMAT, e.getMessage(), dateStr);
 		}
 	}
 
 
 	/**
-	 * 주어진 일(day)이 해당 연과월 내에서 유효한 날짜인지 확인합니다.
+	 * 문자열 날짜({@code dateStr})에서 숫자만 추출 후 "yyyyMMdd" 형식으로 파싱 후 LocalDate로 반환합니다.
+	 * <p>
+	 *    	예시 :
+	 *    <ul>
+	 *        <li>{@code dateStr} = "2025년 2월 28일" 이면 LocalDate(2025-02-28)</li>
+	 *        <li>{@code dateStr} = "20250228" 이면 LocalDate(2025-02-28)</li>
+	 *    </ul>
+	 *    존재하지 않은 날짜(예: "2025-02-31")는 파싱 시 {@link DateTimeException} 발생합니다.
+	 * </p>
+	 *
+	 * @param dateStr		파싱할 날짜 문자열
+	 * @return	파싱된 {@link LocalDate} 객체
+	 * @throws DateTimeException	형식이 올바르지 않은 경우 발생
+	 */
+	public static LocalDate parseDate(String dateStr) {
+		//문자열에서 숫자만 추출
+		String digits = dateStr.replaceAll("[^0-9]", "");
+
+		if( digits.length() != 8 ) {
+			throw new DateTimeParseException("날짜 형식이 올바르지 않습니다. '20250101' 형식으로 입력해주세요.", dateStr, 0);
+		}
+
+		int year = Integer.parseInt(digits.substring(0,4));
+		int month = Integer.parseInt(digits.substring(4,6));
+		int day = Integer.parseInt(digits.substring(6, 8));
+
+		return LocalDate.of(year, month ,day);
+	}
+
+
+	/**
+	 * 정수 일({@code day})을 검증합니다.
+	 * <p>
+	 *     다음과 같은 경우 {@link ClientException}예외가 발생합니다.
+	 *     <ul>
+	 *         <li>일이 정규식 패턴과 일치하지 않은 경우 → {@link ValidationUtil#createClientException(ErrorCode, String, Object)} 메서드 호출</li>
+	 *         <li>일이 월의 마지막일에 벗어난 경우 → {@link ValidationUtil#createClientException(ErrorCode, String, Object)} 메서드 호출</li>
+	 *     </ul>
+	 * </p>
+	 * @throws ClientException	일이 허용되는 범위에 벗어난 경우 발생
+	 */
+	private void validateDay() {
+		if( !isMatchDay() ) {
+			throw ValidationUtil.createClientException(ErrorCode.COMMON_DAY_FORMAT, "일은 1 또는 2 또는 3으로 시작하는 최대 2자리 숫자만 입력 가능합니다.", day);
+		}
+
+		if( !isValidDayRange() ) {
+			LocalDate now = LocalDate.of(year, month, day);
+
+			throw new ClientException(ErrorDTO.builder()
+					.errorCode(ErrorCode.COMMON_DAY_INVALID)
+					.message(String.format("일은 %d ~ %d까지만 입력 가능합니다.", 1, now.getDayOfMonth()))
+					.requestData(day).build());
+		}
+	}
+
+
+	/**
+	 * 문자열 일({@code day})을 정수로 변환합니다.
+	 * <p>
+	 *     다음과 같은 경우 {@link ClientException}예외가 발생합니다.
+	 *     <ul>
+	 *         <li>일이 {@code null} 또는 "" 경우 → {@link ValidationUtil#createClientException(ErrorCode, String)} 메서드 호출</li>
+	 *    		<li>일이 숫자로 변환이 안되는 경우 → {@link ValidationUtil#createClientException(ErrorCode, String, Object)} 메서드 호출</li>
+	 *    </ul>
+	 * </p>
+	 * @param day	문자열로 입력된 일
+	 * @return	정수로 변환된 일 값(1~31)
+	 * @throws ClientException	일이 {@code null}이거나 숫자로 변환할수 없는 경우 발생
+	 */
+	private int parseDay(String day) {
+		if( day == null || day.isBlank() ) throw ValidationUtil.createClientException(ErrorCode.COMMON_DAY_MISSING, "일을 입력해주세요.");
+
+		try{
+			return Integer.parseInt(day);
+		}catch ( NumberFormatException e ) {
+			throw ValidationUtil.createClientException(ErrorCode.COMMON_DAY_FORMAT, "일은 숫자만 입력 가능합니다.", day);
+		}
+	}
+
+
+	/**
+	 * 일({@code day})이 해당 년과 월 내에서 유효한 날짜인지 확인합니다.
 	 * <p>
 	 *     유효하지 않은 날짜면 {@link DateTimeException} 예외가 발생하여 false을 반환됩니다.
 	 * </p>
 	 *
-	 * @param day		유효 검사할 일
 	 * @return	유효한 값이면 true, 아니면 false
 	 */
-	private boolean isValidDayRange( int day ) {
+	public boolean isValidDayRange() {
 		try{
 			LocalDate.of(
-					yearMonthVO.getYearVO().getYear(),
-					yearMonthVO.getMonth(),
+					year,
+					month,
 					day
 			);
 			return true;
 		}catch ( DateTimeException e ) {
 			return false;
 		}
-	}
-
-
-	public static YearMonthDayVO fromStringDate(String date) {
-		if( date == null ) throw new ClientException(ErrorCode.COMMON_DATE_MISSING, "날짜를 입력해주세요.");
-		if( date.length() != 8 ) throw new ClientException(ErrorCode.COMMON_DATE_FORMAT, "날짜를 YYYYMMDD 형식으로 입력해주세요.");
-
-		String year = date.substring(0, 4);
-		String month = date.substring(4, 6);
-		String day = date.substring(6);
-
-		return new YearMonthDayVO(year, month, day);
-	}
-
-
-	/**
-	 * 연과 월의 첫째 일(=1일)을 반환합니다.
-	 * <p>
-	 *     예를 들어, 2025년 8월이면 2025-08-01이 반환됩니다.
-	 * </p>
-	 *
-	 * @return	연과 월의 첫째 날을 나타내는 {@link LocalDate} 객체
-	 */
-	public LocalDate firstDayOfMonth() {
-		return date.withDayOfMonth(1);
-	}
-
-
-	/**
-	 * 연과 월의 마지막 일을 반환합니다.
-	 * <p>
-	 *     예를 들어, 2025년 8월이면 2025-08-31이 반환됩니다.
-	 * </p>
-	 *
-	 * @return	연과 월의 마지막 날을 나타내는 {@link LocalDate} 객체
-	 */
-	public LocalDate lastDayOfMonth() {
-		return date.withDayOfMonth(date.lengthOfMonth());
 	}
 
 
@@ -157,4 +213,23 @@ public class YearMonthDayVO {
 
 		return date.format(formatter);
 	}
+
+
+	/**
+	 * 일({@code day})이 정규식 패턴과 비교합니다.
+	 * <p>
+	 *     예를 들어
+	 *     <ul>
+	 *         <li>{@code day} = 15 이면 true 반환</li>
+	 *         <li>{@code day} = 0 이면 false 반환</li>
+	 *         <li>{@code day} = 32 이면 false 반환</li>
+	 *     </ul>
+	 * </p>
+	 * @return	정규식 패턴과 일치하면 true, 아니면 false
+	 */
+	private boolean isMatchDay() {
+		return String.valueOf(day).matches(RegexPattern.DATE_DAY.getPattern());
+	}
+
+
 }

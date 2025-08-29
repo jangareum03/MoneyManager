@@ -53,7 +53,7 @@ public enum ErrorCode {
 	COMMON_YEAR_INVALID("C991103", "년도 범위 벗어나게 입력"),
 	COMMON_MONTH_MISSING("C991201","월 미입력"),
 	COMMON_MONTH_FORMAT("C991202", "월 형식 불일치"),
-	COMMON_MONTH_INVALID("C991203", "월 범위 벗어나게 입력"),
+	COMMON_MONTH_FUTURE("C991203", "미래 월 입력"),
 	COMMON_WEEK_MISSING("C991301", "주 미입력"),
 	COMMON_WEEK_FORMAT("C991302", "주 형식 불일치"),
 	COMMON_WEEK_INVALID("C991303", "주 범위 벗어나게 입력"),

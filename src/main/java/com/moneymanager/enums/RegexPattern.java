@@ -37,12 +37,13 @@ public enum RegexPattern {
 	 * <ul>
 	 *     <li>년(DATE_YEAR) : 4자로 숫자만 입력 가능, 1과2로만 시작 가능</li>
 	 *     <li>월(DATE_MONTH) : 2자로 숫자만 입력 가능</li>
-	 *     <li>주(DATE_WEEK) : 2자로 숫자만 입력 가능</li>
+	 *     <li>일(DATE_DAY() : 2자로 숫자만 입력 가능, 2자리로 입력할 경우 시작이 1,2,3으로 가능</li>
 	 * </ul>
 	 */
 	DATE_YEAR("^(1|2)\\d{3}"),
 	DATE_MONTH("^(1[0-2]|[1-9])$"),
-	DATE_WEEK(""),
+	DATE_DAY("^([1-9]|[1-3][0-9])"),
+
 
 
 	/**
@@ -68,19 +69,9 @@ public enum RegexPattern {
 	 * 가계부 관련된 정규식 패턴 모음<br>
 	 *
 	 * <ul>
-	 *     <li>년도(BUDGET_YEAR)	: 4자로 숫자만 입력 가능, 0으로 시작 불가</li>
-	 *     <li>월(BUDGET_MONTH)	: 2자로 숫자만 입력가능</li>
-	 *     <li>주(BUDGET_WEEK)		: 2자로 숫자만 입력가능</li>
-	 *     <li>일(BUDGET_DAY)			: 2자로 숫자만 입력가능</li>
+	 *     <li>이미지(BUDGET_IMAGE)	: 영문자,숫자,한글, 특수문자(_,-, .)만 가능</li>
 	 * </ul>
-	 *
-	 *
-	 *
-	 *
 	 */
-
-	BUDGET_WEEK("^[1-5]$"),
-	BUDGET_DAY("^[0-3][\\d]{1}"),
 	BUDGET_IMAGE("[^a-zA-Z0-9가-힣_\\-\\.]"),
 
 

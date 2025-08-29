@@ -1,11 +1,9 @@
 package com.moneymanager.utils;
 
 
-import com.moneymanager.enums.RegexPattern;
-
-import java.lang.reflect.Array;
-import java.util.Collection;
-import java.util.Map;
+import com.moneymanager.dto.common.ErrorDTO;
+import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.exception.custom.ClientException;
 
 /**
  * <p>
@@ -13,7 +11,7 @@ import java.util.Map;
  * 파일이름       : ValidationUtil<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 8. 1.<br>
- * 설명              : 공통적으로 처리하는 기본검증 클래스
+ * 설명              : 공통적으로 검증할 때 필요한 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -34,50 +32,23 @@ import java.util.Map;
  * 		</tbody>
  * </table>
  */
-public class ValidationUtil {
+public final class ValidationUtil {
 
-	/**
-	 * 객체의 입력여부를 검사합니다. <br>
-	 * 객체가 null, empty 시 입력되지 않은 상태로 인지합니다.<br>
-	 * 컬렉션 프레임워크(리스트, 맵 등) 사이즈가 0이면 입력되지 않은 상태로 인지합니다.<br>
-	 *
-	 * @param o 검사할 객체
-	 * @return 입력되지 않은 상태면 true, 그렇지 않으면 false
-	 */
-	public static boolean isEmptyInput(Object o) {
-		if (o == null) return true;
+	private ValidationUtil() {}
 
-		if (o instanceof String) {
-			return ((String) o).trim().isBlank();
-		}
 
-		if (o instanceof Collection) {
-			return ((Collection<?>) o).isEmpty();
-		}
-
-		if (o instanceof Map) {
-			return ((Map<?, ?>) o).isEmpty();
-		}
-
-		if (o.getClass().isArray()) {
-			return Array.getLength(o) == 0;
-		}
-
-		return false;
+	public static RuntimeException createClientException(ErrorCode code, String message) {
+		return createClientException(code, message, null);
 	}
 
+	public static <T> RuntimeException createClientException(ErrorCode code, String message, T data) {
+		ErrorDTO<T> errorDTO = ErrorDTO.<T>builder()
+				.errorCode(code)
+				.message(message)
+				.requestData(data)
+				.build();
 
-	public static boolean isMatchPattern(Object o, String regex) {
-		if(o == null) return false;
-
-		if( o instanceof String ) {
-			String value = ((String) o).trim();
-			String pattern = RegexPattern.valueOf(regex).getPattern();
-
-			return value.matches(pattern);
-		}
-
-		return false;
+		return new ClientException(errorDTO);
 	}
 
 }

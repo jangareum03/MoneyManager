@@ -1,14 +1,13 @@
 package com.moneymanager.vo;
 
-import com.moneymanager.dto.common.ErrorDTO;
 import com.moneymanager.enums.RegexPattern;
 import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
+import com.moneymanager.utils.ValidationUtil;
 import lombok.Value;
 
 import java.time.LocalDate;
 import java.time.Year;
-import java.util.Objects;
 
 /**
  * <p>
@@ -30,9 +29,17 @@ import java.util.Objects;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 8. 12.</td>
+ * 		 	  <td>25. 8. 12</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 8. 29</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>
+ * 		 	      [메서드 수정] parseYear<br>
+ * 		 	      <span color='#007FFF' >전)</span> 정수형 파싱과 값 검증을 함께 진행 → <span color='#007FFF' >후)</span> parseYear, validYear로 분리
+ * 		 	  </td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
@@ -48,93 +55,79 @@ public class YearVO {
 
 
 	public YearVO( String  year, int maxValue ) {
-		this.year = parseYear(year, maxValue);
+		this.year = parseYear(year);
+
+		validYear(maxValue);
 	}
 
 
 	/**
-	 * 년도 문자열({@code year})을 정수로 변환하고 검증합니다.
+	 * 정수 년도({@code year})를 검증합니다.
 	 * <p>
 	 *     {@code max}는 정수형으로 현재 년도로부터 과거로 허용되는 범위입니다.<br>
 	 *     예를 들어, 현재 년도가 2025이고 max가 5이면 2020 ~ 2025년만 허용됩니다.
 	 * </p>
 	 * <p>
-	 *     아래와 같은 상황에 {@link ClientException} 예외가 발생합니다.
+	 *     다음과 같은 경우 {@link ClientException} 예외가 발생합니다.
 	 *     <ul>
-	 *         <li>년도가 null인 경우</li>
-	 *         <li>년도가 숫자로 변환이 안되는 경우</li>
-	 *         <li>년도가 1 또는 2로 시작하지 않는 4자리 숫자 입력한 경우</li>
-	 *         <li>년도가 지정된 범위({@code max})를 벗어난 경우</li>
+	 *         <li>년도가 1 또는 2로 시작하지 않는 4자리 숫자 입력한 경우 → {@link ValidationUtil#createClientException(ErrorCode, String, Object)} 메서드 호출</li>
+	 *         <li>년도가 지정된 범위({@code max})를 벗어난 경우 → {@link ValidationUtil#createClientException(ErrorCode, String, Object)} 메서드 호출</li>
 	 *     </ul>
 	 * </p>
-	 *
-	 * @param year	문자열로 입력한 년도
 	 * @param max	현재 년도로부터 허용되는 최대 과거 범위(0이면 범위 제한 없음)
-	 * @return 검증된 정수형 년도
+	 * @throws ClientException	년도가 허용되는 범위에 벗어난 경우 발생
 	 */
-	private int parseYear( String year, int max ) {
-		if( year == null ) throwYearException(ErrorCode.COMMON_YEAR_MISSING, "년도를 입력해주세요.");
-
-		int parsedYear = 0;
-		try{
-			parsedYear = Integer.parseInt(Objects.requireNonNull(year));
-		}catch ( NumberFormatException e ) {
-			throwYearException(ErrorCode.COMMON_YEAR_FORMAT, "년도는 숫자만 입력 가능합니다.", year);
+	private void validYear(int max) {
+		if( !isMatchYear() ){
+			throw ValidationUtil.createClientException(ErrorCode.COMMON_YEAR_FORMAT, "년도는 1 또는 2로 시작하는 4자리 숫자만 입력 가능합니다.", String.valueOf(year));
 		}
 
-		if( !isMatchYear(parsedYear) ){
-			throwYearException(ErrorCode.COMMON_YEAR_FORMAT, "년도는 1 또는 2로 시작하는 4자리 숫자만 입력 가능합니다.", year);
-		}
-
-		if( !isValidYearRange(parsedYear, max) ) {
+		if( !isValidYearRange(year, max) ) {
 			int currentYear = LocalDate.now().getYear();
 			String message = String.format("년도는 %d ~ %d까지만 입력가능합니다.", currentYear-max, currentYear);
 
-			throwYearException(ErrorCode.COMMON_YEAR_INVALID, message, year);
+			throw ValidationUtil.createClientException(ErrorCode.COMMON_YEAR_INVALID, message, String.valueOf(year));
 		}
-
-		return parsedYear;
 	}
 
 
 	/**
-	 * {@link ClientException}을 발생시킵니다.
-	 *
-	 * @param code			오류코드
-	 * @param message	사용자 메시지
-	 * @throws ClientException	항상 발생
+	 * 년도 문자열({@code year})을 정수로 변환합니다.
+	 * <p>
+	 *     다음과 같은 경우 {@link ClientException} 예외가 발생합니다.
+	 *     <ul>
+	 *         <li>년도가 {@code null}인 경우 → {@link ValidationUtil#createClientException(ErrorCode, String)} 메서드 호출</li>
+	 *         <li>년도가 숫자로 변환이 안되는 경우 → {@link ValidationUtil#createClientException(ErrorCode, String, Object)} 메서드 호출</li>
+	 *     </ul>
+	 * </p>
+	 * @param year	문자열로 입력한 년도
+	 * @return 정수로 변환된 년도 값
+	 * @throws ClientException	년도가 {@code null}이거나 숫자로 변환할 수 없는 경우 발생
 	 */
-	private void throwYearException(ErrorCode code, String message) {
-		throwYearException(code, message, null);
+	private int parseYear(String year) {
+		if( year == null ) throw ValidationUtil.createClientException(ErrorCode.COMMON_YEAR_MISSING, "년도를 입력해주세요.");
+
+		try{
+			return Integer.parseInt(year);
+		}catch (NumberFormatException e) {
+			throw ValidationUtil.createClientException(ErrorCode.COMMON_YEAR_FORMAT, "년도는 숫자만 입력 가능합니다.", year);
+		}
 	}
 
 
 	/**
-	 * {@link ClientException}을 발생시킵니다.
-	 *
-	 * @param code			오류코드
-	 * @param message	사용자 메시지
-	 * @param data			요청 데이터
-	 * @throws ClientException	항상 발생
+	 * 년도({@code year})가 정규식 패턴과 비교합니다.
+	 * <p>
+	 *     예를 들어
+	 *     <ul>
+	 *         <li>{@code year} = 2020 이면 true 반환</li>
+	 *         <li>{@code year} = 123 이면 false 반환</li>
+	 *         <li>{@code year} = 3021 이면 false 반환</li>
+	 *     </ul>
+	 * </p>
+	 * @return	정규식 패턴과 일치하면 true, 아니면 false
 	 */
-	private void throwYearException(ErrorCode code, String message, String data) {
-		ErrorDTO<String> errorDTO = ErrorDTO.<String>builder()
-				.errorCode(code)
-				.message(message)
-				.requestData(data)
-				.build();
-
-		throw new ClientException(errorDTO);
-	}
-
-
-	/**
-	 * 년도가 RegexPattern 조건에 부합하는지 검증합니다.
-	 *
-	 * @param year	검증할 정수형 년도
-	 * @return	패턴과 일치하면 true, 아니면 false
-	 */
-	private boolean isMatchYear(int year) {
+	private boolean isMatchYear() {
 		return String.valueOf(year).matches(RegexPattern.DATE_YEAR.getPattern());
 	}
 

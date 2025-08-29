@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * 파일이름       : YearVOTest<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 8. 28.<br>
- * 설명              :
+ * 설명              : YearVO 검증하는 테스트 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -103,7 +103,7 @@ class YearVOTest {
 
 
 	@Test
-	@DisplayName("정상 범위 내 년도면 YearVO 생성 성공")
+	@DisplayName("정상 범위 내 년도면 YearVO 생성 성공한다.")
 	void shouldCrateYearVOWhenValidYear() {
 		int currentYear = LocalDate.now().getYear();
 		YearVO vo = new YearVO(String.valueOf(currentYear), 5);
