@@ -43,9 +43,19 @@ public enum RegexPattern {
 	DATE_YEAR("^(1|2)\\d{3}"),
 	DATE_MONTH("^(1[0-2]|[1-9])$"),
 	DATE_DAY("^([1-9]|[1-3][0-9])"),
-
-
-
+	/**
+	 * 주소 관련된 정규식 패턴 모음
+	 * <ul>
+	 *     <li>장소명(ADDRESS_PLACE_NAME) : 한글, 숫자, 영문자, 공백만 입력 가능</li>
+	 *     <li>도로명(ADDRESS_ROAD_NAME) : 한글, 숫자, 공백, 특수문자(·)만 입력 가능</li>
+	 *     <li>지번주소(ADDRESS_JIBUN_NAME) : 한글, 숫자, 공백, 특수문자(-)만 입력 가능</li>
+	 *     <li>상세주소(ADDRESS_DETAIL_NAME) : 한글, 숫자, 공백, 영문, 특수문자(- ( ) / .)만 입력 가능</li>
+	 * </ul>
+	 */
+	ADDRESS_PLACE_NAME("^[가-힣a-zA-Z0-9\\s]+$"),
+	ADDRESS_ROAD_NAME("^[가-힣0-9\\s·]+$"),
+	ADDRESS_JIBUN_NAME("^[가-힣0-9\\s-]+$"),
+	ADDRESS_DETAIL_NAME("^[가-힣a-zA-Z0-9\\s\\-()/.]+$"),
 	/**
 	* 회원 관련된 정규식 패턴 모음<br><br>
 	* <ul>
@@ -64,7 +74,6 @@ public enum RegexPattern {
 	MEMBER_NICKNAME("^[a-zA-Z0-9가-힣]{2,10}"),
 	MEMBER_EMAIL("^(?!.*\\.\\.)[A-Za-z0-9!#$%&`*+-/=?^_'{|}~]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$"),
 	MEMBER_EMAIL_CODE("^[A-Za-z0-9]{6}$"),
-
 	/**
 	 * 가계부 관련된 정규식 패턴 모음<br>
 	 *

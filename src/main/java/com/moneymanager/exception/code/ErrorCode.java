@@ -60,6 +60,16 @@ public enum ErrorCode {
 	COMMON_DAY_MISSING("C001401","일 미입력"),
 	COMMON_DAY_FORMAT("C001402", "일 형식 불일치"),
 	COMMON_DAY_INVALID("C001403", "일 범위 벗어나게 입력"),
+	COMMON_AMOUNT_MISSING("C992001", "금액 미입력"),
+	COMMON_AMOUNT_FORMAT("C992002", "금액 형식 불일치"),
+	COMMON_AMOUNT_INVALID("C992003", "금액 범위 벗아나게 입력"),
+	COMMON_ADDRESS_MISSING("C993001","주소 미입력"),
+	COMMON_PLACENAME_MISSING("C993101", "장소명 미입력"),
+	COMMON_PLACENAME_FORMAT("C993102", "장소명 형식 불일치"),
+	COMMON_ROAD_MISSING("C993201", "도로명주소 미입력"),
+	COMMON_ROAD_FORMAT("C993202", "도로명주소 형식 불일치"),
+	COMMON_JIBUN_MISSING("C993301", "지번주소 미입력"),
+	COMMON_JIBUN_FORMAT("C993302", "지번주소 형식 불일치"),
 	/**
 	 * 회원 에러메시지
 	 */
@@ -93,7 +103,9 @@ public enum ErrorCode {
 	 */
 	BUDGET_DATE_MISSING("C030201", "가계부 날짜 미입력"),
 	BUDGET_DATE_FORMAT("C030202", "가계부 날짜 형식 불일치"),
-
+	/**
+	 * 시스템 에러메시지
+	 */
 	SYSTEM_CODE_NULL("S010401", "없는 에러코드");
 
 

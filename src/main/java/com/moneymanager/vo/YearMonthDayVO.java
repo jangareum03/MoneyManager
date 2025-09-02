@@ -1,6 +1,5 @@
 package com.moneymanager.vo;
 
-import com.moneymanager.dto.common.ErrorDTO;
 import com.moneymanager.enums.RegexPattern;
 import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
@@ -147,11 +146,9 @@ public class YearMonthDayVO {
 
 		if( !isValidDayRange() ) {
 			LocalDate now = LocalDate.of(year, month, day);
+			String message = String.format("일은 %d ~ %d까지만 입력 가능합니다.", 1, now.getDayOfMonth());
 
-			throw new ClientException(ErrorDTO.builder()
-					.errorCode(ErrorCode.COMMON_DAY_INVALID)
-					.message(String.format("일은 %d ~ %d까지만 입력 가능합니다.", 1, now.getDayOfMonth()))
-					.requestData(day).build());
+			throw ValidationUtil.createClientException(ErrorCode.COMMON_DAY_INVALID, message, day);
 		}
 	}
 
