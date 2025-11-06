@@ -1,6 +1,6 @@
-package com.moneymanager.entity;
+package com.moneymanager.domain;
 
-import com.moneymanager.enums.type.MemberStatus;
+import com.moneymanager.domain.enums.type.MemberStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;

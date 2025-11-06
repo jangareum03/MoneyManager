@@ -1,10 +1,9 @@
-package com.moneymanager.entity;
+package com.moneymanager.domain;
 
 import lombok.Builder;
 import lombok.Getter;
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 
 /**

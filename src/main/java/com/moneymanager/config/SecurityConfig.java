@@ -1,6 +1,11 @@
 package com.moneymanager.config;
 
-import com.moneymanager.service.member.auth.*;
+import com.moneymanager.security.CustomAuthFailureHandler;
+import com.moneymanager.security.CustomAuthSuccessHandler;
+import com.moneymanager.security.CustomAuthenticationProvider;
+import com.moneymanager.security.CustomUserDetailService;
+import com.moneymanager.security.jwt.JwtAuthenticationFilter;
+import com.moneymanager.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,10 +14,11 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
 /**
@@ -47,8 +53,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final CustomAuthFailureHandler failureHandler;
 	private final CustomAuthSuccessHandler successHandler;
+	private final CustomAuthFailureHandler failureHandler;
+	private final CustomUserDetailService userDetailService;
+	private final JwtTokenProvider tokenProvider;
+
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -66,9 +75,14 @@ public class SecurityConfig {
 	}
 
 	@Bean
+	public JwtAuthenticationFilter jwtAuthenticationFilter() {
+		return new JwtAuthenticationFilter(tokenProvider, userDetailService);
+	}
+
+	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
 		http
-				.csrf(csrf -> csrf.disable())
+				.csrf().disable()
 				.cors(Customizer.withDefaults())
 				.headers(headers -> headers
 						.xssProtection(Customizer.withDefaults())
@@ -82,9 +96,11 @@ public class SecurityConfig {
 										"object-src 'none';"
 						))
 				)
+				.sessionManagement( session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) )
 				.authorizeHttpRequests(auth -> auth
 						.antMatchers("/css/**", "/js/**", "/image/**").permitAll()
 						.antMatchers("/", "/signup", "/api/members/**", "/recovery/id", "/recovery/password").permitAll()
+						.antMatchers("/auth/login", "/auth/refresh").permitAll()
 						.anyRequest().hasRole("USER")
 				)
 				.authenticationManager(authenticationManager)
@@ -101,6 +117,10 @@ public class SecurityConfig {
 						.logoutUrl("/logout")
 						.logoutSuccessUrl("/")
 						.permitAll()
+				)
+				.addFilterBefore(
+						jwtAuthenticationFilter(),
+						UsernamePasswordAuthenticationFilter.class
 				);
 		return http.build();
 	}
