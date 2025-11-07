@@ -1,6 +1,7 @@
 package com.moneymanager.security.jwt;
 
 import com.moneymanager.security.CustomUserDetails;
+import com.moneymanager.utils.LoggerUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -100,6 +101,7 @@ public class JwtTokenProvider {
 
 		Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
 		claims.put("nickName", userDetails.getNickname());
+		claims.put("profile", userDetails.getProfile());
 		claims.put("roles", authentication.getAuthorities());
 
 		return claims;
@@ -164,12 +166,25 @@ public class JwtTokenProvider {
 	 * 토큰에서 닉네임을 반환합니다.
 	 *
 	 * @param token	토큰
-	 * @return	닉네임
+	 * @return	클레임에 저장된 닉네임
 	 */
 	public String getNickName(String token) {
 		Claims claims = getClaims(token);
 
-		return claims.get("nickName").toString();
+		return (String) claims.get("nickName");
+	}
+
+
+	/**
+	 * 토큰에서 프로필 이미지를 반환합니다.
+	 *
+	 * @param token	토큰
+	 * @return	클레임에 저장된 프로필
+	 */
+	public String getProfile(String token) {
+		Claims claims = getClaims(token);
+
+		return (String) claims.get("profile");
 	}
 
 

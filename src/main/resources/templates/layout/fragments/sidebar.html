@@ -2,23 +2,23 @@
     <!-- 상단 영역 -->
     <section class="sidebar-top">
         <div class="sidebar-profile">
-            <th:block th:if="${session.profile == null}">
+            <th:block th:if="${member.profile == null}">
                 <!-- 프로필이 없는 상태 -->
                 <svg class="sidebar-profile__image sidebar-profile__image--empty" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M29.9999 50.8893C22.7083 50.8893 16.2624 47.156 12.4999 41.556C12.5874 35.7227 24.1666 32.5143 29.9999 32.5143C35.8333 32.5143 47.4124 35.7227 47.4999 41.556C45.572 44.4275 42.9675 46.7808 39.9157 48.4084C36.8639 50.0361 33.4586 50.8881 29.9999 50.8893ZM29.9999 9.47266C32.3206 9.47266 34.5462 10.3945 36.1871 12.0355C37.828 13.6764 38.7499 15.902 38.7499 18.2227C38.7499 20.5433 37.828 22.7689 36.1871 24.4098C34.5462 26.0508 32.3206 26.9727 29.9999 26.9727C27.6793 26.9727 25.4537 26.0508 23.8127 24.4098C22.1718 22.7689 21.2499 20.5433 21.2499 18.2227C21.2499 15.902 22.1718 13.6764 23.8127 12.0355C25.4537 10.3945 27.6793 9.47266 29.9999 9.47266ZM29.9999 0.722656C26.1697 0.722656 22.377 1.47707 18.8383 2.94284C15.2997 4.4086 12.0843 6.557 9.37597 9.26538C3.90616 14.7352 0.833252 22.1538 0.833252 29.8893C0.833252 37.6248 3.90616 45.0435 9.37597 50.5133C12.0843 53.2216 15.2997 55.3701 18.8383 56.8358C22.377 58.3016 26.1697 59.056 29.9999 59.056C37.7354 59.056 45.1541 55.9831 50.6239 50.5133C56.0937 45.0435 59.1666 37.6248 59.1666 29.8893C59.1666 13.7602 46.0416 0.722656 29.9999 0.722656Z"/>
                 </svg>
             </th:block>
 
-            <th:block th:unless="${session.profile == null}">
+            <th:block th:unless="${member.profile == null}">
                 <!-- 프로필이 있는 상태 -->
-                <img class="sidebar-profile__image sidebar-profile__image--filled" th:src="${session.profile}" alt="사용자 이미지"/>
+                <img class="sidebar-profile__image sidebar-profile__image--filled" th:src="${member.profile}" alt="사용자 이미지"/>
             </th:block>
         </div>
 
         <div class="sidebar-welcome">
             <span class="sidebar-welcome__hello">반갑습니다!</span>
             <p>
-                <span class="sidebar-welcome__nickname">[[${session.nickName}]]</span>님
+                <span class="sidebar-welcome__nickname">[[${member.nickName}]]</span>님
             </p>
         </div>
     </section>

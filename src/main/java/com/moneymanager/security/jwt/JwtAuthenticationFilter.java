@@ -1,7 +1,7 @@
 package com.moneymanager.security.jwt;
 
 import com.moneymanager.security.CustomUserDetailService;
-import lombok.extern.slf4j.Slf4j;
+import com.moneymanager.utils.LoggerUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -41,7 +41,6 @@ import java.io.IOException;
  * 		</tbody>
  * </table>
  */
-@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtTokenProvider tokenProvider;
@@ -56,14 +55,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 		String token = resolveToken(request);
 
+		String uri = request.getRequestURI();
+		if( uri.startsWith("/css") || uri.startsWith("/js") || uri.startsWith("/image")) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
 		if( token != null && tokenProvider.validateToken(token) ) {	//유효한 토큰인 경우
 			String username = tokenProvider.getUserName(token);
 			UserDetails userDetails = userDetailService.loadUserByUsername(username);
 
-			UsernamePasswordAuthenticationToken authenticationToken
+			UsernamePasswordAuthenticationToken authentication
 					= new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-			SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+			SecurityContextHolder.getContext().setAuthentication(authentication);
 		}
 
 		filterChain.doFilter(request, response);
