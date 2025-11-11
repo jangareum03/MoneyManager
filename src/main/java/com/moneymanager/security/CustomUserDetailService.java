@@ -1,11 +1,7 @@
-package com.moneymanager.service.member.auth;
+package com.moneymanager.security;
 
 import com.moneymanager.dao.member.MemberDaoImpl;
-import com.moneymanager.dto.common.ErrorDTO;
 import com.moneymanager.entity.Member;
-import com.moneymanager.enums.RegexPattern;
-import com.moneymanager.exception.code.ErrorCode;
-import com.moneymanager.exception.custom.LoginException;
 import com.moneymanager.utils.LoggerUtil;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -58,8 +54,6 @@ public class CustomUserDetailService implements UserDetailsService {
 	 */
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
-		LoggerUtil.logSystemInfo("로그인 시작 - 사용자ID: {}", username);
-
 		Member member = memberDao.findAuthMemberByUsername(username);
 
 		return new CustomUserDetails(member);

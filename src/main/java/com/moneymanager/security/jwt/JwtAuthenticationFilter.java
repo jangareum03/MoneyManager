@@ -1,10 +1,17 @@
 package com.moneymanager.security.jwt;
 
+import com.moneymanager.dao.member.MemberDaoImpl;
+import com.moneymanager.dao.member.MemberTokenDao;
+import com.moneymanager.entity.Member;
+import com.moneymanager.entity.MemberToken;
 import com.moneymanager.security.CustomUserDetailService;
-import com.moneymanager.utils.LoggerUtil;
+import com.moneymanager.utils.DateTimeUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -13,7 +20,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.security.jwt<br>
@@ -41,34 +47,67 @@ import java.io.IOException;
  * 		</tbody>
  * </table>
  */
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtTokenProvider tokenProvider;
 	private final CustomUserDetailService userDetailService;
+	private final MemberTokenDao tokenDao;
 
-	public JwtAuthenticationFilter( JwtTokenProvider tokenProvider, CustomUserDetailService userDetailService ) {
+	public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, CustomUserDetailService userDetailService, MemberTokenDao tokenDao) {
 		this.tokenProvider = tokenProvider;
 		this.userDetailService = userDetailService;
+		this.tokenDao = tokenDao;
 	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-		String token = resolveToken(request);
+		String accessToken = resolveToken(request);
 
 		String uri = request.getRequestURI();
-		if( uri.startsWith("/css") || uri.startsWith("/js") || uri.startsWith("/image")) {
+		if( uri.startsWith("/css") || uri.startsWith("/js") || uri.startsWith("/image")) {		//css, js, image 요청은 제외
 			filterChain.doFilter(request, response);
 			return;
 		}
 
-		if( token != null && tokenProvider.validateToken(token) ) {	//유효한 토큰인 경우
-			String username = tokenProvider.getUserName(token);
-			UserDetails userDetails = userDetailService.loadUserByUsername(username);
+		if( accessToken != null ) {
+			if( tokenProvider.validateToken(accessToken) ) {
+				authenticationMember(accessToken);
+			}else {
+				//accessToken 만료
+				String username = tokenProvider.getUserName(accessToken);
+				String refreshToken = tokenDao.findRefreshToken(username);
 
-			UsernamePasswordAuthenticationToken authentication
-					= new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+				if( refreshToken != null && tokenProvider.validateToken(refreshToken) ) {	//refresh 토큰 유효한 경우
+					String newAccessToken = tokenProvider.reissueAccessToken(username);
 
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+					tokenDao.updateAccessToken(
+							MemberToken.builder().member(Member.builder().userName(username).build())
+									.accessToken(newAccessToken)
+									.accessExpireAt(DateTimeUtils.getLocalDateTime(tokenProvider.getExpiration(newAccessToken)))
+									.build()
+					);
+
+					//쿠키 갱신
+					Cookie newCookie = new Cookie("accessToken", newAccessToken);
+					newCookie.setHttpOnly(true);
+					newCookie.setPath("/");
+					newCookie.setMaxAge(60 * 60);
+
+					response.addCookie(newCookie);
+
+					authenticationMember(newAccessToken);
+				}else {
+					tokenDao.updateTokenIsNull(username);
+
+					//쿠키 초기화
+					Cookie clearCookie = new Cookie("accessToken", null);
+					clearCookie.setMaxAge(0);
+					clearCookie.setPath("/");
+
+					response.addCookie(clearCookie);
+				}
+			}
 		}
 
 		filterChain.doFilter(request, response);
@@ -86,5 +125,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		}
 
 		return null;
+	}
+
+
+	/**
+	 * 토큰을 이용하여 인증객체 생성 후 SecurityContextHolder에 저장합니다.
+	 *
+	 * @param token	토큰
+	 */
+	private void authenticationMember(String token) {
+		String username = tokenProvider.getUserName(token);
+		UserDetails userDetails = userDetailService.loadUserByUsername(username);
+
+		UsernamePasswordAuthenticationToken authentication
+				= new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+		SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
 }

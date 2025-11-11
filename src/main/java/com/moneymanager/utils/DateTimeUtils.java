@@ -2,8 +2,10 @@ package com.moneymanager.utils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.chrono.ChronoLocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 /**
  * <p>
@@ -29,6 +31,11 @@ import java.time.temporal.ChronoUnit;
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 11. 12.</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[메서드 추가] getLocalDateTime - Date에서 LocalDateTime으로 형변환</td>
+ * 		 	</tr>
  * 		</tbody>
  * </table>
  */
@@ -47,4 +54,14 @@ public class DateTimeUtils {
 		return betweenDays > days;
 	}
 
+
+	/**
+	 *	Date를 LocalDateTime 객체로 형변환합니다.
+	 *
+	 * @param date	날짜정보를 담은 객체
+	 * @return	형변환된 LocalDateTime
+	 */
+	public static LocalDateTime getLocalDateTime(Date date) {
+		return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+	}
 }

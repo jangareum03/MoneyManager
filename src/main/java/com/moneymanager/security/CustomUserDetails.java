@@ -1,4 +1,4 @@
-package com.moneymanager.service.member.auth;
+package com.moneymanager.security;
 
 
 import com.moneymanager.entity.Member;
@@ -77,6 +77,26 @@ public class CustomUserDetails implements UserDetails {
 	@Override
 	public String getUsername() {
 		return member.getUserName();
+	}
+
+
+	/**
+	 * 로그인 처리 중인 사용자의 닉네임을 반환합니다.
+	 *
+	 * @return	닉네임
+	 */
+	public String getNickname() {
+		return member.getNickName();
+	}
+
+
+	/**
+	 * 사용자의 프로필 이미지를 반환합니다.
+	 *
+	 * @return	프로필 이미지
+	 */
+	public String getProfile() {
+		return member.getInfo().getProfile();
 	}
 
 

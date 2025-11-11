@@ -1,7 +1,8 @@
-package com.moneymanager.service.member.auth;
+package com.moneymanager.security;
 
-import com.moneymanager.dto.member.response.MemberLoginResponse;
-import com.moneymanager.service.member.AuthService;
+import com.moneymanager.security.jwt.JwtTokenProvider;
+import com.moneymanager.service.member.MemberServiceImpl;
+import com.moneymanager.service.member.TokenServiceImpl;
 import com.moneymanager.utils.LoggerUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -9,9 +10,9 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
@@ -45,30 +46,35 @@ import java.io.IOException;
 @Component
 public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-	private final AuthService authService;
+	private final JwtTokenProvider tokenProvider;
+	private final TokenServiceImpl tokenService;
 
-	public CustomAuthSuccessHandler( AuthService authService ) {
-		this.authService = authService;
+	public CustomAuthSuccessHandler( JwtTokenProvider tokenProvider, TokenServiceImpl tokenService ) {
+		this.tokenService = tokenService;
+		this.tokenProvider = tokenProvider;
 	}
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-		//인증된 사용자 정보
 		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-		//로그인 성공한 회원 정보를 세션 저장
-		MemberLoginResponse.Success member = authService.getLoginMember(userDetails.getUsername());
-		HttpSession session = request.getSession();
-		session.setAttribute("mid", member.getMemberId());
-		session.setAttribute("nickName", member.getNickName());
-		session.setAttribute("profile", member.getProfile());
+		//토큰 생성
+		String accessToken = tokenProvider.generateAccessToken(authentication);
+		String refreshToken = tokenProvider.generateRefreshToken(authentication);
 
+		//DB저장
+		tokenService.createMemberToken( userDetails.getUsername(), accessToken, refreshToken );
 
-		LoggerUtil.logSystemInfo("로그인 성공 - 사용자ID: {}", userDetails.getUsername());
+		//쿠키 설정
+		Cookie accessCookie = new Cookie("accessToken", accessToken);
+		accessCookie.setHttpOnly(true);
+		accessCookie.setPath("/");
+		accessCookie.setMaxAge(60 * 60);
 
-		//로그인 성공 후 이동할 페이지 리다이렉트
+		response.addCookie(accessCookie);
+
+		LoggerUtil.logSystemInfo("로그인 성공 - 사용자ID: {}", tokenProvider.getUserName(accessToken));
 		response.sendRedirect("/attendance");
 	}
-
 
 }

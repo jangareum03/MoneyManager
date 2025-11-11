@@ -1,9 +1,10 @@
-package com.moneymanager.service.member.auth;
+package com.moneymanager.security;
 
 import com.moneymanager.dto.common.ErrorDTO;
 import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.exception.custom.LoginException;
 import com.moneymanager.service.validation.MemberValidator;
+import com.moneymanager.utils.LoggerUtil;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

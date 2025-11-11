@@ -118,6 +118,20 @@ CREATE SEQUENCE seq_pointLogs
     START WITH 1
     NOCYCLE;
 
+ -- 회원 토큰
+ CREATE TABLE TB_MEMBER_TOKEN (
+    member_id                  VARCHAR2(8)     PRIMARY KEY,
+    access_token             VARCHAR2(1000),
+    refresh_token           VARCHAR2(1000),
+    access_expire_at        TIMESTAMP,
+    refresh_expire_at       TIMESTAMP,
+    last_issued_at              TIMESTAMP       DEFAULT SYSDATE     NOT NULL,
+    created_at                    TIMESTAMP       DEFAULT SYSDATE     NOT NULL,
+    updated_at                  TIMESTAMP         DEFAULT SYSDATE       NOT NULL,
+
+    CONSTRAINT  FK_memberToken      FOREIGN KEY(member_id)  REFERENCES  tb_member(id)       ON DELETE CASCADE
+ );
+
 
 
 -- 가계부

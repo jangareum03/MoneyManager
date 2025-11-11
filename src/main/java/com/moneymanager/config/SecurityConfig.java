@@ -1,5 +1,6 @@
 package com.moneymanager.config;
 
+import com.moneymanager.dao.member.MemberDaoImpl;
 import com.moneymanager.security.CustomAuthFailureHandler;
 import com.moneymanager.security.CustomAuthSuccessHandler;
 import com.moneymanager.security.CustomAuthenticationProvider;
@@ -55,8 +56,7 @@ public class SecurityConfig {
 
 	private final CustomAuthSuccessHandler successHandler;
 	private final CustomAuthFailureHandler failureHandler;
-	private final CustomUserDetailService userDetailService;
-	private final JwtTokenProvider tokenProvider;
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
 
 	@Bean
@@ -72,11 +72,6 @@ public class SecurityConfig {
 	@Bean
 	public AuthenticationManager authenticationManager(CustomAuthenticationProvider authenticationProvider) {
 		return new ProviderManager(authenticationProvider);
-	}
-
-	@Bean
-	public JwtAuthenticationFilter jwtAuthenticationFilter() {
-		return new JwtAuthenticationFilter(tokenProvider, userDetailService);
 	}
 
 	@Bean
@@ -119,10 +114,9 @@ public class SecurityConfig {
 						.permitAll()
 				)
 				.addFilterBefore(
-						jwtAuthenticationFilter(),
+						jwtAuthenticationFilter,
 						UsernamePasswordAuthenticationFilter.class
 				);
 		return http.build();
 	}
 }
-

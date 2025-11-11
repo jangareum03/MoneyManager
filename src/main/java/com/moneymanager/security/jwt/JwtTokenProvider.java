@@ -1,11 +1,7 @@
 package com.moneymanager.security.jwt;
 
 import com.moneymanager.security.CustomUserDetails;
-import com.moneymanager.utils.LoggerUtil;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +44,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
 	private final Key key;
+	private final long accessTokenLimit = 1000 * 60 * 60;	//60분
 
 	public JwtTokenProvider(@Value("${secret.key}") String secretKey) {
 		this.key = initKey(secretKey);
@@ -77,14 +74,33 @@ public class JwtTokenProvider {
 		Claims claims = createClaim(authentication);
 		Date now = new Date();
 
-		long accessTokenLimit = 1000 * 60 * 60;	//60분
-
 		return Jwts.builder()
 				.setSubject(claims.getSubject())															//토큰 제목
 				.setClaims(claims)																					//클레임 설정
 				.setIssuedAt(now)																					//토큰 생성시간(=현재)
 				.setExpiration( new Date( now.getTime() + accessTokenLimit) )		//토큰 만료시간(=한시간)
 				.signWith(key, SignatureAlgorithm.HS256)											//서버키를 HS256 알고리즘으로 암호화 진행
+				.compact();
+	}
+
+
+	/**
+	 * 사용자의 아이디(<code>username</code>)로 Access Token을 생성합니다.
+	 * <p>
+	 *     주로, 기존의 Access Token을 재생성할 때 사용됩니다.
+	 * </p>
+	 *
+	 * @param username		로그인 시도한 아이디
+	 * @return	사용자 정보를 담은 토큰
+	 */
+	public String reissueAccessToken(String username) {
+		Date now = new Date();
+
+		return Jwts.builder()
+				.setSubject(username)
+				.setIssuedAt(now)
+				.setExpiration(new Date( now.getTime() + accessTokenLimit ))
+				.signWith( key, SignatureAlgorithm.HS256 )
 				.compact();
 	}
 
@@ -143,9 +159,17 @@ public class JwtTokenProvider {
 					.parseClaimsJws(token);
 
 			return  true;
-		}catch ( JwtException | IllegalArgumentException e ) {
-			return false;
+		}catch ( SecurityException | MalformedJwtException e ) {
+			log.warn("잘못된 JWT 서명으로 유효하지 못 합니다.");
+		}catch (ExpiredJwtException e) {
+			log.warn("JWT 토큰이 만료되었습니다.");
+		}catch (UnsupportedJwtException e) {
+			log.warn("지원되지 않은 JWT 토큰입니다.");
+		}catch (IllegalArgumentException e) {
+			log.warn("클레임 정보가 비어있습니다.");
 		}
+
+		return false;
 	}
 
 
@@ -185,6 +209,22 @@ public class JwtTokenProvider {
 		Claims claims = getClaims(token);
 
 		return (String) claims.get("profile");
+	}
+
+
+	/**
+	 * 토큰에서 토큰 만료일자를 반환합니다.
+	 *
+	 * @param token	토큰
+	 * @return	만료일자
+	 */
+	public Date getExpiration(String token) {
+		return Jwts.parserBuilder()
+				.setSigningKey(key)
+				.build()
+				.parseClaimsJws(token)
+				.getBody()
+				.getExpiration();
 	}
 
 

@@ -1,7 +1,6 @@
-package com.moneymanager.service.member.auth;
+package com.moneymanager.security;
 
 import com.moneymanager.dto.common.ErrorDTO;
-import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.exception.custom.LoginException;
 import com.moneymanager.service.member.MemberServiceImpl;
 import com.moneymanager.utils.LoggerUtil;
