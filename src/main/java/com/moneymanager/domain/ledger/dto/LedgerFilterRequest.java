@@ -1,13 +1,13 @@
-package com.moneymanager.dto.budgetBook.request;
+package com.moneymanager.domain.ledger.dto;
 
-import com.moneymanager.dto.common.request.DateRequest;
+import com.moneymanager.domain.global.dto.DateRequest;
 import lombok.Builder;
 import lombok.Getter;
 
 /**
  * <p>
  * * 패키지이름    : com.areum.moneymanager.dto.budgetBook.request<br>
- * * 파일이름       : BudgetBookFilterRequest<br>
+ * * 파일이름       : LedgerFilterRequest<br>
  * * 작성자          : areum Jang<br>
  * * 생성날짜       : 25. 7. 25.<br>
  * * 설명              : 가계부 조회 범위 요청을 위한 데이터 클래스
@@ -33,7 +33,7 @@ import lombok.Getter;
  */
 @Builder
 @Getter
-public class BudgetBookFilterRequest {
+public class LedgerFilterRequest {
 	/**
 	 * 가계부 필터링을 하기 위한 DTO<br>
 	 */

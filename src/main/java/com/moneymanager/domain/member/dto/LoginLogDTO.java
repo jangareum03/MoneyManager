@@ -1,6 +1,6 @@
-package com.moneymanager.dto.member.log;
+package com.moneymanager.domain.member.dto;
 
-import com.moneymanager.dto.common.LogDTO;
+import com.moneymanager.domain.global.dto.LogDTO;
 import lombok.Getter;
 
 import javax.servlet.http.HttpServletRequest;

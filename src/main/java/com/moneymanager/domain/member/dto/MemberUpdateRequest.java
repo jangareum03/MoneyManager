@@ -1,6 +1,6 @@
-package com.moneymanager.dto.member.request;
+package com.moneymanager.domain.member.dto;
 
-import com.moneymanager.dto.common.ImageDTO;
+import com.moneymanager.domain.global.dto.ImageDTO;
 import lombok.*;
 
 /**

@@ -1,6 +1,6 @@
 package com.moneymanager.security;
 
-import com.moneymanager.dto.common.ErrorDTO;
+import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.exception.custom.LoginException;
 import com.moneymanager.service.member.MemberServiceImpl;
 import com.moneymanager.utils.LoggerUtil;

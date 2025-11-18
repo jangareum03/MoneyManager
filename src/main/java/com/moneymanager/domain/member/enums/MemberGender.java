@@ -5,7 +5,7 @@ import lombok.Getter;
 /**
  * <p>
  *  * 패키지이름    : com.areum.moneymanager.enums.type<br>
- *  * 파일이름       : GenderType<br>
+ *  * 파일이름       : MemberGender<br>
  *  * 작성자          : areum Jang<br>
  *  * 생성날짜       : 22. 7. 15<br>
  *  * 설명              : 회원의 성별를 정의한 클래스
@@ -30,26 +30,26 @@ import lombok.Getter;
  * </table>
  */
 @Getter
-public enum GenderType {
+public enum MemberGender {
 
 	DEFAULT('N', "선택없음"), MAN('M', "남자"), WOMAN('F', "여자");
 
 	private char type;
 	private String text;
 
-	GenderType( char type, String text ) {
+	MemberGender(char type, String text ) {
 		this.type = type;
 		this.text= text;
 	}
 
 
-	public static GenderType match( char type ) {
-		for( GenderType g : values() ) {
+	public static MemberGender match(char type ) {
+		for( MemberGender g : values() ) {
 			if( g.getType() == type ) {
 				return g;
 			}
 		}
 
-		return GenderType.DEFAULT;
+		return MemberGender.DEFAULT;
 	}
 }

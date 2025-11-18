@@ -1,12 +1,9 @@
 package com.moneymanager.controller.web.main;
 
-import com.moneymanager.dto.budgetBook.CategoryDTO;
-import com.moneymanager.dto.budgetBook.request.BudgetBookSearchRequest;
-import com.moneymanager.dto.budgetBook.response.BudgetBookDetailResponse;
-import com.moneymanager.dto.budgetBook.response.BudgetBookListResponse;
-import com.moneymanager.dto.budgetBook.response.BudgetBookSearchResponse;
-import com.moneymanager.dto.common.request.DateRequest;
-import com.moneymanager.enums.type.DateType;
+import com.moneymanager.domain.ledger.dto.*;
+import com.moneymanager.domain.ledger.dto.LedgerResponse;
+import com.moneymanager.domain.global.dto.DateRequest;
+import com.moneymanager.domain.ledger.enums.DateType;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.BudgetBookService;
 import com.moneymanager.service.main.ImageServiceImpl;
@@ -106,17 +103,17 @@ public class BudgetBookController {
 		}
 
 
-		BudgetBookSearchRequest search = BudgetBookSearchRequest.builder().date(resetDate).mode("all").keywords(null).build();
-		BudgetBookListResponse budgetBookList = budgetBookService.getBudgetBooksForSummary(memberId, search);
+		LedgerSearchRequest search = LedgerSearchRequest.builder().date(resetDate).mode("all").keywords(null).build();
+		LedgerListResponse budgetBookList = budgetBookService.getBudgetBooksForSummary(memberId, search);
 
 		//타임리프에서 나열하기 위한 전환
-		Map<String, List<List<BudgetBookListResponse.Card>>> formatSummary = new LinkedHashMap<>();
-		for(BudgetBookListResponse.DayCards dayCards  : budgetBookList.getCards() ) {
-			List<BudgetBookListResponse.Card> cardList = dayCards.getCardList();
-			List<List<BudgetBookListResponse.Card>> cardGroup = new ArrayList<>();
+		Map<String, List<List<LedgerListResponse.Card>>> formatSummary = new LinkedHashMap<>();
+		for(LedgerListResponse.DayCards dayCards  : budgetBookList.getCards() ) {
+			List<LedgerListResponse.Card> cardList = dayCards.getCardList();
+			List<List<LedgerListResponse.Card>> cardGroup = new ArrayList<>();
 
 			for( int i=0; i<cardList.size(); i+= 3 ) {
-				List<BudgetBookListResponse.Card> cards = new ArrayList<>();
+				List<LedgerListResponse.Card> cards = new ArrayList<>();
 
 				for( int j=0; j<3; j++ ) {
 					int index = i+j;
@@ -133,7 +130,7 @@ public class BudgetBookController {
 
 		model.addAttribute("type", type);
 		model.addAttribute("title", budgetBookService.makeTitleByType(resetDate));
-		model.addAttribute("search", BudgetBookSearchResponse.builder().type(type).mode("all").build());
+		model.addAttribute("search", LedgerSearchResponse.builder().type(type).mode("all").build());
 		model.addAttribute("price", budgetBookList.getStats());
 		model.addAttribute("summary", formatSummary);
 
@@ -158,13 +155,13 @@ public class BudgetBookController {
 		String memberId = (String) session.getAttribute("mid");
 
 		try {
-			BudgetBookDetailResponse budgetBook = budgetBookService.getBudgetBookById(memberId, id, mode);
+			LedgerResponse budgetBook = budgetBookService.getBudgetBookById(memberId, id, mode);
 			model.addAttribute("budgetBook", budgetBook);
 
 			if (mode.equals("edit")) {
 				String type = budgetBook.getCategory().getCode().startsWith("01") ? "in" : "out";
 
-				List<CategoryDTO> category = budgetBookService.getCategoryByStep(budgetBook.getCategory().getCode());
+				List<LedgerCategoryResponse> category = budgetBookService.getCategoryByStep(budgetBook.getCategory().getCode());
 
 				model.addAttribute("selectCategory", category);
 				model.addAttribute("category", budgetBookService.getCategoriesByCode(category));

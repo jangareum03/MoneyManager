@@ -24,7 +24,7 @@
                 </div>
                 <div class="index-content">
                     <a class="index-link index-link--edit" th:href="@{/mypage/info}">수정하기 &gt;</a>
-                    <span class="index-content__membership" th:classappend="${info.memberShip.type}" th:text="${info.memberShip.text}"></span>
+                    <span class="index-content__membership" th:classappend="${info.type}" th:text="${info.type}"></span>
                     <span class="index-content__greeting">
                         <em class="index-content__nickname" th:text="${info.nickName}"></em>님 반갑습니다!
                     </span>

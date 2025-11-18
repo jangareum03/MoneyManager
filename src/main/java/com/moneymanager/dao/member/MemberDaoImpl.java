@@ -1,8 +1,9 @@
 package com.moneymanager.dao.member;
 
-import com.moneymanager.entity.Member;
-import com.moneymanager.entity.MemberInfo;
-import com.moneymanager.enums.type.MemberStatus;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.MemberInfo;
+import com.moneymanager.domain.member.enums.MemberStatus;
+import com.moneymanager.domain.member.enums.MemberType;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -93,7 +94,7 @@ public class MemberDaoImpl {
 				query,
 				(rs, rowNum) ->
 						Member.builder()
-								.type(rs.getString("type")).name(rs.getString("name"))
+								.type(MemberType.valueOf(rs.getString("type"))).name(rs.getString("name"))
 								.nickName(rs.getString("nickname")).email(rs.getString("email"))
 								.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
 								.build()
@@ -173,7 +174,7 @@ public class MemberDaoImpl {
 	 */
 	public Member findAuthMemberByUsername(String username) {
 		String query = String.format(
-				"SELECT username, password, role, status, failure_count " +
+				"SELECT username, password, role, status, nickname, profile, failure_count " +
 						"FROM %s tm INNER JOIN tb_member_info tmi " +
 						"ON tm.id = tmi.id " +
 						"WHERE username = ?", TABLE);
@@ -184,39 +185,8 @@ public class MemberDaoImpl {
 						Member.builder()
 								.role(rs.getString("role")).status(MemberStatus.valueOf( rs.getString("status").charAt(0) ))
 								.userName(rs.getString("username")).password(rs.getString("password"))
-								.info(MemberInfo.builder().failureCount(rs.getInt("failure_count")).build())
-								.build(),
-				username
-		);
-	}
-
-
-	/**
-	 * 로그인 인증이 완료된 회원이 로그인 후 필요한 정보를 데이터베이스에서 조회합니다.
-	 * <p>
-	 * 조회 컬럼은 회원 식별자(), 회원상태, 닉네임(), 탈퇴일()이며, {@link Member}객체로 매핑 후 반환됩니다. <br>
-	 * 로그인 성공 이후, 세션 저장이나 상태 분기 처리 등에 사용됩니다.
-	 * </p>
-	 *
-	 * @param username 인증 성공한 아이디
-	 * @throws EmptyResultDataAccessException 조회 결과가 없을 경우 발생
-	 * @return 아이디에 매칭되는 로그인 성공한 회원 인증정보
-	 */
-	public Member findLoginInfoByUsername(String username) {
-		String query = String.format(
-				"SELECT tm.id, nickname, profile " +
-						"FROM %s tm LEFT JOIN tb_member_info tmi " +
-						"ON tm.id = tmi.id " +
-						"WHERE username = ?",
-				TABLE);
-
-		return jdbcTemplate.queryForObject(
-				query,
-				(rs, rowNum) ->
-						Member.builder()
-								.id(rs.getString("id"))
 								.nickName(rs.getString("nickname"))
-								.info(MemberInfo.builder().profile(rs.getString("profile")).build())
+								.detail(MemberInfo.builder().profile(rs.getString("profile")).failureCount(rs.getInt("failure_count")).build())
 								.build(),
 				username
 		);
@@ -292,8 +262,6 @@ public class MemberDaoImpl {
 
 		return jdbcTemplate.queryForObject(query, Integer.class, username);
 	}
-
-
 	/**
 	 * 회원 닉네임(nickName)과 일치하는 닉네임의 개수를 데이터베이스에서 조회합니다.
 	 * <p>
@@ -410,4 +378,5 @@ public class MemberDaoImpl {
 
 		return jdbcTemplate.update(query, username) == 1;
 	}
+
 }

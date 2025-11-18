@@ -1,6 +1,6 @@
 package com.moneymanager.domain.ledger.dto;
 
-import com.moneymanager.dto.common.request.DateRequest;
+import com.moneymanager.domain.global.dto.DateRequest;
 import lombok.*;
 
 import java.util.List;
@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * <p>
  * * 패키지이름    : com.areum.moneymanager.dto.budgetBook.request<br>
- * * 파일이름       : BudgetBookSearchRequest<br>
+ * * 파일이름       : LedgerSearchRequest<br>
  * * 작성자          : areum Jang<br>
  * * 생성날짜       : 25. 7. 29.<br>
  * * 설명              : 가계부 검색 요청을 위한 데이터 클래스
@@ -36,7 +36,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class BudgetBookSearchRequest {
+public class LedgerSearchRequest {
 	//가계부 검색 기간
 	private DateRequest date;
 	//검색 유형

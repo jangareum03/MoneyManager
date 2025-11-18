@@ -1,4 +1,4 @@
-package com.moneymanager.domain.inquiry.dto;
+package com.moneymanager.domain.sub.dto;
 
 import lombok.*;
 

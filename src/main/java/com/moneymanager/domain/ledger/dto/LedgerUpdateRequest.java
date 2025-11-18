@@ -1,6 +1,7 @@
 package com.moneymanager.domain.ledger.dto;
 
-import com.moneymanager.dto.common.ImageDTO;
+import com.moneymanager.domain.ledger.vo.Place;
+import com.moneymanager.domain.global.dto.ImageDTO;
 import lombok.*;
 
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.List;
 /**
  * <p>
  * * 패키지이름    : com.areum.moneymanager.dto.budgetBook.request<br>
- * * 파일이름       : BudgetBookUpdateRequest<br>
+ * * 파일이름       : LedgerUpdateRequest<br>
  * * 작성자          : areum Jang<br>
  * * 생성날짜       : 25. 7. 25.<br>
  * * 설명              : 가계부 수정 요청을 위한 데이터 클래스
@@ -35,19 +36,19 @@ import java.util.List;
 @Builder
 @Getter
 @AllArgsConstructor
-public class BudgetBookUpdateRequest {
+public class LedgerUpdateRequest {
 	private String date;
-	private FixResponse fix;
+	private LedgerFixResponse fix;
 	private String category;
 	private String memo;
 	private Long price;
 	private String paymentType;
 	private List<ImageDTO> image;
-	private PlaceDTO place;
+	private Place place;
 
-	public BudgetBookUpdateRequest() {
-		this.fix = FixResponse.defaultValue();
-		this.place = PlaceDTO.defaultValue();
+	public LedgerUpdateRequest() {
+		this.fix = LedgerFixResponse.defaultValue();
+		this.place = null;
 	}
 
 
@@ -58,10 +59,10 @@ public class BudgetBookUpdateRequest {
 	 * @param imageList			수정할 이미지 리스트
 	 * @return	새 UpdateDTO 객체
 	 */
-	public static BudgetBookUpdateRequest from(BudgetBookUpdateRequest update, List<ImageDTO> imageList ) {
-		return BudgetBookUpdateRequest.builder()
-		.fix(FixResponse.builder().option(update.getFix().getOption()).cycle(update.getFix().getCycle()).build())
-		.place(PlaceDTO.builder().name(update.getPlace().getName()).roadAddress(update.getPlace().getRoadAddress()).address(update.getPlace().getAddress()).build())
+	public static LedgerUpdateRequest from(LedgerUpdateRequest update, List<ImageDTO> imageList ) {
+		return LedgerUpdateRequest.builder()
+		.fix(LedgerFixResponse.builder().option(update.getFix().getOption()).cycle(update.getFix().getCycle()).build())
+		.place(Place.builder().placeName(update.getPlace().getPlaceName()).roadAddress(update.getPlace().getRoadAddress()).detailAddress(update.getPlace().getDetailAddress()).build())
 		.date(update.getDate()).category(update.getCategory()).memo(update.getMemo())
 		.price(update.getPrice()).paymentType(update.getPaymentType()).image(imageList)
 		.build();

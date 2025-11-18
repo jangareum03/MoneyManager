@@ -1,6 +1,6 @@
 package com.moneymanager.service.main.validation;
 
-import static com.moneymanager.enums.RegexPattern.*;
+import static com.moneymanager.domain.global.enums.RegexPattern.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,7 +55,7 @@ public class DateValidationService {
 	private static void checkYearAvailability( String year ) {
 		if( Objects.isNull(year) ) {
 			throw new IllegalArgumentException("년도가 입력되지 않았습니다.");
-		}else if( !year.matches(BUDGET_YEAR.getPattern()) ) {
+		}else if( !year.matches(DATE_YEAR.getPattern()) ) {
 			throw new IllegalArgumentException(year + "년은 잘못된 형식입니다.");
 		}else{
 			int yearValue = Integer.parseInt(year);
@@ -99,7 +99,7 @@ public class DateValidationService {
 	private static void checkMonthAvailability( String month ) {
 		if( Objects.isNull(month) ) {
 			throw new IllegalArgumentException("월이 입력되지 않았습니다.");
-		}else if( !month.matches(BUDGET_MONTH.getPattern()) ) {
+		}else if( !month.matches(DATE_MONTH.getPattern()) ) {
 			throw new IllegalArgumentException(month + "월은 잘못된 형식입니다.");
 		}else {
 			int monthValue = Integer.parseInt(month);
@@ -140,7 +140,7 @@ public class DateValidationService {
 	public static void checkWeekAvailability( String week ) {
 		if( Objects.isNull(week) ) {
 			throw new IllegalArgumentException("주가 입력되지 않았습니다.");
-		}else if( !week.matches(BUDGET_WEEK.getPattern()) ) {
+		}else if( Integer.parseInt(week) < 1 && Integer.parseInt(week) > 6 ) {
 			throw new IllegalArgumentException("주 값이 유효하지 않습니다. (허용범위: 1~5)");
 		}
 	}
@@ -177,7 +177,7 @@ public class DateValidationService {
 	private static void checkDayAvailability( String day, int maxValue ) {
 		if( Objects.isNull(day) ) {
 			throw new IllegalArgumentException("일이 입력되지 않았습니다.");
-		}else if( !(day.matches(BUDGET_DAY.getPattern())) ) {
+		}else if( !(day.matches(DATE_DAY.getPattern())) ) {
 			throw new IllegalArgumentException(day + "일은 잘못된 형식입니다.");
 		}else {
 			int dayValue = Integer.parseInt(day);

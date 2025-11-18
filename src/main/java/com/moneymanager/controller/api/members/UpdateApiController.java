@@ -1,9 +1,9 @@
 package com.moneymanager.controller.api.members;
 
-import com.moneymanager.dto.common.ApiResultDTO;
-import com.moneymanager.dto.common.ImageDTO;
-import com.moneymanager.dto.member.request.MemberDeleteRequest;
-import com.moneymanager.dto.member.request.MemberUpdateRequest;
+import com.moneymanager.domain.global.dto.ApiResultDTO;
+import com.moneymanager.domain.global.dto.ImageDTO;
+import com.moneymanager.domain.member.dto.MemberDeleteRequest;
+import com.moneymanager.domain.member.dto.MemberUpdateRequest;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.ImageServiceImpl;
 import com.moneymanager.service.member.MemberServiceImpl;

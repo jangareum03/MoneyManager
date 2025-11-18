@@ -1,9 +1,9 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.BudgetBookDao;
-import com.moneymanager.dto.common.ImageDTO;
-import com.moneymanager.entity.BudgetBook;
-import com.moneymanager.enums.RegexPattern;
+import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.global.dto.ImageDTO;
+import com.moneymanager.domain.global.enums.RegexPattern;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -119,15 +119,15 @@ public class ImageServiceImpl {
 	 *	가계부 이미지를 서버에 저장합니다.<P>
 	 * 이미지 외 가계부 정보를 먼저 저장해야 하므로, 가계부 정보가 없으면 이미지를 저장할 수 없습니다.
 	 *
-	 * @param budgetBook					등록할 가계부 정보
+	 * @param ledger					등록할 가계부 정보
 	 * @param image							등록할 가계부 이미지
 	 * @param index							등록할 이미지 순서
 	 * @throws IOException	가계부 이미지가 없을 시
 	 */
-	public void saveImage( BudgetBook budgetBook, MultipartFile image, int index ) throws IOException {
+	public void saveImage(Ledger ledger, MultipartFile image, int index ) throws IOException {
 		//폴더와 저장할 이미지 얻은 후 서버에 저장
-		File directory = makeDirectory( budgetBook.getMember().getId(), budgetBook.getBookDate().substring(0, 4) );
-		String saveName = changeImageName( budgetBook.getId(), budgetBook.getBookDate(), index, image.getOriginalFilename() );
+		File directory = makeDirectory( ledger.getMember().getId(), ledger.getBookDate().substring(0, 4) );
+		String saveName = changeImageName( ledger.getId(), ledger.getBookDate(), index, image.getOriginalFilename() );
 
 		File saveImage = new File( directory, saveName );
 
@@ -182,22 +182,22 @@ public class ImageServiceImpl {
 	 * 특정 가계부에 등록된 이미지 경로를 반환합니다.<br>
 	 * 만약 가계부에 등록된 이미지가 없으면 null을 반환합니다.
 	 *
-	 * @param budgetBook  			가계부 정보
+	 * @param ledger  			가계부 정보
 	 * @return 사진과 폴더가 존재하면 '경로+사진', 존재하지 않으면 null
 	 */
-	public List<String> findImageUrl( BudgetBook budgetBook ) {
+	public List<String> findImageUrl( Ledger ledger) {
 		List<String> imageUrls = new ArrayList<>();
 
-		//budgetBook 이미지 담기
-		List<String> budgetBookImages = Arrays.asList( budgetBook.getImage1(), budgetBook.getImage2(), budgetBook.getImage3() );
+		//ledger 이미지 담기
+		List<String> budgetBookImages = Arrays.asList( ledger.getImage1(), ledger.getImage2(), ledger.getImage3() );
 		for( int i=0; i<budgetBookImages.size(); i++ ) {
 			String image = budgetBookImages.get(i);
 
 			if( !Objects.isNull(image)) {
-				String year = budgetBook.getBookDate().substring(0, 4);
-				String name = changeImageName( budgetBook.getId(), budgetBook.getBookDate(), i ,image );
+				String year = ledger.getBookDate().substring(0, 4);
+				String name = changeImageName( ledger.getId(), ledger.getBookDate(), i ,image );
 
-				imageUrls.add( String.format("%s/%s/%s", budgetBook.getMember().getId(), year, name) );
+				imageUrls.add( String.format("%s/%s/%s", ledger.getMember().getId(), year, name) );
 			}else {
 				imageUrls.add( null );
 			}
@@ -213,24 +213,24 @@ public class ImageServiceImpl {
 	 * 서버에 저장된 이미지(serverImage)가 있는 상태에서 저장할 이미지(clientImage) 여부에 따라 다르게 동작합니다.<br>
 	 *
 	 * @param memberId			회원 고유번호
-	 * @param budgetBook 		변경할 가계부 정보
+	 * @param ledger 		변경할 가계부 정보
 	 * @param imageList			변경할 이미지 정보
 	 *
 	 * @throws IOException  사용자가 업로드한 이미지 문제 시
 	 */
-	public void changeImage( String memberId, BudgetBook budgetBook, List<ImageDTO> imageList ) throws IOException {
-		File directory = makeDirectory( memberId, budgetBook.getBookDate().substring(0, 4) );
+	public void changeImage(String memberId, Ledger ledger, List<ImageDTO> imageList ) throws IOException {
+		File directory = makeDirectory( memberId, ledger.getBookDate().substring(0, 4) );
 
 		//기존 이미지 삭제
-		boolean isDelete = deleteImage( directory, budgetBook.getId() );
+		boolean isDelete = deleteImage( directory, ledger.getId() );
 		if( isDelete ) {
 			logger.info("삭제완료");
-			budgetBookDAO.updateImage( memberId, budgetBook );
+			budgetBookDAO.updateImage( memberId, ledger);
 
 			for( int i=0; i < imageList.size(); i++ ) {
 				if( Objects.nonNull( imageList.get(i).getFile() ) ) {
 					logger.info("저장시작");
-					saveImage( budgetBook, imageList.get(i).getFile(), i );
+					saveImage(ledger, imageList.get(i).getFile(), i );
 				}
 			}
 		}

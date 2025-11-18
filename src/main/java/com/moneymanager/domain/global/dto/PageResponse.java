@@ -1,4 +1,4 @@
-package com.moneymanager.dto.common.response;
+package com.moneymanager.domain.global.dto;
 
 import lombok.Builder;
 import lombok.Getter;

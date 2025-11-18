@@ -1,10 +1,10 @@
-package com.moneymanager.enums.type;
+package com.moneymanager.domain.member.enums;
 
 import lombok.Getter;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.enums.type<br>
+ * 패키지이름    : com.moneymanager.domain.member.enums<br>
  * 파일이름       : MemberStatus<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 8. 4.<br>

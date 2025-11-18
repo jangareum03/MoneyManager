@@ -1,7 +1,7 @@
 package com.moneymanager.controller.web.members;
 
-import com.moneymanager.dto.member.request.MemberRecoveryRequest;
-import com.moneymanager.dto.member.response.MemberRecoveryResponse;
+import com.moneymanager.domain.member.dto.MemberRecoveryRequest;
+import com.moneymanager.domain.member.dto.MemberRecoveryResponse;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.MemberServiceImpl;
 import org.apache.logging.log4j.LogManager;
@@ -86,7 +86,7 @@ public class AccountRecoveryController {
 
 			page = "/member/recovery_id_success";
 		}catch ( ClientException e ) {
-			logger.debug("아이디 찾기에 실패했습니다. ({}: {})", e.getErrorCode(), e.getMessage());
+			//logger.debug("아이디 찾기에 실패했습니다. ({}: {})", e.getErrorCode(), e.getMessage());
 		}
 
 		return page;
@@ -127,7 +127,7 @@ public class AccountRecoveryController {
 
 			page = "/member/recovery_password_success";
 		}catch ( ClientException e ) {
-			logger.debug("비밀번호 찾기에 실패했습니다. ({}: {})", e.getErrorCode(), e.getMessage());
+			//logger.debug("비밀번호 찾기에 실패했습니다. ({}: {})", e.getErrorCode(), e.getMessage());
 		}
 
 

@@ -1,5 +1,6 @@
 package com.moneymanager.domain.ledger.dto;
 
+import com.moneymanager.domain.ledger.vo.Place;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.List;
 /**
  * <p>
  * 패키지이름    : com.areum.moneymanager.dto.budgetBook.request<br>
- * 파일이름       : BudgetBookWriteRequest<br>
+ * 파일이름       : LedgerWriteRequest<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 7. 25.<br>
  * 설명              : 가계부 작성 요청을 위한 데이터 클래스
@@ -40,11 +41,11 @@ import java.util.List;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString
-public class BudgetBookWriteRequest {
+public class LedgerWriteRequest {
 	//가계부 날짜
 	private String date;
 	//가계부 등록 주기
-	private FixResponse fix;
+	private LedgerFixResponse fix;
 	//카테고리 코드
 	private String category;
 	//메모
@@ -55,15 +56,13 @@ public class BudgetBookWriteRequest {
 	private String paymentType;
 	//가계부 사진
 	private List<MultipartFile> image;
-	//위치
-	private PlaceDTO place = PlaceDTO.defaultValue();
 
 	@Getter
 	@Builder
 	@ToString
 	public static class Required {
 		private String date;
-		private FixResponse fix;
+		private LedgerFixResponse fix;
 		private String category;
 		private Long price;
 		private String paymentType;
@@ -71,7 +70,7 @@ public class BudgetBookWriteRequest {
 
 
 	/**
-	 * {@code BudgetBookWriteRequest}객체에서 가계부 작성 시 반드시 필요한 항목들만 추출하여 {@link Required}객체로 변환합니다.
+	 * {@code LedgerWriteRequest}객체에서 가계부 작성 시 반드시 필요한 항목들만 추출하여 {@link Required}객체로 변환합니다.
 	 *
 	 * @return	{@link Required} 필수 필드 DTO
 	 */

@@ -1,9 +1,9 @@
 package com.moneymanager.service.validation;
 
 
-import com.moneymanager.dto.common.ErrorDTO;
-import com.moneymanager.enums.RegexPattern;
-import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.domain.global.dto.ErrorDTO;
+import com.moneymanager.domain.global.enums.RegexPattern;
+import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.exception.custom.LoginException;
 
 

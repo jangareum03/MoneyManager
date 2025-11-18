@@ -1,6 +1,6 @@
 package com.moneymanager.exception.custom;
 
-import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
 
 
@@ -36,7 +36,7 @@ public class NetworkException extends RuntimeException {
     private final ErrorCode errorCode;
 
 	public NetworkException( ErrorCode errorCode )  {
-		super(errorCode.getLogMessage());
+		super(errorCode.getMessage());
         this.errorCode = errorCode;
 	}
 

@@ -1,6 +1,8 @@
 package com.moneymanager.dao.member;
 
-import com.moneymanager.entity.MemberInfo;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.MemberInfo;
+import com.moneymanager.domain.member.enums.MemberGender;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -51,16 +53,16 @@ public class MemberInfoDaoImpl {
 	 * 회원 상세정보를 데이터베이스에 저장합니다.
 	 *
 	 * <p>
-	 * 회원가입 시 전달받은 {@link MemberInfo} 객체의 정보를 <code>tb_member_info</code> 테이블에 INSERT 합니다.
+	 * 회원가입 시 전달받은 {@link Member} 객체의 정보를 <code>tb_member_info</code> 테이블에 INSERT 합니다.
 	 * </p>
 	 *
-	 * @param memberInfo 저장할 회원 상세정보
+	 * @param member 저장할 회원 상세정보
 	 * @return 저장이 성공하면 {@code true}, 실패하면 {@code false}
 	 */
-	public boolean saveMemberInfo( MemberInfo memberInfo ) {
+	public boolean saveMemberInfo( Member member ) {
 		String query = String.format("INSERT INTO %s (id, gender) VALUES(?, ?)", TABLE);
 
-		return jdbcTemplate.update(query, memberInfo.getId(), memberInfo.getGender()) == 1;
+		return jdbcTemplate.update(query, member.getId(), member.getDetail().getGender()) == 1;
 	}
 
 
@@ -85,7 +87,7 @@ public class MemberInfoDaoImpl {
 				query,
 				(rs, rowNum) ->
 						MemberInfo.builder()
-								.gender(rs.getString("gender").charAt(0))
+								.gender(MemberGender.match(rs.getString("gender").charAt(0)))
 								.profile(rs.getString("profile"))
 								.consecutiveDays(rs.getLong("consecutive_days"))
 								.loginAt(rs.getTimestamp("login_at").toLocalDateTime())
@@ -153,16 +155,16 @@ public class MemberInfoDaoImpl {
 	 * 회원의 성별(gender)를 데이터베이스에 수정합니다.
 	 *
 	 * <p>
-	 * 전달받은 {@link MemberInfo} 객체의 회원 식별번호(id) 기준으로 <code>tb_member_info</code> 테이블에서 성별을 UPDATE 합니다.
+	 * 전달받은 {@link Member} 객체의 회원 식별번호(id) 기준으로 <code>tb_member_info</code> 테이블에서 성별을 UPDATE 합니다.
 	 * </p>
 	 *
-	 * @param memberInfo 성별 변경할 회원정보
+	 * @param member 성별 변경할 회원정보
 	 * @return 성별 수정이 성공하면 {@code true}, 실패하면 {@code false}
 	 */
-	public boolean updateGender( MemberInfo memberInfo ) {
+	public boolean updateGender( Member member ) {
 		String query = String.format("UPDATE %s SET gender = ? WHERE id = ? AND gender != ?", TABLE);
 
-		return jdbcTemplate.update( query, memberInfo.getGender(), memberInfo.getId(), memberInfo.getGender() ) == 1;
+		return jdbcTemplate.update( query, member.getDetail().getGender(), member.getId(), member.getDetail().getGender() ) == 1;
 	}
 
 
@@ -170,16 +172,16 @@ public class MemberInfoDaoImpl {
 	 * 회원의 프로필(profile)을 데이터베이스에 수정합니다.
 	 *
 	 * <p>
-	 * 전달받은 {@link MemberInfo} 객체의 회원 식별번호(id) 기준으로 <code>tb_member_info</code> 테이블에서 프로필을 UPDATE 합니다.
+	 * 전달받은 {@link Member} 객체의 회원 식별번호(id) 기준으로 <code>tb_member_info</code> 테이블에서 프로필을 UPDATE 합니다.
 	 * </p>
 	 *
-	 * @param memberInfo 프로필 변경할 회원정보
+	 * @param member 프로필 변경할 회원정보
 	 * @return 프로필 수정이 성공하면 {@code true}, 실패하면 {@code false}
 	 */
-	public boolean updateProfile( MemberInfo memberInfo ) {
+	public boolean updateProfile( Member member ) {
 		String query = String.format("UPDATE %s SET profile = ? WHERE id = ?", TABLE);
 
-		return jdbcTemplate.update( query, memberInfo.getProfile(), memberInfo.getId() ) == 1;
+		return jdbcTemplate.update( query, member.getDetail().getProfile(), member.getId() ) == 1;
 	}
 
 
@@ -189,17 +191,17 @@ public class MemberInfoDaoImpl {
 	 *     전달받은 {@link MemberInfo}객체의 회원 식별번호(id) 기준으로 <code>tb_member_info</code>테이블에서 포인트를 UPDATE 합니다.
 	 * </p>
 	 *
-	 * @param memberInfo		포인트 변경할 회원정보
+	 * @param member		포인트 변경할 회원정보
 	 * @return 포인트 수정이 성공하면 수정된 포인트, 실패하면 -1L
 	 */
-	public Long updatePointAndReturn( MemberInfo memberInfo ) {
+	public Long updatePointAndReturn( Member member ) {
 		String query = String.format("UPDATE %s SET point = point + ? WHERE id = ?", TABLE);
 
-		int updateRow = jdbcTemplate.update(query, memberInfo.getPoint(), memberInfo.getId());
+		int updateRow = jdbcTemplate.update(query, member.getDetail().getPoint(), member.getId());
 		if( updateRow == 1 ) {
 			query = String.format("SELECT point FROM %s WHERE id = ?", TABLE);
 
-			return	jdbcTemplate.queryForObject( query, Long.class, memberInfo.getId() );
+			return	jdbcTemplate.queryForObject( query, Long.class, member.getId() );
 		}
 
 		return -1L;
@@ -212,13 +214,13 @@ public class MemberInfoDaoImpl {
 	 *     전달받은 {@link MemberInfo}객체의 회원 식별번호(id) 기준으로 <code>tb_member_info</code>테이블에서 접속일을 UPDATE 합니다.
 	 * </p>
 	 *
-	 * @param memberInfo		접속일 변경할 회원정보
+	 * @param member		접속일 변경할 회원정보
 	 * @return 접속일 수정이 성공하면 {@code true}, 실패하면 {@code false}
 	 */
-	public boolean updateLoginDate( MemberInfo memberInfo ) {
+	public boolean updateLoginDate( Member member ) {
 		String query = String.format("UPDATE %s SET login_at = ? WHERE id = ?", TABLE);
 
-		return jdbcTemplate.update(query, memberInfo.getLoginAt(), memberInfo.getId()) == 1;
+		return jdbcTemplate.update(query, member.getDetail().getLoginAt(), member.getId()) == 1;
 	}
 
 }

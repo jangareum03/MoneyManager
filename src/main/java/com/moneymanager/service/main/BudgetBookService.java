@@ -1,27 +1,25 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.BudgetBookDao;
-import com.moneymanager.dto.budgetBook.CategoryDTO;
-import com.moneymanager.dto.budgetBook.FixDTO;
-import com.moneymanager.dto.budgetBook.PlaceDTO;
-import com.moneymanager.dto.budgetBook.request.BudgetBookSearchRequest;
-import com.moneymanager.dto.budgetBook.request.BudgetBookUpdateRequest;
-import com.moneymanager.dto.budgetBook.request.BudgetBookWriteRequest;
-import com.moneymanager.dto.budgetBook.response.BudgetBookDetailResponse;
-import com.moneymanager.dto.budgetBook.response.BudgetBookListResponse;
-import com.moneymanager.dto.budgetBook.response.BudgetBookWriteResponse;
-import com.moneymanager.dto.common.ImageDTO;
-import com.moneymanager.dto.common.request.DateRequest;
-import com.moneymanager.dto.external.google.GoogleChartResponse;
-import com.moneymanager.entity.BudgetBook;
-import com.moneymanager.entity.Category;
-import com.moneymanager.entity.Member;
-import com.moneymanager.enums.type.DateType;
-import com.moneymanager.enums.type.BudgetBookType;
-import com.moneymanager.vo.YearMonthDayVO;
+import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.dto.*;
+import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
+import com.moneymanager.domain.ledger.dto.LedgerResponse;
+import com.moneymanager.domain.ledger.dto.LedgerListResponse;
+import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
+import com.moneymanager.domain.global.dto.ImageDTO;
+import com.moneymanager.domain.global.dto.DateRequest;
+import com.moneymanager.domain.global.dto.GoogleChartResponse;
+import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.LedgerDate;
+import com.moneymanager.domain.ledger.vo.Place;
+import com.moneymanager.domain.ledger.vo.YearMonthDayVO;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.ledger.enums.DateType;
+import com.moneymanager.domain.ledger.enums.BudgetBookType;
+import com.moneymanager.service.validation.BudgetBookValidator;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,16 +88,16 @@ public class BudgetBookService {
 	 * @param date		작성할 가계부 날짜 정보를 담은 객체
 	 * @return 작성에 필요한 기본 정보
 	 */
-	public BudgetBookWriteResponse.InitialBudget getWriteByData(String id, String type, YearMonthDayVO date) {
+	public LedgerWriteResponse.InitialBudget getWriteByData(String id, String type, YearMonthDayVO date) {
 		String title = date.formatDate("yyyy년 MM월 dd일 E요일");
 
 		int availableCount = imageService.getLimitImageCount(id);        //등록 가능한 이미지 개수
 
 		//카테고리 리스트
-		List<CategoryDTO> topCategory = categoryService.getTopCategories();
+		List<LedgerCategoryResponse> topCategory = categoryService.getTopCategories();
 		String code = type.equalsIgnoreCase(BudgetBookType.INCOME.getType()) ? topCategory.get(0).getCode() : topCategory.get(1).getCode();
 
-		return BudgetBookWriteResponse.InitialBudget.builder()
+		return LedgerWriteResponse.InitialBudget.builder()
 				.date(title).type(type).maxImage(availableCount)
 				.categories(categoryService.getMySubCategories(code))
 				.build();
@@ -114,50 +112,8 @@ public class BudgetBookService {
 	 * @param create   가계부 정보
 	 */
 	@Transactional
-	public void createBudgetBook(String memberId, BudgetBookWriteRequest.DetailedBudget create) {
-
-		if (Objects.isNull(create)) {
-
-		}
-
-		//날짜 변환
-		LocalDate date = LocalDate.parse(create.getDate(), DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 E요일"));
-		String formatDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-
-		//이미지를 담은 DTO 리스트
-		List<ImageDTO> imageFiles
-				= imageService.getImageList(memberId,
-				Objects.nonNull(create.getImage()) ? create.getImage() : new ArrayList<>());
-
-
-		//DTO → Entity 변환
-		BudgetBook entity = BudgetBook.builder()
-				.member(Member.builder().id(memberId).build())
-				.category(Category.builder().code(create.getCategory()).build())
-				.bookDate(formatDate).memo(create.getMemo())
-				.price(create.getPrice()).paymentType(create.getPaymentType().toUpperCase())
-				.fix(create.getFix().getOption().toUpperCase()).fixCycle(create.getFix().getOption().equalsIgnoreCase("y") ? create.getFix().getCycle().toUpperCase() : null)
-				.image1(imageFiles.get(0).getFileName()).image2(imageFiles.get(1).getFileName()).image3(imageFiles.get(2).getFileName())
-				.placeName((Objects.isNull(create.getPlace())) ? null : create.getPlace().getName())
-				.roadAddress((Objects.isNull(create.getPlace())) ? null : create.getPlace().getRoadAddress())
-				.address(Objects.isNull(create.getPlace()) ? null : create.getPlace().getAddress())
-				.build();
-
-
-		try {
-			//가계부 등록
-			BudgetBook budgetBook = budgetBookDAO.saveBudgetBook(entity);
-
-			for (int i = 0; i < imageFiles.size(); i++) {
-				if (Objects.nonNull(imageFiles.get(i).getFile())) {
-					imageService.saveImage(budgetBook, imageFiles.get(i).getFile(), i);
-				}
-			}
-
-		} catch (NullPointerException | IOException e) {
-
-		}
+	public void createBudgetBook(String memberId, LedgerWriteRequest create) {
+		BudgetBookValidator.validateWrite( create.toRequiredFields() );
 	}
 
 
@@ -189,10 +145,10 @@ public class BudgetBookService {
 	 * @param search   가계부 조회 정보 객체
 	 * @return 가계부 정보와 가격
 	 */
-	public BudgetBookListResponse getBudgetBooksForSummary(String memberId, BudgetBookSearchRequest search) {
-		List<BudgetBookListResponse.DayCards> dayCards = getBudgetBooks(memberId, search);
+	public LedgerListResponse getBudgetBooksForSummary(String memberId, LedgerSearchRequest search) {
+		List<LedgerListResponse.DayCards> dayCards = getBudgetBooks(memberId, search);
 
-		return BudgetBookListResponse.builder()
+		return LedgerListResponse.builder()
 				.stats(getPriceByCategory(dayCards))
 				.cards(dayCards)
 				.build();
@@ -206,16 +162,16 @@ public class BudgetBookService {
 	 * @param search   가계부 검색 조건
 	 * @return 가계부 리스트
 	 */
-	public List<BudgetBookListResponse.DayCards> getBudgetBooks(String memberId, BudgetBookSearchRequest search) {
-		List<BudgetBookListResponse.DayCards> cards = new ArrayList<>();
+	public List<LedgerListResponse.DayCards> getBudgetBooks(String memberId, LedgerSearchRequest search) {
+		List<LedgerListResponse.DayCards> cards = new ArrayList<>();
 
-		for (BudgetBookListResponse.DayCards dayCards : budgetBookDAO.findBudgetBooksBySearch(memberId, getDateForSearch(search.getDate()), search) ) {
+		for (LedgerListResponse.DayCards dayCards : budgetBookDAO.findBudgetBooksBySearch(memberId, getDateForSearch(search.getDate()), search) ) {
 			String date = dayCards.getDate();
-			List<BudgetBookListResponse.Card> cardList = dayCards.getCardList();
+			List<LedgerListResponse.Card> cardList = dayCards.getCardList();
 
 			String formatDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd")).format(DateTimeFormatter.ofPattern("yyyy. MM. dd (E)", Locale.KOREAN));
 
-			cards.add( BudgetBookListResponse.DayCards.builder().date(formatDate).cardList(cardList).build() );
+			cards.add( LedgerListResponse.DayCards.builder().date(formatDate).cardList(cardList).build() );
 		}
 
 		return cards;
@@ -321,25 +277,27 @@ public class BudgetBookService {
 	 * @param dayCards	날짜별로 묶은 가계부 리스트
 	 * @return 카테고리별로 가격을 담은 맵
 	 */
-	private BudgetBookListResponse.Stats getPriceByCategory(List<BudgetBookListResponse.DayCards> dayCards) {
-		List<BudgetBookListResponse.Card> cards = dayCards.stream().flatMap(day -> day.getCardList().stream()).collect(Collectors.toList());
+	private LedgerListResponse.Stats getPriceByCategory(List<LedgerListResponse.DayCards> dayCards) {
+		List<LedgerListResponse.Card> cards = dayCards.stream().flatMap(day -> day.getCardList().stream()).collect(Collectors.toList());
 
 		Map<String, Long> categoryPrice = cards.stream()
 				.collect(Collectors.groupingBy(
 						card -> {
+							System.out.println("🍒" + card.getCategory());
+							System.out.println("🍒" + card.getCategory().getCode());
 							String type = card.getCategory().getCode().substring(0,2);
 
 							return type.equals("01") ? "income" : "outlay";
 						},
 
-						Collectors.summingLong( BudgetBookListResponse.Card::getPrice )
+						Collectors.summingLong( LedgerListResponse.Card::getPrice )
 				));
 
-		long income = categoryPrice.get("income");
-		long outlay = categoryPrice.get("outlay");
+		long income = Objects.isNull(categoryPrice.get("income")) ? 0L : categoryPrice.get("income");
+		long outlay = Objects.isNull(categoryPrice.get("outlay")) ? 0L : categoryPrice.get("outlay");
 		long total = income + outlay;
 
-		return BudgetBookListResponse.Stats.builder()
+		return LedgerListResponse.Stats.builder()
 				.total(total).income(income).outlay(outlay).build();
 	}
 
@@ -350,7 +308,7 @@ public class BudgetBookService {
 	 * @param code 카테고리 코드
 	 * @return 하위 카테고리 리스트
 	 */
-	public List<CategoryDTO> getCategoriesByCode(String code) {
+	public List<LedgerCategoryResponse> getCategoriesByCode(String code) {
 		if (Objects.isNull(code)) {
 			return categoryService.getTopCategories();
 		}
@@ -367,8 +325,8 @@ public class BudgetBookService {
 	 * @param id       가계부 번호
 	 * @return 번호에 해당하는 가계부 상세정보
 	 */
-	public BudgetBookDetailResponse getBudgetBookById(String memberId, Long id, String mode) {
-		BudgetBook entity = budgetBookDAO.findBudgetBookById(id);
+	public LedgerResponse getBudgetBookById(String memberId, Long id, String mode) {
+		Ledger entity = budgetBookDAO.findBudgetBookById(id);
 
 		//날짜 포맷
 		LocalDate date = LocalDate.parse(entity.getBookDate(), DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -378,30 +336,30 @@ public class BudgetBookService {
 		}
 
 		//고정주기 변환
-		FixDTO fix = Objects.isNull(entity.getFixCycle()) ?
-				FixDTO.defaultValue() : FixDTO.builder().option(entity.getFix().toLowerCase()).cycle(entity.getFixCycle().toLowerCase()).build();
+		LedgerFixResponse fix = Objects.isNull(entity.getFixCycle()) ?
+				LedgerFixResponse.defaultValue() : LedgerFixResponse.builder().option(entity.getFix().toLowerCase()).cycle(entity.getFixCycle().toLowerCase()).build();
 
 
 		//카테고리 변환
-		CategoryDTO category = CategoryDTO.builder()
+		LedgerCategoryResponse category = LedgerCategoryResponse.builder()
 				.code(entity.getCategory().getCode())
 				.name(entity.getCategory().getName())
 				.build();
 
 		//위치 변환
-		PlaceDTO place = Objects.isNull(entity.getPlaceName()) ?
-				PlaceDTO.defaultValue() : PlaceDTO.builder().name(entity.getPlaceName()).roadAddress(entity.getRoadAddress()).address(entity.getAddress()).build();
+		Place place = Objects.isNull(entity.getPlaceName()) ?
+				null : Place.builder().placeName(entity.getPlaceName()).roadAddress(entity.getRoadAddress()).detailAddress(entity.getAddress()).build();
 
 
 		//이미지 변환
 		List<String> profileImage = imageService.findImageUrl(entity);
 
 		if (memberId.equals(entity.getMember().getId())) {
-			return BudgetBookDetailResponse.builder()
-					.date( BudgetBookDetailResponse.ReadDate.builder().read(date.toString()).text(formatDate).build() )
+			return LedgerResponse.builder()
+					.date( LedgerResponse.ReadDate.builder().read(date.toString()).text(formatDate).build() )
 					.image(profileImage)
 					.fix(fix).category(category).place(place)
-					.id(entity.getId()).memo(entity.getMemo()).price(entity.getPrice()).paymentType(entity.getPaymentType().toLowerCase())
+					.id(entity.getId()).memo(entity.getMemo()).price(entity.getPrice()).paymentType(entity.getPaymentType().getText())
 					.build();
 		} else {
 			throw new RuntimeException("");
@@ -415,7 +373,7 @@ public class BudgetBookService {
 	 * @param code 하위카테고리 코드
 	 * @return 하위카테고리 포함한 상위 카테고리 이름 리스트
 	 */
-	public List<CategoryDTO> getCategoryByStep(String code) {
+	public List<LedgerCategoryResponse> getCategoryByStep(String code) {
 		return categoryService.getMyParentCategories(code);
 	}
 
@@ -428,19 +386,19 @@ public class BudgetBookService {
 	 * @param categories 가계부 카테고리 정보
 	 * @return 유형별 모든 하위 카테고리
 	 */
-	public Map<String, Object> getCategoriesByCode(List<CategoryDTO> categories) {
+	public Map<String, Object> getCategoriesByCode(List<LedgerCategoryResponse> categories) {
 		Map<String, Object> map = new HashMap<>();
 
 		//상위카테고리
-		List<CategoryDTO> topCategory = categoryService.getTopCategories();
+		List<LedgerCategoryResponse> topCategory = categoryService.getTopCategories();
 		map.put("top", topCategory);
 
 		//중간카테고리
-		List<CategoryDTO> middleCategory = categoryService.getMySubCategories(categories.get(0).getCode());
+		List<LedgerCategoryResponse> middleCategory = categoryService.getMySubCategories(categories.get(0).getCode());
 		map.put("middle", middleCategory);
 
 		//하위카테고리
-		List<CategoryDTO> bottomCategory = categoryService.getMySubCategories(categories.get(1).getCode());
+		List<LedgerCategoryResponse> bottomCategory = categoryService.getMySubCategories(categories.get(1).getCode());
 		map.put("bottom", bottomCategory);
 
 
@@ -455,7 +413,7 @@ public class BudgetBookService {
 	 * @param update   수정할 가계부 정보
 	 */
 	@Transactional
-	public void updateBudgetBook(String memberId, Long id, BudgetBookUpdateRequest update) {
+	public void updateBudgetBook(String memberId, Long id, LedgerUpdateRequest update) {
 
 		if (Objects.isNull(update)) {
 		}
@@ -468,17 +426,17 @@ public class BudgetBookService {
 		List<ImageDTO> imageFiles = update.getImage();
 
 		//DTO → Entity 변환
-		BudgetBook entity = BudgetBook.builder()
+		Ledger entity = Ledger.builder()
 				.member(Member.builder().id(memberId).build())
 				.id(id).bookDate(formatDate)
 				.fix(update.getFix().getOption().toUpperCase()).fixCycle(Objects.isNull(update.getFix().getCycle()) ? null : update.getFix().getCycle().toUpperCase())
 				.category(Category.builder().code(update.getCategory()).build())
 				.memo(update.getMemo())
-				.price(update.getPrice()).paymentType(update.getPaymentType().toUpperCase())
+				.price(update.getPrice()).paymentType(PaymentType.valueOf(update.getPaymentType().toUpperCase()))
 				.image1(imageFiles.get(0).getFileName()).image2(imageFiles.get(1).getFileName()).image3(imageFiles.get(2).getFileName())
-				.placeName(Objects.isNull(update.getPlace().getName()) ? null : update.getPlace().getName())
+				.placeName(Objects.isNull(update.getPlace().getPlaceName()) ? null : update.getPlace().getPlaceName())
 				.roadAddress(Objects.isNull(update.getPlace().getRoadAddress()) ? null : update.getPlace().getRoadAddress())
-				.address(Objects.isNull(update.getPlace().getAddress()) ? null : update.getPlace().getAddress())
+				.address(Objects.isNull(update.getPlace().getDetailAddress()) ? null : update.getPlace().getDetailAddress())
 				.build();
 
 

@@ -2,9 +2,9 @@ package com.moneymanager.dao.member.history;
 
 
 import com.moneymanager.dao.HistoryDao;
-import com.moneymanager.dto.member.response.MemberMyPageResponse;
-import com.moneymanager.entity.Member;
-import com.moneymanager.entity.PointHistory;
+import com.moneymanager.domain.member.dto.MemberMyPageResponse;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.PointHistory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.support.GeneratedKeyHolder;

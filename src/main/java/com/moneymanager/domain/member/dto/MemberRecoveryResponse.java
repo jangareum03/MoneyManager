@@ -1,4 +1,4 @@
-package com.moneymanager.dto.member.response;
+package com.moneymanager.domain.member.dto;
 
 import lombok.Builder;
 import lombok.Getter;

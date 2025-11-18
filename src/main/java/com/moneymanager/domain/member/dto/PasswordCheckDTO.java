@@ -1,4 +1,4 @@
-package com.moneymanager.dto.member.validation;
+package com.moneymanager.domain.member.dto;
 
 import lombok.AccessLevel;
 import lombok.Getter;

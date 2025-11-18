@@ -1,7 +1,6 @@
 package com.moneymanager.exception.custom;
 
-import com.moneymanager.dto.common.ErrorDTO;
-import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.domain.global.dto.ErrorDTO;
 import lombok.Getter;
 
 

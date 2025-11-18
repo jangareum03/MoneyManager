@@ -1,9 +1,10 @@
 package com.moneymanager.service.member.validation;
 
 import com.moneymanager.dao.member.MemberDaoImpl;
-import com.moneymanager.dto.member.validation.EmailCheckDTO;
-import com.moneymanager.enums.RegexPattern;
-import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.domain.global.dto.ErrorDTO;
+import com.moneymanager.domain.member.dto.EmailCheckDTO;
+import com.moneymanager.domain.global.enums.RegexPattern;
+import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +14,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpSession;
 
 import java.util.Objects;
-
-import static com.moneymanager.exception.code.ErrorCode.*;
-import static com.moneymanager.enums.RegexPattern.MEMBER_BIRTH;
+import static com.moneymanager.domain.global.enums.RegexPattern.MEMBER_BIRTH;
 
 
 /**
@@ -68,9 +67,9 @@ public class MemberValidationService {
 	 */
 	public static void checkIdAvailability( String id ) {
 		if(Objects.isNull(id) || id.trim().isEmpty() ) {
-			throw new ClientException(ErrorCode.MEMBER_ID_NONE, "아이디를 입력해주세요.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_ID_NONE).message("아이디를 입력해주세요.").requestData(id).build());
 		}else if( !id.trim().matches(RegexPattern.MEMBER_ID.getPattern()) ) {
-			throw new ClientException(ErrorCode.MEMBER_ID_FORMAT, "4~15자 사이의 영어와 숫자만 입력 가능합니다.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_ID_FORMAT).message("4~15자 사이의 영어와 숫자만 입력 가능합니다.").requestData(id).build());
 		}
 	}
 
@@ -85,7 +84,7 @@ public class MemberValidationService {
 		checkIdAvailability(id.trim());
 
 		if(  memberDAO.countByUsername(id) != 0 ) {
-			throw new ClientException(ErrorCode.MEMBER_ID_DUPLICATE, "이미 사용중인 아이디입니다.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_ID_DUPLICATE).message("이미 사용중인 아이디입니다.").requestData(id).build());
 		}
 	}
 
@@ -100,9 +99,9 @@ public class MemberValidationService {
 		password= password.trim();
 
 		if( password.isEmpty() ) {
-			throw new ClientException(ErrorCode.MEMBER_PASSWORD_MISSING, "비밀번호를 입력해주세요.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_PASSWORD_MISSING).message("비밀번호를 입력해주세요.").build());
 		}else if( !password.matches(RegexPattern.MEMBER_PWD.getPattern()) ) {
-			throw new ClientException(ErrorCode.MEMBER_PASSWORD_FORMAT, "8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_PASSWORD_FORMAT).message("8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다.").build());
 		}
 	}
 
@@ -122,7 +121,7 @@ public class MemberValidationService {
 
 		String currentPassword = memberDAO.findPasswordByUsername( memberDAO.findUsernameByMemberId(memberId) );
 		if( !passwordEncoder.matches( password, currentPassword ) ) {
-			throw new ClientException(ErrorCode.MEMBER_PASSWORD_MISMATCH, "비밀번호가 일치하지 않습니다. 다시 확인해주세요.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_PASSWORD_MISMATCH).message("비밀번호가 일치하지 않습니다. 다시 확인해주세요.").build());
 		}
 	}
 
@@ -138,9 +137,9 @@ public class MemberValidationService {
 		name = name.trim();
 
 		if( name.isEmpty() ) {
-			throw new ClientException(ErrorCode.MEMBER_NAME_MISSING, "이름을 입력해주세요.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_NAME_MISSING).message("이름을 입력해주세요.").build());
 		}else if( !name.matches(RegexPattern.MEMBER_NAME.getPattern()) ) {
-			throw new ClientException(ErrorCode.MEMBER_NAME_FORMAT, "2~5글자 사이의 한글만 입력해야 합니다.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_NAME_FORMAT).message("2~5글자 사이의 한글만 입력해야 합니다.").build());
 		}
 	}
 
@@ -150,9 +149,9 @@ public class MemberValidationService {
 		date = date.trim();
 
 		if( date.isEmpty() ) {
-			throw new ClientException(ErrorCode.MEMBER_BIRTH_MISSING, "생년월일을 입력해주세요.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_BIRTH_MISSING).message("생년월일을 입력해주세요.").build());
 		}else if( !date.matches(MEMBER_BIRTH.getPattern()) ) {
-			throw new ClientException(ErrorCode.MEMBER_BIRTH_FORMAT, "생년월일 형식에 맞게 입력해야 합니다.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_BIRTH_FORMAT).message("생년월일 형식에 맞게 입력해야 합니다.").build());
 		}
 	}
 
@@ -168,9 +167,9 @@ public class MemberValidationService {
 		nickname = nickname.trim();
 
 		if( nickname.isEmpty() ) {
-			throw new ClientException(ErrorCode.MEMBER_NICKNAME_MISSING, "닉네임을 입력해주세요.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_NICKNAME_MISSING).message("닉네임을 입력해주세요.").build());
 		}else if( !nickname.matches(RegexPattern.MEMBER_NICKNAME.getPattern()) ) {
-			throw new ClientException(ErrorCode.MEMBER_NICKNAME_FORMAT, "2 ~ 10자 사이의 한글, 영문자, 숫자만 입력해야 합니다.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_NICKNAME_FORMAT).message("2 ~ 10자 사이의 한글, 영문자, 숫자만 입력해야 합니다.").build());
 		}
 	}
 
@@ -186,7 +185,7 @@ public class MemberValidationService {
 		checkNicknameAvailability(nickname);
 
 		if( memberDAO.countByNickName(nickname) != 0 ) {
-			throw new ClientException(ErrorCode.MEMBER_NICKNAME_DUPLICATE, "이미 사용중인 닉네임입니다.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_NICKNAME_DUPLICATE).message("이미 사용중인 닉네임입니다.").build());
 		}
 	}
 
@@ -202,9 +201,9 @@ public class MemberValidationService {
 		email = email.trim();
 
 		if( email.isEmpty() ) {
-			throw new ClientException(ErrorCode.MEMBER_EMAIL_MISSING, "이메일을 입력해주세요.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_EMAIL_MISSING).message("이메일을 입력해주세요..").build());
 		}else if( !email.matches(RegexPattern.MEMBER_EMAIL.getPattern()) ) {
-			throw new ClientException(ErrorCode.MEMBER_EMAIL_FORMAT, "이메일 형식에 맞게 입력해야 합니다.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_EMAIL_FORMAT).message("이메일 형식에 맞게 입력해야 합니다.").build());
 		}
 	}
 
@@ -220,7 +219,7 @@ public class MemberValidationService {
 		checkEmailAvailability(email);
 
 		if( memberDAO.countByEmail(email) != 0 ) {
-			throw new ClientException(ErrorCode.MEMBER_EMAIL_DUPLICATE, "이미 사용중인 이메일입니다.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_EMAIL_DUPLICATE).message("이미 사용중인 이메일입니다.").build());
 		}
 
 	}
@@ -237,25 +236,24 @@ public class MemberValidationService {
 	 */
 	public void checkEmailCode( HttpSession session, EmailCheckDTO emailCheckDTO ) {
 		if( Objects.isNull(emailCheckDTO.getEmail()) ) {
-			throw new ClientException(ErrorCode.MEMBER_EMAIL_MISSING, "이메일을 입력해주세요.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_EMAIL_MISSING).message("이메일을 입력해주세요.").build());
 		}
 
 		String sentCode = (String)session.getAttribute( emailCheckDTO.getEmail() );
 
 		if( emailCheckDTO.getTimer().getMinute() <= 0 && emailCheckDTO.getTimer().getSecond() <= 0 ) {	//인증시간 초과한 경우
-			throw new ClientException(ErrorCode.MEMBER_CODE_TIMEOUT, "시간 초과되었습니다. 다시 전송해주세요.");
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_CODE_TIMEOUT).message("시간 초과되었습니다. 다시 전송해주세요.").build());
 		}else {
 			if( !emailCheckDTO.getCode().matches(RegexPattern.MEMBER_EMAIL_CODE.getPattern()) ) {
-				throw new ClientException(ErrorCode.MEMBER_CODE_FORMAT, "6글자의 영문자, 숫자만 입력할 수 있습니다.");
+				throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_CODE_FORMAT).message("6글자의 영문자, 숫자만 입력할 수 있습니다.").build());
 			}
 
 			if( sentCode.equals(emailCheckDTO.getCode()) ){
 				session.removeAttribute(emailCheckDTO.getEmail());
 			}else {
-				throw new ClientException(ErrorCode.MEMBER_CODE_MISMATCH, "인증코드가 일치하지 않습니다. 다시 입력해주세요.");
+				throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_CODE_MISMATCH).message("인증코드가 일치하지 않습니다. 다시 입력해주세요.").build());
 			}
 		}
-
 
 	}
 }

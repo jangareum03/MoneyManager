@@ -1,6 +1,6 @@
 package com.moneymanager.service.member;
 
-import com.moneymanager.enums.type.MailType;
+import com.moneymanager.domain.global.enums.MailType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,21 +1,21 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.QnADao;
-import com.moneymanager.dto.common.request.PageRequest;
-import com.moneymanager.dto.common.response.PageResponse;
-import com.moneymanager.dto.inquiry.AnswerDTO;
-import com.moneymanager.dto.inquiry.QuestionDTO;
-import com.moneymanager.dto.inquiry.request.InquiryAccessRequest;
-import com.moneymanager.dto.inquiry.request.InquirySearchRequest;
-import com.moneymanager.dto.inquiry.request.InquiryUpdateRequest;
-import com.moneymanager.dto.inquiry.response.InquiryDetailResponse;
-import com.moneymanager.dto.inquiry.response.InquiryListResponse;
-import com.moneymanager.dto.inquiry.response.InquirySearchResponse;
-import com.moneymanager.dto.inquiry.response.InquiryUpdateResponse;
-import com.moneymanager.entity.Answer;
-import com.moneymanager.entity.Member;
-import com.moneymanager.entity.Question;
-import com.moneymanager.enums.type.AnswerStatus;
+import com.moneymanager.domain.global.dto.PageRequest;
+import com.moneymanager.domain.global.dto.PageResponse;
+import com.moneymanager.domain.sub.dto.AnswerDTO;
+import com.moneymanager.domain.sub.dto.QuestionDTO;
+import com.moneymanager.domain.sub.dto.InquiryAccessRequest;
+import com.moneymanager.domain.sub.dto.InquirySearchRequest;
+import com.moneymanager.domain.sub.dto.InquiryUpdateRequest;
+import com.moneymanager.domain.sub.dto.InquiryDetailResponse;
+import com.moneymanager.domain.sub.dto.InquiryListResponse;
+import com.moneymanager.domain.sub.dto.InquirySearchResponse;
+import com.moneymanager.domain.sub.dto.InquiryUpdateResponse;
+import com.moneymanager.domain.sub.Answer;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.sub.Question;
+import com.moneymanager.domain.sub.enums.AnswerStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -112,7 +112,7 @@ public class InquiryService {
 			for (Question question : qnADao.getQuestionsByPage((page.getPage() - 1) * page.getSize(), page.getSize())) {
 				//날짜 포맷
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
-				String formatDate = question.getCreatedDate().toLocalDateTime().format(formatter);
+				String formatDate = question.getCreatedDate().format(formatter);
 
 				//제목 변경
 				String title = question.getTitle();
@@ -133,7 +133,7 @@ public class InquiryService {
 			for (Question question : qnADao.getQuestionsBySearch(initSearch)) {
 				//날짜 포맷
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
-				String formatDate = question.getCreatedDate().toLocalDateTime().format(formatter);
+				String formatDate = question.getCreatedDate().format(formatter);
 
 				//제목 변경
 				String title = question.getTitle();
@@ -246,14 +246,14 @@ public class InquiryService {
 
 		//질문날짜 포맷
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 E요일 HH:ss");
-		String formatQuestionDate = question.getCreatedDate().toLocalDateTime().format(formatter);
+		String formatQuestionDate = question.getCreatedDate().format(formatter);
 
 		if (String.valueOf(question.getAnswer()).equalsIgnoreCase("Y")) {
 			Answer answer = qnADao.findAnswerByQuestionId(id);
 
 			//답변날짜 포맷
 			formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
-			String formatAnswerDate = answer.getCreatedDate().toLocalDate().format(formatter);
+			String formatAnswerDate = answer.getCreatedDate().format(formatter);
 
 			return InquiryDetailResponse.builder()
 					.question(

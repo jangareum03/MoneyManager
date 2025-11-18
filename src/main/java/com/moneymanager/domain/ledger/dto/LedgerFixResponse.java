@@ -33,11 +33,11 @@ import lombok.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class FixResponse {
+public class LedgerFixResponse {
 	private String option;		//고정옵션
 	private String cycle;			//고정주기(고정옵션이 n이면 값이 없음)
 
-	public static FixResponse defaultValue() {
-		return new FixResponse("n", "");
+	public static LedgerFixResponse defaultValue() {
+		return new LedgerFixResponse("n", "");
 	}
 }

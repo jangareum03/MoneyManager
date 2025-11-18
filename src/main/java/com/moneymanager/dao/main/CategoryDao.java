@@ -1,6 +1,6 @@
 package com.moneymanager.dao.main;
 
-import com.moneymanager.entity.Category;
+import com.moneymanager.domain.ledger.entity.Category;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 

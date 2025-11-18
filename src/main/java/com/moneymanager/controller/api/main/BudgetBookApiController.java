@@ -1,24 +1,24 @@
 package com.moneymanager.controller.api.main;
 
 
-import com.moneymanager.dto.budgetBook.CategoryDTO;
-import com.moneymanager.dto.budgetBook.request.BudgetBookSearchRequest;
-import com.moneymanager.dto.budgetBook.request.BudgetBookUpdateRequest;
-import com.moneymanager.dto.budgetBook.response.BudgetBookListResponse;
-import com.moneymanager.dto.common.ApiResultDTO;
-import com.moneymanager.dto.common.ImageDTO;
-import com.moneymanager.dto.common.request.DateRequest;
-import com.moneymanager.dto.common.request.YearMonthRequest;
+import com.moneymanager.domain.ledger.dto.LedgerCategoryResponse;
+import com.moneymanager.domain.ledger.dto.LedgerListResponse;
+import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
+import com.moneymanager.domain.ledger.dto.LedgerUpdateRequest;
+import com.moneymanager.domain.global.dto.ApiResultDTO;
+import com.moneymanager.domain.global.dto.ImageDTO;
+import com.moneymanager.domain.global.dto.DateRequest;
+import com.moneymanager.domain.global.dto.YearMonthRequest;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.BudgetBookService;
 import com.moneymanager.service.main.api.GoogleChartService;
-import com.moneymanager.vo.YearMonthDayVO;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -75,10 +75,13 @@ public class BudgetBookApiController {
 	 */
 	@PostMapping("/lastDay")
 	public ResponseEntity<ApiResultDTO<Integer>> postLastDay(@RequestBody YearMonthRequest date ) {
-		//요청값 → VO 변환
-		YearMonthDayVO vo = YearMonthDayVO.builder().year(date.getYear()).month(date.getMonth()).build();
+		int year = Integer.parseInt(date.getYear());
+		int month = Integer.parseInt(date.getMonth());
 
-		return ResponseEntity.ok(ApiResultDTO.success(vo.getDate().lengthOfMonth()));
+		YearMonth yearMonth = YearMonth.of(year, month);
+		int lastDay = yearMonth.lengthOfMonth();
+
+		return ResponseEntity.ok(ApiResultDTO.success(lastDay));
 	}
 
 
@@ -89,7 +92,7 @@ public class BudgetBookApiController {
 	 * @return 하위 카테고리의 이름과 코드
 	 */
 	@PostMapping("/category")
-	public List<CategoryDTO> postCategories(@RequestBody(required = false) String code) {
+	public List<LedgerCategoryResponse> postCategories(@RequestBody(required = false) String code) {
 		return budgetBookService.getCategoriesByCode(code);
 	}
 
@@ -121,7 +124,7 @@ public class BudgetBookApiController {
 	 * @return 검색어에 해당하는
 	 */
 	@PatchMapping("/search")
-	public ResponseEntity<BudgetBookListResponse> patchSearch(@RequestBody BudgetBookSearchRequest search, HttpSession session) {
+	public ResponseEntity<LedgerListResponse> patchSearch(@RequestBody LedgerSearchRequest search, HttpSession session) {
 		String memberId = (String) session.getAttribute("mid");
 
 		return ResponseEntity.ok(budgetBookService.getBudgetBooksForSummary(memberId, search));
@@ -139,16 +142,16 @@ public class BudgetBookApiController {
 	 */
 	@PutMapping("/{id}")
 	public ResponseEntity<ApiResultDTO> update(HttpSession session, @PathVariable Long id,
-											   @RequestPart("update") BudgetBookUpdateRequest update,
+											   @RequestPart("update") LedgerUpdateRequest update,
 											   @RequestPart(value = "image", required = false) List<MultipartFile> imageFiles) {
 		try {
-			//이미지 리스트 변환 후 BudgetBookUpdateRequest 맵칭
+			//이미지 리스트 변환 후 LedgerUpdateRequest 맵칭
 			List<ImageDTO> imageList = imageFiles.stream()
 							.filter(Objects::nonNull)
 							.map( file -> { return ImageDTO.builder().file(file).fileName(file.getOriginalFilename()).fileExtension(FilenameUtils.getExtension(file.getOriginalFilename())).build(); })
 									.collect(Collectors.toList());
 
-			BudgetBookUpdateRequest updateReqDTO = BudgetBookUpdateRequest.from( update, imageList );
+			LedgerUpdateRequest updateReqDTO = LedgerUpdateRequest.from( update, imageList );
 
 			budgetBookService.updateBudgetBook((String) session.getAttribute("mid"), id, updateReqDTO );
 			return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("수정 완료했습니다.").build());

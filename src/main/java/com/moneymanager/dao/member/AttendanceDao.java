@@ -1,8 +1,6 @@
 package com.moneymanager.dao.member;
 
-import com.moneymanager.entity.Attendance;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.moneymanager.domain.member.Attendance;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 

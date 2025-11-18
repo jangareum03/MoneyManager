@@ -1,4 +1,4 @@
-package com.moneymanager.exception.code;
+package com.moneymanager.exception;
 
 import com.moneymanager.exception.custom.ServerException;
 import lombok.Getter;
@@ -43,7 +43,21 @@ import lombok.Getter;
  */
 @Getter
 public enum ErrorCode {
-	BUDGET_PLACE_MISSING("C030901", "가계부 주소 없음"),
+	/**
+	 * 가계부 에러 메시지
+	 */
+	BUDGET_DATE_MISSING("C030201", "가계부 날짜 누락"),
+	BUDGET_DATE_FORMAT("C030202", "가계부 날짜 형식"),
+	BUDGET_DATE_INVALID("C030206", "가계부 날짜 범위"),
+	BUDGET_PRICE_MISSING("C030601", "가계부 금액 누락"),
+	BUDGET_PRICE_FORMAT("C030602", "가계부 금액 형식"),
+	BUDGET_PRICE_INVALID("C030606", "가계부 금액 범위"),
+	BUDGET_PLACE_MISSING("C030901", "가계부 주소 누락"),
+	BUDGET_PLACE_FORMAT("C030902", "가계부 주소 형식"),
+	/**
+	 * 서버 에러 메시지
+	 */
+	SYSTEM_LOGIC_INTERVAL("S010101", "시스템 내부 오류"),
 
 
 	/**
@@ -67,14 +81,6 @@ public enum ErrorCode {
 	COMMON_AMOUNT_MISSING("C992001", "금액 없음"),
 	COMMON_AMOUNT_FORMAT("C992002", "금액 형식 불일치"),
 	COMMON_AMOUNT_INVALID("C992003", "금액 범위 벗어남"),
-
-	COMMON_ADDRESS_MISSING("C993001","주소 없음"),
-	COMMON_PLACENAME_MISSING("C993101", "장소명 없음"),
-	COMMON_PLACENAME_FORMAT("C993102", "장소명 형식 불일치"),
-	COMMON_ROAD_MISSING("C993201", "도로명주소 없음"),
-	COMMON_ROAD_FORMAT("C993202", "도로명주소 형식 불일치"),
-	COMMON_JIBUN_MISSING("C993301", "지번주소 없음"),
-	COMMON_JIBUN_FORMAT("C993302", "지번주소 형식 불일치"),
 
 	COMMON_FILE_MISSING("C994001", "파일 없음"),
 	COMMON_NAME_MISSING("C994101", "파일이름 없음"),
@@ -110,11 +116,7 @@ public enum ErrorCode {
 	MEMBER_STATUS_WITHDRAW_NONRECOVERABLE("C011524", "복구 불가능한 계정으로 로그인 시도"),
 	MEMBER_STATUS_LOCKED("C011525", "잠긴 계정으로 로그인 시도"),
 	MEMBER_STATUS_UNKNOWN("C011508", "알 수 없는 상태"),
-	/**
-	 * 가계부 에러메시지
-	 */
-	BUDGET_DATE_MISSING("C030201", "가계부 날짜 미입력"),
-	BUDGET_DATE_FORMAT("C030202", "가계부 날짜 형식 불일치"),
+
 	/**
 	 * 시스템 에러메시지
 	 */
@@ -123,32 +125,11 @@ public enum ErrorCode {
 
 
 	private final String code;
-	private final String logMessage;
+	private final String message;
 
-	ErrorCode(String code, String logMessage) {
+	ErrorCode(String code, String message) {
 		this.code = code;
-		this.logMessage = logMessage;
-	}
-
-
-	/**
-	 *	지정된 이름으로 {@link ErrorCode} enum 상수를 반환합니다.
-	 *<p>
-	 *     매개변수 {@code name}을 대소문자 구분 없이 비교하여 일치하는 {@link ErrorCode} enum 상수를 반환합니다.
-	 *</p>
-	 *
-	 * @param name	찾을 {@link ErrorCode} 상수 이름
-	 * @return	이름과 일치하는 enum 상수
-	 * @throws ServerException		{@code name}과 일치하는 상수가 없을 경우 발생
-	 */
-	public static ErrorCode fromName(String name) {
-		for(ErrorCode e : values()) {
-			if( e.name().equalsIgnoreCase(name) ) {
-				return e;
-			}
-		}
-
-		throw new ServerException(SYSTEM_CODE_NULL);
+		this.message = message;
 	}
 
 

@@ -1,4 +1,4 @@
-package com.moneymanager.domain.notice.dto;
+package com.moneymanager.domain.sub.dto;
 
 import lombok.Builder;
 import lombok.Getter;

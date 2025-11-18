@@ -2,8 +2,8 @@ package com.moneymanager.service.member;
 
 import com.moneymanager.dao.member.MemberDaoImpl;
 import com.moneymanager.dao.member.MemberTokenDao;
-import com.moneymanager.entity.Member;
-import com.moneymanager.entity.MemberToken;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.MemberToken;
 import com.moneymanager.security.jwt.JwtTokenProvider;
 import com.moneymanager.utils.DateTimeUtils;
 import org.springframework.stereotype.Service;

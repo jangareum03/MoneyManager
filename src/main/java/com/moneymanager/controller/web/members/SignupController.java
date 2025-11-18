@@ -1,6 +1,6 @@
 package com.moneymanager.controller.web.members;
 
-import com.moneymanager.dto.member.request.MemberSignUpRequest;
+import com.moneymanager.domain.member.dto.MemberSignUpRequest;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.MemberServiceImpl;
 import org.apache.logging.log4j.LogManager;

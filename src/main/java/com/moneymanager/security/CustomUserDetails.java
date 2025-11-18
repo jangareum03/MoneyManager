@@ -1,8 +1,8 @@
 package com.moneymanager.security;
 
 
-import com.moneymanager.entity.Member;
-import com.moneymanager.enums.type.MemberStatus;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.enums.MemberStatus;
 import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -96,7 +96,7 @@ public class CustomUserDetails implements UserDetails {
 	 * @return	프로필 이미지
 	 */
 	public String getProfile() {
-		return member.getInfo().getProfile();
+		return member.getDetail().getProfile();
 	}
 
 
@@ -160,7 +160,7 @@ public class CustomUserDetails implements UserDetails {
 	 * @return	로그인 실패 횟수
 	 */
 	public int getFailureCount() {
-		return member.getInfo().getFailureCount();
+		return member.getDetail().getFailureCount();
 	}
 
 }

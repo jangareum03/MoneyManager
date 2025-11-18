@@ -49,6 +49,7 @@ public class LoginController {
 	@GetMapping("/")
 	public String getLoginPage(HttpSession session, Model model) {
 		String error = (String) session.getAttribute("error");
+
 		if( error != null ) {
 			model.addAttribute("error", error);
 			session.removeAttribute("error");

@@ -1,14 +1,12 @@
 package com.moneymanager.service.member;
 
 import com.moneymanager.dao.member.AttendanceDao;
-import com.moneymanager.dto.common.ErrorDTO;
-import com.moneymanager.dto.member.response.MemberAttendanceResponse;
-import com.moneymanager.entity.Attendance;
-import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.domain.ledger.vo.YearMonthDayVO;
+import com.moneymanager.domain.ledger.vo.YearMonthVO;
+import com.moneymanager.domain.member.dto.MemberAttendanceResponse;
+import com.moneymanager.domain.member.Attendance;
+import com.moneymanager.domain.member.vo.AttendanceDate;
 import com.moneymanager.exception.custom.ClientException;
-import com.moneymanager.utils.LoggerUtil;
-import com.moneymanager.vo.YearMonthDayVO;
-import com.moneymanager.vo.YearMonthVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,6 +49,11 @@ import java.util.stream.Collectors;
  * 		 	  <td>25. 7. 15</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 11. 17</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[매개변수 수정] YearMonthVO → AttendanceDate</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>

@@ -1,13 +1,10 @@
 package com.moneymanager.security.jwt;
 
-import com.moneymanager.dao.member.MemberDaoImpl;
 import com.moneymanager.dao.member.MemberTokenDao;
-import com.moneymanager.entity.Member;
-import com.moneymanager.entity.MemberToken;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.MemberToken;
 import com.moneymanager.security.CustomUserDetailService;
 import com.moneymanager.utils.DateTimeUtils;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;

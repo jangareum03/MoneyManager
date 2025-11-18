@@ -1,4 +1,4 @@
-package com.moneymanager.domain.ledger;
+package com.moneymanager.domain.ledger.entity;
 
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.member.Member;

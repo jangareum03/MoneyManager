@@ -1,13 +1,15 @@
 package com.moneymanager.dao.main;
 
-import com.moneymanager.dto.budgetBook.request.BudgetBookSearchRequest;
-import com.moneymanager.dto.budgetBook.response.BudgetBookListResponse;
-import com.moneymanager.dto.external.google.GoogleChartResponse;
-import com.moneymanager.entity.BudgetBook;
-import com.moneymanager.entity.Category;
-import com.moneymanager.entity.Member;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.dto.LedgerCategoryResponse;
+import com.moneymanager.domain.ledger.dto.LedgerListResponse;
+import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
+import com.moneymanager.domain.global.dto.GoogleChartResponse;
+import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.member.Member;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -77,10 +79,10 @@ public class BudgetBookDao {
 	/**
 	 * 생성된 가계부를 반환합니다.
 	 *
-	 * @param budgetBook	가계부 정보
+	 * @param ledger	가계부 정보
 	 * @return	생성한 가계부
 	 */
-	public BudgetBook saveBudgetBook( BudgetBook budgetBook ) {
+	public Ledger saveBudgetBook(Ledger ledger) {
 		String sql = "INSERT INTO tb_budget_book(id, member_id, category_id, fix, fix_cycle, book_date, memo, price, payment_type, image1, image2, image3, place_name, road_address, address, created_at) " +
 										"VALUES(seq_budgetbook.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
 
@@ -92,20 +94,20 @@ public class BudgetBookDao {
 							public PreparedStatement createPreparedStatement(@NotNull Connection con) throws SQLException {
 								PreparedStatement stmt = con.prepareStatement(sql, new String[]{"id"});
 
-								stmt.setString(1, budgetBook.getMember().getId());
-								stmt.setString(2, budgetBook.getCategory().getCode());
-								stmt.setString(3, budgetBook.getFix());
-								stmt.setString(4, budgetBook.getFixCycle());
-								stmt.setString(5, budgetBook.getBookDate());
-								stmt.setString(6, budgetBook.getMemo());
-								stmt.setLong(7, budgetBook.getPrice());
-								stmt.setString(8, budgetBook.getPaymentType());
-								stmt.setString(9, budgetBook.getImage1());
-								stmt.setString(10, budgetBook.getImage2());
-								stmt.setString(11, budgetBook.getImage3());
-								stmt.setString(12, budgetBook.getPlaceName());
-								stmt.setString(13, budgetBook.getRoadAddress());
-								stmt.setString(14, budgetBook.getAddress());
+								stmt.setString(1, ledger.getMember().getId());
+								stmt.setString(2, ledger.getCategory().getCode());
+								stmt.setString(3, ledger.getFix());
+								stmt.setString(4, ledger.getFixCycle());
+								stmt.setString(5, ledger.getBookDate());
+								stmt.setString(6, ledger.getMemo());
+								stmt.setLong(7, ledger.getPrice());
+								stmt.setString(8, ledger.getPaymentType().getText());
+								stmt.setString(9, ledger.getImage1());
+								stmt.setString(10, ledger.getImage2());
+								stmt.setString(11, ledger.getImage3());
+								stmt.setString(12, ledger.getPlaceName());
+								stmt.setString(13, ledger.getRoadAddress());
+								stmt.setString(14, ledger.getAddress());
 
 								return stmt;
 							}
@@ -126,21 +128,21 @@ public class BudgetBookDao {
 	 * @param id	가계부 번호
 	 * @return	번호가 있으면 가계부, 없으면 null
 	 */
-	public BudgetBook findBudgetBookById( Long id ) {
+	public Ledger findBudgetBookById(Long id ) {
 		String sql = "SELECT tb.*, tc.name " +
 								"FROM tb_budget_book tb, tb_category tc " +
 								"WHERE tb.id = ? " +
 									"AND tb.category_id = tc.code";
 		try{
 			return jdbcTemplate.queryForObject( sql, (ResultSet rs, int row) -> {
-				return BudgetBook.builder().id(rs.getLong("id")).member(Member.builder().id(rs.getString("member_id")).build())
+				return Ledger.builder().id(rs.getLong("id")).member(Member.builder().id(rs.getString("member_id")).build())
 								.category(Category.builder().code(rs.getString("category_id")).name(rs.getString("name")).build())
 								.fix(rs.getString("fix")).fixCycle(rs.getString("fix_cycle"))
 								.bookDate(rs.getString("book_date")).memo(rs.getString("memo"))
-								.price(rs.getLong("price")).paymentType(rs.getString("payment_type"))
+								.price(rs.getLong("price")).paymentType(PaymentType.valueOf(rs.getString("payment_type")))
 								.image1(rs.getString("image1")).image2(rs.getString("image2")).image3(rs.getString("image3"))
 								.placeName(rs.getString("place_name")).roadAddress(rs.getString("road_address")).address(rs.getString("address"))
-								.createdAt(rs.getTimestamp("created_at")).updatedAt(rs.getTimestamp("updated_at"))
+								.createdAt(rs.getTimestamp("created_at").toLocalDateTime()).updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
 								.build();
 			}, id );
 		}catch( EmptyResultDataAccessException e ) {
@@ -158,7 +160,7 @@ public class BudgetBookDao {
 	 * @param search				검색유형이 담긴 객체
 	 * @return	검색유형에 해당하는 가계부 리스트
 	 */
-	public List<BudgetBookListResponse.DayCards> findBudgetBooksBySearch(String memberId, LocalDate[] date, BudgetBookSearchRequest search ) {
+	public List<LedgerListResponse.DayCards> findBudgetBooksBySearch(String memberId, LocalDate[] date, LedgerSearchRequest search ) {
 		StringBuilder query
 				= new StringBuilder("SELECT book_date, " +
 													"JSON_ARRAYAGG( " +
@@ -229,16 +231,28 @@ public class BudgetBookDao {
 			},
 
 			rs -> {
-				List<BudgetBookListResponse.DayCards> result = new ArrayList<>();
+				List<LedgerListResponse.DayCards> result = new ArrayList<>();
 
 				while ( rs.next() ) {
 					String bookDate = rs.getString("book_date");
 					String jsonList = rs.getString("datas");
 
 					try{
-						List<BudgetBookListResponse.Card> cards = objectMapper.readValue(jsonList, new TypeReference<>() {});
+						List<LedgerListResponse.Card> cards = new ArrayList<>();
+						JsonNode node = new ObjectMapper().readTree(jsonList);
 
-						BudgetBookListResponse.DayCards dayCards = BudgetBookListResponse.DayCards.builder()
+						for( JsonNode cardNode : node ) {
+							LedgerListResponse.Card card = LedgerListResponse.Card.builder()
+									.id(cardNode.get("id").asLong())
+									.category(LedgerCategoryResponse.builder().code(cardNode.get("code").asText()).name(cardNode.get("name").asText()).build())
+									.price(cardNode.get("price").asLong())
+									.memo(cardNode.get("memo").asText())
+									.build();
+
+							cards.add(card);
+						}
+
+						LedgerListResponse.DayCards dayCards = LedgerListResponse.DayCards.builder()
 								.date(bookDate).cardList(cards).build();
 
 						result.add(dayCards);
@@ -397,9 +411,9 @@ public class BudgetBookDao {
 	/**
 	 * 가계부 번호에 해당하는 가계부 정보(이미지 제외)를 변경합니다. <br>
 	 *
-	 * @param budgetBook 가계부 정보
+	 * @param ledger 가계부 정보
 	 */
-	public boolean updateBudgetBook( BudgetBook budgetBook ) {
+	public boolean updateBudgetBook( Ledger ledger) {
 		String query = "UPDATE tb_budget_book " +
 																	"SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, price = ?, payment_type = ?, place_name = ?, road_address = ?, address = ?, updated_at = SYSDATE " +
 																	"WHERE member_id = ? AND id = ?";
@@ -407,10 +421,10 @@ public class BudgetBookDao {
 
 		return jdbcTemplate.update(
 						query,
-						budgetBook.getCategory().getCode(),	budgetBook.getFix(),	budgetBook.getFixCycle(),
-						budgetBook.getMemo(), budgetBook.getPrice(), budgetBook.getPaymentType(),
-						budgetBook.getPlaceName(), budgetBook.getRoadAddress(), budgetBook.getAddress(),
-						budgetBook.getMember().getId(), budgetBook.getId()
+						ledger.getCategory().getCode(),	ledger.getFix(),	ledger.getFixCycle(),
+						ledger.getMemo(), ledger.getPrice(), ledger.getPaymentType(),
+						ledger.getPlaceName(), ledger.getRoadAddress(), ledger.getAddress(),
+						ledger.getMember().getId(), ledger.getId()
 		) == 1;
 	}
 
@@ -420,15 +434,15 @@ public class BudgetBookDao {
 	 *
 	 * @param memberId			회원번호
 	 */
-	public void updateImage( String memberId, BudgetBook budgetBook ) {
+	public void updateImage( String memberId, Ledger ledger) {
 		String query = "UPDATE tb_budget_book SET image1 = ?, image2 = ?, image3 = ? WHERE member_id = ? AND id = ?";
 
 		jdbcTemplate.update(
 						query,
-						budgetBook.getImage1(),
-						budgetBook.getImage2(),
-						budgetBook.getImage3(),
-						memberId, budgetBook.getId()
+						ledger.getImage1(),
+						ledger.getImage2(),
+						ledger.getImage3(),
+						memberId, ledger.getId()
 		);
 	}
 

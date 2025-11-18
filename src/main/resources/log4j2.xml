@@ -13,6 +13,14 @@
             <PatternLayout pattern="${consoleLayout}" disableAnsi="false" />
             <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
         </Console>
+
+        <Console name="console-debug" target="SYSTEM_OUT">
+            <PatternLayout pattern="${consoleLayout}" disableAnsi="false" />
+            <Filters>
+                <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </Console>
+
         <!--ConsoleAppender, RollingFileAppneder -->
         <RollingFile name="file"
                      fileName="logs/main/${logFileName}.log"
@@ -103,7 +111,7 @@
         </logger>
 
         <Logger name="com.moneymanager.utils.LoggerUtil" level="debug" additivity="false">
-            <AppenderRef ref="console"/>
+            <AppenderRef ref="console-debug"/>
             <AppenderRef ref="warn-client"/>
             <AppenderRef ref="system-info" />
             <AppenderRef ref="error" />

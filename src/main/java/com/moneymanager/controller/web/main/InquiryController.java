@@ -1,13 +1,13 @@
 package com.moneymanager.controller.web.main;
 
-import com.moneymanager.dto.inquiry.QuestionDTO;
-import com.moneymanager.dto.inquiry.request.InquiryAccessRequest;
-import com.moneymanager.dto.inquiry.request.InquirySearchRequest;
-import com.moneymanager.dto.inquiry.request.InquiryUpdateRequest;
-import com.moneymanager.dto.inquiry.request.InquiryWriteRequest;
-import com.moneymanager.dto.inquiry.response.InquiryDetailResponse;
-import com.moneymanager.dto.inquiry.response.InquiryListResponse;
-import com.moneymanager.dto.inquiry.response.InquiryUpdateResponse;
+import com.moneymanager.domain.sub.dto.QuestionDTO;
+import com.moneymanager.domain.sub.dto.InquiryAccessRequest;
+import com.moneymanager.domain.sub.dto.InquirySearchRequest;
+import com.moneymanager.domain.sub.dto.InquiryUpdateRequest;
+import com.moneymanager.domain.sub.dto.InquiryWriteRequest;
+import com.moneymanager.domain.sub.dto.InquiryDetailResponse;
+import com.moneymanager.domain.sub.dto.InquiryListResponse;
+import com.moneymanager.domain.sub.dto.InquiryUpdateResponse;
 import com.moneymanager.service.main.InquiryService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

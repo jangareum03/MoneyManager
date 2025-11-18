@@ -1,7 +1,9 @@
-package com.moneymanager.dto.member.request;
+package com.moneymanager.domain.member.dto;
 
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.member.MemberInfo;
+import com.moneymanager.domain.member.enums.MemberGender;
+import com.moneymanager.domain.member.enums.MemberType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -59,17 +61,17 @@ public class MemberSignUpRequest {
 	 * @return	매핑된  {@link Member}객체
 	 */
 	public Member toEntity( String encodedPassword ) {
-		MemberInfo memberInfo = MemberInfo.builder().gender(gender.charAt(0)).build();
+		MemberInfo memberInfo = MemberInfo.builder().gender(MemberGender.match(gender.charAt(0))).build();
 
 		return Member.builder()
-				.type("C").role("ROLE_USER")
+				.type(MemberType.NORMAL).role("ROLE_USER")
 				.id(id)
 				.password(encodedPassword)
 				.name(name)
 				.birthDate(birth)
 				.nickName(nickName)
 				.email(email)
-				.info(memberInfo)
+				.detail(memberInfo)
 				.build();
 	}
 }

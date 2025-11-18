@@ -1,13 +1,11 @@
 package com.moneymanager.controller.api.members.validation;
 
-import com.moneymanager.dto.common.ValidationResultDTO;
-import com.moneymanager.dto.member.validation.*;
-import com.moneymanager.enums.type.MailType;
+import com.moneymanager.domain.member.dto.*;
+import com.moneymanager.domain.global.dto.ValidationResultDTO;
+import com.moneymanager.domain.global.enums.MailType;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.MailService;
 import com.moneymanager.service.member.validation.MemberValidationService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,8 +46,6 @@ import java.util.Objects;
 @RequestMapping("/api/members")
 public class MemberValidationApiController {
 
-	private final Logger logger = LogManager.getLogger(this);
-
 	private final MemberValidationService validationService;
 	private final MailService mailService;
 
@@ -73,8 +69,6 @@ public class MemberValidationApiController {
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
 		}catch ( ClientException e ) {
-			logger.debug("{} 아이디는 형식이 부적합합니다. ({}: {})", checkDTO.getId(), e.getErrorCode(), e.getErrorCode());
-
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
@@ -133,7 +127,6 @@ public class MemberValidationApiController {
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("현재 비밀번호와 일치합니다.").build());
 		}catch( ClientException e ) {
-			logger.debug("{} 비밀번호는 현재 비밀번호와 일치하지 않습니다.", checkDTO.getPassword());
 			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getMessage()).build() );
 		}
 	}
@@ -153,8 +146,6 @@ public class MemberValidationApiController {
 
 			return ResponseEntity.ok( ValidationResultDTO.builder().success(true).build() );
 		}catch ( ClientException e ) {
-			logger.debug("{} 이름은 형식이 부적합합니다. ({}: {})", checkDTO.getName(), e.getErrorCode(), e.getMessage());
-
 			return ResponseEntity.ok().body(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
@@ -174,8 +165,6 @@ public class MemberValidationApiController {
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
 		}catch ( ClientException e ) {
-			logger.debug("{} 생년월일은 사용 불가능합니다.", checkDTO.getDate());
-
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
@@ -195,7 +184,6 @@ public class MemberValidationApiController {
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("사용 가능한 닉네임입니다.").build());
 		}catch ( ClientException e ) {
-			logger.debug("{} 닉네임은 사용 불가능합니다. ({}: {})", checkDTO.getNickname(), e.getErrorCode(), e.getMessage());
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
@@ -215,7 +203,6 @@ public class MemberValidationApiController {
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
 		}catch ( ClientException e ) {
-			logger.debug("{} 이메일은 형식이 부적합합니다. ({}: {})", checkDTO.getEmail(), e.getErrorCode(), e.getMessage());
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
 		}
 	}
@@ -234,14 +221,12 @@ public class MemberValidationApiController {
 		try{
 			String code = mailService.send(MailType.EMAIL_CODE, null, checkDTO.getEmail());
 
-			logger.debug("{} 이메일로 보낸 인증코드는 [ {} ] 입니다.", checkDTO.getEmail(), code);
 			if(Objects.nonNull(code) ) {	//이메일 전송 성공
 				session.setAttribute(checkDTO.getEmail(), code);
 			}
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("작성한 이메일로 인증코드 전송했습니다.").build());
 		}catch ( ClientException e ) {
-			logger.debug("{} 이메일은 사용 불가능합니다. ({}: {})", checkDTO.getEmail(), e.getErrorCode(), e.getMessage());
 			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getMessage()).build() );
 		}
 	}
@@ -262,7 +247,6 @@ public class MemberValidationApiController {
 
 			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("이메일 인증 완료했습니다.").build());
 		}catch ( ClientException e ) {
-			logger.debug("{} 이메일로 전송한 인증코드와 불일치합니다. ({}: {})", checkDTO.getEmail(), e.getErrorCode(), e.getMessage());
 			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getMessage()).build() );
 		}
 	}

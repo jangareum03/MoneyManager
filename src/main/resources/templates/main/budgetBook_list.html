@@ -18,11 +18,11 @@
             </div>
             <div class="budget-stats__income">
                 <dt>수입</dt>
-                <dd th:text="${price['income'] == null ? '0원' : #numbers.formatInteger(price['income'], 3 , 'COMMA') + '원'}"></dd>
+                <dd th:text="${price['income'] == 0 ? '0원' : #numbers.formatInteger(price['income'], 3 , 'COMMA') + '원'}"></dd>
             </div>
             <div class="budget-stats__outlay">
                 <dt>지출</dt>
-                <dd th:text="${price['outlay'] == null ? '0원' : #numbers.formatInteger(price['outlay'], 3, 'COMMA') + '원'}"></dd>
+                <dd th:text="${price['outlay'] == 0 ? '0원' : #numbers.formatInteger(price['outlay'], 3, 'COMMA') + '원'}"></dd>
             </div>
         </dl>
 
@@ -86,14 +86,14 @@
                 <h2 class="budget-list__title" th:text="${entry.key}"></h2>
 
                 <ul th:each="cardList : ${entry.value}" class="budget-list__cards">
-                    <li th:each="card : ${cardList}" class="budget-card" th:classappend="${card == null ? 'empty' : (#strings.startsWith(card.code, '01') ? 'income' : 'outlay' )}">
+                    <li th:each="card : ${cardList}" class="budget-card" th:classappend="${card == null ? 'empty' : (#strings.startsWith(card.category.code, '01') ? 'income' : 'outlay' )}">
                         <div class="budget-card__type"></div>
                         <div th:if="${card != null}" class="budget-card__icon" th:attr="data-pk=${card.id}">
                             <svg class="icon icon--box" viewBox="0 0 8 9"  xmlns="http://www.w3.org/2000/svg">
                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M1.08333 0.25C0.86232 0.25 0.650358 0.337797 0.494078 0.494078C0.337797 0.650358 0.25 0.86232 0.25 1.08333V6.91667C0.25 7.13768 0.337797 7.34964 0.494078 7.50592C0.650358 7.6622 0.86232 7.75 1.08333 7.75H6.91667C7.13768 7.75 7.34964 7.6622 7.50592 7.50592C7.6622 7.34964 7.75 7.13768 7.75 6.91667V1.08333C7.75 0.86232 7.6622 0.650358 7.50592 0.494078C7.34964 0.337797 7.13768 0.25 6.91667 0.25H1.08333ZM6.0625 3.08167C6.14068 3.00354 6.18463 2.89755 6.18467 2.78702C6.18471 2.67649 6.14084 2.57048 6.06271 2.49229C5.98458 2.41411 5.87859 2.37016 5.76806 2.37012C5.65753 2.37008 5.55152 2.41395 5.47333 2.49208L3.41083 4.55458L2.52708 3.67083C2.4884 3.63212 2.44247 3.60141 2.39191 3.58045C2.34136 3.55948 2.28717 3.54868 2.23244 3.54867C2.12191 3.54863 2.01589 3.5925 1.93771 3.67063C1.85952 3.74875 1.81558 3.85474 1.81554 3.96527C1.8155 4.0758 1.85937 4.18182 1.9375 4.26L3.08667 5.40917C3.12923 5.45175 3.17977 5.48553 3.23539 5.50858C3.29101 5.53162 3.35063 5.54349 3.41083 5.54349C3.47104 5.54349 3.53066 5.53162 3.58628 5.50858C3.6419 5.48553 3.69244 5.45175 3.735 5.40917L6.0625 3.08167Z"/>
                             </svg>
                         </div>
-                        <span class="budget-card__category" th:text="${card != null ? card.name : ''}"></span>
+                        <span class="budget-card__category" th:text="${card != null ? card.category.name : ''}"></span>
                         <span class="budget-card__price" th:text="${card != null ? #numbers.formatInteger(card.price, 3, 'COMMA') : ''}"></span>
                         <p class="budget-card__memo" th:text="${card != null ? card.memo : ''}"></p>
                     </li>
@@ -108,7 +108,7 @@
     <script th:src="@{/js/jquery-ui.min.js}"></script>
     <script src="/js/google-charts-loader.js"></script>
 
-    <script src="/js/pages/budgetBook-list.js"></script>
+    <script src="/js/pages/ledger-list.js"></script>
 </th:block>
 <th:block layout:fragment="pageStyle">
     <link rel="stylesheet" th:href="@{/css/jquery-ui.min.css}" />

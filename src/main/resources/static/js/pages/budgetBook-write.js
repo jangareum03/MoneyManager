@@ -486,7 +486,7 @@ function validEssentialValue( container ) {
 function appendData( form ) {
     //가계부 날짜 추가
     const date = document.querySelector('.budget-header__title').textContent;
-    createHiddenInput({ parent: form, name: 'date', value: date });
+    createHiddenInput({ parent: form, name: 'date', value: formatDate(date) });
 
     //위치 정보 추가
     const locationInfo = form.querySelector('.form__input-box--filled');

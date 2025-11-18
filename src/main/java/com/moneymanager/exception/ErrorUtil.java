@@ -1,13 +1,13 @@
-package com.moneymanager.utils;
+package com.moneymanager.exception;
 
 
 import com.moneymanager.domain.global.dto.ErrorDTO;
-import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
+import com.moneymanager.exception.custom.ServerException;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.utils<br>
+ * 패키지이름    : com.moneymanager.exception<br>
  * 파일이름       : ErrorUtil<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 8. 1.<br>
@@ -25,9 +25,14 @@ import com.moneymanager.exception.custom.ClientException;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 8. 1.</td>
+ * 		 	  <td>25. 8. 1</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 11. 13</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[클래스 이름] ValidationUtil → ErrorUtil</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
@@ -51,4 +56,13 @@ public final class ErrorUtil {
 		return new ClientException(errorDTO);
 	}
 
+	public static <T> RuntimeException createServerException(ErrorCode code, String message, T data) {
+		ErrorDTO<T> errorDTO = ErrorDTO.<T>builder()
+				.errorCode(code)
+				.message(message)
+				.requestData(data)
+				.build();
+
+		return new ServerException(errorDTO);
+	}
 }

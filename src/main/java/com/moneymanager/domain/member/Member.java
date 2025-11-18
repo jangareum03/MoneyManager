@@ -1,6 +1,7 @@
-package com.moneymanager.domain;
+package com.moneymanager.domain.member;
 
-import com.moneymanager.enums.type.MemberStatus;
+import com.moneymanager.domain.member.enums.MemberStatus;
+import com.moneymanager.domain.member.enums.MemberType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -10,11 +11,11 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- *  * 패키지이름    : com.areum.moneymanager.entity<br>
+ *  * 패키지이름    : com.areum.moneymanager.domain.member<br>
  *  * 파일이름       : Member<br>
  *  * 작성자          : areum Jang<br>
  *  * 생성날짜       : 22. 11. 2<br>
- *  * 설명              : TB_MEMBER 테이블과 매칭되는 엔티티 클래스
+ *  * 설명              : TB_MEMBER 테이블과 매칭되는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -46,30 +47,19 @@ import java.time.LocalDateTime;
 public class Member implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /* 식별자(PK) */
-    private String id;
-    /* 회원유형 */
-    private String type;
-    /* 회원상태 */
-    private MemberStatus status;
-    /* 회원권한 */
-    private String role;
-    /* 아이디 */
-    private String userName;
-    /* 비밀번호 */
-    private String password;
-    /* 이름 */
-    private String name;
-    /* 생년월일 */
-    private String birthDate;
-    /* 닉네임 */
-    private String nickName;
-    /* 이메일 */
-    private String email;
-    /* 가입일 */
-    private LocalDateTime createdAt;
-    /* 탈퇴일 */
-    private LocalDateTime deletedAt;
-    /* 부가정보 */
-    private MemberInfo info;
+    private String id;										//회원번호(식별자)
+    private MemberType type;							//회원유형(일반, 카카오)
+    private MemberStatus status;					//회원상태
+    private String role;									//회원권한
+    private String userName;							//아이디
+    private String password;							//비밀번호
+    private String name;									//이름
+    private String birthDate;							//생년월일
+    private String nickName;							//닉네임
+    private String email;									//이메일
+    private LocalDateTime createdAt;			//가입일
+    private LocalDateTime deletedAt;			//탈퇴일
+	private MemberInfo detail;						//회원 부가정보
+
+
 }

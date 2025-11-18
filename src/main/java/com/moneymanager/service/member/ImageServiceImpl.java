@@ -1,9 +1,10 @@
 package com.moneymanager.service.member;
 
 import com.moneymanager.dao.member.MemberInfoDaoImpl;
-import com.moneymanager.dto.common.ImageDTO;
-import com.moneymanager.dto.member.request.MemberUpdateRequest;
-import com.moneymanager.entity.MemberInfo;
+import com.moneymanager.domain.global.dto.ImageDTO;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.dto.MemberUpdateRequest;
+import com.moneymanager.domain.member.MemberInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -111,8 +112,8 @@ public class ImageServiceImpl {
 
 		if( isDelete ) {
 			//프로필 삭제 성공 후 데이터베이스 변경 완료
-			MemberInfo memberInfo = MemberInfo.builder().id(memberId).profile(profile.getAfterImage().getFileName()).build();
-			if( memberInfoDao.updateProfile( memberInfo ) ) {
+			Member member = Member.builder().id(memberId).detail(MemberInfo.builder().profile(profile.getAfterImage().getFileName()).build()).build();
+			if( memberInfoDao.updateProfile( member ) ) {
 				saveProfile( profile.getAfterImage() );
 			}
 		}
@@ -167,7 +168,6 @@ public class ImageServiceImpl {
 
 	/**
 	 * 회원의 이전 프로필 사진을 서버에서 삭제합니다. <br>
-	 * 이전 프로필 사진이 서버에 존재하지 않는다면 {@link ErrorException}이 발생합니다.
 	 *
 	 */
 	public boolean deleteProfile( String deleteImage ) throws IOException {

@@ -1,9 +1,9 @@
 package com.moneymanager.service.member.history;
 
 import com.moneymanager.dao.member.history.MemberHistoryDaoImpl;
-import com.moneymanager.dto.member.log.UpdateLogDTO;
-import com.moneymanager.entity.Member;
-import com.moneymanager.entity.MemberLog;
+import com.moneymanager.domain.member.dto.UpdateLogDTO;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.MemberLog;
 import com.moneymanager.exception.custom.ClientException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,7 +68,6 @@ public class UpdateLogService {
 			logger.debug("{} 회원의 {} 정보에 대한 내역을 등록했습니다. (전: {}, 후: {})", history.getMember().getId(), history.getItem(), history.getBeforeInfo(), history.getAfterInfo());
 		}catch ( ClientException e ) {
 			logger.debug("{} 회원의 {} 정보에 대한 내역이 등록되지 않았습니다. (전: {}, 후: {})", log.getMemberId(), log.getItem(), log.getBeforeInfo(), log.getAfterInfo());
-			logger.debug("내역등록이 되지 않은 원인은 다음과 같습니다. ({}: {})", e.getErrorCode(), e.getMessage());
 		}
 	}
 

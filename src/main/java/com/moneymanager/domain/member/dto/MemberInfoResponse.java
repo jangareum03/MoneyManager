@@ -1,4 +1,4 @@
-package com.moneymanager.dto.member.response;
+package com.moneymanager.domain.member.dto;
 
 import com.moneymanager.domain.member.enums.MemberGender;
 import lombok.Builder;

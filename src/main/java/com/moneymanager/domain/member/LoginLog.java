@@ -1,4 +1,4 @@
-package com.moneymanager.domain;
+package com.moneymanager.domain.member;
 
 import lombok.Builder;
 import lombok.Getter;

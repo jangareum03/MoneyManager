@@ -1,6 +1,6 @@
 package com.moneymanager.dao.member;
 
-import com.moneymanager.entity.MemberToken;
+import com.moneymanager.domain.member.MemberToken;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 

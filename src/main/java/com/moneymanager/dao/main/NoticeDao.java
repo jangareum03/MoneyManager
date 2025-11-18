@@ -1,7 +1,7 @@
 package com.moneymanager.dao.main;
 
-import com.moneymanager.entity.Admin;
-import com.moneymanager.entity.Notice;
+import com.moneymanager.domain.admin.Admin;
+import com.moneymanager.domain.sub.Notice;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 

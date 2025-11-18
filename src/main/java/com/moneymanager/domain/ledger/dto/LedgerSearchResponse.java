@@ -6,7 +6,7 @@ import lombok.Getter;
 /**
  * <p>
  * * 패키지이름    : com.areum.moneymanager.dto.budgetBook.response<br>
- * * 파일이름       : BudgetBookSearchResponse<br>
+ * * 파일이름       : LedgerSearchResponse<br>
  * * 작성자          : areum Jang<br>
  * * 생성날짜       : 25. 7. 30.<br>
  * * 설명              : 가계부 검색 응답을 위한 데이터 클래스
@@ -32,7 +32,7 @@ import lombok.Getter;
  */
 @Builder
 @Getter
-public class BudgetBookSearchResponse {
+public class LedgerSearchResponse {
 	//검색 유형
 	private String mode;
 	//가계부 조회 유형

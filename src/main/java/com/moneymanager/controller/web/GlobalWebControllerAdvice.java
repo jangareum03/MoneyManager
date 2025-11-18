@@ -1,6 +1,6 @@
 package com.moneymanager.controller.web;
 
-import com.moneymanager.dto.member.response.MemberLoginResponse;
+import com.moneymanager.domain.member.dto.MemberLoginResponse;
 import com.moneymanager.security.jwt.JwtTokenProvider;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;

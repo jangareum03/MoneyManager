@@ -1,9 +1,8 @@
 package com.moneymanager.dao.member.history;
 
 import com.moneymanager.dao.HistoryDao;
-import com.moneymanager.entity.Member;
-import com.moneymanager.entity.MemberLog;
-import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.MemberLog;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;

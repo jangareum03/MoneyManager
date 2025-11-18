@@ -1,8 +1,8 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.CategoryDao;
-import com.moneymanager.dto.budgetBook.CategoryDTO;
-import com.moneymanager.entity.Category;
+import com.moneymanager.domain.ledger.dto.LedgerCategoryResponse;
+import com.moneymanager.domain.ledger.entity.Category;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -54,11 +54,11 @@ public class CategoryService {
 	 *
 	 * @return 최상위 카테고리 리스트
 	 */
-	public List<CategoryDTO> getTopCategories() {
-		List<CategoryDTO> readList = new ArrayList<>();
+	public List<LedgerCategoryResponse> getTopCategories() {
+		List<LedgerCategoryResponse> readList = new ArrayList<>();
 
 		for ( Category category : categoryDAO.findCategory() ) {
-			readList.add(CategoryDTO.builder().name(category.getName()).code(category.getCode()).build());
+			readList.add(LedgerCategoryResponse.builder().name(category.getName()).code(category.getCode()).build());
 		}
 
 		return readList;
@@ -72,11 +72,11 @@ public class CategoryService {
 	 * @param code 카테고리 코드
 	 * @return 하위 카테고리 리스트
 	 */
-	public List<CategoryDTO> getMySubCategories( String code) {
-		List<CategoryDTO> categoryList = new ArrayList<>();
+	public List<LedgerCategoryResponse> getMySubCategories(String code) {
+		List<LedgerCategoryResponse> categoryList = new ArrayList<>();
 
 		for (Category entity : categoryDAO.findCategoryByCode(code)) {
-			categoryList.add(CategoryDTO.builder().name(entity.getName()).code(entity.getCode()).build());
+			categoryList.add(LedgerCategoryResponse.builder().name(entity.getName()).code(entity.getCode()).build());
 		}
 
 
@@ -90,11 +90,11 @@ public class CategoryService {
 	 * @param code	하위 카테고리 코
 	 * @return	상위 카테고리의 이름과 코드를 담은 리스트
 	 */
-	public List<CategoryDTO> getMyParentCategories(String code ) {
-		List<CategoryDTO> categoryList = new ArrayList<>();
+	public List<LedgerCategoryResponse> getMyParentCategories(String code ) {
+		List<LedgerCategoryResponse> categoryList = new ArrayList<>();
 
 		for( Category entity : categoryDAO.findCategoryByStep(code) ) {
-			categoryList.add( CategoryDTO.builder().name(entity.getName()).code(entity.getCode()).build() );
+			categoryList.add( LedgerCategoryResponse.builder().name(entity.getName()).code(entity.getCode()).build() );
 		}
 
 		return categoryList;

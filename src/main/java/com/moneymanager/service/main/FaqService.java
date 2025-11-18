@@ -1,6 +1,6 @@
 package com.moneymanager.service.main;
 
-import com.moneymanager.dto.faq.response.FaqListResponse;
+import com.moneymanager.domain.sub.dto.FaqListResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

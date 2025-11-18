@@ -1,7 +1,6 @@
 package com.moneymanager.service.validation;
 
-import com.moneymanager.dto.common.ErrorDTO;
-import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.exception.custom.ClientException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;

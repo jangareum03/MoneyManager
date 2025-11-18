@@ -1,8 +1,8 @@
 package com.moneymanager.service.member.history;
 
 import com.moneymanager.dao.member.history.LoginHistoryDaoImpl;
-import com.moneymanager.dto.member.log.LoginLogDTO;
-import com.moneymanager.entity.LoginLog;
+import com.moneymanager.domain.member.dto.LoginLogDTO;
+import com.moneymanager.domain.member.LoginLog;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

@@ -1,6 +1,5 @@
-package com.moneymanager.domain;
+package com.moneymanager.domain.member;
 
-import com.moneymanager.domain.member.Member;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,7 +8,7 @@ import java.time.LocalDate;
 
 /**
  * <p>
- *  * 패키지이름    : com.areum.moneymanager.entity<br>
+ *  * 패키지이름    : com.areum.moneymanager.domain.member<br>
  *  * 파일이름       : Attendance<br>
  *  * 작성자          : areum Jang<br>
  *  * 생성날짜       : 22. 11. 7<br>
@@ -42,10 +41,7 @@ import java.time.LocalDate;
 @Builder
 @Getter
 public class Attendance {
-    /* 출석번호(PK) */
-    private Long id;
-    /* 회원번호(FK: member_id) */
-    private Member member;
-    /* 출석체크날짜 */
-    private LocalDate attendanceDate;
+    private Long id;										//출석번호(식별자)
+    private Member member;						//회원정보
+    private LocalDate attendanceDate;		//출석체크 날짜
 }

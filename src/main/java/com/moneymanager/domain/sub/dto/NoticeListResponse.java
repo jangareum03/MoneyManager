@@ -1,4 +1,4 @@
-package com.moneymanager.domain.notice.dto;
+package com.moneymanager.domain.sub.dto;
 
 import com.moneymanager.domain.global.dto.PageResponse;
 import lombok.Builder;

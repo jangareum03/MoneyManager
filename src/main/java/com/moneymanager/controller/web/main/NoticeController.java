@@ -1,7 +1,7 @@
 package com.moneymanager.controller.web.main;
 
-import com.moneymanager.dto.common.request.PageRequest;
-import com.moneymanager.dto.notice.response.NoticeListResponse;
+import com.moneymanager.domain.global.dto.PageRequest;
+import com.moneymanager.domain.sub.dto.NoticeListResponse;
 import com.moneymanager.service.main.NoticeService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

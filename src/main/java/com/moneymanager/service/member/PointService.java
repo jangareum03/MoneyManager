@@ -2,10 +2,10 @@ package com.moneymanager.service.member;
 
 import com.moneymanager.dao.member.MemberInfoDaoImpl;
 import com.moneymanager.dao.member.history.PointHistoryDaoImpl;
-import com.moneymanager.dto.member.response.MemberMyPageResponse;
-import com.moneymanager.entity.Member;
-import com.moneymanager.entity.MemberInfo;
-import com.moneymanager.entity.PointHistory;
+import com.moneymanager.domain.member.dto.MemberMyPageResponse;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.MemberInfo;
+import com.moneymanager.domain.member.PointHistory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,7 +55,6 @@ public class PointService {
 
 	/**
 	 * 출석체크 완료된 회원의 포인트에 point만큼 추가 후 내역에 추가합니다.<br>
-	 * point값이 0이라면 {@link ErrorException} 이 발생합니다.
 	 *
 	 * @param memberId	회원번호
 	 * @param point				변경할 포인트 값
@@ -68,8 +67,8 @@ public class PointService {
 		}
 
 		//포인트 및 내역 추가
-		MemberInfo memberInfo = MemberInfo.builder().id(memberId).point(point).build();
-		Long memberPoint = memberInfoDao.updatePointAndReturn( memberInfo );
+		Member member = Member.builder().id(memberId).detail( MemberInfo.builder().point(point).build() ).build();
+		Long memberPoint = memberInfoDao.updatePointAndReturn( member );
 		if( memberPoint >= 0) {
 			PointHistory entity = PointHistory.builder().member(Member.builder().id(memberId).build())
 							.type("EARM").points(point).reason("출석체크").balancePoints(memberPoint).build();

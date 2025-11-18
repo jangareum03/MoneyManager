@@ -1,4 +1,4 @@
-package com.moneymanager.dto.common.request;
+package com.moneymanager.domain.global.dto;
 
 import com.moneymanager.domain.ledger.enums.DateType;
 import lombok.*;

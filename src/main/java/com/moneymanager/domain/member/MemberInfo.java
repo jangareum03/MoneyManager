@@ -1,16 +1,17 @@
-package com.moneymanager.domain;
+package com.moneymanager.domain.member;
 
+import com.moneymanager.domain.member.enums.MemberGender;
 import lombok.Builder;
 import lombok.Getter;
 import java.time.LocalDateTime;
 
 /**
  * <p>
- *  * 패키지이름    : com.areum.moneymanager.entity<br>
+ *  * 패키지이름    : com.areum.moneymanager.domain.member<br>
  *  * 파일이름       : MemberInfo<br>
  *  * 작성자          : areum Jang<br>
  *  * 생성날짜       : 22. 10. 24<br>
- *  * 설명              : TB_MEMBER_INFO 테이블과 매칭되는 엔티티 클래스
+ *  * 설명              : TB_MEMBER_INFO 테이블과 매칭되는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -44,18 +45,11 @@ import java.time.LocalDateTime;
 @Builder
 @Getter
 public class MemberInfo {
-    /* 성별 */
-    private Character gender;
-    /* 프로필 */
-    private String profile;
-    /* 포인트 */
-    private Long point;
-    /* 연속출석일자 */
-    private Long consecutiveDays;
-    /* 등록 가능한 이미지 수 */
-    private int imageLimit;
-    /* 마지막 접속일 */
-    private LocalDateTime loginAt;
-    /* 실패횟수 */
-    private int failureCount;
+    private MemberGender gender;		//성별(N, M, F)
+    private String profile;						//프로필
+    private Long point;							//포인트
+    private Long consecutiveDays;			//연속 출석일자
+    private int imageLimit;						//등록 가능한 이미지 수
+    private LocalDateTime loginAt;			//마지막 접속일
+    private int failureCount;					//실패횟수
 }

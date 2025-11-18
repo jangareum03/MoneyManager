@@ -1,6 +1,6 @@
-package com.moneymanager.dto.common;
+package com.moneymanager.domain.global.dto;
 
-import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 import java.time.LocalDateTime;

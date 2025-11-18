@@ -3,17 +3,21 @@ package com.moneymanager.service.member;
 
 import com.moneymanager.dao.member.MemberDaoImpl;
 import com.moneymanager.dao.member.MemberInfoDaoImpl;
-import com.moneymanager.dto.common.ImageDTO;
-import com.moneymanager.dto.member.request.MemberDeleteRequest;
-import com.moneymanager.dto.member.request.MemberRecoveryRequest;
-import com.moneymanager.dto.member.request.MemberSignUpRequest;
-import com.moneymanager.dto.member.request.MemberUpdateRequest;
-import com.moneymanager.dto.member.response.MemberInfoResponse;
-import com.moneymanager.dto.member.response.MemberMyPageResponse;
-import com.moneymanager.dto.member.response.MemberRecoveryResponse;
-import com.moneymanager.entity.Member;
-import com.moneymanager.entity.MemberInfo;
-import com.moneymanager.enums.type.*;
+import com.moneymanager.domain.global.enums.HistoryType;
+import com.moneymanager.domain.global.enums.MailType;
+import com.moneymanager.domain.member.enums.MemberGender;
+import com.moneymanager.domain.member.enums.MemberStatus;
+import com.moneymanager.domain.global.dto.ImageDTO;
+import com.moneymanager.domain.member.dto.MemberDeleteRequest;
+import com.moneymanager.domain.member.dto.MemberRecoveryRequest;
+import com.moneymanager.domain.member.dto.MemberSignUpRequest;
+import com.moneymanager.domain.member.dto.MemberUpdateRequest;
+import com.moneymanager.domain.member.dto.MemberInfoResponse;
+import com.moneymanager.domain.member.dto.MemberMyPageResponse;
+import com.moneymanager.domain.member.dto.MemberRecoveryResponse;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.MemberInfo;
+import com.moneymanager.domain.member.enums.MemberType;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.validation.MemberValidationService;
 import com.moneymanager.utils.DateTimeUtils;
@@ -75,7 +79,6 @@ public class MemberServiceImpl {
 
 	private final MemberDaoImpl memberDao;
 	private final MemberInfoDaoImpl memberInfoDao;
-
 	private final ImageServiceImpl imageService;
 	private final MailService mailService;
 
@@ -101,8 +104,7 @@ public class MemberServiceImpl {
 			String memberId = createMemberId(signUp.getId());
 
 			Member member = signUp.toEntity(passwordEncoder.encode(signUp.getPassword()));
-			MemberInfo memberInfo = member.getInfo();
-			if (memberDao.saveMember(member) && memberInfoDao.saveMemberInfo(memberInfo)) {    //신규 회원 추가된 경우
+			if (memberDao.saveMember(member) && memberInfoDao.saveMemberInfo(member)) {    //신규 회원 추가된 경우
 				log.debug("회원가입에 성공했습니다. (아이디: {}, 닉네임: {}, 이름: {}, 성별: {}, 이메일: {})", signUp.getId(), signUp.getNickName(), signUp.getName(), signUp.getGender(), signUp.getEmail());
 			}
 		} catch (IllegalArgumentException | DataAccessException | ClientException e) {
@@ -145,6 +147,7 @@ public class MemberServiceImpl {
 
 		return memberId.concat(String.format("%03d", endNum));
 	}
+
 
 
 	/**
@@ -199,11 +202,11 @@ public class MemberServiceImpl {
 
 		return MemberInfoResponse.builder()
 				.info(MemberMyPageResponse.MemberInfo.builder()
-						.type(MemberType.match(member.getType().charAt(0)))
+						.type(member.getType())
 						.nickName(member.getNickName()).profile(profileImage).lastLoginDate(String.format("마지막 접속일은 %s 입니다.", formattedLastLoginDate))
 						.build()
 				)
-				.name(member.getName()).gender(GenderType.match(memberInfo.getGender())).email(member.getEmail()).joinDate(formattedJoinDate).attendCount(memberInfo.getConsecutiveDays())
+				.name(member.getName()).gender(member.getDetail().getGender()).email(member.getEmail()).joinDate(formattedJoinDate).attendCount(memberInfo.getConsecutiveDays())
 				.build();
 	}
 
@@ -227,7 +230,7 @@ public class MemberServiceImpl {
 
 
 		return MemberMyPageResponse.MemberInfo.builder()
-				.type(MemberType.match(member.getType().charAt(0)))
+				.type(member.getType())
 				.nickName(member.getNickName())
 				.profile(profileImage)
 				.lastLoginDate(String.format("마지막 접속일은 %s 입니다.", formattedLastLogin))
@@ -268,8 +271,8 @@ public class MemberServiceImpl {
 
 			//성별 수정할 경우
 			if (Objects.nonNull(update.getGender())) {
-				MemberInfo memberInfo = MemberInfo.builder().id(memberId).gender(update.getGender().charAt(0)).build();
-				if (memberInfoDao.updateGender(memberInfo) ) {
+				Member member = Member.builder().id(memberId).detail(MemberInfo.builder().gender(MemberGender.match(update.getGender().charAt(0))).build()).build();
+				if (memberInfoDao.updateGender(member) ) {
 					value = getMemberInfo(memberId).getGender().getText();
 				}
 			}
@@ -308,16 +311,16 @@ public class MemberServiceImpl {
 				.build();
 
 		try {
-			MemberInfo memberInfo;
+			Member member;
 
 			if (profile.isReset()) {
-				memberInfo = MemberInfo.builder().id(memberId).profile(null).build();
-				if (memberInfoDao.updateProfile(memberInfo)) {
+				member = Member.builder().id(memberId).detail(MemberInfo.builder().profile(null).build()).build();
+				if (memberInfoDao.updateProfile(member)) {
 					imageService.deleteProfile(currentProfile);
 				}
 			} else {
-				memberInfo = MemberInfo.builder().id(memberId).profile(changeProfile.getAfterImage().getFileName()).build();
-				if (memberInfoDao.updateProfile(memberInfo)) {
+				member = Member.builder().id(memberId).detail(MemberInfo.builder().profile(changeProfile.getAfterImage().getFileName()).build()).build();
+				if (memberInfoDao.updateProfile(member)) {
 					imageService.changeProfile(memberId, changeProfile);
 				}
 			}

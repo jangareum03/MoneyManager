@@ -1,4 +1,4 @@
-package com.moneymanager.dto.common.request;
+package com.moneymanager.domain.global.dto;
 
 import lombok.Getter;
 import lombok.ToString;

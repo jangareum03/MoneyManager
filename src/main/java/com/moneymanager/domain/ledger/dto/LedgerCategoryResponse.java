@@ -34,7 +34,7 @@ import lombok.ToString;
 @Builder
 @Getter
 @ToString
-public class CategoryResponse {
+public class LedgerCategoryResponse {
 	private String name;			//카테고리 이름
-	private String code;			//카테고리 코드z
+	private String code;			//카테고리 코드
 }

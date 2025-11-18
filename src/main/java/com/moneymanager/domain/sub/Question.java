@@ -1,11 +1,10 @@
-package com.moneymanager.domain.inquiry;
+package com.moneymanager.domain.sub;
 
 
 import com.moneymanager.domain.member.Member;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
 
 

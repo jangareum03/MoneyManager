@@ -1,5 +1,6 @@
 package com.moneymanager.domain.ledger.dto;
 
+import com.moneymanager.domain.ledger.vo.Place;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -8,7 +9,7 @@ import java.util.List;
 /**
  * <p>
  * * 패키지이름    : com.areum.moneymanager.dto.budgetBook.response<br>
- * * 파일이름       : BudgetBookWriteResponse<br>
+ * * 파일이름       : LedgerWriteResponse<br>
  * * 작성자          : areum Jang<br>
  * * 생성날짜       : 25. 7. 25.<br>
  * * 설명              : 가계부 작성 응답을 위한 데이터 클래스
@@ -32,7 +33,7 @@ import java.util.List;
  * 		</tbody>
  * </table>
  */
-public class BudgetBookWriteResponse {
+public class LedgerWriteResponse {
 
 	/**
 	 * 가계부 상세 정보 작성을 위한 DTO<br>
@@ -54,7 +55,7 @@ public class BudgetBookWriteResponse {
 		private LedgerFixResponse fix = LedgerFixResponse.defaultValue();
 		//위치
 		@Builder.Default
-		private PlaceDTO place = PlaceDTO.defaultValue();
+		private Place place = null;
 	}
 
 }

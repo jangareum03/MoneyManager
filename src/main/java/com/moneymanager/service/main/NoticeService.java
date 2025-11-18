@@ -1,12 +1,12 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.NoticeDao;
-import com.moneymanager.dto.common.request.PageRequest;
-import com.moneymanager.dto.common.response.PageResponse;
-import com.moneymanager.dto.notice.response.NoticeDetailResponse;
-import com.moneymanager.dto.notice.response.NoticeListResponse;
-import com.moneymanager.entity.Notice;
-import com.moneymanager.enums.type.NoticeType;
+import com.moneymanager.domain.global.dto.PageRequest;
+import com.moneymanager.domain.global.dto.PageResponse;
+import com.moneymanager.domain.sub.dto.NoticeDetailResponse;
+import com.moneymanager.domain.sub.dto.NoticeListResponse;
+import com.moneymanager.domain.sub.Notice;
+import com.moneymanager.domain.sub.enums.NoticeType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;

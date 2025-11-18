@@ -1,4 +1,4 @@
-package com.moneymanager.domain.budgetBook.enums;
+package com.moneymanager.domain.ledger.enums;
 
 import lombok.Getter;
 
@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 /**
  * <p>
- *  * 패키지이름    : com.areum.moneymanager.enums.type<br>
+ *  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
  *  * 파일이름       : DateRangeType<br>
  *  * 작성자          : areum Jang<br>
  *  * 생성날짜       : 22. 7. 15<br>

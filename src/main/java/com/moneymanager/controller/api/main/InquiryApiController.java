@@ -1,9 +1,9 @@
 package com.moneymanager.controller.api.main;
 
-import com.moneymanager.dto.common.ApiResultDTO;
-import com.moneymanager.dto.inquiry.request.InquiryAccessRequest;
-import com.moneymanager.dto.inquiry.request.InquirySearchRequest;
-import com.moneymanager.dto.inquiry.response.InquiryListResponse;
+import com.moneymanager.domain.global.dto.ApiResultDTO;
+import com.moneymanager.domain.sub.dto.InquiryAccessRequest;
+import com.moneymanager.domain.sub.dto.InquirySearchRequest;
+import com.moneymanager.domain.sub.dto.InquiryListResponse;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.InquiryService;
 import org.apache.logging.log4j.LogManager;

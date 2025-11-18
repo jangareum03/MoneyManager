@@ -1,6 +1,5 @@
-package com.moneymanager.dto.external.google;
+package com.moneymanager.domain.global.dto;
 
-import com.moneymanager.dto.common.request.DateRequest;
 import lombok.*;
 
 /**

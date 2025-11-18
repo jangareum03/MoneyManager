@@ -1,17 +1,15 @@
 package com.moneymanager.controller.web.main;
 
-import com.moneymanager.dto.budgetBook.request.BudgetBookWriteRequest;
-import com.moneymanager.dto.budgetBook.response.BudgetBookWriteResponse;
-import com.moneymanager.dto.common.ErrorDTO;
+import com.moneymanager.domain.ledger.dto.LedgerWriteRequest;
+import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
+import com.moneymanager.domain.ledger.vo.YearMonthDayVO;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.BudgetBookService;
-import com.moneymanager.utils.LoggerUtil;
-import com.moneymanager.vo.YearMonthDayVO;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
@@ -45,11 +43,10 @@ import java.time.format.DateTimeFormatter;
  *		</tbody>
  * </table>
  */
+@Slf4j
 @Controller
 @RequestMapping("/budgetBook/write")
 public class WriteController {
-
-	private final Logger logger = LogManager.getLogger(this);
 
 	private final BudgetBookService budgetBookService;
 
@@ -96,17 +93,17 @@ public class WriteController {
 	@PostMapping("/{type}")
 	public String getStep2Page( @PathVariable String type, @RequestParam String date, HttpSession session, Model model ) {
 		try{
-			YearMonthDayVO vo = YearMonthDayVO.fromStringDate(date);
+			YearMonthDayVO vo = YearMonthDayVO.fromString(date);
 
-			BudgetBookWriteResponse.InitialBudget write = budgetBookService.getWriteByData( (String)session.getAttribute("mid"), type, vo );
+			LedgerWriteResponse.InitialBudget write = budgetBookService.getWriteByData( (String)session.getAttribute("mid"), type, vo );
 
 			model.addAttribute("budgetBook", write);
 
 			return "/main/budgetBook_writeStep2";
 		}catch ( ClientException e ) {
-			ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(e.getErrorCode()).message(e.getMessage()).requestData(date).build();
+			//ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(e.getErrorCode()).message(e.getMessage()).requestData(date).build();
 
-			LoggerUtil.logUserWarn(errorDTO, "가계부 작성");
+			//LoggerUtil.logUserWarn(errorDTO, "가계부 작성");
 
 			return "/main/budgetBook_writeStep1";
 		}
@@ -132,11 +129,11 @@ public class WriteController {
 	 *
 	 * @param create	가계부 정보
 	 * @param session	사용자 식별 및 정보를 저장하는 객체
-	 * @param model  	뷰에 전달할 객체
+	 * @param redirectAttributes  	뷰에 전달할 일회용 객체
 	 * @return	가계부 리스트 페이지
 	 */
 	@PostMapping
-	public String postWrite( @ModelAttribute("budgetBook") BudgetBookWriteRequest.DetailedBudget create, HttpSession session, Model model ) {
+	public String postWrite(@ModelAttribute("budgetBook") LedgerWriteRequest create, HttpSession session, RedirectAttributes redirectAttributes ) {
 		String memberId = (String)session.getAttribute("mid");
 
 		try{
@@ -144,12 +141,10 @@ public class WriteController {
 
 			return "redirect:/budgetBook/write";
 		}catch ( ClientException  e ) {
-			model.addAttribute("error", e.getMessage());
-			model.addAttribute("method", "get");
-			model.addAttribute("url", "/budgetBook/write");
+			log.info("[DEBUG] 값: {}", create.toString());
+			redirectAttributes.addFlashAttribute("error", e.getMessage());
 
-
-			return "/alert";
+			return "redirect:/budgetBook/write";
 		}
 	}
 }

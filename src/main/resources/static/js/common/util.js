@@ -1,3 +1,9 @@
+document.addEventListener("DOMContentLoaded", function() {
+    const msg = document.getElementById("alertBox")?.dataset.error;
+    if(msg) alert(msg);
+});
+
+
 //----------[ ▼ input text 생성 후 반환합니다. ]----------
 function createTextInput( { parent, id, name, classList = [], value, placeHolder } ) {
     const input = document.createElement('input');
@@ -40,7 +46,7 @@ function createHiddenInput( { parent, id, name, classList = [], value } ) {
 
 
 
-//----------[ ▼ input text 생성 후 반환합니다. ]----------
+//----------[ ▼ input password 생성 후 반환합니다. ]----------
 function createPasswordInput( { parent, id, name, classList = [], value, placeHolder } ) {
     const input = document.createElement('input');
     input.type = 'password';
@@ -132,7 +138,7 @@ function createForm({ parent, method = 'GET', action, classList = [] }) {
 
 
 
-//----------[ label 생성 ]----------
+//----------[ ▼ label 생성 후 반환합니다. ]----------
 function createLabel({ parent, classList= [], forName } ) {
     const label = document.createElement('label');
 
@@ -148,7 +154,7 @@ function createLabel({ parent, classList= [], forName } ) {
 }
 
 
-//----------[ button 생성 ]----------
+//----------[ ▼ button 생성 후 반환합니다. ]----------
 function createButton( {parent, type, id, name, classList = [], text} ) {
     const newButton = document.createElement('button');
     newButton.type = type;
@@ -166,7 +172,7 @@ function createButton( {parent, type, id, name, classList = [], text} ) {
     return newButton;
 }
 
-//----------[ select 생성 ]----------
+//----------[ ▼ select 생성 후 반환합니다. ]----------
 function createSelect( { parent, name, id, classList = [], options, initOption = false } ) {
     const newSelect = document.createElement('select');
 
@@ -208,7 +214,7 @@ function createSelect( { parent, name, id, classList = [], options, initOption =
 
 
 
-//----------[ span 생성 ]----------
+//----------[ ▼ span 생성 후 반환합니다. ]----------
 function createSpan( {parent, id, classList= [], text} ) {
     const newSpan = document.createElement('span');
     newSpan.textContent = text;
@@ -225,7 +231,7 @@ function createSpan( {parent, id, classList= [], text} ) {
 
 
 
-//----------[ p 생성 ]----------
+//----------[ ▼ p 생성 후 반환합니다. ]----------
 function createP( {parent, id, classList= [], text} ) {
     const newP = document.createElement('p');
     newP.textContent = text;
@@ -241,7 +247,7 @@ function createP( {parent, id, classList= [], text} ) {
 }
 
 
-//----------[ div 생성 ]----------
+//----------[ ▼ div 생성 후 반환합니다. ]----------
 function createDiv( { id, classList = [], parent } ) {
     const newDiv = document.createElement('div');
 
@@ -256,7 +262,7 @@ function createDiv( { id, classList = [], parent } ) {
 }
 
 
-//----------[ svg 생성 ]----------
+//----------[ ▼ svg 생성 후 반환합니다. ]----------
 function createSVG( { parent, link, viewBox, paths=[], classList = [] } ) {
     const svg = document.createElementNS( link, 'svg' );
     svg.setAttribute('viewBox', viewBox);
@@ -285,7 +291,7 @@ function createSVG( { parent, link, viewBox, paths=[], classList = [] } ) {
 
 
 
-//----------[ ▼ img 태그를 생성 합니다. ]----------
+//----------[ ▼ img 생성 후 반환합니다. ]----------
 function createImg( {parent, src, id, classList = [], alt } ) {
     const img = document.createElement('img');
 
@@ -303,7 +309,7 @@ function createImg( {parent, src, id, classList = [], alt } ) {
 }
 
 
-//----------[ 이미지 삽입 ]----------
+//----------[ ▼ 이미지를 생성합니다. ]----------
 function loadImage({ parent, url, classList = [] }) {
     return fetch( url )
            .then( response => response.text() )
@@ -313,7 +319,7 @@ function loadImage({ parent, url, classList = [] }) {
 }
 
 
-//----------[ 요소 삭제 ]----------
+//----------[ ▼ 요소를 삭제합니다. ]----------
 function removeElements( classList = [] ) {
     classList.forEach( c => { document.querySelectorAll(`.${c}`).forEach( el => el.remove() ) });
 }
@@ -479,4 +485,14 @@ function renderSearchMenu( container, mode ) {
 //----------[ ▼ 금액을 '#,###' 형식으로 지정합니다. ]----------
 function formatNumber( num ) {
     return Number(num).toLocaleString('ko-KR');
+}
+
+
+
+//----------[ ▼ 날짜를 'yyyymmdd' 형식으로 지정합니다. ]----------
+function formatDate( strDate ) {
+    const dateGroup = strDate.match(/\d+/g);
+    if( !dateGroup || dateGroup.length < 3 ) return null;
+
+    return dateGroup[0] + dateGroup[1].padStart(2, '0') + dateGroup[2].padStart(2, '0');
 }

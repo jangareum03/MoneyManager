@@ -1,8 +1,8 @@
 package com.moneymanager.controller.web.members;
 
 
-import com.moneymanager.dto.member.response.MemberInfoResponse;
-import com.moneymanager.dto.member.response.MemberMyPageResponse;
+import com.moneymanager.domain.member.dto.MemberInfoResponse;
+import com.moneymanager.domain.member.dto.MemberMyPageResponse;
 import com.moneymanager.service.member.MemberServiceImpl;
 import com.moneymanager.service.member.PointService;
 

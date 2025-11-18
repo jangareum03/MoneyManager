@@ -1,4 +1,4 @@
-package com.moneymanager.dto.budgetBook.request;
+package com.moneymanager.domain.ledger.dto;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * <p>
  * * 패키지이름    : com.areum.moneymanager.dto.budgetBook.request<br>
- * * 파일이름       : BudgetBookDeleteRequest<br>
+ * * 파일이름       : LedgerDeleteRequest<br>
  * * 작성자          : areum Jang<br>
  * * 생성날짜       : 25. 7. 25.<br>
  * * 설명              : 가계부 삭제 요청을 위한 데이터 클래스
@@ -34,7 +34,7 @@ import java.util.List;
  */
 @Getter
 @Builder
-public class BudgetBookDeleteRequest {
+public class LedgerDeleteRequest {
 	//가계부 번호 리스트
 	private List<Long> ids;
 }

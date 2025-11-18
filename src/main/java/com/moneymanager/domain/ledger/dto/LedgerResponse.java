@@ -1,5 +1,6 @@
 package com.moneymanager.domain.ledger.dto;
 
+import com.moneymanager.domain.ledger.vo.Place;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -8,10 +9,10 @@ import java.util.List;
 /**
  * <p>
  * * 패키지이름    : com.areum.moneymanager.dto.budgetBook.response<br>
- * * 파일이름       : BudgetBookDetailResponse<br>
+ * * 파일이름       : LedgerResponse<br>
  * * 작성자          : areum Jang<br>
  * * 생성날짜       : 25. 7. 26.<br>
- * * 설명              : 가계부 상세정보 응답을 위한 데이터 클래스
+ * * 설명              : 가계부 정보 응답을 위한 데이터 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -34,7 +35,7 @@ import java.util.List;
  */
 @Builder
 @Getter
-public class BudgetBookDetailResponse {
+public class LedgerResponse {
 	//가계부 식별 번호
 	private  Long id;
 	//가계부 작성 날짜
@@ -52,7 +53,7 @@ public class BudgetBookDetailResponse {
 	//가계부 사진
 	private List<String> image;
 	//위치
-	private PlaceDTO place;
+	private Place place;
 
 	/**
 	 * 가계부 내역 날짜를 읽기 위한 DTO

@@ -1,8 +1,7 @@
 package com.moneymanager.security;
 
 import com.moneymanager.dao.member.MemberDaoImpl;
-import com.moneymanager.entity.Member;
-import com.moneymanager.utils.LoggerUtil;
+import com.moneymanager.domain.member.Member;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

@@ -1,4 +1,4 @@
-package com.moneymanager.domain.ledger;
+package com.moneymanager.domain.ledger.entity;
 
 import lombok.Builder;
 import lombok.Getter;

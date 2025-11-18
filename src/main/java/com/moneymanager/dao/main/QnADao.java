@@ -1,10 +1,10 @@
 package com.moneymanager.dao.main;
 
-import com.moneymanager.dto.inquiry.request.InquirySearchRequest;
-import com.moneymanager.entity.Admin;
-import com.moneymanager.entity.Answer;
-import com.moneymanager.entity.Member;
-import com.moneymanager.entity.Question;
+import com.moneymanager.domain.sub.dto.InquirySearchRequest;
+import com.moneymanager.domain.admin.Admin;
+import com.moneymanager.domain.sub.Answer;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.sub.Question;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -158,7 +158,7 @@ public class QnADao {
 				( rs, row ) -> {
 					return Question.builder()
 							.id(rs.getLong("id"))
-							.title(rs.getString("title")).open(rs.getString("open").charAt(0))	.createdDate( rs.getTimestamp("created_date") )
+							.title(rs.getString("title")).open(rs.getString("open").charAt(0))	.createdDate( rs.getTimestamp("created_date").toLocalDateTime().toLocalDate() )
 							.answer(rs.getString("answer").charAt(0))
 							.member( Member.builder().nickName(rs.getString("nickname")).build() )
 							.build();
@@ -242,7 +242,7 @@ public class QnADao {
 				},
 				( rs, row ) -> Question.builder()
 						.id(rs.getLong("id"))
-						.title(rs.getString("title")).open(rs.getString("open").charAt(0))	.createdDate( rs.getTimestamp("created_date") )
+						.title(rs.getString("title")).open(rs.getString("open").charAt(0))	.createdDate( rs.getTimestamp("created_date").toLocalDateTime().toLocalDate() )
 						.answer(rs.getString("answer").charAt(0))
 						.member( Member.builder().nickName(rs.getString("nickname")).build() )
 						.build()
@@ -267,7 +267,7 @@ public class QnADao {
 						query,
 						(ResultSet rs, int row) ->
 										Question.builder()
-														.createdDate(rs.getTimestamp("created_date")).answer( rs.getString("answer").charAt(0) )
+														.createdDate(rs.getTimestamp("created_date").toLocalDateTime().toLocalDate()).answer( rs.getString("answer").charAt(0) )
 														.title(rs.getString("title")).content(rs.getString("content")).open(rs.getString("open").charAt(0))
 														.member(Member.builder().nickName(rs.getString("nickname")).build())
 														.build(),
@@ -296,7 +296,7 @@ public class QnADao {
 										 Answer.builder()
 														 .question(Question.builder().title(rs.getString("title")).build())
 														 .admin(Admin.builder().nickName(rs.getString("nickname")).build())
-														 .content(rs.getString("content")).createdDate(rs.getDate("created_date"))
+														 .content(rs.getString("content")).createdDate(rs.getDate("created_date").toLocalDate())
 														 .build(),
 						 id
 		 );

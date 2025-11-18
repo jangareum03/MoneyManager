@@ -1,8 +1,8 @@
 package com.moneymanager.exception.custom;
 
 
-import com.moneymanager.dto.common.ErrorDTO;
-import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.domain.global.dto.ErrorDTO;
+import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
 
 
@@ -35,12 +35,12 @@ import lombok.Getter;
  */
 @Getter
 public class ServerException extends RuntimeException {
-	private final ErrorCode errorCode;
+	private final ErrorDTO<?> errorDTO;
 
-	public ServerException( ErrorCode errorCode ) {
-		super(errorCode.getLogMessage());
+	public ServerException( ErrorDTO<?> errorDTO ) {
+		super(errorDTO.getMessage());
 
-		this.errorCode = errorCode;
+		this.errorDTO = errorDTO;
 	}
 
 }
