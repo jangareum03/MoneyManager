@@ -103,15 +103,12 @@ public class BudgetBookApiController {
 	 * @param session 사용자 식별 및 정보를 저장하는 객체
 	 * @return 내역 기간에 따른 그래프
 	 */
-	@GetMapping("/charts")
-	public List<Object> postBudgetBookChart(HttpSession session) {
+	@PostMapping("/charts")
+	public List<Object> postBudgetBookChart(@RequestBody DateRequest date, HttpSession session) {
 		String memberId = (String) session.getAttribute("mid");
 
 		//차트날짜 범위에 따른 객체 생성
-		List<Object> chartData = chartService.createChartData(memberId, (DateRequest) session.getAttribute("chart"));
-		session.removeAttribute("chart");
-
-		return chartData;
+		return chartService.createChartData(memberId, date);
 	}
 
 

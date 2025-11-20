@@ -1,6 +1,7 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.BudgetBookDao;
+import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.dto.*;
 import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
@@ -12,13 +13,14 @@ import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.domain.ledger.vo.LedgerDate;
+import com.moneymanager.domain.ledger.vo.PeriodSearch;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.domain.ledger.vo.YearMonthDayVO;
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.ledger.enums.DateType;
 import com.moneymanager.domain.ledger.enums.BudgetBookType;
 import com.moneymanager.service.validation.BudgetBookValidator;
+import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -26,10 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 /**
  * <p>
@@ -118,58 +122,49 @@ public class BudgetBookService {
 
 
 	/**
-	 * 입력한 날짜 값에 따른 제목을 반환하는 메서드
+	 *	가계부 요약 화면에 필요한 데이터를 생성하여 {@link LedgerListResponse} 형태로 반환합니다.
+	 *<p>
+	 *     반환되는 항목:
+	 *     <ul>
+	 *         <li><b>title</b> - 조회 기간을 나타내는 제목</li>
+	 *         <li><b>stats</b> - 총합/수입/지출별 합계 정보</li>
+	 *         <li><b>cards</b> - 일자별 가계부 정보를 담은 카드 리스트</li>
+	 *     </ul>
+	 *</p>
 	 *
-	 * @param date 검색할 가계부 날짜 값
-	 * @return 입력한 날짜 형식에 따른 제목
-	 */
-	public String makeTitleByType(DateRequest date) {
-
-		DateType type = date.getType();
-		switch (type) {
-			case WEEK:
-				return String.format("%d %02d %02d", date.getYear(), date.getMonth(), date.getWeek());
-			case YEAR:
-				return String.format("%d", date.getYear());
-			case MONTH:
-			default:
-				return String.format("%d %02d", date.getYear(), date.getMonth());
-		}
-	}
-
-
-	/**
-	 * 가계부 조회 날짜에 포함되는 가계부 정보와 가격정보를 찾는 메서드
-	 *
-	 * @param memberId 회원 식별번호
-	 * @param search   가계부 조회 정보 객체
-	 * @return 가계부 정보와 가격
+	 * @param memberId		가계부를 조회할 회원 ID
+	 * @param search			가계부 검색 조건 객체({@link LedgerSearchRequest})
+	 * @return	제목, 통계, 일자별 카드 데이터를 포함한 {@link LedgerListResponse}
 	 */
 	public LedgerListResponse getBudgetBooksForSummary(String memberId, LedgerSearchRequest search) {
+		//PeriodSearch VO 생성
+		DateGroupable period = createPeriod(search);
+
+		//가계부 데이터 조회
 		List<LedgerListResponse.DayCards> dayCards = getBudgetBooks(memberId, search);
 
+		//제목 생성
+		String title = DateTimeUtils.formatDateAsString(period.getStartDate(), DateType.from(search.getType()));
+
 		return LedgerListResponse.builder()
+				.title(title)
 				.stats(getPriceByCategory(dayCards))
 				.cards(dayCards)
 				.build();
 	}
 
 
-	/**
-	 * 가계부 조회 날짜에 포함되는 가계부 리스트를 찾는 메서드
-	 *
-	 * @param memberId 회원 식별번호
-	 * @param search   가계부 검색 조건
-	 * @return 가계부 리스트
-	 */
-	public List<LedgerListResponse.DayCards> getBudgetBooks(String memberId, LedgerSearchRequest search) {
+	//일자별 카드 리스트 리스트 반환
+	private List<LedgerListResponse.DayCards> getBudgetBooks(String memberId, LedgerSearchRequest search) {
 		List<LedgerListResponse.DayCards> cards = new ArrayList<>();
 
-		for (LedgerListResponse.DayCards dayCards : budgetBookDAO.findBudgetBooksBySearch(memberId, getDateForSearch(search.getDate()), search) ) {
-			String date = dayCards.getDate();
+		//PeriodSearch VO 생성
+		DateGroupable period = createPeriod(search);
+
+		for (LedgerListResponse.DayCards dayCards : budgetBookDAO.findBudgetBooksBySearch(memberId, search.getMode(), search.getKeywords(), period) ) {
 			List<LedgerListResponse.Card> cardList = dayCards.getCardList();
 
-			String formatDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd")).format(DateTimeFormatter.ofPattern("yyyy. MM. dd (E)", Locale.KOREAN));
+			String formatDate = DateTimeUtils.formatDateAsString(DateTimeUtils.parseDateFlexible(dayCards.getDate()), "yyyy. MM. dd (E)");
 
 			cards.add( LedgerListResponse.DayCards.builder().date(formatDate).cardList(cardList).build() );
 		}
@@ -179,112 +174,53 @@ public class BudgetBookService {
 
 
 	/**
-	 * 가계부 조회 날짜 범위로 시작날짜와 종료날짜를 찾는 메서드
+	 * 구글 차트에 필요한 데이터를 생성하여 {@link GoogleChartResponse} 리스트로 반환합니다.
+	 * <p>
+	 *     날짜 범위:
+	 *     <ul>
+	 *         <li>{@link DateType#YEAR} : 월별 수입과 지출 합계</li>
+	 *         <li>{@link DateType#MONTH} : 카테고리별 지출 합계</li>
+	 *         <li>{@link DateType#WEEK} : 월의 주차별 수입과 지출 합계</li>
+	 *     </ul>
+	 * </p>
 	 *
-	 * @param date 가계부 조회 날짜 정보
-	 * @return 검색 시작날짜와 종료날짜
-	 */
-	private LocalDate[] getDateForSearch(DateRequest date) {
-		DateType type = date.getType();
-		LocalDate from, to;
-
-		//검색할 가계부의 날짜 범위의 타입 조회
-		if (type == DateType.WEEK) {
-			/*
-			 * [ 첫째주 시작일과 종료일을 알기위한 설정 ]
-			 * 	- startIndex 	: 1일 시작요일 인덱스( 1:월요일 ~ 7: 일요일)
-			 * 	- addDay				: 첫째 주의 마지막 날짜를 구하기 위한 추가 일수
-			 *   - firstDay 			: 월의 첫 시작일로 설정된 LocalDate
-			 */
-			LocalDate firstDay = LocalDate.of(date.getYear(), date.getMonth(), 1);
-			int startIndex = firstDay.get(ChronoField.DAY_OF_WEEK);
-			int addDay = (startIndex == 7) ? startIndex - 1 : 6 - startIndex;
-
-			//시작일과 종료일 초기화
-			from = firstDay;
-			to = firstDay.plusDays(addDay);
-
-			//주에 맞게 날짜 설정
-			if (date.getWeek() != 1) {
-				to = to.plusDays(7L * (date.getWeek() - 1));
-				from = to.minusDays(6);
-
-				if (to.getMonthValue() != date.getMonth()) {    //마지막일자가 다음달로 넘어간 경우
-					to = LocalDate.of(date.getYear(), date.getMonth(), firstDay.lengthOfMonth());
-				}
-			}
-
-
-		} else if (type == DateType.YEAR) {
-			from = LocalDate.of(date.getYear(), 1, 1);
-			to = LocalDate.of(date.getYear(), 12, 31);
-		} else {
-			from = LocalDate.of(date.getYear(), date.getMonth(), 1);
-			to = LocalDate.of(date.getYear(), date.getMonth(), from.lengthOfMonth());
-		}
-
-		return new LocalDate[]{from, to};
-	}
-
-
-	/**
-	 * 가계부 타입에 따른 차트 본문을 반환하는 메서드
-	 *
-	 * @param memberId 회원 식별번호
-	 * @param date     검색할 가계부 날짜 값
-	 * @return 가계부 차트의 본문을 담은 리스트
+	 * @param memberId		가계부 조회할 회원 ID
+	 * @param date				가계부 조회할 날짜 객체({@link DateRequest})
+	 * @return	날짬 범위별로 필요한 금액(수입, 지출) 합계
 	 */
 	public List<GoogleChartResponse> getBudgetBookForChart(String memberId, DateRequest date) {
-		List<LocalDate[]> dateRange = new ArrayList<>();
+		List<DateGroupable> periodList = new ArrayList<>();
 
-		DateType type = date.getType();
-		switch (type) {
+		switch (date.getType()) {
 			case YEAR:
-				//해당 년의 월 구하기
 				for (int i = 1; i <= 12; i++) {
-					LocalDate from = LocalDate.of(date.getYear(), i, 1);
-					LocalDate to = LocalDate.of(date.getYear(), i, from.lengthOfMonth());
-
-					dateRange.add(new LocalDate[]{from, to});
+					periodList.add( PeriodSearch.ofYearMonth(date.getYear(), i) );
 				}
 
-				return new ArrayList<>(budgetBookDAO.findSumPriceByYear(memberId, dateRange));
+				return new ArrayList<>(budgetBookDAO.findSumPriceByMonthRange(memberId, periodList));
 			case WEEK:
 				//해당 월의 총 주차 구하기
-				LocalDate localDate = LocalDate.of(date.getYear(), date.getMonth(), 1);
-				int weekCount = (int) Math.ceil((localDate.get(ChronoField.DAY_OF_WEEK) + localDate.lengthOfMonth()) / 7.0);
+				int totalWeeks = DateTimeUtils.getTotalWeeksOfMonth(YearMonth.of(date.getYear(), date.getMonth()));
 
-				//주의 시작일과 종료일을 담은 리스트
-				for (int i = 1; i <= weekCount; i++) {
-					DateRequest.WeekRange week = DateRequest.WeekRange.builder().year( String.valueOf((date.getYear())) ).month( String.valueOf(date.getMonth()) ).week(String.valueOf(i)).build();
-					dateRange.add(getDateForSearch(new DateRequest(week)));
+				for (int i = 1; i <= totalWeeks; i++) {
+					periodList.add( PeriodSearch.ofYearMonthWeek( date.getYear(), date.getMonth(), i ) );
 				}
 
-				return new ArrayList<>(budgetBookDAO.findSumPriceByWeek(memberId, dateRange));
+				return new ArrayList<>(budgetBookDAO.findSumPriceByWeek(memberId, periodList));
 			case MONTH:
 			default:
-				LocalDate from = LocalDate.of(date.getYear(), date.getMonth(), 1);
-				LocalDate to = LocalDate.of(date.getYear(), date.getMonth(), from.lengthOfMonth());
-
-				return new ArrayList<>(budgetBookDAO.findSumPriceByCategoryAndMonth(memberId, new LocalDate[]{from, to}));
+				return new ArrayList<>(budgetBookDAO.findSumPriceByCategoryAndMonth(memberId, PeriodSearch.ofYearMonth(date.getYear(), date.getMonth())));
 		}
 	}
 
 
-	/**
-	 * 가계부 조회 날짜에 포함되는 카테고리별로 가격을 찾는 메서드
-	 *
-	 * @param dayCards	날짜별로 묶은 가계부 리스트
-	 * @return 카테고리별로 가격을 담은 맵
-	 */
+	//수입, 지출 카테고리별 금액 합계 반환
 	private LedgerListResponse.Stats getPriceByCategory(List<LedgerListResponse.DayCards> dayCards) {
 		List<LedgerListResponse.Card> cards = dayCards.stream().flatMap(day -> day.getCardList().stream()).collect(Collectors.toList());
 
 		Map<String, Long> categoryPrice = cards.stream()
 				.collect(Collectors.groupingBy(
 						card -> {
-							System.out.println("🍒" + card.getCategory());
-							System.out.println("🍒" + card.getCategory().getCode());
 							String type = card.getCategory().getCode().substring(0,2);
 
 							return type.equals("01") ? "income" : "outlay";
@@ -466,6 +402,26 @@ public class BudgetBookService {
 			log.debug("{} 회원의 {} 가계부 삭제 완료", memberId, id);
 		} else {
 
+		}
+	}
+
+
+	//날짜 타입에 따른 PeriodSearch VO 생성
+	private DateGroupable createPeriod(LedgerSearchRequest search) {
+		switch ( DateType.from(search.getType()) ) {
+			case YEAR:
+				return PeriodSearch.ofYear(search.getYear());
+			case WEEK:
+				return PeriodSearch.ofYearMonthWeek(search.getYear(), search.getMonth(), search.getWeek());
+			case MONTH:
+			default:
+				if( search.getYear() == null ) {
+					LocalDate today = LocalDate.now();
+
+					return PeriodSearch.ofYearMonth(today.getYear(), today.getMonthValue());
+				}
+
+				return PeriodSearch.ofYearMonth(search.getYear(), search.getMonth());
 		}
 	}
 }

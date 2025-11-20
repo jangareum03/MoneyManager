@@ -300,15 +300,18 @@ function changeMemo( memo, maxLength ) {
 
 //----------[ ▼ 구글 차트를 불러옵니다. ]----------
 function loadGoogleChart() {
+    const title = document.querySelector('.budget-date');
+    const dateInfo = getDate( title.textContent );
+
     google.charts.load('current', { packages: ['corechart', 'bar'] });
-    google.charts.setOnLoadCallback(loadChartData);
+    google.charts.setOnLoadCallback( loadChartData(dateInfo) );
 }
 
 
 
 //----------[ ▼ 차트 데이터를 불러와서 차트를 보여줍니다. ]----------
-async function loadChartData() {
-    const apiData = await fetchGoogleChart();
+async function loadChartData(date) {
+    const apiData = await fetchGoogleChart(date);
     drawChart( apiData );
 }
 
@@ -556,6 +559,7 @@ async function renderSearchResults( mode ) {
 //----------[ ▼ 검색에 필요한 데이터를 가져옵니다. ]---------
 function getSearchData( mode ) {
     const title = document.querySelector('.budget-date');
+    const dateInfo = getDate( title.textContent );
 
     const keywords = getKeywords( mode );
     if( keywords.length === 0 || (mode === 'period' && keywords.length != 2) ) {
@@ -563,9 +567,12 @@ function getSearchData( mode ) {
     }
 
     return {
+        type: title.dataset.type,
         mode: mode,
         keywords: keywords,
-        date: {...getDate( title.textContent ), type: title.dataset.type}
+        year: dateInfo ? dateInfo.year : null,
+        month: dateInfo ? dateInfo.month : null,
+        week: dateInfo ? dateInfo.week : null
     }
 }
 

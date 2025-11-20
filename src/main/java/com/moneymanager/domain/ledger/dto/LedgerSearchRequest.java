@@ -1,8 +1,10 @@
 package com.moneymanager.domain.ledger.dto;
 
 import com.moneymanager.domain.global.dto.DateRequest;
+import com.moneymanager.domain.ledger.enums.DateType;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -37,10 +39,45 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class LedgerSearchRequest {
-	//가계부 검색 기간
-	private DateRequest date;
+	//타입
+	private String type;
+	//년
+	private Integer year;
+	//월
+	private Integer month;
+	//주
+	private Integer week;
 	//검색 유형
 	private String mode;
 	//검색 키워드
 	private List<String> keywords;
+
+
+	/**
+	 * 기본값을 설정한 {@link LedgerSearchRequest} 객체를 반환합니다.
+	 * <p>
+	 *     기본 설정:
+	 *     <ul>
+	 *         <li>조회 단위: 월 기준({@link DateType#MONTH})</li>
+	 *         <li>연도, 월: 오늘 날짜 기준</li>
+	 *         <li>주차: null</li>
+	 *         <li>검색모드: "all"</li>
+	 *         <li>검색 키워드: null</li>
+	 *     </ul>
+	 * </p>
+	 *
+	 * @return	기본값이 설정된 {@link LedgerSearchRequest} 객체
+	 */
+	public static LedgerSearchRequest getDefaultValue() {
+		LocalDate today = LocalDate.now();
+
+		return LedgerSearchRequest.builder()
+				.type(DateType.MONTH.getType())
+				.year(today.getYear())
+				.month(today.getMonthValue())
+				.week(null)
+				.mode("all")
+				.keywords(null)
+				.build();
+	}
 }

@@ -1,12 +1,12 @@
 package com.moneymanager.domain.ledger.vo;
 
+import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.exception.ErrorCode;
-import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.Getter;
 import lombok.Value;
-
 import java.time.LocalDate;
+import java.time.YearMonth;
 
 import static com.moneymanager.exception.ErrorUtil.createClientException;
 
@@ -39,18 +39,34 @@ import static com.moneymanager.exception.ErrorUtil.createClientException;
  */
 @Value
 @Getter
-public class PeriodSearch {
+public class PeriodSearch implements DateGroupable {
+
+	//연도범위
+	static int YEAR_RANGE = 5;
 
 	Integer year;
 	Integer month;
 	Integer week;
-	static int YEAR_RANGE = 5;
+
 
 	private PeriodSearch(Integer year, Integer month, Integer week) {
 		this.year = year;
 		this.month = month;
 		this.week = week;
 	}
+
+
+	@Override
+	public LocalDate getStartDate() {
+		return DateTimeUtils.getStartDate(this);
+	}
+
+
+	@Override
+	public LocalDate getEndDate() {
+		return DateTimeUtils.getEndDate(this);
+	}
+
 
 	/**
 	 * 특정 연도로만 조회할 PeriodSearch 객체를 생성합니다.
@@ -97,25 +113,7 @@ public class PeriodSearch {
 	}
 
 
-	/**
-	 * 주어진 연도가 허용 범위 내에 있는지 검증합니다. <br>
-	 * <ul>
-	 *     <li>현재 연도가 0이면 오류 → {@link ErrorCode#BUDGET_DATE_INVALID}</li>
-	 *     <li>현재 연도 기준 허용 범위({@code YEAR_RANGE})를 벗어나면 오류 → {@link ErrorCode#BUDGET_DATE_INVALID}</li>
-	 * </ul>
-	*
-	 *
-	 *<p>
-	 *     예제 사용법:
-	 *     <pre>{@code
-	 *     	validateYear("2025");		//현재 연도 기준 범위 내이면 통과
-	 *     	validateYear("1990");			//범위를 벗어나므로 예외 발생
-	 *     }</pre>
-	 *</p>
-	 *
-	 * @param year	검증할 년도
-	 * @throws ClientException	   년도 값이 0이거나 허용 범위를 벗어난 경우 발생
-	 */
+	//주어진 연도가 허용 범위 내에 있는지 검증
 	private static void validateYearRange(int year) {
 		if( year == 0 ) {
 			throw createClientException(ErrorCode.BUDGET_DATE_INVALID, "조회할 년도를 확인해주세요.");
@@ -128,28 +126,7 @@ public class PeriodSearch {
 	}
 
 
-	/**
-	 *	주어진 연도와 월이 허용 범위 내에 있는지 검증합니다.
-	 * <ul>
-	 *     <li>월이 0이면 오류 → {@link ErrorCode#BUDGET_DATE_INVALID}</li>
-	 *     <li>현재 연도인 경우, 현재 월을 초과하면 오류 → {@link ErrorCode#BUDGET_DATE_INVALID}</li>
-	 *     <li>현재 연도가 아닌 경우, 입력된 월이 1~12 범위를 벗어나면 오류 → {@link ErrorCode#BUDGET_DATE_INVALID}</li>
-	 * </ul>
-	 *
-	 *	<p>
-	 *	   예제 사용법:
-	 *	   <pre>{@code
-	 *	   		validateMonthRange(2025, 5);			//현재 연도가 2025년이고 5월이 범위 내면 통과
-	 *	   		validateMonthRange(2026, 5);			//현재 연도가 2025년일 경우 2026년은 2월은 통과
-	 *
-	 *	   		validateMonthRange(2025, 13);			//현재 연도가 2025년이나 월이 범위에 초과되어 예외 발생
-	 *	   }</pre>
-	 *	</p>
-	 *
-	 * @param year			검증할 연도
-	 * @param month		검증할 월
-	 * @throws ClientException		월이 0이거나 유효 범위를 벗어난 경우 발생
-	 */
+	//주어진 연도, 월이 허용 범위 내에 있는지 검증
 	private static void validateMonthRange(int year, int month) {
 		if( month == 0 ) {
 			throw createClientException(ErrorCode.BUDGET_DATE_INVALID, "조회할 월을 확인해주세요.");
@@ -171,36 +148,18 @@ public class PeriodSearch {
 	}
 
 
-	/**
-	 * 주어진 연도와 월에 대해 입력된 주(week)가 유요한 범위내에 있는지 검증합니다. <br>
-	 * 해당 연·월의 최대 주차를 계산하여, 입력된 주가 1 이상이며 최대 주차 이하인지 확인합니다.
-	 *	<ul>
-	 *	   <li>값이 0인 경우 오류 → {@link ErrorCode#BUDGET_DATE_INVALID}</li>
-	 *	   <li>범위를 벗어나는 경우 오류 → {@link ErrorCode#BUDGET_DATE_INVALID}</li>
-	 *	</ul>
-	 *
-	 *<p>
-	 *     예제 사용법:
-	 *     <pre>{@code
-	 *     	validateWeek(2025, 1, 3);		//1월의 3주가 유효하므로 통과
-	 *     	validateWeek(2025, 2, 0);		//0주는 존재하지 않아 예외 발생
-	 *     	validateWeek(2025, 4, 6);		//4월은 최대주가 5주라서 예외 발생
-	 *     }</pre>
-	 *</p>
-	 *
-	 * @param year	검증할 년도
-	 * @throws ClientException	   주 값이 0이거나 허용 범위를 벗어난 경우 발생
-	 */
+	//주어진 연도, 월, 주이 허용 범위 내에 있는지 검증
 	private static void validateWeekRange(int year, int month, int week) {
 		if( week == 0 ) {
 			throw createClientException(ErrorCode.BUDGET_DATE_INVALID, "조회할 주를 확인해주세요.");
 		}
 
 		//년과 월에 해당하는 최대 주
-		int maxWeekByMonth = DateTimeUtils.getMaxWeekByMonth(year, month);
+		int maxWeekByMonth = DateTimeUtils.getTotalWeeksOfMonth(YearMonth.of(year, month));
 
 		if (!(0 < week && week <= maxWeekByMonth)  ) {
 			throw createClientException(ErrorCode.BUDGET_DATE_INVALID, String.format("조회할 주는 1~%d까지만 가능합니다.", maxWeekByMonth));
 		}
 	}
+
 }

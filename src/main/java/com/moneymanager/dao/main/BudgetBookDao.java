@@ -1,10 +1,10 @@
 package com.moneymanager.dao.main;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.dto.LedgerCategoryResponse;
 import com.moneymanager.domain.ledger.dto.LedgerListResponse;
-import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.PaymentType;
@@ -70,8 +70,13 @@ public class BudgetBookDao {
 	private final Logger logger = LogManager.getLogger(this);
 	private final JdbcTemplate jdbcTemplate;
 
+	@Autowired
 	public BudgetBookDao( DataSource dataSource ) {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	}
+
+	BudgetBookDao(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
 	}
 
 
@@ -151,16 +156,29 @@ public class BudgetBookDao {
 	}
 
 
-
 	/**
-	 * 검색기간과 유형에 해당하는 가계부 리스트를 조회하는 메서드
+	 * 회원 ID와 검색 조건에 따라 가계부 내역을 조회하고, 날짜별 카드 리스트로 그룹화하여 반환합니다.
+	 * <ul>
+	 *     <li>mode값에 따라 검색 조건이 달라집니다.</li>
+	 *     <ul>
+	 *         <li>"inout" : 카테고리 계층 구조 기반 검색</li>
+	 *         <li>"category" : 선택한 카테고리 코드 기반  검색</li>
+	 *         <li>"memo" : 작성한 메모 내용 기반  검색</li>
+	 *         <li>"period" : keywords로 지정된 기간 리스트 기반 검색</li>
+	 *         <li>"all" : 지정 기간 내 모든 내역 기반 검색</li>
+	 *     </ul>
+	 * </ul>
+	 * 조회 결과는 날짜(book_date)별로 그룹화 하여 {@link LedgerListResponse.DayCards} 리스트로 반환됩니다.<p>
+	 * 각 DayCards 내부에는 해당 날짜의 {@link LedgerListResponse.Card} 리스트가 포함되어 있습니다.
 	 *
-	 * @param memberId		회원 식별번호
-	 * @param date						가계부 검색 기간
-	 * @param search				검색유형이 담긴 객체
-	 * @return	검색유형에 해당하는 가계부 리스트
+	 * @param memberId			조회할 회원 ID
+	 * @param mode					검색모드("inout", "category", ... ,"all")
+	 * @param keywords			검색 키워드 리스트
+	 * @param date					날짜 기간 객체
+	 * @return	날짜별 카드 리스트를 포함한 {@link LedgerListResponse.DayCards} 리스트
+	 * @throws RuntimeException	JSON 파싱 오류 발생 시
 	 */
-	public List<LedgerListResponse.DayCards> findBudgetBooksBySearch(String memberId, LocalDate[] date, LedgerSearchRequest search ) {
+	public List<LedgerListResponse.DayCards> findBudgetBooksBySearch(String memberId, String mode, List<String> keywords, DateGroupable date) {
 		StringBuilder query
 				= new StringBuilder("SELECT book_date, " +
 													"JSON_ARRAYAGG( " +
@@ -173,7 +191,8 @@ public class BudgetBookDao {
 
 		List<Object> params = new ArrayList<>();
 		params.add(memberId);
-		switch ( search.getMode() ) {
+
+		switch ( mode ) {
 			case "inout":
 				query.append("AND tc.CODE IN (")
 									.append("SELECT code FROM tb_category CONNECT BY PRIOR code = parent_code START WITH parent_code = ?")
@@ -181,33 +200,36 @@ public class BudgetBookDao {
 									.append("GROUP BY book_date ")
 									.append("ORDER BY tbb.book_date DESC");
 
-				params.addAll(List.of(date));
-				params.addAll(search.getKeywords());
+				params.add(date.getStartDate());
+				params.add(date.getEndDate());
+				params.addAll(keywords);
 				break;
 			case "category":
 				query.append("AND category_id IN (")
-								.append(String.join(", ", Collections.nCopies(search.getKeywords().size(), "?")))
+								.append(String.join(", ", Collections.nCopies(keywords.size(), "?")))
 								.append(") ")
 								.append("GROUP BY book_date ")
 								.append("ORDER BY tbb.book_date DESC");
 
-				params.addAll(List.of(date));
-				params.addAll(search.getKeywords());
+				params.add(date.getStartDate());
+				params.add(date.getEndDate());
+				params.addAll(keywords);
 				break;
 			case "memo"	:
 				query.append("AND memo LIKE ? ")
 									.append("GROUP BY book_date ")
 									.append("ORDER BY tbb.book_date DESC");
 
-				params.addAll(List.of(date));
-				params.add( "%" + search.getKeywords().get(0) + "%" );
+				params.add(date.getStartDate());
+				params.add(date.getEndDate());
+				params.add( "%" + keywords.get(0) + "%" );
 				break;
 			case "period":
 				query.append("GROUP BY book_date ")
 						.append("ORDER BY tbb.book_date DESC");
 
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-				for( String keyword : search.getKeywords() ) {
+				for( String keyword : keywords ) {
 					LocalDate period = LocalDate.parse( keyword, formatter );
 
 					params.add(period);
@@ -218,7 +240,8 @@ public class BudgetBookDao {
 				query.append("GROUP BY book_date ")
 						.append("ORDER BY book_date DESC");
 
-				params.addAll(List.of(date));
+				params.add(date.getStartDate());
+				params.add(date.getEndDate());
 		}
 
 		return jdbcTemplate.query(
@@ -266,15 +289,14 @@ public class BudgetBookDao {
 	}
 
 
-
 	/**
-	 * 검색기간에 해당하는 가계부 가격별로 총합을 조회하는 메서드
+	 * 회원 ID와 연도의 월별 기간 리스트를 기준으로 수입과 지출 합계를 조회하여 {@link GoogleChartResponse} 리스트로 반환합니다.
 	 *
-	 * @param memberId		회원 식별번호
-	 * @param dates					월별로 가계부 검색기간
-	 * @return	월별 금액의 총합을 담은 리스트
+	 * @param memberId		조회할 회원 ID
+	 * @param dates			연도의 월별 기간 리스트({@link DateGroupable})
+	 * @return	월별 수입과 지출 합계를 담은 {@link GoogleChartResponse} 리스트
 	 */
-	public List<GoogleChartResponse> findSumPriceByYear( String memberId, List<LocalDate[]> dates ) {
+	public List<GoogleChartResponse> findSumPriceByMonthRange(String memberId, List<DateGroupable> dates ) {
 		List<GoogleChartResponse> resultList = new ArrayList<>();
 		String sql = "SELECT " +
 														"NVL(SUM( CASE WHEN SUBSTR(category_id, 1,2) = '01' THEN price ELSE 0 END ), 0) AS income, " +
@@ -283,16 +305,17 @@ public class BudgetBookDao {
 												"WHERE member_id = ? " +
 														"AND book_date BETWEEN TO_CHAR(TO_DATE(?, 'YYYYMMDD'), 'YYYYMMDD') AND TO_CHAR(TO_DATE(?, 'YYYYMMDD'), 'YYYYMMDD')";
 
-		for( int i=0; i<dates.size(); i++ ) {
-			final int month = i+1;
-
+		for (DateGroupable period : dates) {
 			GoogleChartResponse yearChart = jdbcTemplate.queryForObject(
-							sql,
-							(ResultSet rs, int row) -> {
-								return GoogleChartResponse.builder().label(month + "월").incomePrice(rs.getLong("income")).outlayPrice(rs.getLong("outlay")).build();
-							},
-							memberId,
-							dates.get(i)[0].format(DateTimeFormatter.ofPattern("yyyyMMdd")), dates.get(i)[1].format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+					sql,
+					(ResultSet rs, int row) -> {
+						return GoogleChartResponse.builder()
+								.label(period.getStartDate().getYear() + "월")
+								.incomePrice(rs.getLong("income"))
+								.outlayPrice(rs.getLong("outlay")).build();
+					},
+					memberId,
+					period.getStartDate(), period.getEndDate()
 			);
 
 			resultList.add(yearChart);
@@ -303,15 +326,14 @@ public class BudgetBookDao {
 	}
 
 
-
 	/**
-	 * 검색기간에 해당하는 가계부 카테고리별 지출금액을 조회하는 메서드
+	 * 회원 ID와 월 범위 내역 기준으로 카테고리별 지출합계를 조회하여 {@link GoogleChartResponse} 리스트로 반환합니다.
 	 *
-	 * @param memberId	회원 식별번호
-	 * @param date					가계부 검색기간
-	 * @return	카테고리별 지출금액을 담은 리스트
+	 * @param memberId		조회할 회원 ID
+	 * @param period			월의 시작일과 종료일을 담은 객체({@link DateGroupable})
+	 * @return	카테고리별 지출합계를 담은 {@link GoogleChartResponse} 리스트
 	 */
-	public List<GoogleChartResponse> findSumPriceByCategoryAndMonth(String memberId, LocalDate[] date ) {
+	public List<GoogleChartResponse> findSumPriceByCategoryAndMonth(String memberId, DateGroupable period ) {
 		String sql = "SELECT tcc.name, NVL(SUM(tbb.price), 0) price " +
 														"FROM tb_category tc " +
 																"LEFT JOIN tb_category tcc ON tc.parent_code  = tcc.code " +
@@ -329,20 +351,19 @@ public class BudgetBookDao {
 						(ResultSet rs, int row) -> {
 							return GoogleChartResponse.builder().label(rs.getString("name")).outlayPrice(rs.getLong("price")).build();
 						},
-						memberId, date[0].format(DateTimeFormatter.ofPattern("yyyyMMdd")), date[1].format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+						memberId, period.getStartDate(), period.getEndDate()
 						);
 	}
 
 
-
 	/**
-	 * 검색기간에 해당하는 가계부 가격별로 총합을 조회하는 메서드
+	 * 회원 ID와 월의 주차별 수입과 지출 합계를 조회하여 {@link GoogleChartResponse} 리스트로 반환합니다.
 	 *
-	 * @param memberId		회원 식별번호
-	 * @param dates					주차별로 가계부 검색기간
-	 * @return	주차별 금액의 총합을 담은 리스트
+	 * @param memberId		조회할 회원 ID
+	 * @param dates			월의 주차별 시작일과 종료일을 담은 리스트({@link DateGroupable})
+	 * @return	주차별 수입과 지출 합계를 담은 {@link GoogleChartResponse} 리스트
 	 */
-	public List<GoogleChartResponse> findSumPriceByWeek( String memberId, List<LocalDate[]> dates ) {
+	public List<GoogleChartResponse> findSumPriceByWeek( String memberId, List<DateGroupable> dates ) {
 		List<GoogleChartResponse> resultList = new ArrayList<>();
 		String sql = "SELECT " +
 														"NVL(SUM( CASE WHEN SUBSTR(category_id, 1,2) = '01' THEN price ELSE 0 END ), 0) AS income, " +
@@ -353,6 +374,7 @@ public class BudgetBookDao {
 
 		for( int i=0; i<dates.size(); i++ ) {
 			final int week = i+1;
+			DateGroupable period = dates.get(i);
 
 			GoogleChartResponse weekChart = jdbcTemplate.queryForObject(
 							sql,
@@ -360,7 +382,7 @@ public class BudgetBookDao {
 								return GoogleChartResponse.builder().label(week + "주").incomePrice(rs.getLong("income")).outlayPrice(rs.getLong("outlay")).build();
 							},
 							memberId,
-							dates.get(i)[0].format(DateTimeFormatter.ofPattern("yyyyMMdd")), dates.get(i)[1].format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+							period.getStartDate(), period.getEndDate()
 			);
 
 			resultList.add(weekChart);

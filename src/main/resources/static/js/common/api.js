@@ -120,8 +120,13 @@ function fetchEmailCodeSend( value ) {
 
 
 //----------[ ▼ 구글 차트를 가져옵니다. ]----------
-function fetchGoogleChart() {
-    return fetch('/api/budgetBook/charts').then( response => response.json() );
+function fetchGoogleChart( date ) {
+    return fetch('/api/budgetBook/charts', {
+        method: 'POST',
+        headers: { 'Content-Type' : 'application/json' },
+        body: JSON.stringify(date)
+    })
+    .then( response => response.json() );
 }
 
 

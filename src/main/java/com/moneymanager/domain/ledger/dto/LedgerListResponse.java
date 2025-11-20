@@ -34,6 +34,8 @@ import java.util.List;
 @Builder
 @Getter
 public class LedgerListResponse {
+	//제목
+	private String title;
 	//금액별 통계
 	private Stats stats;
 	//가계부 카드 리스트
