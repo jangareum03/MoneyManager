@@ -79,7 +79,7 @@ public class BudgetBookController {
 	public String getBudgetPage(@PathVariable String type, LedgerSearchRequest search, HttpSession session, Model model) {
 		String memberId = (String) session.getAttribute("mid");
 
-		if( search.getYear() == null ) {
+		if( type == null || search == null ) {
 			search = LedgerSearchRequest.getDefaultValue();
 		}
 

@@ -4,8 +4,7 @@ import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.enums.DateType;
 import com.moneymanager.service.main.BudgetBookService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -45,10 +44,10 @@ import java.util.Map;
  *		</tbody>
  * </table>
  */
+@Slf4j
 @Service
 public class GoogleChartService {
 
-	private final Logger logger = LogManager.getLogger(this);
 	private final BudgetBookService budgetBookService;
 
 	public GoogleChartService( BudgetBookService budgetBookService ) {
@@ -104,8 +103,6 @@ public class GoogleChartService {
 
 		return data;
 	}
-
-
 
 
 }
