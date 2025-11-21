@@ -1,7 +1,6 @@
 package com.moneymanager.utils;
 
 import com.moneymanager.domain.global.dto.ErrorDTO;
-import com.moneymanager.domain.ledger.vo.PeriodSearch;
 import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.exception.custom.ServerException;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +43,6 @@ import static org.assertj.core.api.Assertions.*;
  */
 class DateTimeUtilsTest {
 
-	//🔴실패 케이스
 	//=================================================
 	// parseDateFlexible() 테스트
 	//=================================================
@@ -74,8 +72,6 @@ class DateTimeUtilsTest {
 				.isThrownBy(() -> DateTimeUtils.parseDateFlexible(date));
 	}
 
-
-	//🟢성공 케이스
 	//=================================================
 	// parseDateFlexible() 테스트
 	//=================================================
@@ -95,149 +91,6 @@ class DateTimeUtilsTest {
 		assertThat(localDate).isNotNull();
 		assertThat(localDate).isEqualTo(LocalDate.of(year, month, day));
 	}
-
-
-	//=================================================
-	// getStartDate() 테스트
-	//=================================================
-	@Test
-	@DisplayName("연도만 제공하면 1월 1일이 반환된다.")
-	void shouldReturnJanuaryFirstWhenOnlyYear() {
-		//given
-		PeriodSearch period = PeriodSearch.ofYear(2025);
-
-		//when
-		LocalDate result = DateTimeUtils.getStartDate(period);
-
-		//then
-		assertThat(result).isEqualTo(LocalDate.of(2025, 1, 1));
-	}
-
-	@Test
-	@DisplayName("연도와 월을 제공하면 월의 첫째일이 반환된다.")
-	void shouldReturnFirstDayOfMonthWhenYearAndMonth() {
-		//given
-		PeriodSearch period = PeriodSearch.ofYearMonth(2025, 3);
-
-		//when
-		LocalDate result = DateTimeUtils.getStartDate(period);
-
-		//then
-		assertThat(result).isEqualTo(LocalDate.of(2025, 3,1));
-	}
-
-	@Test
-	@DisplayName("연도, 월, 주를 제공하면 주의 첫시작일을 반환한다.")
-	void shouldReturnStartDateOfWeekWhenYearMonthWeek() {
-		//given
-		PeriodSearch period = PeriodSearch.ofYearMonthWeek(2025, 9, 5);
-
-		//when
-		LocalDate result = DateTimeUtils.getStartDate(period);
-
-		//then
-		assertThat(result).isEqualTo(LocalDate.of(2025, 9, 29));
-	}
-
-
-	//=================================================
-	// getEndDate() 테스트
-	//=================================================
-	@Test
-	@DisplayName("연도만 제공하면 12월 31일이 반환된다.")
-	void shouldReturnJanuaryLastWhenOnlyYear() {
-		//given
-		PeriodSearch period = PeriodSearch.ofYear(2025);
-
-		//when
-		LocalDate result = DateTimeUtils.getEndDate(period);
-
-		//then
-		assertThat(result).isEqualTo(LocalDate.of(2025, 12, 31));
-	}
-
-	@Test
-	@DisplayName("연도와 월을 제공하면 월의 마지막일이 반환된다.")
-	void shouldReturnLastDayOfMonthWhenYearAndMonth() {
-		//given
-		PeriodSearch period = PeriodSearch.ofYearMonth(2025, 3);
-
-		//when
-		LocalDate result = DateTimeUtils.getEndDate(period);
-
-		//then
-		assertThat(result).isEqualTo(LocalDate.of(2025, 3,31));
-	}
-
-	@ParameterizedTest
-	@CsvSource({
-			"2025, 11, 1, 2",
-			"2025, 11, 5, 30",
-			"2025, 10, 5, 31",
-			"2025, 9, 5, 30"
-	})
-	@DisplayName("연도, 월, 주를 제공하면 주의 일요일 날짜를 반환한다.")
-	void shouldReturnEndDateOfWeekWhenYearMonthWeek(int year, int month, int week, int expected) {
-		//given
-		PeriodSearch period = PeriodSearch.ofYearMonthWeek(year, month, week);
-
-		//when
-		LocalDate result = DateTimeUtils.getEndDate(period);
-
-		//then
-		assertThat(result).isEqualTo(LocalDate.of(year, month, expected));
-	}
-
-
-	//=================================================
-	// getWeekByMonth() 테스트
-	//=================================================
-	@ParameterizedTest
-	@CsvSource({
-			"2025, 11, 1",
-			"2025, 10, 1",
-			"2025, 10, 3",
-			"2025, 9, 1",
-			"2025, 9, 5",
-			"2025, 6, 1"
-	})
-	@DisplayName("날짜가 첫 월요일보다 전이거나 같으면 1주차를 반환한다.")
-	void shouldReturnFirstWeekWhenDateIsBeforeOrSame(int year, int month, int day) {
-		//given
-		LocalDate date = LocalDate.of(year, month, day);
-
-		//when
-		int result = DateTimeUtils.getWeekByMonth(date);
-
-		//then
-		assertThat(result).isEqualTo(1);
-	}
-
-	@ParameterizedTest
-	@CsvSource({
-			"2025, 11, 3, 2",
-			"2025, 10, 12, 2",
-			"2025, 9, 8, 2",
-			"2025, 9, 15, 3",
-			"2025, 6, 2, 2",
-			"2025, 6, 22, 4",
-			"2025, 6, 27, 5"
-	})
-	@DisplayName("날짜가 첫 월요일 이후라면 그 날짜에 맞는 주차를 반환한다.")
-	void shouldReturnWeekWhenDateIsAfterFirstMonday(int year, int month, int day, int expected){
-		//given
-		LocalDate date = LocalDate.of(year, month, day);
-
-		//when
-		int result = DateTimeUtils.getWeekByMonth(date);
-
-		//then
-		assertThat(result).isEqualTo(expected);
-	}
-
-	@DisplayName("날짜가 마지막 주 범위에 들어가면 마지막 주차를 반환한다.")
-	void shouldReturnLastWeekWhenDateInLastWeekRange(){}
-
 
 	//=================================================
 	// getMaxWeekByMonth() 테스트

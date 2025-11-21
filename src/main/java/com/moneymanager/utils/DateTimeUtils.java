@@ -2,7 +2,7 @@ package com.moneymanager.utils;
 
 
 import com.moneymanager.domain.ledger.enums.DateType;
-import com.moneymanager.domain.ledger.vo.PeriodSearch;
+import com.moneymanager.domain.ledger.vo.DateScope;
 import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.exception.custom.ServerException;
 
@@ -48,10 +48,6 @@ import static com.moneymanager.exception.ErrorUtil.createServerException;
  */
 public class DateTimeUtils {
 
-	private static final DayOfWeek START_DAY = DayOfWeek.MONDAY;
-	private static final DayOfWeek END_DAY = DayOfWeek.SUNDAY;
-
-
 	/**
 	 *	입력된 날짜 문자열을 여러 형식으로 해석하여 {@link LocalDate} 객체로 변환합니다.
 	 *<p>
@@ -81,7 +77,7 @@ public class DateTimeUtils {
 	 * @throws ServerException	지원하지 않는 날짜 형식인 경우 발생
 	 */
 	public static LocalDate parseDateFlexible(String dateStr) {
-		String[] patterns = {"yyyy-MM-dd", "yyyy/MM/dd", "yyyy년 MM월 dd일", "yyyyMMdd"};
+		String[] patterns = {"yyyy-MM-dd", "yyyy/MM/dd", "yyyy년 MM월 dd일", "yyyyMMdd", "yyyy년 MM월 dd일 E요일"};
 
 		for( String pattern : patterns ) {
 			try {
@@ -94,110 +90,6 @@ public class DateTimeUtils {
 		}
 
 		throw createServerException(ErrorCode.SYSTEM_LOGIC_INTERVAL, "지원하지 않은 날짜 형식입니다.", dateStr);
-	}
-
-
-	/**
-	 * 연도, 월, 주차 정보별로 시작날짜를 계산하여 반환합니다.
-	 * <ul>
-	 *     <li>연도만 있는 경우 → 해당 연도의 1월 1일 반환</li>
-	 *     <li>연도+월만 있는 경우 → 해당 월의 1일 반환</li>
-	 *     <li>연도 + 월 + 주 모두 있는 경우 → 해당 주의 월요일 날짜 반환</li>
-	 * </ul>
-	 *
-	 * <p>
-	 *     예제 사용법:
-	 *     <pre>{@code
-	 *     	getStartDate(new PeriodSearch(2025, null, null));		//2025년 전체 시작일 → 2025-01-01
-	 *     	getStartDate(new PeriodSearch(2025, 3, null));		//2025년 3월 시작일 → 2025-03-01
-	 *     	getStartDate(new PeriodSearch(2025, 5, 2));			//2025년 3월 2주의 월요일 → 2025-05-05
-	 *     }</pre>
-	 * </p>
-	 *
-	 * @param period	조회 단위를 나타내는 PeriodSearch 객체
-	 * @return	주어진 조건에 만족하는 시작 날짜
-	 */
-	public static LocalDate getStartDate(PeriodSearch period) {
-		//년도만 있을 경우
-		if( period.getMonth() == null ) {
-			return LocalDate.of(period.getYear(), 1, 1);
-		}
-
-		LocalDate firstDayOfMonth = LocalDate.of(period.getYear(), period.getMonth(), 1);		//년,월에 해당하는 첫째일
-
-		//년+월만 있는 경우
-		if(period.getWeek() == null ) {
-			return firstDayOfMonth;
-		}
-
-		//년+월+주 모두 있는 경우
-		return getWeekStartDate(firstDayOfMonth, period.getWeek());
-	}
-
-
-	//해당 월의 주차에 맞는 월요일 날짜 계산
-	private static LocalDate getWeekStartDate(LocalDate firstDayOfMonth, int week) {
-		if( week == 1 ) {
-			return firstDayOfMonth;
-		}
-
-		//첫째주에 해당하는 주차의 월요일 날짜
-		LocalDate firstMondayOfMonth = firstDayOfMonth.with(TemporalAdjusters.previousOrSame(START_DAY));
-
-		return firstMondayOfMonth.plusDays( (week - 1) * 7L );
-	}
-
-
-	/**
-	 * 연도, 월, 주차 정보별로 종료날짜를 계산하여 반환합니다.
-	 * <ul>
-	 *     <li>연도만 있는 경우 → 해당 연도의 12월 31일 반환</li>
-	 *     <li>연도 + 월만 있는 경우 → 해당 월의 마지막날 반환</li>
-	 *     <li>연도 + 월 + 주 모두 있는 경우 → 해당 주차의  일요일 날짜 반환(단, 해당 주차의 일요일이 월을 넘어가면 월의 마지막날로 조정)</li>
-	 * </ul>
-	 *
-	 * <p>
-	 *     예제 사용법:
-	 *     <pre>{@code
-	 *     	getEndDate(new PeriodSearch(2025, null, null));	//2025년 전체 마지막일 → 2025-12-31
-	 *     	getEndDate(new PeriodSearch(2025, 3, null));		//2025년 3월 마지막일 → 2025-03-31
-	 *     	getEndDate(new PeriodSearch(2025, 5, 2));		//2025년 5월 2주의 일요일 → 2025-05-11
-	 *     }</pre>
-	 * </p>
-	 * @param period	조회 단위를 나타내는 PeriodSearch 객체
-	 * @return	주어진 조건에 만족하는 마지막 날짜
-	 */
-	public static LocalDate getEndDate(PeriodSearch period) {
-		//년도만 있을 경우
-		if( period.getMonth() == null ) {
-			return LocalDate.of(period.getYear(), 12, 31);
-		}
-
-		LocalDate firstDayOfMonth = LocalDate.of(period.getYear(), period.getMonth(), 1);
-
-		//년 + 월만 있는 경우
-		if( period.getWeek() == null ) {
-			return firstDayOfMonth.with(TemporalAdjusters.lastDayOfMonth());
-		}
-
-		//년 + 월 + 주 모두 있는 경우
-		return getWeekEndDate(firstDayOfMonth, period.getWeek());
-	}
-
-
-	//해당 월의 주차에 맞는 일요일 날짜 계산
-	private static LocalDate getWeekEndDate(LocalDate firstOfMonth, int week) {
-		//첫째주에 해당하는 주차의 일요일 날짜
-		LocalDate firstSundayOfMonth = firstOfMonth.with(TemporalAdjusters.nextOrSame(END_DAY));
-
-		if( week == 1 ) {
-			return firstSundayOfMonth;
-		}
-
-		LocalDate lastDayOfMonth = firstOfMonth.with(TemporalAdjusters.lastDayOfMonth());			//월의 마지막날짜
-		LocalDate sundayOfWeek = firstSundayOfMonth.plusDays( (week-1) * 7L );
-
-		return sundayOfWeek.isAfter(lastDayOfMonth) ? lastDayOfMonth : sundayOfWeek;
 	}
 
 
@@ -273,42 +165,6 @@ public class DateTimeUtils {
 
 
 	/**
-	 * {@link LocalDate}를 {@link DateType}에 맞는 문자열 형식으로 변환합니다.
-	 * <ul>
-	 *     <li>{@link DateType#YEAR} : "yyyy년" 형식으로 변환</li>
-	 *     <li>{@link DateType#MONTH} : "yyyy년 MM월" 형식으로 변환</li>
-	 *     <li>{@link DateType#WEEK} : "yyyy년 MM월 n주" 형식으로 변환</li>
-	 * </ul>
-	 *
-	 * <p>
-	 *     예제 사용법:
-	 *     <pre>{@code
-	 *     	LocalDate date  = LocalDate.of(2025, 11, 5);
-	 *
-	 *     	formatDateAsString(date, DateType.YEAR);	//"2025년"
-	 *     	formatDateAsString(date, DateType.MONTH);	//"2025년 11월"
-	 *     	formatDateAsString(date, DateType.WEEK);	//"2025년 11월 2주"
-	 *     }</pre>
-	 * </p>
-	 *
-	 * @param date		변환할 날짜
-	 * @param type		변환할 날짜 타입
-	 * @return				지정한 형식으로 변환된 날짜 문자열
-	 */
-	public static String formatDateAsString(LocalDate date, DateType type) {
-		switch (type) {
-			case YEAR:
-				return formatDateAsString(date, "yyyy년");
-			case WEEK:
-				return String.format("%s %s주", formatDateAsString(date, "yyyy년 MM월"), getWeekByMonth(date));
-			case MONTH:
-			default:
-				return formatDateAsString(date, "yyyy년 MM월");
-		}
-	}
-
-
-	/**
 	 * {@link LocalDate}를 지정한 패턴의 문자열로 변환됩니다.
 	 *
 	 * <p>
@@ -327,27 +183,6 @@ public class DateTimeUtils {
 	 */
 	public static String formatDateAsString(LocalDate date, String pattern) {
 		return date.format(DateTimeFormatter.ofPattern(pattern));
-	}
-
-
-	//날짜가 월의 몇주째인지 확인
-	static int getWeekByMonth(LocalDate date) {
-		int week = 1;
-
-		LocalDate start = date.withDayOfMonth(1);
-		LocalDate end = start.with(TemporalAdjusters.nextOrSame(END_DAY));
-
-		//1일 ~ 첫 일요일까지 1주차
-		if( !date.isAfter(end) ) return week;
-
-		while (!isDateInRange(date, start, end)) {	//시작일 ~ 종료일 사이에 있을때까지 다음주로 넘어감
-			week++;
-
-			start = end.plusDays(1);
-			end = end.plusDays(7);
-		}
-
-		return week;
 	}
 
 }

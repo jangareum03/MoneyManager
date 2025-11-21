@@ -12,10 +12,11 @@ import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.vo.LedgerDate;
-import com.moneymanager.domain.ledger.vo.PeriodSearch;
+import com.moneymanager.domain.ledger.vo.DateScope;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.domain.ledger.enums.DateType;
 import com.moneymanager.domain.ledger.enums.BudgetBookType;
+import com.moneymanager.service.main.validation.DateScopeValidator;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,11 +71,15 @@ public class BudgetBookService {
 
 	private final CategoryService categoryService;
 	private final ImageServiceImpl imageService;
+	private final DateScopeValidator dateScopeValidator;
+
 	private final BudgetBookDao budgetBookDAO;
 
-	public BudgetBookService(CategoryService categoryService, @Qualifier("budgetImage") ImageServiceImpl imageService, BudgetBookDao budgetBookDAO) {
+	public BudgetBookService(CategoryService categoryService, @Qualifier("budgetImage") ImageServiceImpl imageService, DateScopeValidator dateScopeValidator, BudgetBookDao budgetBookDAO) {
 		this.categoryService = categoryService;
 		this.imageService = imageService;
+		this.dateScopeValidator = dateScopeValidator;
+
 		this.budgetBookDAO = budgetBookDAO;
 	}
 
@@ -90,7 +96,7 @@ public class BudgetBookService {
 	 */
 	public LedgerWriteResponse.InitialBudget getWriteByData(String id, String type, String date) {
 		LedgerDate ledgerDate = new LedgerDate(date);
-		String title = formatDateAsString(ledgerDate.getDate(), "yyyy년 MM월 dd일 E요일");
+		String title = DateTimeUtils.formatDateAsString(ledgerDate.getDate(), "yyyy년 MM월 dd일 E요일");
 
 		int availableCount = imageService.getLimitImageCount(id);        //등록 가능한 이미지 개수
 
@@ -135,14 +141,15 @@ public class BudgetBookService {
 	 * @return	제목, 통계, 일자별 카드 데이터를 포함한 {@link LedgerListResponse}
 	 */
 	public LedgerListResponse getBudgetBooksForSummary(String memberId, LedgerSearchRequest search) {
-		//PeriodSearch VO 생성
-		DateGroupable period = createPeriod(search);
+		//DateScope VO 생성 및 검증
+		DateScope scope = createPeriod(search);
+		dateScopeValidator.validate(scope, search.getType());
 
 		//가계부 데이터 조회
 		List<LedgerListResponse.DayCards> dayCards = getBudgetBooks(memberId, search);
 
 		//제목 생성
-		String title = formatDateAsString(period.getStartDate(), DateType.from(search.getType()));
+		String title = formatDateAsString(scope, search.getType());
 
 		return LedgerListResponse.builder()
 				.title(title)
@@ -156,18 +163,59 @@ public class BudgetBookService {
 	private List<LedgerListResponse.DayCards> getBudgetBooks(String memberId, LedgerSearchRequest search) {
 		List<LedgerListResponse.DayCards> cards = new ArrayList<>();
 
-		//PeriodSearch VO 생성
-		DateGroupable period = createPeriod(search);
+		//DateScope VO 생성 및 검증
+		DateScope scope = createPeriod(search);
+		dateScopeValidator.validate(scope, search.getType());
 
-		for (LedgerListResponse.DayCards dayCards : budgetBookDAO.findBudgetBooksBySearch(memberId, search.getMode(), search.getKeywords(), period) ) {
+
+		for (LedgerListResponse.DayCards dayCards : budgetBookDAO.findBudgetBooksBySearch(memberId, search.getMode(), search.getKeywords(), scope) ) {
 			List<LedgerListResponse.Card> cardList = dayCards.getCardList();
 
-			String formatDate = formatDateAsString(new LedgerDate(dayCards.getDate()).getDate(), "yyyy. MM. dd (E)");
+			String formatDate = DateTimeUtils.formatDateAsString(new LedgerDate(dayCards.getDate()).getDate(), "yyyy. MM. dd (E)");
 
 			cards.add( LedgerListResponse.DayCards.builder().date(formatDate).cardList(cardList).build() );
 		}
 
 		return cards;
+	}
+
+
+	//범위(type)에 따라 날짜형식의 문자열로 반환
+	private String formatDateAsString(DateScope scope, DateType type) {
+		LocalDate date = scope.getStartDate();
+
+		switch (type) {
+			case YEAR:
+				return DateTimeUtils.formatDateAsString(date, "yyyy년");
+			case WEEK:
+				int week = getWeekByMonth(scope);
+
+				return String.format("%s %s주", DateTimeUtils.formatDateAsString(date, "yyyy년 MM월"), week );
+			case MONTH:
+			default:
+				return DateTimeUtils.formatDateAsString(date, "yyyy년 MM월");
+		}
+	}
+
+	//날짜가 월의 몇주째인지 확인
+	private int getWeekByMonth(DateScope scope) {
+		int week = 1;
+		LocalDate date = scope.getStartDate();
+
+		LocalDate start = date.withDayOfMonth(1);
+		LocalDate end = start.with(TemporalAdjusters.nextOrSame(scope.getEndDay()));
+
+		//1일 ~ 첫 일요일까지 1주차
+		if( !date.isAfter(end) ) return week;
+
+		while (!isDateInRange(date, start, end)) {	//시작일 ~ 종료일 사이에 있을때까지 다음주로 넘어감
+			week++;
+
+			start = end.plusDays(1);
+			end = end.plusDays(7);
+		}
+
+		return week;
 	}
 
 
@@ -192,7 +240,7 @@ public class BudgetBookService {
 		switch (date.getType()) {
 			case YEAR:
 				for (int i = 1; i <= 12; i++) {
-					periodList.add( PeriodSearch.ofYearMonth(date.getYear(), i) );
+					periodList.add( DateScope.ofYearMonth(date.getYear(), i) );
 				}
 
 				return new ArrayList<>(budgetBookDAO.findSumPriceByMonthRange(memberId, periodList));
@@ -201,13 +249,13 @@ public class BudgetBookService {
 				int totalWeeks = DateTimeUtils.getTotalWeeksOfMonth(YearMonth.of(date.getYear(), date.getMonth()));
 
 				for (int i = 1; i <= totalWeeks; i++) {
-					periodList.add( PeriodSearch.ofYearMonthWeek( date.getYear(), date.getMonth(), i ) );
+					periodList.add( DateScope.ofYearMonthWeek( date.getYear(), date.getMonth(), i ) );
 				}
 
 				return new ArrayList<>(budgetBookDAO.findSumPriceByWeek(memberId, periodList));
 			case MONTH:
 			default:
-				return new ArrayList<>(budgetBookDAO.findSumPriceByCategoryAndMonth(memberId, PeriodSearch.ofYearMonth(date.getYear(), date.getMonth())));
+				return new ArrayList<>(budgetBookDAO.findSumPriceByCategoryAndMonth(memberId, DateScope.ofYearMonth(date.getYear(), date.getMonth())));
 		}
 	}
 
@@ -263,9 +311,9 @@ public class BudgetBookService {
 		Ledger ledger = budgetBookDAO.findBudgetBookById(id);
 
 		//날짜 포맷
-		String formatDate = formatDateAsString( ledger.getLedgerDate(), "yyyy. MM. dd (E)" );
+		String formatDate = DateTimeUtils.formatDateAsString( ledger.getLedgerDate(), "yyyy. MM. dd (E)" );
 		if( mode.equalsIgnoreCase("edit") ) {
-			formatDate = formatDateAsString( ledger.getLedgerDate(), "yyyy년 MM월 dd일 E요일" );
+			formatDate = DateTimeUtils.formatDateAsString( ledger.getLedgerDate(), "yyyy년 MM월 dd일 E요일" );
 		}
 
 		//고정주기 변환
@@ -375,28 +423,26 @@ public class BudgetBookService {
 	public void deleteBudgetBook(String memberId, List<Long> id) {
 		if (budgetBookDAO.deleteBudgetBookById(memberId, id)) {
 			log.debug("{} 회원의 {} 가계부 삭제 완료", memberId, id);
-		} else {
-
 		}
 	}
 
 
-	//날짜 타입에 따른 PeriodSearch VO 생성
-	private DateGroupable createPeriod(LedgerSearchRequest search) {
-		switch ( DateType.from(search.getType()) ) {
+	//날짜 타입에 따른 DateScope VO 생성
+	private DateScope createPeriod(LedgerSearchRequest search) {
+		switch ( search.getType() ) {
 			case YEAR:
-				return PeriodSearch.ofYear(search.getYear());
+				return DateScope.ofYear(search.getYear());
 			case WEEK:
-				return PeriodSearch.ofYearMonthWeek(search.getYear(), search.getMonth(), search.getWeek());
+				return DateScope.ofYearMonthWeek(search.getYear(), search.getMonth(), search.getWeek());
 			case MONTH:
 			default:
 				if( search.getYear() == null ) {
 					LocalDate today = LocalDate.now();
 
-					return PeriodSearch.ofYearMonth(today.getYear(), today.getMonthValue());
+					return DateScope.ofYearMonth(today.getYear(), today.getMonthValue());
 				}
 
-				return PeriodSearch.ofYearMonth(search.getYear(), search.getMonth());
+				return DateScope.ofYearMonth(search.getYear(), search.getMonth());
 		}
 	}
 }
