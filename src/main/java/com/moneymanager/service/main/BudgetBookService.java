@@ -11,15 +11,11 @@ import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
-import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.LedgerDate;
 import com.moneymanager.domain.ledger.vo.PeriodSearch;
 import com.moneymanager.domain.ledger.vo.Place;
-import com.moneymanager.domain.ledger.vo.YearMonthDayVO;
-import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.ledger.enums.DateType;
 import com.moneymanager.domain.ledger.enums.BudgetBookType;
-import com.moneymanager.service.validation.BudgetBookValidator;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,10 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.moneymanager.utils.DateTimeUtils.*;
 
 
 /**
@@ -89,11 +85,12 @@ public class BudgetBookService {
 	 *
 	 * @param id 			회원 식별번호
 	 * @param type      작성할 가계부 유형
-	 * @param date		작성할 가계부 날짜 정보를 담은 객체
+	 * @param date		작성할 가계부 날짜 문자열
 	 * @return 작성에 필요한 기본 정보
 	 */
-	public LedgerWriteResponse.InitialBudget getWriteByData(String id, String type, YearMonthDayVO date) {
-		String title = date.formatDate("yyyy년 MM월 dd일 E요일");
+	public LedgerWriteResponse.InitialBudget getWriteByData(String id, String type, String date) {
+		LedgerDate ledgerDate = new LedgerDate(date);
+		String title = formatDateAsString(ledgerDate.getDate(), "yyyy년 MM월 dd일 E요일");
 
 		int availableCount = imageService.getLimitImageCount(id);        //등록 가능한 이미지 개수
 
@@ -117,7 +114,8 @@ public class BudgetBookService {
 	 */
 	@Transactional
 	public void createBudgetBook(String memberId, LedgerWriteRequest create) {
-		BudgetBookValidator.validateWrite( create.toRequiredFields() );
+		//TODO: 값 검증 로직 추가
+
 	}
 
 
@@ -144,7 +142,7 @@ public class BudgetBookService {
 		List<LedgerListResponse.DayCards> dayCards = getBudgetBooks(memberId, search);
 
 		//제목 생성
-		String title = DateTimeUtils.formatDateAsString(period.getStartDate(), DateType.from(search.getType()));
+		String title = formatDateAsString(period.getStartDate(), DateType.from(search.getType()));
 
 		return LedgerListResponse.builder()
 				.title(title)
@@ -164,7 +162,7 @@ public class BudgetBookService {
 		for (LedgerListResponse.DayCards dayCards : budgetBookDAO.findBudgetBooksBySearch(memberId, search.getMode(), search.getKeywords(), period) ) {
 			List<LedgerListResponse.Card> cardList = dayCards.getCardList();
 
-			String formatDate = DateTimeUtils.formatDateAsString(DateTimeUtils.parseDateFlexible(dayCards.getDate()), "yyyy. MM. dd (E)");
+			String formatDate = formatDateAsString(new LedgerDate(dayCards.getDate()).getDate(), "yyyy. MM. dd (E)");
 
 			cards.add( LedgerListResponse.DayCards.builder().date(formatDate).cardList(cardList).build() );
 		}
@@ -262,40 +260,38 @@ public class BudgetBookService {
 	 * @return 번호에 해당하는 가계부 상세정보
 	 */
 	public LedgerResponse getBudgetBookById(String memberId, Long id, String mode) {
-		Ledger entity = budgetBookDAO.findBudgetBookById(id);
+		Ledger ledger = budgetBookDAO.findBudgetBookById(id);
 
 		//날짜 포맷
-		LocalDate date = LocalDate.parse(entity.getBookDate(), DateTimeFormatter.ofPattern("yyyyMMdd"));
-		String formatDate = date.format(DateTimeFormatter.ofPattern("yyyy. MM. dd (E)", Locale.KOREAN));
-		if (mode.equalsIgnoreCase("edit")) {
-			formatDate = date.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 E요일", Locale.KOREAN));
+		String formatDate = formatDateAsString( ledger.getLedgerDate(), "yyyy. MM. dd (E)" );
+		if( mode.equalsIgnoreCase("edit") ) {
+			formatDate = formatDateAsString( ledger.getLedgerDate(), "yyyy년 MM월 dd일 E요일" );
 		}
 
 		//고정주기 변환
-		LedgerFixResponse fix = Objects.isNull(entity.getFixCycle()) ?
-				LedgerFixResponse.defaultValue() : LedgerFixResponse.builder().option(entity.getFix().toLowerCase()).cycle(entity.getFixCycle().toLowerCase()).build();
+		LedgerFixResponse fix = Objects.isNull(ledger.getFixCycle()) ?
+				LedgerFixResponse.defaultValue() : LedgerFixResponse.builder().option(ledger.getFix().toLowerCase()).cycle(ledger.getFixCycle().toLowerCase()).build();
 
 
 		//카테고리 변환
 		LedgerCategoryResponse category = LedgerCategoryResponse.builder()
-				.code(entity.getCategory().getCode())
-				.name(entity.getCategory().getName())
+				.code(ledger.getCategory().getCode())
+				.name(ledger.getCategory().getName())
 				.build();
 
 		//위치 변환
-		Place place = Objects.isNull(entity.getPlaceName()) ?
-				null : Place.builder().placeName(entity.getPlaceName()).roadAddress(entity.getRoadAddress()).detailAddress(entity.getAddress()).build();
-
+		Place place = Objects.isNull(ledger.getPlaceName()) ?
+				null : Place.builder().placeName(ledger.getPlaceName()).roadAddress(ledger.getRoadAddress()).detailAddress(ledger.getAddress()).build();
 
 		//이미지 변환
-		List<String> profileImage = imageService.findImageUrl(entity);
+		List<String> profileImage = imageService.findImageUrl(ledger);
 
-		if (memberId.equals(entity.getMember().getId())) {
+		if (memberId.equals(ledger.getMember().getId())) {
 			return LedgerResponse.builder()
-					.date( LedgerResponse.ReadDate.builder().read(date.toString()).text(formatDate).build() )
+					.date( formatDate )
 					.image(profileImage)
 					.fix(fix).category(category).place(place)
-					.id(entity.getId()).memo(entity.getMemo()).price(entity.getPrice()).paymentType(entity.getPaymentType().getText())
+					.id(ledger.getId()).memo(ledger.getMemo()).price(ledger.getPrice()).paymentType(ledger.getPaymentType().getText())
 					.build();
 		} else {
 			throw new RuntimeException("");
@@ -343,50 +339,29 @@ public class BudgetBookService {
 
 
 	/**
-	 * 가계부를 수정하는 메서드
+	 *	회원의 가계부 내역을 수정하고, 수정된 가계부와 관련된 이미지를 업데이트 합니다.
+	 *<p>
+	 * 가계부 내역 수정이 성공하고 {@link LedgerUpdateRequest} 객체애 담긴 이미지의 리스트가 0이 아니라면 이미지 수정을 진행합니다.
+	 * 만약 두 개의 조건을 모두 만족하지 못 한다면 이미지 수정은 불가합니다.
 	 *
-	 * @param memberId 회원 식별번호
-	 * @param update   수정할 가계부 정보
+	 * @param memberId		수정할 가계부를 작성한 회원 ID
+	 * @param update			수정할 내역과 이미지 정보를 담은 {@link LedgerUpdateRequest} 객체
 	 */
 	@Transactional
-	public void updateBudgetBook(String memberId, Long id, LedgerUpdateRequest update) {
-
-		if (Objects.isNull(update)) {
-		}
-
-		//날짜 변환
-		LocalDate date = LocalDate.parse(update.getDate(), DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 E요일"));
-		String formatDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
+	public void updateBudgetBook(String memberId, LedgerUpdateRequest update) {
 		//이미지리스트
 		List<ImageDTO> imageFiles = update.getImage();
 
-		//DTO → Entity 변환
-		Ledger entity = Ledger.builder()
-				.member(Member.builder().id(memberId).build())
-				.id(id).bookDate(formatDate)
-				.fix(update.getFix().getOption().toUpperCase()).fixCycle(Objects.isNull(update.getFix().getCycle()) ? null : update.getFix().getCycle().toUpperCase())
-				.category(Category.builder().code(update.getCategory()).build())
-				.memo(update.getMemo())
-				.price(update.getPrice()).paymentType(PaymentType.valueOf(update.getPaymentType().toUpperCase()))
-				.image1(imageFiles.get(0).getFileName()).image2(imageFiles.get(1).getFileName()).image3(imageFiles.get(2).getFileName())
-				.placeName(Objects.isNull(update.getPlace().getPlaceName()) ? null : update.getPlace().getPlaceName())
-				.roadAddress(Objects.isNull(update.getPlace().getRoadAddress()) ? null : update.getPlace().getRoadAddress())
-				.address(Objects.isNull(update.getPlace().getDetailAddress()) ? null : update.getPlace().getDetailAddress())
-				.build();
-
-
+		Ledger ledger = update.toEntity();
 		try {
-			boolean isUpdate = budgetBookDAO.updateBudgetBook(entity);
+			boolean isUpdate = budgetBookDAO.updateBudgetBook(ledger);
 
-			if (!isUpdate) {
-
+			if( isUpdate && !imageFiles.isEmpty()) {
+				imageService.changeImage(memberId, ledger, imageFiles);
 			}
 
-			imageService.changeImage(memberId, entity, imageFiles);
-
 		} catch (IOException e) {
-			log.debug("변경하려는 가계부 이미지 미존재로 저장 실패");;
+			log.debug("변경하려는 가계부 이미지 미존재로 저장 실패");
 		}
 	}
 

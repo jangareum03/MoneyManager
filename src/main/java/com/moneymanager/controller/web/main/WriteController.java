@@ -2,9 +2,9 @@ package com.moneymanager.controller.web.main;
 
 import com.moneymanager.domain.ledger.dto.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
-import com.moneymanager.domain.ledger.vo.YearMonthDayVO;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.BudgetBookService;
+import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,7 +13,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 
 /**
@@ -72,7 +71,7 @@ public class WriteController {
 		model.addAttribute("month", today.getMonthValue());
 		model.addAttribute("day", today.getDayOfMonth());
 		model.addAttribute("lastDay", today.lengthOfMonth());
-		model.addAttribute("today", today.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")));
+		model.addAttribute("today", DateTimeUtils.formatDateAsString(today, "yyyy년 MM월 dd일"));
 
 
 		return "/main/budgetBook_writeStep1";
@@ -93,18 +92,17 @@ public class WriteController {
 	@PostMapping("/{type}")
 	public String getStep2Page( @PathVariable String type, @RequestParam String date, HttpSession session, Model model ) {
 		try{
-			YearMonthDayVO vo = YearMonthDayVO.fromString(date);
+			if( date == null ) {
+				log.warn("작성할 가계부 날짜가 없습니다.");
+				return "/main/budgetBook_writeStep1";
+			}
 
-			LedgerWriteResponse.InitialBudget write = budgetBookService.getWriteByData( (String)session.getAttribute("mid"), type, vo );
+			LedgerWriteResponse.InitialBudget write = budgetBookService.getWriteByData( (String)session.getAttribute("mid"), type, date );
 
 			model.addAttribute("budgetBook", write);
 
 			return "/main/budgetBook_writeStep2";
 		}catch ( ClientException e ) {
-			//ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(e.getErrorCode()).message(e.getMessage()).requestData(date).build();
-
-			//LoggerUtil.logUserWarn(errorDTO, "가계부 작성");
-
 			return "/main/budgetBook_writeStep1";
 		}
 	}

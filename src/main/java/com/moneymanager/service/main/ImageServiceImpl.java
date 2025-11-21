@@ -4,17 +4,16 @@ import com.moneymanager.dao.main.BudgetBookDao;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.enums.RegexPattern;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -46,6 +45,7 @@ import java.util.Objects;
  *		</tbody>
  * </table>
  */
+@Slf4j
 @Service("budgetImage")
 public class ImageServiceImpl {
 
@@ -54,8 +54,6 @@ public class ImageServiceImpl {
 
 	private final int MAX_IMAGE = 3;
 	private final BudgetBookDao budgetBookDAO;
-
-	private final Logger logger = LogManager.getLogger(this);
 
 	public ImageServiceImpl( BudgetBookDao budgetBookDAO ) {
 		this.budgetBookDAO = budgetBookDAO;
@@ -126,8 +124,8 @@ public class ImageServiceImpl {
 	 */
 	public void saveImage(Ledger ledger, MultipartFile image, int index ) throws IOException {
 		//폴더와 저장할 이미지 얻은 후 서버에 저장
-		File directory = makeDirectory( ledger.getMember().getId(), ledger.getBookDate().substring(0, 4) );
-		String saveName = changeImageName( ledger.getId(), ledger.getBookDate(), index, image.getOriginalFilename() );
+		File directory = makeDirectory( ledger.getMember().getId(), ledger.getLedgerDate().getYear() );
+		String saveName = changeImageName( ledger.getId(), ledger.getLedgerDate(), index, image.getOriginalFilename() );
 
 		File saveImage = new File( directory, saveName );
 
@@ -144,7 +142,7 @@ public class ImageServiceImpl {
 	 * @param year						가계부 날짜 년도
 	 * @return	경로에 생성한 폴더
 	 */
-	private File makeDirectory( String memberId, String year ) {
+	private File makeDirectory( String memberId, int year ) {
 		String url = downPath + memberId + "/" + year;
 
 		File directory = new File(url);
@@ -157,19 +155,8 @@ public class ImageServiceImpl {
 	}
 
 
-
-	/**
-	 * 서버에 저장할 이미지 이름을 변경 후 반환합니다.
-	 *
-	 * @param id 									가계부 번호
-	 *  @param date								가계부 작성날짜
-	 * @param index							이미지 순서
-	 * @param imageName					가계부 이미지 이름
-	 *
-	 *
-	 * @return 변경된 이미지 이름
-	 */
-	private String changeImageName( Long id, String date, int index, String imageName ) {
+	//서버에 저장할 이미지 이름을 변경합니다.
+	private String changeImageName(Long id, LocalDate date, int index, String imageName ) {
 		String ext = FilenameUtils.getExtension(imageName);
 		String originName = FilenameUtils.getBaseName(imageName);
 
@@ -189,13 +176,13 @@ public class ImageServiceImpl {
 		List<String> imageUrls = new ArrayList<>();
 
 		//ledger 이미지 담기
-		List<String> budgetBookImages = Arrays.asList( ledger.getImage1(), ledger.getImage2(), ledger.getImage3() );
+		List<String> budgetBookImages = List.of( ledger.getImage1(), ledger.getImage2(), ledger.getImage3() );
 		for( int i=0; i<budgetBookImages.size(); i++ ) {
 			String image = budgetBookImages.get(i);
 
 			if( !Objects.isNull(image)) {
-				String year = ledger.getBookDate().substring(0, 4);
-				String name = changeImageName( ledger.getId(), ledger.getBookDate(), i ,image );
+				int year = ledger.getLedgerDate().getYear();
+				String name = changeImageName( ledger.getId(), ledger.getLedgerDate(), i ,image );
 
 				imageUrls.add( String.format("%s/%s/%s", ledger.getMember().getId(), year, name) );
 			}else {
@@ -219,17 +206,15 @@ public class ImageServiceImpl {
 	 * @throws IOException  사용자가 업로드한 이미지 문제 시
 	 */
 	public void changeImage(String memberId, Ledger ledger, List<ImageDTO> imageList ) throws IOException {
-		File directory = makeDirectory( memberId, ledger.getBookDate().substring(0, 4) );
+		File directory = makeDirectory( memberId, ledger.getLedgerDate().getYear());
 
 		//기존 이미지 삭제
 		boolean isDelete = deleteImage( directory, ledger.getId() );
 		if( isDelete ) {
-			logger.info("삭제완료");
 			budgetBookDAO.updateImage( memberId, ledger);
 
 			for( int i=0; i < imageList.size(); i++ ) {
 				if( Objects.nonNull( imageList.get(i).getFile() ) ) {
-					logger.info("저장시작");
 					saveImage(ledger, imageList.get(i).getFile(), i );
 				}
 			}

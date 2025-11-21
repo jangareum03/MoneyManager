@@ -148,9 +148,9 @@ public class BudgetBookApiController {
 							.map( file -> { return ImageDTO.builder().file(file).fileName(file.getOriginalFilename()).fileExtension(FilenameUtils.getExtension(file.getOriginalFilename())).build(); })
 									.collect(Collectors.toList());
 
-			LedgerUpdateRequest updateReqDTO = LedgerUpdateRequest.from( update, imageList );
+			LedgerUpdateRequest updateReqDTO = LedgerUpdateRequest.of( id, update, imageList );
 
-			budgetBookService.updateBudgetBook((String) session.getAttribute("mid"), id, updateReqDTO );
+			budgetBookService.updateBudgetBook((String) session.getAttribute("mid"), updateReqDTO );
 			return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("수정 완료했습니다.").build());
 		} catch (ClientException e) {
 			return ResponseEntity.ok(ApiResultDTO.builder().success(false).message(e.getMessage()).build());

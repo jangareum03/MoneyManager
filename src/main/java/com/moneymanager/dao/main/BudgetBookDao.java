@@ -8,6 +8,7 @@ import com.moneymanager.domain.ledger.dto.LedgerListResponse;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.LedgerDate;
 import com.moneymanager.domain.member.Member;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -103,7 +105,7 @@ public class BudgetBookDao {
 								stmt.setString(2, ledger.getCategory().getCode());
 								stmt.setString(3, ledger.getFix());
 								stmt.setString(4, ledger.getFixCycle());
-								stmt.setString(5, ledger.getBookDate());
+								stmt.setDate(5, Date.valueOf(ledger.getLedgerDate()));
 								stmt.setString(6, ledger.getMemo());
 								stmt.setLong(7, ledger.getPrice());
 								stmt.setString(8, ledger.getPaymentType().getText());
@@ -143,7 +145,7 @@ public class BudgetBookDao {
 				return Ledger.builder().id(rs.getLong("id")).member(Member.builder().id(rs.getString("member_id")).build())
 								.category(Category.builder().code(rs.getString("category_id")).name(rs.getString("name")).build())
 								.fix(rs.getString("fix")).fixCycle(rs.getString("fix_cycle"))
-								.bookDate(rs.getString("book_date")).memo(rs.getString("memo"))
+								.date(new LedgerDate(rs.getString("book_date"))).memo(rs.getString("memo"))
 								.price(rs.getLong("price")).paymentType(PaymentType.valueOf(rs.getString("payment_type")))
 								.image1(rs.getString("image1")).image2(rs.getString("image2")).image3(rs.getString("image3"))
 								.placeName(rs.getString("place_name")).roadAddress(rs.getString("road_address")).address(rs.getString("address"))

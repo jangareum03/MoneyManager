@@ -133,8 +133,6 @@ public class BudgetBookController {
 			model.addAttribute("budgetBook", budgetBook);
 
 			if (mode.equals("edit")) {
-				String type = budgetBook.getCategory().getCode().startsWith("01") ? "in" : "out";
-
 				List<LedgerCategoryResponse> category = budgetBookService.getCategoryByStep(budgetBook.getCategory().getCode());
 
 				model.addAttribute("selectCategory", category);

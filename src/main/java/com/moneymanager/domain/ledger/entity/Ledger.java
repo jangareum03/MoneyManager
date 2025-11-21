@@ -1,9 +1,12 @@
 package com.moneymanager.domain.ledger.entity;
 
 import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.LedgerDate;
 import com.moneymanager.domain.member.Member;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
@@ -47,7 +50,7 @@ public class Ledger {
     private Category category;						//카테고리
     private String fix;										//고정여부
     private String fixCycle;								//고정주기
-    private String bookDate;							//가계부 날짜
+    private LedgerDate date;							//가계부 날짜
     private String memo;									//내용
     private Long price;									//가격
     private PaymentType paymentType;			//결제 유형
@@ -59,4 +62,9 @@ public class Ledger {
     private String address;								//지번주소
     private LocalDateTime createdAt;			//등록일
     private LocalDateTime updatedAt;			//수정일
+
+	public LocalDate getLedgerDate() {
+		return date.getDate();
+	}
+
 }
