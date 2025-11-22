@@ -11,9 +11,7 @@ import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
-import com.moneymanager.domain.ledger.vo.LedgerDate;
-import com.moneymanager.domain.ledger.vo.DateScope;
-import com.moneymanager.domain.ledger.vo.Place;
+import com.moneymanager.domain.ledger.vo.*;
 import com.moneymanager.domain.ledger.enums.DateType;
 import com.moneymanager.domain.ledger.enums.BudgetBookType;
 import com.moneymanager.service.main.validation.DateScopeValidator;
@@ -30,7 +28,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.utils.DateTimeUtils.*;
+import static com.moneymanager.utils.DateTimeUtils.isDateInRange;
 
 
 /**
@@ -163,12 +161,22 @@ public class BudgetBookService {
 	private List<LedgerListResponse.DayCards> getBudgetBooks(String memberId, LedgerSearchRequest search) {
 		List<LedgerListResponse.DayCards> cards = new ArrayList<>();
 
-		//DateScope VO 생성 및 검증
-		DateScope scope = createPeriod(search);
-		dateScopeValidator.validate(scope, search.getType());
+		//SearchPeriod VO 생성 및 검증
+		SearchPeriod period;
+		if( search.getMode().equalsIgnoreCase("period") ) {
+			List<String> dates = search.getKeywords();
 
+			period = new SearchPeriod(dates.get(0), dates.get(1));
+		}else {
+			//DateScope VO 생성 및 검증
+			DateScope scope = createPeriod(search);
+			dateScopeValidator.validate(scope, search.getType());
 
-		for (LedgerListResponse.DayCards dayCards : budgetBookDAO.findBudgetBooksBySearch(memberId, search.getMode(), search.getKeywords(), scope) ) {
+			period = new SearchPeriodAdapter(scope).toSearchPeriod();
+		}
+
+		List<LedgerListResponse.DayCards> dayCardsList = budgetBookDAO.findBudgetBooksBySearch(memberId, search.getMode(), search.getKeywords(), period);
+		for (LedgerListResponse.DayCards dayCards : dayCardsList ) {
 			List<LedgerListResponse.Card> cardList = dayCards.getCardList();
 
 			String formatDate = DateTimeUtils.formatDateAsString(new LedgerDate(dayCards.getDate()).getDate(), "yyyy. MM. dd (E)");
@@ -196,6 +204,7 @@ public class BudgetBookService {
 				return DateTimeUtils.formatDateAsString(date, "yyyy년 MM월");
 		}
 	}
+
 
 	//날짜가 월의 몇주째인지 확인
 	private int getWeekByMonth(DateScope scope) {

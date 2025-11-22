@@ -176,7 +176,7 @@ public class BudgetBookDao {
 	 * @param memberId			조회할 회원 ID
 	 * @param mode					검색모드("inout", "category", ... ,"all")
 	 * @param keywords			검색 키워드 리스트
-	 * @param date					날짜 기간 객체
+	 * @param date					날짜 검색기간 객체
 	 * @return	날짜별 카드 리스트를 포함한 {@link LedgerListResponse.DayCards} 리스트
 	 * @throws RuntimeException	JSON 파싱 오류 발생 시
 	 */
@@ -193,6 +193,8 @@ public class BudgetBookDao {
 
 		List<Object> params = new ArrayList<>();
 		params.add(memberId);
+		params.add(date.getStartDate());
+		params.add(date.getEndDate());
 
 		switch ( mode ) {
 			case "inout":
@@ -202,8 +204,6 @@ public class BudgetBookDao {
 									.append("GROUP BY book_date ")
 									.append("ORDER BY tbb.book_date DESC");
 
-				params.add(date.getStartDate());
-				params.add(date.getEndDate());
 				params.addAll(keywords);
 				break;
 			case "category":
@@ -213,8 +213,6 @@ public class BudgetBookDao {
 								.append("GROUP BY book_date ")
 								.append("ORDER BY tbb.book_date DESC");
 
-				params.add(date.getStartDate());
-				params.add(date.getEndDate());
 				params.addAll(keywords);
 				break;
 			case "memo"	:
@@ -222,28 +220,17 @@ public class BudgetBookDao {
 									.append("GROUP BY book_date ")
 									.append("ORDER BY tbb.book_date DESC");
 
-				params.add(date.getStartDate());
-				params.add(date.getEndDate());
 				params.add( "%" + keywords.get(0) + "%" );
 				break;
 			case "period":
 				query.append("GROUP BY book_date ")
 						.append("ORDER BY tbb.book_date DESC");
 
-				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-				for( String keyword : keywords ) {
-					LocalDate period = LocalDate.parse( keyword, formatter );
-
-					params.add(period);
-				}
 				break;
 			case "all":
 			default:
 				query.append("GROUP BY book_date ")
 						.append("ORDER BY book_date DESC");
-
-				params.add(date.getStartDate());
-				params.add(date.getEndDate());
 		}
 
 		return jdbcTemplate.query(
