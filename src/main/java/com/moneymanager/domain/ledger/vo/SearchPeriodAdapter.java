@@ -1,9 +1,6 @@
 package com.moneymanager.domain.ledger.vo;
 
 import com.moneymanager.domain.global.vo.DateGroupable;
-
-import java.time.LocalDate;
-
 import static com.moneymanager.utils.DateTimeUtils.formatDateAsString;
 
 /**
