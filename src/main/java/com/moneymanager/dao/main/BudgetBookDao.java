@@ -1,6 +1,7 @@
 package com.moneymanager.dao.main;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.moneymanager.domain.budgetBook.vo.Money;
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.budgetBook.entity.BudgetBook;
 import com.moneymanager.domain.budgetBook.dto.LedgerCategoryResponse;
@@ -80,10 +81,10 @@ public class BudgetBookDao {
 	/**
 	 * 생성된 가계부를 반환합니다.
 	 *
-	 * @param ledger	가계부 정보
+	 * @param budgetBook	가계부 정보
 	 * @return	생성한 가계부
 	 */
-	public BudgetBook saveBudgetBook(BudgetBook ledger) {
+	public BudgetBook saveBudgetBook(BudgetBook budgetBook) {
 		String sql = "INSERT INTO tb_budget_book(id, member_id, category_id, fix, fix_cycle, book_date, memo, price, payment_type, image1, image2, image3, place_name, road_address, address, created_at) " +
 										"VALUES(seq_budgetbook.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
 
@@ -95,20 +96,20 @@ public class BudgetBookDao {
 							public PreparedStatement createPreparedStatement(@NotNull Connection con) throws SQLException {
 								PreparedStatement stmt = con.prepareStatement(sql, new String[]{"id"});
 
-								stmt.setString(1, ledger.getMember().getId());
-								stmt.setString(2, ledger.getCategory().getCode());
-								stmt.setString(3, ledger.getFix());
-								stmt.setString(4, ledger.getFixCycle());
-								stmt.setDate(5, Date.valueOf(ledger.getBudgetBookDate()));
-								stmt.setString(6, ledger.getMemo());
-								stmt.setLong(7, ledger.getPrice());
-								stmt.setString(8, ledger.getPaymentType().getText());
-								stmt.setString(9, ledger.getImage1());
-								stmt.setString(10, ledger.getImage2());
-								stmt.setString(11, ledger.getImage3());
-								stmt.setString(12, ledger.getPlaceName());
-								stmt.setString(13, ledger.getRoadAddress());
-								stmt.setString(14, ledger.getAddress());
+								stmt.setString(1, budgetBook.getMember().getId());
+								stmt.setString(2, budgetBook.getCategory().getCode());
+								stmt.setString(3, budgetBook.getFix());
+								stmt.setString(4, budgetBook.getFixCycle());
+								stmt.setDate(5, Date.valueOf(budgetBook.getBudgetBookDate()));
+								stmt.setString(6, budgetBook.getMemo());
+								stmt.setLong(7, budgetBook.getMoney().getAmount());
+								stmt.setString(8, budgetBook.getMoney().getType().getDbValue());
+								stmt.setString(9, budgetBook.getImage1());
+								stmt.setString(10, budgetBook.getImage2());
+								stmt.setString(11, budgetBook.getImage3());
+								stmt.setString(12, budgetBook.getPlaceName());
+								stmt.setString(13, budgetBook.getRoadAddress());
+								stmt.setString(14, budgetBook.getAddress());
 
 								return stmt;
 							}
@@ -140,7 +141,7 @@ public class BudgetBookDao {
 								.category(Category.builder().code(rs.getString("category_id")).name(rs.getString("name")).build())
 								.fix(rs.getString("fix")).fixCycle(rs.getString("fix_cycle"))
 								.date(new BudgetBookDate(rs.getString("book_date"))).memo(rs.getString("memo"))
-								.price(rs.getLong("price")).paymentType(PaymentType.valueOf(rs.getString("payment_type")))
+								.money(new Money( rs.getInt("price"), PaymentType.fromDbValue(rs.getString("payment_type")) ))
 								.image1(rs.getString("image1")).image2(rs.getString("image2")).image3(rs.getString("image3"))
 								.placeName(rs.getString("place_name")).roadAddress(rs.getString("road_address")).address(rs.getString("address"))
 								.createdAt(rs.getTimestamp("created_at").toLocalDateTime()).updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
@@ -416,9 +417,9 @@ public class BudgetBookDao {
 	/**
 	 * 가계부 번호에 해당하는 가계부 정보(이미지 제외)를 변경합니다. <br>
 	 *
-	 * @param ledger 가계부 정보
+	 * @param budgetBook 가계부 정보
 	 */
-	public boolean updateBudgetBook( BudgetBook ledger) {
+	public boolean updateBudgetBook( BudgetBook budgetBook) {
 		String query = "UPDATE tb_budget_book " +
 																	"SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, price = ?, payment_type = ?, place_name = ?, road_address = ?, address = ?, updated_at = SYSDATE " +
 																	"WHERE member_id = ? AND id = ?";
@@ -426,10 +427,10 @@ public class BudgetBookDao {
 
 		return jdbcTemplate.update(
 						query,
-						ledger.getCategory().getCode(),	ledger.getFix(),	ledger.getFixCycle(),
-						ledger.getMemo(), ledger.getPrice(), ledger.getPaymentType(),
-						ledger.getPlaceName(), ledger.getRoadAddress(), ledger.getAddress(),
-						ledger.getMember().getId(), ledger.getId()
+						budgetBook.getCategory().getCode(),	budgetBook.getFix(),	budgetBook.getFixCycle(),
+						budgetBook.getMemo(), budgetBook.getMoney().getAmount(), budgetBook.getMoney().getType(),
+						budgetBook.getPlaceName(), budgetBook.getRoadAddress(), budgetBook.getAddress(),
+						budgetBook.getMember().getId(), budgetBook.getId()
 		) == 1;
 	}
 

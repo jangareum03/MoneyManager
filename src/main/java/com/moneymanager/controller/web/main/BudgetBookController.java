@@ -1,7 +1,7 @@
 package com.moneymanager.controller.web.main;
 
 import com.moneymanager.domain.budgetBook.dto.*;
-import com.moneymanager.domain.budgetBook.dto.LedgerResponse;
+import com.moneymanager.domain.budgetBook.dto.BudgetBookResponse;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.BudgetBookService;
 import com.moneymanager.service.main.ImageServiceImpl;
@@ -129,7 +129,7 @@ public class BudgetBookController {
 		String memberId = (String) session.getAttribute("mid");
 
 		try {
-			LedgerResponse budgetBook = budgetBookService.getBudgetBookById(memberId, id, mode);
+			BudgetBookResponse budgetBook = budgetBookService.getBudgetBookById(memberId, id, mode);
 			model.addAttribute("budgetBook", budgetBook);
 
 			if (mode.equals("edit")) {

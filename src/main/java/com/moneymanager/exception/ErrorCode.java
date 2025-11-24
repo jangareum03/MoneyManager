@@ -52,12 +52,14 @@ public enum ErrorCode {
 	BUDGET_PRICE_MISSING("C030601", "가계부 금액 누락"),
 	BUDGET_PRICE_FORMAT("C030602", "가계부 금액 형식"),
 	BUDGET_PRICE_INVALID("C030606", "가계부 금액 범위"),
+	BUDGET_PAYMENT_MISSING("C030701", "가계부 금액유형 누락"),
 	BUDGET_PLACE_MISSING("C030901", "가계부 주소 누락"),
 	BUDGET_PLACE_FORMAT("C030902", "가계부 주소 형식"),
 	/**
 	 * 서버 에러 메시지
 	 */
 	SYSTEM_LOGIC_INTERVAL("S010101", "시스템 내부 오류"),
+	SYSTEM_CODE_INTEGRITY("S010410", "에러코드 불일치"),
 
 
 	/**

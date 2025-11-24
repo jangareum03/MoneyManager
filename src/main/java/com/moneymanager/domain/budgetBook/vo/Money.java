@@ -1,5 +1,6 @@
 package com.moneymanager.domain.budgetBook.vo;
 
+import com.moneymanager.domain.budgetBook.enums.PaymentType;
 import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
 import lombok.Value;
@@ -30,15 +31,6 @@ import static com.moneymanager.exception.ErrorUtil.createClientException;
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
- * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 11. 13</td>
- * 		 	  <td>areum Jang</td>
- * 		 	  <td>
- * 		 	      [클래스 이름] MoneyVO → Money<br>
- * 		 	      [메서드 이름] validateAmount → validateMoney<br>
- * 		 	      [메서드 삭제] parseAmount, isDouble → 서비스 계층에서 사용
- * 		 	  </td>
- * 		 	</tr>
  * 		</tbody>
  * </table>
  */
@@ -46,14 +38,20 @@ import static com.moneymanager.exception.ErrorUtil.createClientException;
 @Getter
 public class Money {
 
-	int value;
+	long amount;
+	PaymentType type;
 
-	public Money(int value) {
-		if( value <= 0 ) {	//금액이 0보다 작은 경우
-			throw createClientException(ErrorCode.BUDGET_PRICE_INVALID, "금액은 0보다 크게 입력해야 합니다.", value);
+	public Money(long amount, PaymentType type) {
+		if( amount <= 0 ) {	//금액이 0보다 작은 경우
+			throw createClientException(ErrorCode.BUDGET_PRICE_INVALID, "금액은 0보다 커야합니다.", amount);
 		}
 
-		this.value = value;
+		if( type == null ) {
+			throw createClientException(ErrorCode.BUDGET_PAYMENT_MISSING, "금액유형은 필수입니다.");
+		}
+
+		this.amount = amount;
+		this.type = type;
 	}
 
 }

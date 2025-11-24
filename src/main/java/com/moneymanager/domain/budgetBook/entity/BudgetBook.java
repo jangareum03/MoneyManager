@@ -2,6 +2,7 @@ package com.moneymanager.domain.budgetBook.entity;
 
 import com.moneymanager.domain.budgetBook.enums.PaymentType;
 import com.moneymanager.domain.budgetBook.vo.BudgetBookDate;
+import com.moneymanager.domain.budgetBook.vo.Money;
 import com.moneymanager.domain.member.Member;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,8 +53,7 @@ public class BudgetBook {
     private String fixCycle;								//고정주기
     private BudgetBookDate date;							//가계부 날짜
     private String memo;									//내용
-    private Long price;									//가격
-    private PaymentType paymentType;			//결제 유형
+	private Money money;								//가격
     private String image1;								//이미지1
     private String image2;								//이미지2
     private String image3;								//이미지3

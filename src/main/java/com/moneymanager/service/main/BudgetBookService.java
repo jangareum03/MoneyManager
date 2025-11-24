@@ -5,7 +5,7 @@ import com.moneymanager.domain.budgetBook.entity.BudgetBook;
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.budgetBook.dto.*;
 import com.moneymanager.domain.budgetBook.dto.LedgerSearchRequest;
-import com.moneymanager.domain.budgetBook.dto.LedgerResponse;
+import com.moneymanager.domain.budgetBook.dto.BudgetBookResponse;
 import com.moneymanager.domain.budgetBook.dto.LedgerListResponse;
 import com.moneymanager.domain.budgetBook.dto.LedgerWriteResponse;
 import com.moneymanager.domain.global.dto.ImageDTO;
@@ -316,39 +316,41 @@ public class BudgetBookService {
 	 * @param id       가계부 번호
 	 * @return 번호에 해당하는 가계부 상세정보
 	 */
-	public LedgerResponse getBudgetBookById(String memberId, Long id, String mode) {
-		BudgetBook ledger = budgetBookDAO.findBudgetBookById(id);
+	public BudgetBookResponse getBudgetBookById(String memberId, Long id, String mode) {
+		BudgetBook budgetBook = budgetBookDAO.findBudgetBookById(id);
 
 		//날짜 포맷
-		String formatDate = DateTimeUtils.formatDateAsString( ledger.getBudgetBookDate(), "yyyy. MM. dd (E)" );
+		String formatDate = DateTimeUtils.formatDateAsString( budgetBook.getBudgetBookDate(), "yyyy. MM. dd (E)" );
 		if( mode.equalsIgnoreCase("edit") ) {
-			formatDate = DateTimeUtils.formatDateAsString( ledger.getBudgetBookDate(), "yyyy년 MM월 dd일 E요일" );
+			formatDate = DateTimeUtils.formatDateAsString( budgetBook.getBudgetBookDate(), "yyyy년 MM월 dd일 E요일" );
 		}
 
 		//고정주기 변환
-		LedgerFixResponse fix = Objects.isNull(ledger.getFixCycle()) ?
-				LedgerFixResponse.defaultValue() : LedgerFixResponse.builder().option(ledger.getFix().toLowerCase()).cycle(ledger.getFixCycle().toLowerCase()).build();
+		LedgerFixResponse fix = Objects.isNull(budgetBook.getFixCycle()) ?
+				LedgerFixResponse.defaultValue() : LedgerFixResponse.builder().option(budgetBook.getFix().toLowerCase()).cycle(budgetBook.getFixCycle().toLowerCase()).build();
 
 
 		//카테고리 변환
 		LedgerCategoryResponse category = LedgerCategoryResponse.builder()
-				.code(ledger.getCategory().getCode())
-				.name(ledger.getCategory().getName())
+				.code(budgetBook.getCategory().getCode())
+				.name(budgetBook.getCategory().getName())
 				.build();
 
 		//위치 변환
-		Place place = Objects.isNull(ledger.getPlaceName()) ?
-				null : Place.builder().placeName(ledger.getPlaceName()).roadAddress(ledger.getRoadAddress()).detailAddress(ledger.getAddress()).build();
+		Place place = Objects.isNull(budgetBook.getPlaceName()) ?
+				null : Place.builder().placeName(budgetBook.getPlaceName()).roadAddress(budgetBook.getRoadAddress()).detailAddress(budgetBook.getAddress()).build();
 
 		//이미지 변환
-		List<String> profileImage = imageService.findImageUrl(ledger);
+		List<String> profileImage = imageService.findImageUrl(budgetBook);
 
-		if (memberId.equals(ledger.getMember().getId())) {
-			return LedgerResponse.builder()
+		if (memberId.equals(budgetBook.getMember().getId())) {
+			return BudgetBookResponse.builder()
 					.date( formatDate )
 					.image(profileImage)
 					.fix(fix).category(category).place(place)
-					.id(ledger.getId()).memo(ledger.getMemo()).price(ledger.getPrice()).paymentType(ledger.getPaymentType().getText())
+					.id(budgetBook.getId())
+					.memo(budgetBook.getMemo())
+					.money(new Money(budgetBook.getMoney().getAmount(), budgetBook.getMoney().getType()))
 					.build();
 		} else {
 			throw new RuntimeException("");
