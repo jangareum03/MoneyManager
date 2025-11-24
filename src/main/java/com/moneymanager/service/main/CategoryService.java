@@ -1,8 +1,8 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.CategoryDao;
-import com.moneymanager.domain.ledger.dto.LedgerCategoryResponse;
-import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.domain.budgetBook.dto.LedgerCategoryResponse;
+import com.moneymanager.domain.budgetBook.entity.Category;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;

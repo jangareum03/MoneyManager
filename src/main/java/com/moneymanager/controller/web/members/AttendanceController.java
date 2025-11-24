@@ -1,8 +1,7 @@
 package com.moneymanager.controller.web.members;
 
-import com.moneymanager.domain.ledger.vo.YearMonthVO;
-import com.moneymanager.domain.ledger.vo.YearVO;
-import com.moneymanager.domain.member.vo.AttendanceDate;
+import com.moneymanager.domain.budgetBook.vo.YearMonthVO;
+import com.moneymanager.domain.budgetBook.vo.YearVO;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.AttendanceService;
 import lombok.extern.slf4j.Slf4j;

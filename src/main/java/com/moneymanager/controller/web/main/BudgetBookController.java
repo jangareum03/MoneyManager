@@ -1,7 +1,7 @@
 package com.moneymanager.controller.web.main;
 
-import com.moneymanager.domain.ledger.dto.*;
-import com.moneymanager.domain.ledger.dto.LedgerResponse;
+import com.moneymanager.domain.budgetBook.dto.*;
+import com.moneymanager.domain.budgetBook.dto.LedgerResponse;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.BudgetBookService;
 import com.moneymanager.service.main.ImageServiceImpl;

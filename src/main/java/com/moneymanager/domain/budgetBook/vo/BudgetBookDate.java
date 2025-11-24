@@ -1,4 +1,4 @@
-package com.moneymanager.domain.ledger.vo;
+package com.moneymanager.domain.budgetBook.vo;
 
 import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import static com.moneymanager.utils.DateTimeUtils.*;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.vo<br>
- * 파일이름       : LedgerDate<br>
+ * 파일이름       : BudgetBookDate<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 11. 14.<br>
  * 설명              : 가계부 날짜 값을 나타내는 클래스
@@ -38,11 +38,11 @@ import static com.moneymanager.utils.DateTimeUtils.*;
  */
 @Value
 @Getter
-public class LedgerDate {
+public class BudgetBookDate {
 
 	LocalDate date;
 
-	public LedgerDate(String date) {
+	public BudgetBookDate(String date) {
 		validateDate(date);
 
 		this.date = parseDateFlexible(date);
@@ -80,7 +80,7 @@ public class LedgerDate {
 	 * @param date		숫자만 추출할 날짜 문자열
 	 * @return	입력된 문자열(<code>date</code>)에서 숫자만 모아 만든 새 문자열
 	 */
-	String extractDigits(String date) {
+	private String extractDigits(String date) {
 		return date.replaceAll("\\D", "");
 	}
 

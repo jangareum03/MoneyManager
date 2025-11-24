@@ -40,7 +40,7 @@ import java.util.List;
 @AllArgsConstructor
 public class LedgerSearchRequest {
 	//타입
-	private String type;
+	private DateType type;
 	//년
 	private Integer year;
 	//월
@@ -72,7 +72,7 @@ public class LedgerSearchRequest {
 		LocalDate today = LocalDate.now();
 
 		return LedgerSearchRequest.builder()
-				.type(DateType.MONTH.getType())
+				.type(DateType.MONTH)
 				.year(today.getYear())
 				.month(today.getMonthValue())
 				.week(null)

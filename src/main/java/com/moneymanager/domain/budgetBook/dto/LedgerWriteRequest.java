@@ -76,7 +76,6 @@ public class LedgerWriteRequest {
 	 */
 	public Required toRequiredFields() {
 		return Required.builder()
-				.date(date)
 				.fix(fix)
 				.category(category)
 				.price(price)

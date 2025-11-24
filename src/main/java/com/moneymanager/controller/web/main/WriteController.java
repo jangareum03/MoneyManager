@@ -1,7 +1,7 @@
 package com.moneymanager.controller.web.main;
 
-import com.moneymanager.domain.ledger.dto.LedgerWriteRequest;
-import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
+import com.moneymanager.domain.budgetBook.dto.LedgerWriteRequest;
+import com.moneymanager.domain.budgetBook.dto.LedgerWriteResponse;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.BudgetBookService;
 import com.moneymanager.utils.DateTimeUtils;

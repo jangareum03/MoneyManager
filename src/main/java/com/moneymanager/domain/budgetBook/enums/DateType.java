@@ -1,4 +1,4 @@
-package com.moneymanager.domain.ledger.enums;
+package com.moneymanager.domain.budgetBook.enums;
 
 import lombok.Getter;
 

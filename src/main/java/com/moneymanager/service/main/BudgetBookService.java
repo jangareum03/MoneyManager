@@ -1,19 +1,19 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.BudgetBookDao;
+import com.moneymanager.domain.budgetBook.entity.BudgetBook;
 import com.moneymanager.domain.global.vo.DateGroupable;
-import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.dto.*;
-import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
-import com.moneymanager.domain.ledger.dto.LedgerResponse;
-import com.moneymanager.domain.ledger.dto.LedgerListResponse;
-import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
+import com.moneymanager.domain.budgetBook.dto.*;
+import com.moneymanager.domain.budgetBook.dto.LedgerSearchRequest;
+import com.moneymanager.domain.budgetBook.dto.LedgerResponse;
+import com.moneymanager.domain.budgetBook.dto.LedgerListResponse;
+import com.moneymanager.domain.budgetBook.dto.LedgerWriteResponse;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
-import com.moneymanager.domain.ledger.vo.*;
-import com.moneymanager.domain.ledger.enums.DateType;
-import com.moneymanager.domain.ledger.enums.BudgetBookType;
+import com.moneymanager.domain.budgetBook.vo.*;
+import com.moneymanager.domain.budgetBook.enums.DateType;
+import com.moneymanager.domain.budgetBook.enums.BudgetBookType;
 import com.moneymanager.service.main.validation.DateScopeValidator;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -93,7 +93,7 @@ public class BudgetBookService {
 	 * @return 작성에 필요한 기본 정보
 	 */
 	public LedgerWriteResponse.InitialBudget getWriteByData(String id, String type, String date) {
-		LedgerDate ledgerDate = new LedgerDate(date);
+		BudgetBookDate ledgerDate = new BudgetBookDate(date);
 		String title = DateTimeUtils.formatDateAsString(ledgerDate.getDate(), "yyyy년 MM월 dd일 E요일");
 
 		int availableCount = imageService.getLimitImageCount(id);        //등록 가능한 이미지 개수
@@ -179,7 +179,7 @@ public class BudgetBookService {
 		for (LedgerListResponse.DayCards dayCards : dayCardsList ) {
 			List<LedgerListResponse.Card> cardList = dayCards.getCardList();
 
-			String formatDate = DateTimeUtils.formatDateAsString(new LedgerDate(dayCards.getDate()).getDate(), "yyyy. MM. dd (E)");
+			String formatDate = DateTimeUtils.formatDateAsString(new BudgetBookDate(dayCards.getDate()).getDate(), "yyyy. MM. dd (E)");
 
 			cards.add( LedgerListResponse.DayCards.builder().date(formatDate).cardList(cardList).build() );
 		}
@@ -317,12 +317,12 @@ public class BudgetBookService {
 	 * @return 번호에 해당하는 가계부 상세정보
 	 */
 	public LedgerResponse getBudgetBookById(String memberId, Long id, String mode) {
-		Ledger ledger = budgetBookDAO.findBudgetBookById(id);
+		BudgetBook ledger = budgetBookDAO.findBudgetBookById(id);
 
 		//날짜 포맷
-		String formatDate = DateTimeUtils.formatDateAsString( ledger.getLedgerDate(), "yyyy. MM. dd (E)" );
+		String formatDate = DateTimeUtils.formatDateAsString( ledger.getBudgetBookDate(), "yyyy. MM. dd (E)" );
 		if( mode.equalsIgnoreCase("edit") ) {
-			formatDate = DateTimeUtils.formatDateAsString( ledger.getLedgerDate(), "yyyy년 MM월 dd일 E요일" );
+			formatDate = DateTimeUtils.formatDateAsString( ledger.getBudgetBookDate(), "yyyy년 MM월 dd일 E요일" );
 		}
 
 		//고정주기 변환
@@ -409,7 +409,7 @@ public class BudgetBookService {
 		//이미지리스트
 		List<ImageDTO> imageFiles = update.getImage();
 
-		Ledger ledger = update.toEntity();
+		BudgetBook ledger = update.toEntity();
 		try {
 			boolean isUpdate = budgetBookDAO.updateBudgetBook(ledger);
 

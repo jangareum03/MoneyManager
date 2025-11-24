@@ -2,18 +2,17 @@ package com.moneymanager.dao.main;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.moneymanager.domain.global.vo.DateGroupable;
-import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.dto.LedgerCategoryResponse;
-import com.moneymanager.domain.ledger.dto.LedgerListResponse;
+import com.moneymanager.domain.budgetBook.entity.BudgetBook;
+import com.moneymanager.domain.budgetBook.dto.LedgerCategoryResponse;
+import com.moneymanager.domain.budgetBook.dto.LedgerListResponse;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
-import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.domain.ledger.vo.LedgerDate;
+import com.moneymanager.domain.budgetBook.entity.Category;
+import com.moneymanager.domain.budgetBook.enums.PaymentType;
+import com.moneymanager.domain.budgetBook.vo.BudgetBookDate;
 import com.moneymanager.domain.member.Member;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -31,8 +30,6 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 
@@ -63,13 +60,10 @@ import java.util.*;
  *		</tbody>
  * </table>
  */
+@Slf4j
 @Repository
 public class BudgetBookDao {
 
-	@Autowired
-	private ObjectMapper objectMapper;
-
-	private final Logger logger = LogManager.getLogger(this);
 	private final JdbcTemplate jdbcTemplate;
 
 	@Autowired
@@ -77,7 +71,7 @@ public class BudgetBookDao {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
-	BudgetBookDao(JdbcTemplate jdbcTemplate) {
+	public BudgetBookDao(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 
@@ -89,7 +83,7 @@ public class BudgetBookDao {
 	 * @param ledger	가계부 정보
 	 * @return	생성한 가계부
 	 */
-	public Ledger saveBudgetBook(Ledger ledger) {
+	public BudgetBook saveBudgetBook(BudgetBook ledger) {
 		String sql = "INSERT INTO tb_budget_book(id, member_id, category_id, fix, fix_cycle, book_date, memo, price, payment_type, image1, image2, image3, place_name, road_address, address, created_at) " +
 										"VALUES(seq_budgetbook.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
 
@@ -105,7 +99,7 @@ public class BudgetBookDao {
 								stmt.setString(2, ledger.getCategory().getCode());
 								stmt.setString(3, ledger.getFix());
 								stmt.setString(4, ledger.getFixCycle());
-								stmt.setDate(5, Date.valueOf(ledger.getLedgerDate()));
+								stmt.setDate(5, Date.valueOf(ledger.getBudgetBookDate()));
 								stmt.setString(6, ledger.getMemo());
 								stmt.setLong(7, ledger.getPrice());
 								stmt.setString(8, ledger.getPaymentType().getText());
@@ -135,17 +129,17 @@ public class BudgetBookDao {
 	 * @param id	가계부 번호
 	 * @return	번호가 있으면 가계부, 없으면 null
 	 */
-	public Ledger findBudgetBookById(Long id ) {
+	public BudgetBook findBudgetBookById(Long id ) {
 		String sql = "SELECT tb.*, tc.name " +
 								"FROM tb_budget_book tb, tb_category tc " +
 								"WHERE tb.id = ? " +
 									"AND tb.category_id = tc.code";
 		try{
 			return jdbcTemplate.queryForObject( sql, (ResultSet rs, int row) -> {
-				return Ledger.builder().id(rs.getLong("id")).member(Member.builder().id(rs.getString("member_id")).build())
+				return BudgetBook.builder().id(rs.getLong("id")).member(Member.builder().id(rs.getString("member_id")).build())
 								.category(Category.builder().code(rs.getString("category_id")).name(rs.getString("name")).build())
 								.fix(rs.getString("fix")).fixCycle(rs.getString("fix_cycle"))
-								.date(new LedgerDate(rs.getString("book_date"))).memo(rs.getString("memo"))
+								.date(new BudgetBookDate(rs.getString("book_date"))).memo(rs.getString("memo"))
 								.price(rs.getLong("price")).paymentType(PaymentType.valueOf(rs.getString("payment_type")))
 								.image1(rs.getString("image1")).image2(rs.getString("image2")).image3(rs.getString("image3"))
 								.placeName(rs.getString("place_name")).roadAddress(rs.getString("road_address")).address(rs.getString("address"))
@@ -424,7 +418,7 @@ public class BudgetBookDao {
 	 *
 	 * @param ledger 가계부 정보
 	 */
-	public boolean updateBudgetBook( Ledger ledger) {
+	public boolean updateBudgetBook( BudgetBook ledger) {
 		String query = "UPDATE tb_budget_book " +
 																	"SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, price = ?, payment_type = ?, place_name = ?, road_address = ?, address = ?, updated_at = SYSDATE " +
 																	"WHERE member_id = ? AND id = ?";
@@ -445,7 +439,7 @@ public class BudgetBookDao {
 	 *
 	 * @param memberId			회원번호
 	 */
-	public void updateImage( String memberId, Ledger ledger) {
+	public void updateImage( String memberId, BudgetBook ledger) {
 		String query = "UPDATE tb_budget_book SET image1 = ?, image2 = ?, image3 = ? WHERE member_id = ? AND id = ?";
 
 		jdbcTemplate.update(

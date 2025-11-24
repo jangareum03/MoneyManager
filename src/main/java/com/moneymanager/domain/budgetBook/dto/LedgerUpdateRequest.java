@@ -1,10 +1,15 @@
 package com.moneymanager.domain.ledger.dto;
 
+import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.LedgerDate;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import lombok.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <p>
@@ -37,30 +42,28 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class LedgerUpdateRequest {
+	private Long id;
 	private String date;
 	private LedgerFixResponse fix;
 	private String category;
 	private String memo;
 	private Long price;
-	private String paymentType;
+	private PaymentType paymentType;
 	private List<ImageDTO> image;
 	private Place place;
-
-	public LedgerUpdateRequest() {
-		this.fix = LedgerFixResponse.defaultValue();
-		this.place = null;
-	}
 
 
 	/**
 	 * 기존 요청객체(update)와 이미지 리스트를 기반으로 새로운 UpdateDTO 객체를 생성합니다.
 	 *
+	 * @param id						수정할 가계부 번호
 	 * @param update				기존 가계부 정보
 	 * @param imageList			수정할 이미지 리스트
 	 * @return	새 UpdateDTO 객체
 	 */
-	public static LedgerUpdateRequest from(LedgerUpdateRequest update, List<ImageDTO> imageList ) {
+	public static LedgerUpdateRequest of(Long id, LedgerUpdateRequest update, List<ImageDTO> imageList ) {
 		return LedgerUpdateRequest.builder()
+				.id(id)
 		.fix(LedgerFixResponse.builder().option(update.getFix().getOption()).cycle(update.getFix().getCycle()).build())
 		.place(Place.builder().placeName(update.getPlace().getPlaceName()).roadAddress(update.getPlace().getRoadAddress()).detailAddress(update.getPlace().getDetailAddress()).build())
 		.date(update.getDate()).category(update.getCategory()).memo(update.getMemo())
@@ -68,4 +71,16 @@ public class LedgerUpdateRequest {
 		.build();
 	}
 
+	public Ledger toEntity() {
+		return Ledger.builder()
+				.id(id)
+				.date(new LedgerDate(date))
+				.fix(fix.getOption()).fixCycle(fix.getCycle())
+				.category(Category.builder().code(category).build())
+				.memo(memo)
+				.price(price).paymentType(paymentType)
+				.image1(image.get(0).getFileName()).image2(image.get(1).getFileName()).image3(image.get(2).getFileName())
+				.placeName(place.getPlaceName()).roadAddress(place.getRoadAddress()).address(place.getDetailAddress())
+				.build();
+	}
 }

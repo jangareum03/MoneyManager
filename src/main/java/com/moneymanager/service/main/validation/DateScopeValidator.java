@@ -1,7 +1,7 @@
 package com.moneymanager.service.main.validation;
 
-import com.moneymanager.domain.ledger.enums.DateType;
-import com.moneymanager.domain.ledger.vo.DateScope;
+import com.moneymanager.domain.budgetBook.enums.DateType;
+import com.moneymanager.domain.budgetBook.vo.DateScope;
 import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;

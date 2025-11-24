@@ -1,6 +1,6 @@
 package com.moneymanager.domain.global.dto;
 
-import com.moneymanager.domain.ledger.enums.DateType;
+import com.moneymanager.domain.budgetBook.enums.DateType;
 import lombok.*;
 
 import java.time.LocalDate;

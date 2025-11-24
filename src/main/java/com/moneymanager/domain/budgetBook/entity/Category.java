@@ -1,4 +1,4 @@
-package com.moneymanager.domain.ledger.entity;
+package com.moneymanager.domain.budgetBook.entity;
 
 import lombok.Builder;
 import lombok.Getter;

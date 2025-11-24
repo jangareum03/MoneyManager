@@ -1,7 +1,7 @@
-package com.moneymanager.domain.ledger.entity;
+package com.moneymanager.domain.budgetBook.entity;
 
-import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.domain.ledger.vo.LedgerDate;
+import com.moneymanager.domain.budgetBook.enums.PaymentType;
+import com.moneymanager.domain.budgetBook.vo.BudgetBookDate;
 import com.moneymanager.domain.member.Member;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- *  * 패키지이름    : com.areum.moneymanager.domain.ledger<br>
- *  * 파일이름       : Ledger<br>
+ *  * 패키지이름    : com.areum.moneymanager.domain.budgetBook<br>
+ *  * 파일이름       : BudgetBook<br>
  *  * 작성자          : areum Jang<br>
  *  * 생성날짜       : 22. 11. 15<br>
  *  * 설명              : TB_BUDGET_BOOK 테이블과 매칭되는 클래스
@@ -44,13 +44,13 @@ import java.time.LocalDateTime;
  */
 @Builder
 @Getter
-public class Ledger {
+public class BudgetBook {
     private Long id;											//가계부 번호(식별자)
     private Member member;							//작성자
     private Category category;						//카테고리
     private String fix;										//고정여부
     private String fixCycle;								//고정주기
-    private LedgerDate date;							//가계부 날짜
+    private BudgetBookDate date;							//가계부 날짜
     private String memo;									//내용
     private Long price;									//가격
     private PaymentType paymentType;			//결제 유형
@@ -63,7 +63,7 @@ public class Ledger {
     private LocalDateTime createdAt;			//등록일
     private LocalDateTime updatedAt;			//수정일
 
-	public LocalDate getLedgerDate() {
+	public LocalDate getBudgetBookDate() {
 		return date.getDate();
 	}
 

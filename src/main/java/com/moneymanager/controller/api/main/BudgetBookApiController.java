@@ -1,10 +1,10 @@
 package com.moneymanager.controller.api.main;
 
 
-import com.moneymanager.domain.ledger.dto.LedgerCategoryResponse;
-import com.moneymanager.domain.ledger.dto.LedgerListResponse;
-import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
-import com.moneymanager.domain.ledger.dto.LedgerUpdateRequest;
+import com.moneymanager.domain.budgetBook.dto.LedgerCategoryResponse;
+import com.moneymanager.domain.budgetBook.dto.LedgerListResponse;
+import com.moneymanager.domain.budgetBook.dto.LedgerSearchRequest;
+import com.moneymanager.domain.budgetBook.dto.LedgerUpdateRequest;
 import com.moneymanager.domain.global.dto.ApiResultDTO;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;

@@ -2,7 +2,7 @@ package com.moneymanager.service.main.api;
 
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
-import com.moneymanager.domain.ledger.enums.DateType;
+import com.moneymanager.domain.budgetBook.enums.DateType;
 import com.moneymanager.service.main.BudgetBookService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

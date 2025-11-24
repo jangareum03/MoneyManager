@@ -1,4 +1,4 @@
-package com.moneymanager.domain.ledger.vo;
+package com.moneymanager.domain.budgetBook.vo;
 
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.exception.ErrorCode;
@@ -220,7 +220,7 @@ public class DateScope implements DateGroupable {
 	//주어진 연도가 1970 이상인지 확인
 	private static void validateYear(int year) {
 		if( year < 1970 ) {
-			throw createClientException(ErrorCode.BUDGET_DATE_INVALID, "연도는 1970년부터 가능합니다.");
+			throw createClientException(ErrorCode.BUDGET_DATE_INVALID, "연도는 1970년부터 가능합니다.", year);
 		}
 	}
 

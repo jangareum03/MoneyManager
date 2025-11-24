@@ -1,15 +1,19 @@
-package com.moneymanager.domain.ledger.vo;
+package com.moneymanager.domain.budgetBook.vo;
 
 import com.moneymanager.domain.global.vo.DateGroupable;
-import static com.moneymanager.utils.DateTimeUtils.formatDateAsString;
+import com.moneymanager.utils.DateTimeUtils;
+import lombok.Getter;
+import lombok.Value;
+
+import java.time.LocalDate;
 
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.vo<br>
- * 파일이름       : SearchPeriodAdapter<br>
+ * 파일이름       : SearchPeriod<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 11. 22.<br>
- * 설명              : 다른 클래스를 SearchPeriod 클래스에 맞게 변환해주는 클래스
+ * 설명              : 가계부 검색을 위한 기간값을 나타내는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -30,19 +34,24 @@ import static com.moneymanager.utils.DateTimeUtils.formatDateAsString;
  * 		</tbody>
  * </table>
  */
-public class SearchPeriodAdapter {
+@Value
+@Getter
+public class SearchPeriod implements DateGroupable {
+	String start;
+	String end;
 
-	private final DateGroupable dateScope;
-
-	public SearchPeriodAdapter(DateScope dateScope) {
-		this.dateScope = dateScope;
+	public SearchPeriod(String start, String end) {
+		this.start = start;
+		this.end = end;
 	}
 
-	public SearchPeriod toSearchPeriod() {
-		String start = formatDateAsString(dateScope.getStartDate(), "yyyyMMdd");
-		String end = formatDateAsString(dateScope.getEndDate(), "yyyyMMdd");
-
-		return new SearchPeriod(start, end);
+	@Override
+	public LocalDate getStartDate() {
+		return DateTimeUtils.parseDateFlexible(start);
 	}
 
+	@Override
+	public LocalDate getEndDate() {
+		return DateTimeUtils.parseDateFlexible(end);
+	}
 }

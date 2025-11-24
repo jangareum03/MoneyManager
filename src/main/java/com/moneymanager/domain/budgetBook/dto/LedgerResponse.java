@@ -39,7 +39,7 @@ public class LedgerResponse {
 	//가계부 식별 번호
 	private  Long id;
 	//가계부 작성 날짜
-	private ReadDate date;
+	private String date;
 	//가계부 등록 주기
 	private LedgerFixResponse fix;
 	//카테고리
@@ -54,17 +54,4 @@ public class LedgerResponse {
 	private List<String> image;
 	//위치
 	private Place place;
-
-	/**
-	 * 가계부 내역 날짜를 읽기 위한 DTO
-	 */
-	@Builder
-	@Getter
-	public static class ReadDate {
-		//time 태그용
-		private String read;
-		//html 문자용
-		private String text;
-	}
-
 }
