@@ -35,15 +35,6 @@ import static com.moneymanager.utils.ValidationUtils.*;
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
- * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 11. 13</td>
- * 		 	  <td>areum Jang</td>
- * 		 	  <td>
- * 		 	      [클래스 이름] AddressVO → Place<br>
- * 		 	      [메서드 삭제] hasJiBunAddress, hasRoadAddress → 사용빈도 없음<br>
- * 		 	      [메서드 추가] isNullOrBlank → 값이 null 이거나 빈 문자열인지 확인
- * 		 	  </td>
- * 		 	</tr>
  * 		</tbody>
  * </table>
  */
@@ -176,7 +167,7 @@ public class Place {
 		if( isNullOrBlank(jiBunAddress) ) throw createClientException(ErrorCode.BUDGET_PLACE_MISSING, "지번주소를 입력해주세요.");
 
 		if(isMatchedPattern(jiBunAddress, ADDRESS_JIBUN_NAME.getPattern())) {
-			throw createClientException(ErrorCode.BUDGET_PLACE_FORMAT, "지번주소는 한글, 숫자, 영문자, 특수문자(-)만 입력 가능합니다.", roadAddress);
+			throw createClientException(ErrorCode.BUDGET_PLACE_FORMAT, "지번주소는 한글, 숫자, 영문자, 특수문자(-)만 입력 가능합니다.", jiBunAddress);
 		}
 	}
 
