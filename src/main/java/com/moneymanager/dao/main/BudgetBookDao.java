@@ -1,7 +1,9 @@
 package com.moneymanager.dao.main;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.moneymanager.domain.budgetBook.enums.FixedPeriod;
 import com.moneymanager.domain.budgetBook.vo.Money;
+import com.moneymanager.domain.budgetBook.vo.Place;
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.budgetBook.entity.BudgetBook;
 import com.moneymanager.domain.budgetBook.dto.LedgerCategoryResponse;
@@ -98,8 +100,8 @@ public class BudgetBookDao {
 
 								stmt.setString(1, budgetBook.getMember().getId());
 								stmt.setString(2, budgetBook.getCategory().getCode());
-								stmt.setString(3, budgetBook.getFix());
-								stmt.setString(4, budgetBook.getFixCycle());
+								stmt.setString(3, budgetBook.isReturning() ? "Y" : "N");
+								stmt.setString(4, budgetBook.getCycleType().getDbValue());
 								stmt.setDate(5, Date.valueOf(budgetBook.getBudgetBookDate()));
 								stmt.setString(6, budgetBook.getMemo());
 								stmt.setLong(7, budgetBook.getMoney().getAmount());
@@ -107,9 +109,9 @@ public class BudgetBookDao {
 								stmt.setString(9, budgetBook.getImage1());
 								stmt.setString(10, budgetBook.getImage2());
 								stmt.setString(11, budgetBook.getImage3());
-								stmt.setString(12, budgetBook.getPlaceName());
-								stmt.setString(13, budgetBook.getRoadAddress());
-								stmt.setString(14, budgetBook.getAddress());
+								stmt.setString(12, budgetBook.getPlace().getPlaceName());
+								stmt.setString(13, budgetBook.getPlace().getRoadAddress());
+								stmt.setString(14, budgetBook.getPlace().getDetailAddress());
 
 								return stmt;
 							}
@@ -136,17 +138,26 @@ public class BudgetBookDao {
 								"WHERE tb.id = ? " +
 									"AND tb.category_id = tc.code";
 		try{
-			return jdbcTemplate.queryForObject( sql, (ResultSet rs, int row) -> {
-				return BudgetBook.builder().id(rs.getLong("id")).member(Member.builder().id(rs.getString("member_id")).build())
+			return jdbcTemplate.queryForObject(
+					sql,
+					(ResultSet rs, int row) -> {
+						boolean isFix = rs.getString("fix").equalsIgnoreCase("y");
+
+						return BudgetBook
+								.builder()
+								.id(rs.getLong("id"))
+								.member(Member.builder().id(rs.getString("member_id")).build())
 								.category(Category.builder().code(rs.getString("category_id")).name(rs.getString("name")).build())
-								.fix(rs.getString("fix")).fixCycle(rs.getString("fix_cycle"))
-								.date(new BudgetBookDate(rs.getString("book_date"))).memo(rs.getString("memo"))
+								.isReturning(isFix).cycleType(FixedPeriod.fromDbValue(rs.getString("fix_cycle")))
+								.date(new BudgetBookDate(rs.getString("book_date")))
+								.memo(rs.getString("memo"))
 								.money(new Money( rs.getInt("price"), PaymentType.fromDbValue(rs.getString("payment_type")) ))
 								.image1(rs.getString("image1")).image2(rs.getString("image2")).image3(rs.getString("image3"))
-								.placeName(rs.getString("place_name")).roadAddress(rs.getString("road_address")).address(rs.getString("address"))
+								.place(Place.builder().placeName(rs.getString("place_name")).roadAddress(rs.getString("road_address")).detailAddress(rs.getString("address")).build())
 								.createdAt(rs.getTimestamp("created_at").toLocalDateTime()).updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
 								.build();
-			}, id );
+			},
+					id );
 		}catch( EmptyResultDataAccessException e ) {
 			return null;
 		}
@@ -424,12 +435,12 @@ public class BudgetBookDao {
 																	"SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, price = ?, payment_type = ?, place_name = ?, road_address = ?, address = ?, updated_at = SYSDATE " +
 																	"WHERE member_id = ? AND id = ?";
 
-
+		String isFixed = budgetBook.isReturning() ? "Y" : "N";
 		return jdbcTemplate.update(
 						query,
-						budgetBook.getCategory().getCode(),	budgetBook.getFix(),	budgetBook.getFixCycle(),
+						budgetBook.getCategory().getCode(), isFixed, budgetBook.getCycleType().getDbValue(),
 						budgetBook.getMemo(), budgetBook.getMoney().getAmount(), budgetBook.getMoney().getType(),
-						budgetBook.getPlaceName(), budgetBook.getRoadAddress(), budgetBook.getAddress(),
+						budgetBook.getPlace().getPlaceName(), budgetBook.getPlace().getRoadAddress(), budgetBook.getPlace().getDetailAddress(),
 						budgetBook.getMember().getId(), budgetBook.getId()
 		) == 1;
 	}

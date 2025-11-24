@@ -326,8 +326,7 @@ public class BudgetBookService {
 		}
 
 		//고정주기 변환
-		LedgerFixResponse fix = Objects.isNull(budgetBook.getFixCycle()) ?
-				LedgerFixResponse.defaultValue() : LedgerFixResponse.builder().option(budgetBook.getFix().toLowerCase()).cycle(budgetBook.getFixCycle().toLowerCase()).build();
+		FixedStatus fix = new FixedStatus( budgetBook.isReturning(), budgetBook.getCycleType() );
 
 
 		//카테고리 변환
@@ -337,8 +336,13 @@ public class BudgetBookService {
 				.build();
 
 		//위치 변환
-		Place place = Objects.isNull(budgetBook.getPlaceName()) ?
-				null : Place.builder().placeName(budgetBook.getPlaceName()).roadAddress(budgetBook.getRoadAddress()).detailAddress(budgetBook.getAddress()).build();
+		Place place = Objects.isNull(budgetBook.getPlace().getPlaceName()) ?
+				null : Place
+							.builder()
+							.placeName(budgetBook.getPlace().getPlaceName())
+							.roadAddress(budgetBook.getPlace().getRoadAddress())
+							.detailAddress(budgetBook.getPlace().getDetailAddress())
+							.build();
 
 		//이미지 변환
 		List<String> profileImage = imageService.findImageUrl(budgetBook);

@@ -1,8 +1,9 @@
 package com.moneymanager.domain.budgetBook.entity;
 
-import com.moneymanager.domain.budgetBook.enums.PaymentType;
+import com.moneymanager.domain.budgetBook.enums.FixedPeriod;
 import com.moneymanager.domain.budgetBook.vo.BudgetBookDate;
 import com.moneymanager.domain.budgetBook.vo.Money;
+import com.moneymanager.domain.budgetBook.vo.Place;
 import com.moneymanager.domain.member.Member;
 import lombok.Builder;
 import lombok.Getter;
@@ -49,17 +50,15 @@ public class BudgetBook {
     private Long id;											//가계부 번호(식별자)
     private Member member;							//작성자
     private Category category;						//카테고리
-    private String fix;										//고정여부
-    private String fixCycle;								//고정주기
-    private BudgetBookDate date;							//가계부 날짜
+	private boolean isReturning;						//고정여부
+	private FixedPeriod cycleType;					//고정주기
+    private BudgetBookDate date;					//가계부 날짜
     private String memo;									//내용
 	private Money money;								//가격
     private String image1;								//이미지1
     private String image2;								//이미지2
     private String image3;								//이미지3
-    private String placeName;							//장소명
-    private String roadAddress;						//도로명 주소
-    private String address;								//지번주소
+	private Place place;									//장소
     private LocalDateTime createdAt;			//등록일
     private LocalDateTime updatedAt;			//수정일
 

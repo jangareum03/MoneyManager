@@ -49,6 +49,8 @@ public enum ErrorCode {
 	BUDGET_DATE_MISSING("C030201", "가계부 날짜 누락"),
 	BUDGET_DATE_FORMAT("C030202", "가계부 날짜 형식"),
 	BUDGET_DATE_INVALID("C030206", "가계부 날짜 범위"),
+	BUDGET_FIX_MISSING("C030301", "가계부 고정 누락"),
+	BUDGET_FIX_INVALID("C030306", "가계부 고정 범위"),
 	BUDGET_PRICE_MISSING("C030601", "가계부 금액 누락"),
 	BUDGET_PRICE_FORMAT("C030602", "가계부 금액 형식"),
 	BUDGET_PRICE_INVALID("C030606", "가계부 금액 범위"),
