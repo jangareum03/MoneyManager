@@ -1,4 +1,4 @@
-package com.moneymanager.domain.ledger.dto;
+package com.moneymanager.domain.budgetBook.dto;
 
 import lombok.Builder;
 import lombok.Getter;
