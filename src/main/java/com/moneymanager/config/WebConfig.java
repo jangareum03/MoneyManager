@@ -36,9 +36,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${image.budgetBook.resourcePath}")
+    @Value("${image.ledger.resourcePath}")
     private String accountResourcePath;
-    @Value("${image.budgetBook.connectPath}")
+    @Value("${image.ledger.connectPath}")
     private String accountConnectPath;
     @Value("${image.profile.resourcePath}")
     private String profileResourcePath;
