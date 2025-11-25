@@ -1,8 +1,8 @@
 package com.moneymanager.service.member;
 
 import com.moneymanager.dao.member.AttendanceDao;
-import com.moneymanager.domain.budgetBook.vo.YearMonthDayVO;
-import com.moneymanager.domain.budgetBook.vo.YearMonthVO;
+import com.moneymanager.domain.ledger.vo.YearMonthDayVO;
+import com.moneymanager.domain.ledger.vo.YearMonthVO;
 import com.moneymanager.domain.member.dto.MemberAttendanceResponse;
 import com.moneymanager.domain.member.Attendance;
 import com.moneymanager.exception.custom.ClientException;

@@ -2,9 +2,9 @@ package com.moneymanager.controller.api.members;
 
 
 import com.moneymanager.domain.global.dto.ApiResultDTO;
-import com.moneymanager.domain.budgetBook.vo.YearMonthDayVO;
-import com.moneymanager.domain.budgetBook.vo.YearMonthVO;
-import com.moneymanager.domain.budgetBook.vo.YearVO;
+import com.moneymanager.domain.ledger.vo.YearMonthDayVO;
+import com.moneymanager.domain.ledger.vo.YearMonthVO;
+import com.moneymanager.domain.ledger.vo.YearVO;
 import com.moneymanager.domain.member.dto.MemberAttendanceRequest;
 import com.moneymanager.domain.member.dto.MemberAttendanceResponse;
 import com.moneymanager.exception.custom.ClientException;
