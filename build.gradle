@@ -36,8 +36,6 @@ dependencies {
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '2.7.1'
 	/* file */
 	implementation 'commons-io:commons-io:2.11.0'
-    /* h2 */
-    testImplementation 'com.h2database:h2'
     /* valid */
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 //	/* jUnit */
