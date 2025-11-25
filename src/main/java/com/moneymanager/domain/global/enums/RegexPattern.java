@@ -4,7 +4,7 @@ import lombok.Getter;
 
 /**
  * <p>
- *  * 패키지이름    : com.areum.moneymanager.enums<br>
+ *  * 패키지이름    : com.areum.moneymanager.domain.global.enums<br>
  *  * 파일이름       : RegexPattern<br>
  *  * 작성자          : areum Jang<br>
  *  * 생성날짜       : 25. 7. 15<br>
@@ -81,7 +81,7 @@ public enum RegexPattern {
 	 *     <li>이미지(BUDGET_IMAGE)	: 영문자,숫자,한글, 특수문자(_,-, .)만 가능</li>
 	 * </ul>
 	 */
-	BUDGET_IMAGE("[^a-zA-Z0-9가-힣_\\-\\.]"),
+	LEDGER_IMAGE("[^a-zA-Z0-9가-힣_\\-\\.]"),
 
 
 	/**

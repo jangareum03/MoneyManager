@@ -2,8 +2,8 @@ package com.moneymanager.service.main.api;
 
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
-import com.moneymanager.domain.budgetBook.enums.DateType;
-import com.moneymanager.service.main.BudgetBookService;
+import com.moneymanager.domain.ledger.enums.DateType;
+import com.moneymanager.service.main.LedgerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -48,10 +48,10 @@ import java.util.Map;
 @Service
 public class GoogleChartService {
 
-	private final BudgetBookService budgetBookService;
+	private final LedgerService ledgerService;
 
-	public GoogleChartService( BudgetBookService budgetBookService ) {
-		this.budgetBookService = budgetBookService;
+	public GoogleChartService( LedgerService ledgerService) {
+		this.ledgerService = ledgerService;
 	}
 
 
@@ -67,7 +67,7 @@ public class GoogleChartService {
 		DateType type = date.getType();
 
 		List<Object> data = new ArrayList<>();
-		List<GoogleChartResponse> chartList = budgetBookService.getBudgetBookForChart( memberId, date );
+		List<GoogleChartResponse> chartList = ledgerService.getLedgerForChart( memberId, date );
 
 		//헤어와 본문 설정
 		switch ( type ) {

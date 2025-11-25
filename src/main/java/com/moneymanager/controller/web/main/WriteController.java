@@ -1,9 +1,9 @@
 package com.moneymanager.controller.web.main;
 
-import com.moneymanager.domain.budgetBook.dto.LedgerWriteRequest;
-import com.moneymanager.domain.budgetBook.dto.LedgerWriteResponse;
+import com.moneymanager.domain.ledger.dto.LedgerWriteRequest;
+import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
 import com.moneymanager.exception.custom.ClientException;
-import com.moneymanager.service.main.BudgetBookService;
+import com.moneymanager.service.main.LedgerService;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -44,13 +44,13 @@ import java.time.LocalDate;
  */
 @Slf4j
 @Controller
-@RequestMapping("/budgetBook/write")
+@RequestMapping("/ledgers/write")
 public class WriteController {
 
-	private final BudgetBookService budgetBookService;
+	private final LedgerService ledgerService;
 
-	public WriteController( BudgetBookService budgetBookService ) {
-		this.budgetBookService = budgetBookService;
+	public WriteController( LedgerService ledgerService) {
+		this.ledgerService = ledgerService;
 	}
 
 
@@ -74,7 +74,7 @@ public class WriteController {
 		model.addAttribute("today", DateTimeUtils.formatDateAsString(today, "yyyy년 MM월 dd일"));
 
 
-		return "/main/budgetBook_writeStep1";
+		return "/main/ledger_writeStep1";
 	}
 
 
@@ -94,16 +94,16 @@ public class WriteController {
 		try{
 			if( date == null ) {
 				log.warn("작성할 가계부 날짜가 없습니다.");
-				return "/main/budgetBook_writeStep1";
+				return "/main/ledger_writeStep1";
 			}
 
-			LedgerWriteResponse.InitialBudget write = budgetBookService.getWriteByData( (String)session.getAttribute("mid"), type, date );
+			LedgerWriteResponse.ledgerDetail ledger = ledgerService.getWriteByData( (String)session.getAttribute("mid"), type, date );
 
-			model.addAttribute("budgetBook", write);
+			model.addAttribute("ledger", ledger);
 
-			return "/main/budgetBook_writeStep2";
+			return "/main/ledger_writeStep2";
 		}catch ( ClientException e ) {
-			return "/main/budgetBook_writeStep1";
+			return "/main/ledger_writeStep1";
 		}
 	}
 
@@ -131,18 +131,18 @@ public class WriteController {
 	 * @return	가계부 리스트 페이지
 	 */
 	@PostMapping
-	public String postWrite(@ModelAttribute("budgetBook") LedgerWriteRequest create, HttpSession session, RedirectAttributes redirectAttributes ) {
+	public String postWrite(@ModelAttribute("ledger") LedgerWriteRequest create, HttpSession session, RedirectAttributes redirectAttributes ) {
 		String memberId = (String)session.getAttribute("mid");
 
 		try{
-			budgetBookService.createBudgetBook( memberId, create );
+			ledgerService.createLedger( memberId, create );
 
-			return "redirect:/budgetBook/write";
+			return "redirect:/ledgers/write";
 		}catch ( ClientException  e ) {
 			log.info("[DEBUG] 값: {}", create.toString());
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 
-			return "redirect:/budgetBook/write";
+			return "redirect:/ledgers/write";
 		}
 	}
 }

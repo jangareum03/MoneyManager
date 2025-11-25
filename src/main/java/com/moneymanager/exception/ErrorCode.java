@@ -1,6 +1,5 @@
 package com.moneymanager.exception;
 
-import com.moneymanager.exception.custom.ServerException;
 import lombok.Getter;
 
 
@@ -46,17 +45,17 @@ public enum ErrorCode {
 	/**
 	 * 가계부 에러 메시지
 	 */
-	BUDGET_DATE_MISSING("C030201", "가계부 날짜 누락"),
-	BUDGET_DATE_FORMAT("C030202", "가계부 날짜 형식"),
-	BUDGET_DATE_INVALID("C030206", "가계부 날짜 범위"),
-	BUDGET_FIX_MISSING("C030301", "가계부 고정 누락"),
-	BUDGET_FIX_INVALID("C030306", "가계부 고정 범위"),
-	BUDGET_PRICE_MISSING("C030601", "가계부 금액 누락"),
-	BUDGET_PRICE_FORMAT("C030602", "가계부 금액 형식"),
-	BUDGET_PRICE_INVALID("C030606", "가계부 금액 범위"),
-	BUDGET_PAYMENT_MISSING("C030701", "가계부 금액유형 누락"),
-	BUDGET_PLACE_MISSING("C030901", "가계부 주소 누락"),
-	BUDGET_PLACE_FORMAT("C030902", "가계부 주소 형식"),
+	LEDGER_DATE_MISSING("C030201", "가계부 날짜 누락"),
+	LEDGER_DATE_FORMAT("C030202", "가계부 날짜 형식"),
+	LEDGER_DATE_INVALID("C030206", "가계부 날짜 범위"),
+	LEDGER_FIX_MISSING("C030301", "가계부 고정 누락"),
+	LEDGER_FIX_INVALID("C030306", "가계부 고정 범위"),
+	LEDGER_PRICE_MISSING("C030601", "가계부 금액 누락"),
+	LEDGER_PRICE_FORMAT("C030602", "가계부 금액 형식"),
+	LEDGER_PRICE_INVALID("C030606", "가계부 금액 범위"),
+	LEDGER_PAYMENT_MISSING("C030701", "가계부 금액유형 누락"),
+	LEDGER_PLACE_MISSING("C030901", "가계부 주소 누락"),
+	LEDGER_PLACE_FORMAT("C030902", "가계부 주소 형식"),
 	/**
 	 * 서버 에러 메시지
 	 */

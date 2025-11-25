@@ -1,7 +1,7 @@
 package com.moneymanager.service.main.validation;
 
-import com.moneymanager.domain.budgetBook.enums.DateType;
-import com.moneymanager.domain.budgetBook.vo.DateScope;
+import com.moneymanager.domain.ledger.enums.DateType;
+import com.moneymanager.domain.ledger.vo.DateScope;
 import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +67,7 @@ public class DateScopeValidator {
 
 		//연도가 현재연도 ~ 5년전 연도까지가 아닌 경우
 		if( year < minYear || year > maxYear ) {
-			throw createClientException(ErrorCode.BUDGET_DATE_INVALID, String.format("연도는 %d~%d까지만 가능합니다.", minYear, maxYear), year );
+			throw createClientException(ErrorCode.LEDGER_DATE_INVALID, String.format("연도는 %d~%d까지만 가능합니다.", minYear, maxYear), year );
 		}
 	}
 
@@ -81,7 +81,7 @@ public class DateScopeValidator {
 		}
 
 		if( month > maxMonth ) {
-			throw createClientException(ErrorCode.BUDGET_DATE_INVALID, String.format("월은 1~%d까지만 가능합니다.", maxMonth), month);
+			throw createClientException(ErrorCode.LEDGER_DATE_INVALID, String.format("월은 1~%d까지만 가능합니다.", maxMonth), month);
 		}
 	}
 
@@ -94,7 +94,7 @@ public class DateScopeValidator {
 		int maxWeek = DateTimeUtils.getTotalWeeksOfMonth(YearMonth.of(year, month));
 
 		if (!(0 < week && week <= maxWeek)  ) {
-			throw createClientException(ErrorCode.BUDGET_DATE_INVALID, String.format("주는 1~%d까지만 가능합니다.", maxWeek), week);
+			throw createClientException(ErrorCode.LEDGER_DATE_INVALID, String.format("주는 1~%d까지만 가능합니다.", maxWeek), week);
 		}
 	}
 
