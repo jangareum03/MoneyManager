@@ -46,7 +46,7 @@ async function handlerClick( event ) {
 
     //뒤로가기 아이콘을 클릭할 때
     if( target.classList.contains('icon--back') ) {
-        goToPage('/budgetBooks/list/month');
+        goToPage('/ledgers/list/month');
     }
 
 
@@ -59,17 +59,17 @@ async function handlerClick( event ) {
     //수정버튼 클릭할 때
     const mode = target.dataset.mode
     if(  mode === 'edit' ) {
-        const id = getBudgetId();
+        const id = getLedgerId();
 
-        goToPage(`/budgetBooks/${id}?mode=${mode}`);
+        goToPage(`/ledgers/${id}?mode=${mode}`);
     }
 
 
     //삭제버튼 클릭할 때
     if( mode=== 'delete' && confirm('정말로 삭제하시겠습니까?') ) {
-        const id = getBudgetId()
+        const id = getLedgerId()
 
-        const apiResult = await fetchBudgetDelete( [id] );
+        const apiResult = await fetchLedgerDelete( [id] );
 
         alert(apiResult.message);
         if( apiResult.success ) {
@@ -81,7 +81,7 @@ async function handlerClick( event ) {
 
 
 //----------[ ▼ 현재 주소에서 가계부 번호를 가져옵니다. ]----------
-function getBudgetId() {
+function getLedgerId() {
     const pathParts = window.location.pathname.split('/');
 
     return pathParts[ pathParts.length - 1 ];
@@ -91,7 +91,7 @@ function getBudgetId() {
 
 //----------[ ▼ 이미지를 클릭하면 큰 이미지로 보여줍니다. ]----------
 function renderLargeImage( url ) {
-    const container = document.querySelector('.page-budget-detail');
+    const container = document.querySelector('.page-ledger-detail');
 
     const imageBox = createDiv( { parent: container, classList: ['detail-photo__viewer'] } );
     const imageText = createSpan( {parent: imageBox, classList: ['detail-photo__viewer-guide'], text: '아무곳이나 클릭하면 이미지가 없어집니다.'} );

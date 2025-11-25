@@ -76,9 +76,9 @@ async function handlerClick( event ) {
     //취소버튼 클릭할 때
     if( target.classList.contains('button--cancel') ) {
         if( confirm('정말로 취소하시겠습니까?') ) {
-            const id = getBudgetId();
+            const id = getLedgerId();
 
-            goToPage(`/budgetBooks/${id}`);
+            goToPage(`/ledgers/${id}`);
         }
     }
 
@@ -90,7 +90,7 @@ async function handlerClick( event ) {
         //에러 메세지 삭제
         removeMessage();
 
-        const status = validEssentialValue( document.querySelector('.budget-body .form') );
+        const status = validEssentialValue( document.querySelector('.ledger-body .form') );
         const isValid = Object.values( status ).every( s => s === true );
 
         if( !isValid ) {
@@ -99,13 +99,13 @@ async function handlerClick( event ) {
         }
 
         const formData = getFormData();
-        const id = getBudgetId();
+        const id = getLedgerId();
 
-        const apiResult = await fetchBudgetUpdate( id, formData );
+        const apiResult = await fetchLedgerUpdate( id, formData );
 
         alert(apiResult.message);
         if( apiResult.success ) {
-            goToPage(`/budgetBooks/${id}`);
+            goToPage(`/ledgers/${id}`);
         }
     }
 
@@ -287,7 +287,7 @@ function resetPhotoUpload( container ) {
 //----------[ ▼ 위치정보를 검색할 수 있는 지도 팝업이 열립니다. ]----------
 function openMapPopup() {
     const option = 'top=320, left=660, width=800, height=500, status=no, menubar=no, toolbar=no, resizable=no';
-    const popup = window.open('/budgetBook/write/map', '팝업', option);
+    const popup = window.open('/ledgers/write/map', '팝업', option);
 
     const checkPopupClosed = setInterval( () => {
         if( popup.closed ) {
@@ -332,7 +332,7 @@ function resetLocation( container ) {
 
 
 //----------[ ▼ 현재 주소에서 가계부 번호를 가져옵니다. ]----------
-function getBudgetId() {
+function getLedgerId() {
     const pathParts = window.location.pathname.split('/');
 
     return pathParts[2];
@@ -381,7 +381,7 @@ function getFormData() {
     const form = new FormData();
 
     const data = {
-        date : document.querySelector('.budget-header__title').textContent,
+        date : document.querySelector('.ledger-header__title').textContent,
         fix : {
             option: document.querySelector('input[type="radio"][name="option"]:checked').value,
             cycle : document.querySelector('input[type="radio"][name="cycle"]:checked')?.value || ''

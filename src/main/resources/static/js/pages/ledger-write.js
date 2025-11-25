@@ -79,10 +79,10 @@ function handlerClick( event ) {
     const target = event.currentTarget;
     const button = target.closest('.button');
 
-    const isWritePage = document.querySelector('.page-budget-write.common');       //초기 작성화면 일때
+    const isWritePage = document.querySelector('.page-ledger-write.common');       //초기 작성화면 일때
 
-    const isIncomePage = document.querySelector('.page-budget-write.income');     //수입 작성화면 일때
-    const isOutlayPage = document.querySelector('.page-budget-write.outlay');     //지출 작성화면 일때
+    const isIncomePage = document.querySelector('.page-ledger-write.income');     //수입 작성화면 일때
+    const isOutlayPage = document.querySelector('.page-ledger-write.outlay');     //지출 작성화면 일때
     const isDetailPage = isIncomePage || isOutlayPage;      //상세 작성화면 일 때
 
 
@@ -99,7 +99,7 @@ function handlerClick( event ) {
             //이전버튼 클릭할 때
             const prevButton = target.classList.contains('button--cancel');
             if( prevButton && confirm('작성을 취소하시겠습니까?') ) {
-                goToPage('/budgetBook/write');
+                goToPage('/ledgers/write');
             }
 
 
@@ -111,7 +111,7 @@ function handlerClick( event ) {
                 //에러 메세지 삭제
                 removeMessage();
 
-                const form = document.querySelector('.budget-body .form');
+                const form = document.querySelector('.ledger-body .form');
 
                 const status = validEssentialValue( form );
                 const isValid = Object.values( status ).every( s => s === true );
@@ -299,7 +299,7 @@ function goToNextStep() {
 
     const date = `${year}${String(month).padStart(2, '0')}${String(day).padStart(2, '0')}`;
 
-    const form = createForm({ method: 'POST', action: `/budgetBook/write/${type}` });
+    const form = createForm({ method: 'POST', action: `/ledgers/write/${type}` });
     form.appendChild( createHiddenInput( {name: 'date', value: date} ) );
 
     document.body.appendChild(form);
@@ -403,7 +403,7 @@ function resetPhotoUpload( container ) {
 //----------[ ▼ 위치정보를 검색할 수 있는 지도 팝업이 열립니다. ]----------
 function openMapPopup() {
     const option = 'top=320, left=660, width=800, height=500, status=no, menubar=no, toolbar=no, resizable=no';
-    const popup = window.open('/budgetBook/write/map', '팝업', option);
+    const popup = window.open('/ledgers/write/map', '팝업', option);
 
     const checkPopupClosed = setInterval( () => {
         if( popup.closed ) {
@@ -485,7 +485,7 @@ function validEssentialValue( container ) {
 //----------[ ▼ 가계부 작성에 필요한 추가정보를 form에 추가합니다. ]----------
 function appendData( form ) {
     //가계부 날짜 추가
-    const date = document.querySelector('.budget-header__title').textContent;
+    const date = document.querySelector('.ledger-header__title').textContent;
     createHiddenInput({ parent: form, name: 'date', value: formatDate(date) });
 
     //위치 정보 추가

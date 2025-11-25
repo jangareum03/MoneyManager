@@ -37,8 +37,8 @@ function fetchBirthCheck( value ) {
 
 
 //----------[ ▼ 선택한 가계부를 삭제합니다. ]----------
-function fetchBudgetDelete( data ) {
-    return fetch('/api/budgetBook', {
+function fetchLedgerDelete( data ) {
+    return fetch('/api/ledgers', {
         method: 'DELETE',
         headers: { 'Content-Type' : 'application/json' },
         body: JSON.stringify( Array.from(data) )
@@ -49,8 +49,8 @@ function fetchBudgetDelete( data ) {
 
 
 //----------[ ▼ 검색어에 해당하는 가계부를 가져옵니다. ]----------
-function fetchBudgetSearch( data ) {
-    return fetch('/api/budgetBook/search', {
+function fetchLedgerSearch( data ) {
+    return fetch('/api/ledgers/search', {
         method: 'PATCH',
         headers: { 'Content-Type' : 'application/json' },
         body: JSON.stringify( data )
@@ -61,8 +61,8 @@ function fetchBudgetSearch( data ) {
 
 
 //----------[ ▼ 특정 가계부를 수정합니다. ]----------
-function fetchBudgetUpdate( id, data ) {
-    return fetch(`/api/budgetBook/${id}`, {
+function fetchLedgerUpdate( id, data ) {
+    return fetch(`/api/ledgers/${id}`, {
         method: 'PUT',
         body: data
     })
@@ -73,7 +73,7 @@ function fetchBudgetUpdate( id, data ) {
 
 //----------[ ▼ 카테고리 정보를 가져옵니다. ]----------
 function fetchCategoryInfo( code ) {
-    return fetch('/api/budgetBook/category', {
+    return fetch('/api/ledgers/category', {
         method: 'POST',
         headers: { 'Content-Type' : 'text/plain' },
         body: code
@@ -121,7 +121,7 @@ function fetchEmailCodeSend( value ) {
 
 //----------[ ▼ 구글 차트를 가져옵니다. ]----------
 function fetchGoogleChart( date ) {
-    return fetch('/api/budgetBook/charts', {
+    return fetch('/api/ledgers/charts', {
         method: 'POST',
         headers: { 'Content-Type' : 'application/json' },
         body: JSON.stringify(date)
@@ -179,7 +179,7 @@ function fetchInquirySearch( data ) {
 
 //----------[ ▼ 년과 월의 마지막 일을 가져옵니다. ]----------
 function fetchLastDay( year, month ) {
-    return fetch('/api/budgetBook/lastDay', {
+    return fetch('/api/ledgers/lastDay', {
         method: 'POST',
         headers: { 'Content-Type' : 'application/json' },
         body: JSON.stringify({ year: year, month: month })
