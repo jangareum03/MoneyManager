@@ -54,7 +54,7 @@ public class CategoryDao {
 	 * @return	이름과 코드를 담은 리스트
 	 */
 	public List<Category> findCategory() {
-		String sql = "SELECT name, code FROM tb_category WHERE parent_code IS NULL ORDER BY code ASC";
+		String sql = "SELECT name, code FROM ledger_category WHERE parent_code IS NULL ORDER BY code ASC";
 
 		return jdbcTemplate.query( sql, (ResultSet rs, int row) ->
 			Category.builder().name(rs.getString("name")).code(rs.getString("code")).build()
@@ -71,7 +71,7 @@ public class CategoryDao {
 	 */
 	public List<Category> findCategoryByCode( String code ) {
 		String sql = "SELECT name, code " +
-														"FROM tb_category " +
+														"FROM ledger_category " +
 														"WHERE parent_code = ? " +
 														"ORDER BY code";
 
@@ -90,7 +90,7 @@ public class CategoryDao {
 	 */
 	public List<Category> findCategoryByStep( String code ) {
 		String sql = "SELECT name, code " +
-														"FROM tb_category " +
+														"FROM ledger_category " +
 														"START WITH code = ? " +
 															"CONNECT BY PRIOR parent_code = code " +
 														"ORDER BY code";

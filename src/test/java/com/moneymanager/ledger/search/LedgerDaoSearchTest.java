@@ -1,4 +1,4 @@
-package com.moneymanager.budgetBook.search;
+package com.moneymanager.ledger.search;
 
 import com.moneymanager.dao.main.LedgerDao;
 import com.moneymanager.domain.ledger.dto.CategoryResponse;

@@ -5,7 +5,7 @@
 /*==============================
           📁 가계부 상세작성/수정 공통
 ==============================*/
-.page-budget {
+.page-ledger {
     @include flex-box( column, center, center );
     width: calc( 100% - $sidebar-width );
     height: 100vh;
@@ -14,7 +14,7 @@
     overflow: hidden;
 
     //======= ▼ 상단 =======
-    .budget-header {
+    .ledger-header {
         @include flex-box( column, center, center );
         flex: 1;
 
@@ -38,7 +38,7 @@
     }
 
     //======= ▼ 본문 =======
-    .budget-body {
+    .ledger-body {
         flex: 5;
         width: 100%;
         max-width: 1500px;
@@ -288,7 +288,7 @@
     //--- 수입 작성 영역 ---
     &.income {
         //--- 유형 영역 ---
-        .budget-header__type::after {
+        .ledger-header__type::after {
             content: '수입';
             color: $color-income-text;
         }
@@ -344,7 +344,7 @@
     //--- 지출 상세 작성 영역 ---
     &.outlay {
         //--- 유형 영역 ---
-        .budget-header__type::after {
+        .ledger-header__type::after {
             content: '지출';
             color: $color-outlay-text;
         }
@@ -403,7 +403,7 @@
 /*==============================
              📁 가계부  초기 작성 화면
 ==============================*/
-.page-budget-write.common {
+.page-ledger-write.common {
     @include flex-box( column, center, center );
     width: calc( 100% - $sidebar-width );
     height: 100vh;
@@ -593,7 +593,7 @@
 /*==============================
                  📁 가계부 조회 화면
 ==============================*/
-.page-budget-list {
+.page-ledger-list {
     @include flex-box( column, $align: center );
     width: calc( 100% - $sidebar-width );
     height: 100vh;
@@ -603,7 +603,7 @@
     overflow: hidden;
 
     //--- 날짜선택 영역 ---
-    .budget-date {
+    .ledger-date {
         @include flex-box( $align: center );
         flex: 0.5;
         width: 100%;
@@ -619,7 +619,7 @@
         }
 
         //--- 선택박스 영역 ---
-        .budget-select__label {
+        .ledger-select__label {
             position: relative;
             @include flex-box();
             width: 6rem;
@@ -650,7 +650,7 @@
                 }
 
                 //포커스된 상태
-                &:focus-within + .budget-select__icon svg {
+                &:focus-within + .ledger-select__icon svg {
                     transform: rotate(180deg);
                 }
             }
@@ -663,7 +663,7 @@
             }
 
             //아이콘
-            .budget-select__icon {
+            .ledger-select__icon {
                 position: absolute;
                 top: 0;
                 right: 0;
@@ -681,7 +681,7 @@
     }
 
     //--- 금액 통계 영역 ---
-    .budget-stats {
+    .ledger-stats {
         @include flex-box();
         flex: 1.5;
         width: 100%;
@@ -705,8 +705,8 @@
             font-size: 1.2rem;
             background-color: var(--background-selected);
             border: 2px solid var(--border-color);
-            border-top-left-radius: $budget-stats-border-radius;
-            border-top-right-radius: $budget-stats-border-radius;
+            border-top-left-radius: $ledger-stats-border-radius;
+            border-top-right-radius: $ledger-stats-border-radius;
         }
 
         //통계 금액
@@ -718,13 +718,13 @@
             font-weight: bold;
             border: 2px solid $color-gray-400;
             border-top: 0;
-            border-bottom-left-radius: $budget-stats-border-radius;
-            border-bottom-right-radius: $budget-stats-border-radius;
+            border-bottom-left-radius: $ledger-stats-border-radius;
+            border-bottom-right-radius: $ledger-stats-border-radius;
         }
     }
 
     //--- 그래프 영역 ---
-    .budget-graph {
+    .ledger-graph {
         width: 100%;
         padding: 0 3rem;
         box-sizing: border-box;
@@ -757,19 +757,19 @@
         //그래프 열린 상태
         &[open] {
             //화살표 아이콘
-            .budget-graph__icon {
+            .ledger-graph__icon {
                 transform: rotate(180deg);
             }
 
             //내용
-            .budget-graph__content {
+            .ledger-graph__content {
                 max-height: 250px;
             }
         }
     }
 
     //--- 메뉴 영역 ---
-    .budget-menu {
+    .ledger-menu {
         @include flex-box( column, $align: center );
         flex: 0.5;
         width: 100%;
@@ -782,14 +782,14 @@
             width: 100%;
 
             //메뉴 탭
-            .budget-menu__filter {
+            .ledger-menu__filter {
                 @include flex-box( $align: center );
             }
 
             //메뉴 리스트
-            .budget-menu__list {
+            .ledger-menu__list {
                 @include flex-box( $justify: center );
-                width: $budget-menu-width;
+                width: $ledger-menu-width;
 
                 * {
                     width: 100%;
@@ -798,7 +798,7 @@
             }
 
             //메뉴 각 요소
-            .budget-menu__item {
+            .ledger-menu__item {
                 flex: 1;
                 border-right: 1px solid $color-gray-500;
 
@@ -840,7 +840,7 @@
             }
 
             //--- 삭제버튼 영역 ---
-            .budget-menu__action {
+            .ledger-menu__action {
                 @include flex-box( $justify: center, $align: center );
                 gap: 1rem;
                 color: $color-gray-500;
@@ -891,7 +891,7 @@
     }
 
     //--- 내역 리스트 영역 ---
-    .budget-list {
+    .ledger-list {
         flex: 6;
         width: 100%;
         max-height: 500px;
@@ -931,7 +931,7 @@
                 @include flex-box( column );
 
                 //제목
-                .budget-list__title {
+                .ledger-list__title {
                     @include flex-box( $align: center );
                     padding: 0 20px;
                     line-height: 1.7rem;
@@ -941,7 +941,7 @@
                 }
 
                 //--- 내역 리스트 영역 ---
-                .budget-list__cards {
+                .ledger-list__cards {
                     @include flex-box( $justify: space-between );
                     flex-wrap: wrap;
                     flex: 1;
@@ -951,7 +951,7 @@
                     &:first-of-type {
                         margin-top: 0;
 
-                        .budget-card {
+                        .ledger-card {
                             border-top: 0px;
                         }
                     }
@@ -963,7 +963,7 @@
                 }
 
                 //--- 내역 영역 ---
-                .budget-card {
+                .ledger-card {
                     position: relative;
                     @include flex-box( column, $align: center );
                     flex: 1;
@@ -1017,7 +1017,7 @@
                         cursor: default;
 
                         //타입구분 아이콘
-                        .budget-card__type {
+                        .ledger-card__type {
                             border: 2px solid $color-gray-500;
                         }
                     }
@@ -1025,13 +1025,13 @@
                     //--- 수입카드 영역 ---
                     &.income {
                         //타입구분 아이콘
-                        .budget-card__type {
+                        .ledger-card__type {
                             background-color: $color-income-icon;
                             border: 2px solid $color-income-icon;
                         }
 
                         //가격
-                        .budget-card__price {
+                        .ledger-card__price {
                             color: $color-income-text;
                         }
                     }
@@ -1039,13 +1039,13 @@
                     //--- 지출카드 영역 ---
                     &.outlay {
                         //타입구분 아이콘
-                        .budget-card__type {
+                        .ledger-card__type {
                             background-color: $color-outlay-icon;
                             border: 2px solid $color-outlay-icon;
                         }
 
                         //가격
-                        .budget-card__price {
+                        .ledger-card__price {
                             color: $color-outlay-text;
                         }
                     }
@@ -1053,22 +1053,22 @@
             }
 
             //삭제모드 활성화 상태
-            &.budget-list--delete {
+            &.ledger-list--delete {
                 //카드 요소
-                .budget-card {
+                .ledger-card {
                     //선택된 카드
                     &.checked {
                         border: 2px solid $color-red-800;
 
                         //선택된 상태의 아이콘
-                        .budget-card__icon {
+                        .ledger-card__icon {
                             fill: $color-red-800;
                         }
                     }
                 }
 
                 //아이콘
-                .budget-card__icon {
+                .ledger-card__icon {
                     display: block;
                     z-index: 2;
                     cursor: pointer;
@@ -1107,7 +1107,7 @@
 /*==============================
                📁 가계부 상세 화면
 ==============================*/
-.page-budget-detail {
+.page-ledger-detail {
     //--- 공통 상세 영역 ---
     @include flex-box( column, $align: center );
     width: calc( 100% - $sidebar-width );

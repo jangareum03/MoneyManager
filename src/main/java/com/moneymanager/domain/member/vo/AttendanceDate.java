@@ -1,16 +1,17 @@
-package com.moneymanager.domain.budgetBook.dto;
+package com.moneymanager.domain.member.vo;
 
-import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
+import lombok.Value;
+
+import java.time.LocalDate;
 
 /**
  * <p>
- * 패키지이름    : com.areum.moneymanager.domain.ledger.dto<br>
- * 파일이름       : BudgetCategoryDTO<br>
+ * 패키지이름    : com.moneymanager.domain.member.vo<br>
+ * 파일이름       : AttendanceDate<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 25. 7. 25.<br>
- * 설명              : 가계부 카테고리 응답을 위한 데이터 클래스
+ * 생성날짜       : 25. 11. 17.<br>
+ * 설명              : 회원 출석정보 조회를 위한 날짜 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -24,17 +25,20 @@ import lombok.ToString;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 7. 25.</td>
+ * 		 	  <td>25. 11. 17.</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
  */
-@Builder
+@Value
 @Getter
-@ToString
-public class LedgerCategoryResponse {
-	private String name;			//카테고리 이름
-	private String code;			//카테고리 코드
+public class AttendanceDate {
+	LocalDate date;
+
+	public AttendanceDate(int year, int month) {
+		this.date = LocalDate.of(year, month, 1);
+	}
+
 }
