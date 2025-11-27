@@ -56,6 +56,10 @@ public final class ErrorUtil {
 		return new ClientException(errorDTO);
 	}
 
+	public static <T> RuntimeException createServerException(ErrorCode code, String message) {
+		return createServerException(code, message, null);
+	}
+
 	public static <T> RuntimeException createServerException(ErrorCode code, String message, T data) {
 		ErrorDTO<T> errorDTO = ErrorDTO.<T>builder()
 				.errorCode(code)

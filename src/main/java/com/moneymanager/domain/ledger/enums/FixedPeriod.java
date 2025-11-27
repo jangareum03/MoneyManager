@@ -3,7 +3,7 @@ package com.moneymanager.domain.ledger.enums;
 import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
 
-import static com.moneymanager.exception.ErrorUtil.createServerException;
+import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 /**
  * <p>
@@ -51,6 +51,6 @@ public enum FixedPeriod {
 			if(type.dbValue.equalsIgnoreCase(dbValue)) return type;
 		}
 
-		throw createServerException(ErrorCode.SYSTEM_CODE_INTEGRITY, "지원하지 않은 고정주기 유형입니다.", dbValue);
+		throw createClientException(ErrorCode.LEDGER_FIX_FORMAT, "지원하지 않은 고정주기 유형입니다.", dbValue);
 	}
 }

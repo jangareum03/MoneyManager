@@ -10,7 +10,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 
-import static com.moneymanager.exception.ErrorUtil.createServerException;
+import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 /**
  * <p>
@@ -87,7 +87,7 @@ public class DateTimeUtils {
 			}
 		}
 
-		throw createServerException(ErrorCode.SYSTEM_LOGIC_INTERVAL, "지원하지 않은 날짜 형식입니다.", dateStr);
+		throw createClientException(ErrorCode.LEDGER_DATE_FORMAT, "지원하지 않은 날짜 형식입니다.", dateStr);
 	}
 
 
