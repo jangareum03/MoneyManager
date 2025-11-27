@@ -2,6 +2,7 @@ package com.moneymanager.utils;
 
 import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.exception.ErrorCode;
+import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.exception.custom.ServerException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,12 +52,12 @@ class DateTimeUtilsTest {
 	@DisplayName("지원하지 않은 형식의 날짜가 입력되면 예외가 발생한다.")
 	void shouldThrowExceptionWhenUnsupportedFormat(String date) {
 		//when & then
-		assertThatExceptionOfType(ServerException.class)
+		assertThatExceptionOfType(ClientException.class)
 				.isThrownBy(() -> DateTimeUtils.parseDateFlexible(date))
 				.satisfies(e -> {
 					ErrorDTO<?> errorDTO = e.getErrorDTO();
 
-					assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.SYSTEM_LOGIC_INTERVAL);
+					assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.LEDGER_DATE_FORMAT);
 					assertThat(errorDTO.getMessage()).isEqualTo("지원하지 않은 날짜 형식입니다.");
 				});
 	}

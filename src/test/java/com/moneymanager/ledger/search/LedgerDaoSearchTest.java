@@ -96,7 +96,7 @@ class LedgerDaoSearchTest {
 			ResultSet rs = mock(ResultSet.class);
 			when(rs.next()).thenReturn(true, false);
 
-			when(rs.getString("book_date")).thenReturn(expected.getDate());
+			when(rs.getString("transaction_date")).thenReturn(expected.getDate());
 			when(rs.getString("datas")).thenReturn(mockJson);
 
 			return rse.extractData(rs);

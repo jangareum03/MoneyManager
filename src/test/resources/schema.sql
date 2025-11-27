@@ -1,3 +1,22 @@
+-------------------------[ ▼ 테이블 삭제 ]----------------------
+DROP TABLE tb_prefix;
+DROP TABLE inquiry_answer;
+DROP TABLE inquiry_question;
+DROP TABLE notice;
+DROP TABLE admin;
+
+DROP TABLE ledger;
+DROP TABLE ledger_category;
+
+DROP TABLE member_attendance;
+DROP TABLE member_point_log;
+DROP TABLE member_log;
+DROP TABLE login_log;
+DROP TABLE member_token;
+DROP TABLE member_info;
+DROP TABLE member;
+
+
 -------------------------[ ▼ 테이블 ]-------------------------
 -- 회원 기본정보
 CREATE TABLE member (
@@ -207,36 +226,43 @@ CREATE TABLE tb_prefix (
 
 
 -------------------------[ ▼ 시퀀스 ]-------------------------
+DROP SEQUENCE login_log_seq;
 CREATE SEQUENCE login_log_seq
     INCREMENT BY 1
     START WITH 1
     NOCYCLE;
 
+DROP SEQUENCE member_log_seq;
 CREATE SEQUENCE member_log_seq
     INCREMENT BY 1
     START WITH 1
     NOCYCLE;
 
+DROP SEQUENCE member_attendance_seq;
 CREATE SEQUENCE member_attendance_seq
     INCREMENT BY 1
     START WITH 1
     NOCYCLE;
 
+DROP SEQUENCE member_point_log_seq;
 CREATE SEQUENCE member_point_log_seq
     INCREMENT BY 1
     START WITH 1
     NOCYCLE;
 
+DROP SEQUENCE ledger_seq;
 CREATE SEQUENCE ledger_seq
     INCREMENT BY 1
     START WITH 1
     NOCYCLE;
 
+DROP SEQUENCE question_seq;
 CREATE SEQUENCE question_seq
     INCREMENT BY 1
     START WITH 1
     NOCYCLE;
 
+DROP SEQUENCE inquiry_answer_seq;
 CREATE SEQUENCE inquiry_answer_seq
     INCREMENT BY 1
     START WITH 1
