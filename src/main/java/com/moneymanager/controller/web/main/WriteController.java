@@ -1,7 +1,9 @@
 package com.moneymanager.controller.web.main;
 
+import com.moneymanager.domain.ledger.dto.LedgerTypeResponse;
 import com.moneymanager.domain.ledger.dto.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
+import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.LedgerService;
 import com.moneymanager.utils.DateTimeUtils;
@@ -73,7 +75,7 @@ public class WriteController {
 		model.addAttribute("lastDay", today.lengthOfMonth());
 		model.addAttribute("today", DateTimeUtils.formatDateAsString(today, "yyyy년 MM월 dd일"));
 
-
+		model.addAttribute("type", LedgerTypeResponse.from(LedgerType.values()));
 		return "/main/ledger_writeStep1";
 	}
 
