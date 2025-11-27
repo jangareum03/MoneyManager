@@ -43,10 +43,10 @@ public class ValidationUtils {
 	 */
 	public static boolean isMatchedPattern(String value, String pattern) {
 		if( isNullOrBlank(value) || isNullOrBlank(pattern) ) {
-			return true;
+			return false;
 		}
 
-		return !value.matches(pattern);
+		return value.matches(pattern);
 	}
 
 	/**

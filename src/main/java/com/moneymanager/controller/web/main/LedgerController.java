@@ -135,16 +135,16 @@ public class LedgerController {
 	@GetMapping("/{id}")
 	public String getLedgerDetailPage(HttpSession session, Model model, @PathVariable Long id, @RequestParam(required = false, defaultValue = "view") String mode) {
 		String memberId = (String) session.getAttribute("mid");
-
+		//TODO: 모드별 메서드 통합하기
 		try {
 			LedgerResponse ledger = ledgerService.getLedgerById(memberId, id, mode);
 			model.addAttribute("ledger", ledger);
 
 			if (mode.equals("edit")) {
-				List<CategoryResponse> category = ledgerService.getCategoryByStep(ledger.getCategory().getCode());
+				List<CategoryResponse> category = ledgerService.getAncestorCategoriesByCode(ledger.getCategory().getCode());
 
 				model.addAttribute("selectCategory", category);
-				model.addAttribute("category", ledgerService.getCategoriesByCode(category));
+				model.addAttribute("category", ledgerService.getAllCategoriesByCode(ledger.getCategory().getCode()));
 				model.addAttribute("max", imageService.getLimitImageCount(memberId));
 
 				return "/main/ledger_update";

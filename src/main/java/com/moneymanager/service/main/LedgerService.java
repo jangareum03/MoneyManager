@@ -11,9 +11,12 @@ import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
+import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.vo.*;
 import com.moneymanager.domain.ledger.enums.DateType;
+import com.moneymanager.exception.ErrorCode;
+import com.moneymanager.service.main.validation.CategoryValidator;
 import com.moneymanager.service.main.validation.DateScopeValidator;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +31,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.moneymanager.exception.ErrorUtil.createClientException;
 import static com.moneymanager.utils.DateTimeUtils.isDateInRange;
 
 
@@ -73,7 +77,7 @@ public class LedgerService {
 
 	private final LedgerDao ledgerDAO;
 
-	public LedgerService(CategoryService categoryService, @Qualifier("budgetImage") ImageServiceImpl imageService, DateScopeValidator dateScopeValidator, LedgerDao ledgerDAO) {
+	public LedgerService(CategoryService categoryService, @Qualifier("ledgerImage") ImageServiceImpl imageService, DateScopeValidator dateScopeValidator, LedgerDao ledgerDAO) {
 		this.categoryService = categoryService;
 		this.imageService = imageService;
 		this.dateScopeValidator = dateScopeValidator;
@@ -98,13 +102,13 @@ public class LedgerService {
 
 		int availableCount = imageService.getLimitImageCount(id);        //등록 가능한 이미지 개수
 
-		//카테고리 리스트
-		List<CategoryResponse> topCategory = categoryService.getTopCategories();
-		String code = type.equalsIgnoreCase(LedgerType.INCOME.getType()) ? topCategory.get(0).getCode() : topCategory.get(1).getCode();
+		//부모 카테고리 코드
+		String parentCode = categoryService.generateParentCode( CategoryLevel.MIDDLE, LedgerType.from(type).getDbValue() );
+		CategoryValidator.validateCode(CategoryLevel.MIDDLE, parentCode);
 
 		return LedgerWriteResponse.ledgerDetail.builder()
 				.date(title).type(type).maxImage(availableCount)
-				.categories(categoryService.getMySubCategories(code))
+				.categories(categoryService.getMiddleCategories(parentCode))
 				.build();
 	}
 
@@ -294,21 +298,6 @@ public class LedgerService {
 
 
 	/**
-	 * 카테고리 코드의 하위 카테고리들을 찾는 메서드
-	 *
-	 * @param code 카테고리 코드
-	 * @return 하위 카테고리 리스트
-	 */
-	public List<CategoryResponse> getCategoriesByCode(String code) {
-		if (Objects.isNull(code)) {
-			return categoryService.getTopCategories();
-		}
-
-		return categoryService.getMySubCategories(code);
-	}
-
-
-	/**
 	 * 가계부 번호에 해당하는 가계부 정보를 반환합니다. <br>
 	 * 접근한 가계부 작성자를 확인하여 작성자가 아닌 다른 회원이 접근하면 이 발생합니다.
 	 *
@@ -328,12 +317,6 @@ public class LedgerService {
 		//고정주기 변환
 		FixedStatus fix = new FixedStatus( ledger.isReturning(), ledger.getCycleType() );
 
-		//카테고리 변환
-		CategoryResponse category = CategoryResponse.builder()
-				.code(ledger.getCategory().getCode())
-				.name(ledger.getCategory().getName())
-				.build();
-
 		//위치 변환
 		Place place = Objects.isNull(ledger.getPlace().getPlaceName()) ?
 				null : Place
@@ -351,7 +334,7 @@ public class LedgerService {
 					.date( formatDate )
 					.image(profileImage)
 					.fix(fix)
-					.category(category)
+					.category(CategoryResponse.from(ledger.getCategory()))
 					.place(place)
 					.id(ledger.getId())
 					.memo(ledger.getMemo())
@@ -364,12 +347,19 @@ public class LedgerService {
 
 
 	/**
-	 * 하위카테고리의 모든 상위 카테고리의 이름을 조회하는 메서드
+	 * 지정한 하위 카테고리 코드(code)의 상위 계층(부모, 조부모) 카테고리를 조회합니다.
+	 * <p>
+	 *     코드가 {@link CategoryLevel#LOW} 형식에 맞으면 상위 계층 카테고리 리스트를 반환합니다.
+	 *     형식이 맞지 않으면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
+	 * </p>
 	 *
-	 * @param code 하위카테고리 코드
-	 * @return 하위카테고리 포함한 상위 카테고리 이름 리스트
+	 * @param code 	조회할 하위 카테고리 코드
+	 * @return 상위 계층 카테고리 정보를 담은 {@link CategoryResponse} 리스트
+	 * @throws com.moneymanager.exception.custom.ClientException	잘못된 코드 형식이거나 상위 카테고리를 찾을 수 없는 경우
 	 */
-	public List<CategoryResponse> getCategoryByStep(String code) {
+	public List<CategoryResponse> getAncestorCategoriesByCode(String code) {
+		CategoryValidator.validateCode(CategoryLevel.LOW, code);
+
 		return categoryService.getMyParentCategories(code);
 	}
 
@@ -379,26 +369,44 @@ public class LedgerService {
 	 * <li>in : 모든 수입 카테고리</li>
 	 * <li>out : 모든 지출 카테고리</li>
 	 *
-	 * @param categories 가계부 카테고리 정보
 	 * @return 유형별 모든 하위 카테고리
 	 */
-	public Map<String, Object> getCategoriesByCode(List<CategoryResponse> categories) {
-		Map<String, Object> map = new HashMap<>();
+	public Map<CategoryLevel, List<CategoryResponse>> getAllCategoriesByCode(String code) {
+		Map<CategoryLevel, List<CategoryResponse>> map = new EnumMap<>(CategoryLevel.class);
 
-		//상위카테고리
-		List<CategoryResponse> topCategory = categoryService.getTopCategories();
-		map.put("top", topCategory);
-
-		//중간카테고리
-		List<CategoryResponse> middleCategory = categoryService.getMySubCategories(categories.get(0).getCode());
-		map.put("middle", middleCategory);
-
-		//하위카테고리
-		List<CategoryResponse> bottomCategory = categoryService.getMySubCategories(categories.get(1).getCode());
-		map.put("bottom", bottomCategory);
-
+		map.put(CategoryLevel.TOP, categoryService.getTopCategories());
+		map.put(CategoryLevel.MIDDLE, categoryService.getMiddleCategories(code));
+		map.put(CategoryLevel.LOW, categoryService.getLowCategories(code.substring(0, 4)));
 
 		return map;
+	}
+
+
+	/**
+	 * 카테고리 레벨, 가계부 유형, 부모 코드를 기반으로 하위 카테고리 목록을 조회 후 반환합니다.
+	 * <p>
+	 *     카테고리 레벨, 가계부 유형, 부모 코드를 가지고 데이터베이스에서 조회할 부모 카테고리 코드를 생성한 뒤 검증합니다.
+	 *     검증이 완료된 카테고리 코드로 하위 카테고리 목록을 조회합니다.
+	 * </p>
+	 *
+	 * @param request 		카테고리 레벨, 가계부 유형, 일부의 코드 정보를 포함한 요청 객체
+	 * @return 요청한 레벨에 해당하는 하위 카테고리 리스트
+	 * @throws com.moneymanager.exception.custom.ClientException 생성된 부모 카테고리 코드가 올바르지 않은 경우
+	 */
+	public List<CategoryResponse> getSubCategories(CategorySearchRequest request) {
+		String parentCode = categoryService.generateParentCode( request.getLevel(), request.getParentCode() );
+		CategoryValidator.validateCode(request.getLevel(), parentCode);	//만들어진 부모코드 검증
+
+		switch ( request.getLevel() ) {
+			case TOP:
+				return categoryService.getTopCategories();
+			case MIDDLE:
+				return categoryService.getMiddleCategories(parentCode);
+			case LOW:
+				return categoryService.getLowCategories(parentCode);
+			default:
+				throw createClientException(ErrorCode.LEDGER_CATEGORY_INVALID,  "지원하지 않은 카테고리 단계입니다.", request.getLevel());
+		}
 	}
 
 
