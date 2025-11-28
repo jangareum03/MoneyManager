@@ -1,7 +1,10 @@
 package com.moneymanager.ledger.category;
 
 import com.moneymanager.dao.main.CategoryDao;
+import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.exception.ErrorCode;
+import com.moneymanager.exception.custom.ServerException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,9 +14,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.when;
 
 /**
  * <p>
@@ -52,9 +58,9 @@ class CategoryDaoSearchTest {
 	//=================================================
 	// findTopCategories() 테스트
 	//=================================================
-	@DisplayName("부모 카테고리가 없는 최상위 카테고리 목록을 조회한다.")
+	@DisplayName("데이터베이스에 코드가 있으면 최상위 카테고리 목록을 조회한다.")
 	@Test
-	void 상위_카테고리_리스트반환() {
+	void 상위카테고리_DB있으면_리스트반환() {
 		//when
 		List<Category> result = categoryDao.findTopCategories();
 
@@ -72,14 +78,14 @@ class CategoryDaoSearchTest {
 	//=================================================
 	// findCategoryCodesByParentCode() 테스트
 	//=================================================
-	@DisplayName("parent_code가 상위카테고리 코드이면 중간 카테고리 리스트를 반환한다.")
+	@DisplayName("parent_code가 상위 카테고리 코드이면 중간 카테고리 리스트를 반환한다.")
 	@Test
 	void 부모코드_상위카테고리_리스트_반환(){
 		//given
 		String parentCode = "010000";
 
 		//when
-		List<Category> result = categoryDao.findCategoryCodesByParentCode(parentCode);
+		List<Category> result = categoryDao.findCategoriesByParentCode(parentCode);
 
 		//then
 		assertThat(result).isNotNull();
@@ -98,7 +104,7 @@ class CategoryDaoSearchTest {
 		String parentCode = "020200";
 
 		//when
-		List<Category> result = categoryDao.findCategoryCodesByParentCode(parentCode);
+		List<Category> result = categoryDao.findCategoriesByParentCode(parentCode);
 
 		//then
 		assertThat(result).isNotNull();
@@ -117,7 +123,7 @@ class CategoryDaoSearchTest {
 		String parentCode = "020204";
 
 		//when
-		List<Category> result = categoryDao.findCategoryCodesByParentCode(parentCode);
+		List<Category> result = categoryDao.findCategoriesByParentCode(parentCode);
 
 		//then
 		assertThat(result).isEmpty();
@@ -128,7 +134,7 @@ class CategoryDaoSearchTest {
 	@ValueSource(strings = {"040102", "010", "030000"})
 	void 부모코드_없으면_빈리스트_반환(String parentCode){
 		//when
-		List<Category> result = categoryDao.findCategoryCodesByParentCode(parentCode);
+		List<Category> result = categoryDao.findCategoriesByParentCode(parentCode);
 
 		//then
 		assertThat(result).isEmpty();
@@ -137,7 +143,7 @@ class CategoryDaoSearchTest {
 
 
 	//=================================================
-	// findCategoryByStep() 테스트
+	// findAncestorCategoriesByCode() 테스트
 	//=================================================
 	@DisplayName("코드가 있으면 카테고리에 해당하는 모든 상위 카테고리를 조회한다.")
 	@Test
