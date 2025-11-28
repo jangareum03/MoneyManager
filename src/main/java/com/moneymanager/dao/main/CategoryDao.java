@@ -104,13 +104,13 @@ public class CategoryDao {
 	/**
 	 *	지정한 카테고리 코드(code)를 기준으로 해당 카테고리에서 부모방향으로 이동하여 상위 계층 카테고리를 모두 조회합니다.
 	 *<p>
-	 * 해당 메서드로 시작 카테고리 코드(cod)에서 시작해서 내 부모, 부모의 부모 방식으로 루트까지 모든 상위 카테고리를 가져오는 구조입니다.
+	 * 해당 메서드로 시작 카테고리 코드(cod)에서 시작해서 내 부모, 조부모 등 상위계층으로 이동하여 루트까지의 상위 카테고리를 가져오는 구조입니다.
 	 * 조회 결과를 code 기준으로 오름차순으로 정렬됩니다.
 	 *
 	 * @param code		상위 계층 조회를 시작할 하위 카테고리 코드
 	 * @return	코드 기준으로 정렬된 상위 계층의 {@link Category} 리스트
 	 */
-	public List<Category> findCategoryByStep( String code ) {
+	public List<Category> findAncestorCategoriesByCode(String code ) {
 		String sql = "SELECT name, code " +
 								"FROM ledger_category " +
 								"START WITH code = ? " +

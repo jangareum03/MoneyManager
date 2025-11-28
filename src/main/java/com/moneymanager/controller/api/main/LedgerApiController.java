@@ -7,6 +7,7 @@ import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.YearMonthRequest;
 import com.moneymanager.exception.custom.ClientException;
+import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.LedgerService;
 import com.moneymanager.service.main.api.GoogleChartService;
 import com.moneymanager.service.main.validation.CategoryValidator;
@@ -64,6 +65,7 @@ import java.util.stream.Collectors;
 public class LedgerApiController {
 
 	private final LedgerService ledgerService;
+	private final CategoryService categoryService;
 	private final GoogleChartService chartService;
 
 
@@ -107,7 +109,7 @@ public class LedgerApiController {
 	public List<CategoryResponse> postCategories(@RequestBody CategorySearchRequest request) {
 		CategoryValidator.validate(request);
 
-		return ledgerService.getSubCategories(request);
+		return categoryService.getSubCategories(request);
 	}
 
 

@@ -3,6 +3,7 @@ package com.moneymanager.controller.web.main;
 import com.moneymanager.domain.ledger.dto.*;
 import com.moneymanager.domain.ledger.dto.LedgerResponse;
 import com.moneymanager.exception.custom.ClientException;
+import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.LedgerService;
 import com.moneymanager.service.main.ImageServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -55,10 +56,12 @@ import java.util.*;
 public class LedgerController {
 
 	private final LedgerService ledgerService;
+	private final CategoryService categoryService;
 	private final ImageServiceImpl imageService;
 
-	public LedgerController(LedgerService ledgerService, @Qualifier("ledgerImage") ImageServiceImpl imageService) {
+	public LedgerController(LedgerService ledgerService, CategoryService categoryService, @Qualifier("ledgerImage") ImageServiceImpl imageService) {
 		this.ledgerService = ledgerService;
+		this.categoryService = categoryService;
 		this.imageService = imageService;
 	}
 
@@ -141,10 +144,11 @@ public class LedgerController {
 			model.addAttribute("ledger", ledger);
 
 			if (mode.equals("edit")) {
-				List<CategoryResponse> category = ledgerService.getAncestorCategoriesByCode(ledger.getCategory().getCode());
+				String categoryCode = ledger.getCategory().getCode();
+				List<CategoryResponse> category = categoryService.getAncestorCategoriesByCode(categoryCode);
 
 				model.addAttribute("selectCategory", category);
-				model.addAttribute("category", ledgerService.getAllCategoriesByCode(ledger.getCategory().getCode()));
+				model.addAttribute("category", categoryService.getAllCategoriesByCode(ledger.getCategory().getCode()));
 				model.addAttribute("max", imageService.getLimitImageCount(memberId));
 
 				return "/main/ledger_update";

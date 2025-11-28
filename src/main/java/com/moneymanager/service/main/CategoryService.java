@@ -2,10 +2,12 @@ package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.CategoryDao;
 import com.moneymanager.domain.ledger.dto.CategoryResponse;
+import com.moneymanager.domain.ledger.dto.CategorySearchRequest;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.exception.ErrorCode;
+import com.moneymanager.service.main.validation.CategoryValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,6 +50,23 @@ import static com.moneymanager.exception.ErrorUtil.createServerException;
 public class CategoryService {
 
 	private final CategoryDao categoryDAO;
+
+	/**
+	 * 카테고리 타입에 따라 해당 타입의 모든 하위 카테고리를 반환합니다.<br>
+	 * <li>in : 모든 수입 카테고리</li>
+	 * <li>out : 모든 지출 카테고리</li>
+	 *
+	 * @return 유형별 모든 하위 카테고리
+	 */
+	public Map<CategoryLevel, List<CategoryResponse>> getAllCategoriesByCode(String code) {
+		Map<CategoryLevel, List<CategoryResponse>> map = new EnumMap<>(CategoryLevel.class);
+
+		map.put(CategoryLevel.TOP, getTopCategories());
+		map.put(CategoryLevel.MIDDLE, getMiddleCategories(code));
+		map.put(CategoryLevel.LOW, getLowCategories(code.substring(0, 4)));
+
+		return map;
+	}
 
 
 	/**
@@ -98,6 +117,52 @@ public class CategoryService {
 
 
 	/**
+	 * 카테고리 레벨, 가계부 유형, 부모 코드를 기반으로 하위 카테고리 목록을 조회 후 반환합니다.
+	 * <p>
+	 *     카테고리 레벨, 가계부 유형, 부모 코드를 가지고 데이터베이스에서 조회할 부모 카테고리 코드를 생성한 뒤 검증합니다.
+	 *     검증이 완료된 카테고리 코드로 하위 카테고리 목록을 조회합니다.
+	 * </p>
+	 *
+	 * @param request 		카테고리 레벨, 가계부 유형, 일부의 코드 정보를 포함한 요청 객체
+	 * @return 요청한 레벨에 해당하는 하위 카테고리 리스트
+	 * @throws com.moneymanager.exception.custom.ClientException 생성된 부모 카테고리 코드가 올바르지 않은 경우
+	 */
+	public List<CategoryResponse> getSubCategories(CategorySearchRequest request) {
+		String parentCode =
+				generateParentCode( request.getLevel(), request.getParentCode() );
+		CategoryValidator.validateCode(request.getLevel(), parentCode);	//만들어진 부모코드 검증
+
+		switch ( request.getLevel() ) {
+			case TOP:
+				return getTopCategories();
+			case MIDDLE:
+				return getMiddleCategories(parentCode);
+			case LOW:
+				return getLowCategories(parentCode);
+			default:
+				throw createClientException(ErrorCode.LEDGER_CATEGORY_INVALID,  "지원하지 않은 카테고리 단계입니다.", request.getLevel());
+		}
+	}
+
+
+	/**
+	 * 지정한 하위 카테고리 코드(code)의 상위 계층(부모, 조부모) 카테고리를 조회합니다.
+	 * <p>
+	 *     코드가 {@link CategoryLevel#LOW} 형식에 맞으면 상위 계층 카테고리 리스트를 반환합니다.
+	 *     형식이 맞지 않으면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
+	 * </p>
+	 *
+	 * @param code 	조회할 하위 카테고리 코드
+	 * @return 상위 계층 카테고리 정보를 담은 {@link CategoryResponse} 리스트
+	 * @throws com.moneymanager.exception.custom.ClientException	잘못된 코드 형식이거나 상위 카테고리를 찾을 수 없는 경우
+	 */
+	public List<CategoryResponse> getAncestorCategoriesByCode(String code) {
+		CategoryValidator.validateCode(CategoryLevel.LOW, code);
+
+		return getMyParentCategories(code);
+	}
+
+	/**
 	 * 주어진 코드(code)에 대해 자신의 상위 계층 카테고리(부모, 조부모)를 조회합니다.
 	 * <p>
 	 *     조회된 카테고리 리스트를 {@link CategoryResponse} 리스트로 매핑 후 반환합니다.
@@ -110,7 +175,7 @@ public class CategoryService {
 	 */
 	public List<CategoryResponse> getMyParentCategories(String code) {
 		//데이터베이스 조회 결과
-		List<Category> categories = categoryDAO.findCategoryByStep(code);
+		List<Category> categories = categoryDAO.findAncestorCategoriesByCode(code);
 		if( categories.isEmpty() ) {
 			throw createClientException(ErrorCode.LEDGER_CATEGORY_NONE, "카테고리를 찾을 수 없습니다.", code);
 		}

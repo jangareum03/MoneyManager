@@ -146,7 +146,7 @@ class CategoryDaoSearchTest {
 		String code = "020203";
 
 		//when
-		List<Category> result = categoryDao.findCategoryByStep(code);
+		List<Category> result = categoryDao.findAncestorCategoriesByCode(code);
 
 		//then
 		assertThat(result).hasSize(3);
@@ -167,7 +167,7 @@ class CategoryDaoSearchTest {
 		String code = "020109";
 
 		//when
-		List<Category> result = categoryDao.findCategoryByStep(code);
+		List<Category> result = categoryDao.findAncestorCategoriesByCode(code);
 
 		//then
 		assertThat(result).isEmpty();
