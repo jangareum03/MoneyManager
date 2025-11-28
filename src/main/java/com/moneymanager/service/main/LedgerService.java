@@ -90,7 +90,7 @@ public class LedgerService {
 	 * 제목은 가계부 날짜를 {@code yyyy년 mm월 dd일 E요일} 형식으로 저장됩니다.
 	 *
 	 * @param id 			회원 식별번호
-	 * @param type      작성할 가계부 유형
+	 * @param type      작성할 가계부 유형("income", "outlay")
 	 * @param date		작성할 가계부 날짜 문자열
 	 * @return 작성에 필요한 기본 정보
 	 */
@@ -100,13 +100,16 @@ public class LedgerService {
 
 		int availableCount = imageService.getLimitImageCount(id);        //등록 가능한 이미지 개수
 
-		//부모 카테고리 코드
-		String parentCode = categoryService.generateParentCode( CategoryLevel.MIDDLE, LedgerType.from(type).getCode() );
-		CategoryValidator.validateCode(CategoryLevel.MIDDLE, parentCode);
+		//중간 카테고리를 가계부 유형에 따라 가져오기
+		String code = LedgerType.from(type).getDbCode();
+		CategoryValidator.validate(CategoryRequest.ofMiddleCategory(code));
+
+		List<CategoryResponse> categories = categoryService.getSubCategories(CategoryRequest.ofMiddleCategory(code));
 
 		return LedgerWriteResponse.ledgerDetail.builder()
-				.date(title).type(type).maxImage(availableCount)
-				.categories(categoryService.getMiddleCategories(parentCode))
+				.date(title).type(type)
+				.maxImage(availableCount)
+				.categories(categories)
 				.build();
 	}
 

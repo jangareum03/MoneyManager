@@ -37,32 +37,38 @@ import static com.moneymanager.exception.ErrorUtil.createClientException;
 @Getter
 public enum LedgerType {
 
-	INCOME("income", "01"), OUTLAY("outlay", "02");
+	INCOME("수입", "income", "010000"),
+	OUTLAY("지출", "outlay", "020000");
 
-	private final String type;
-	private final String dbValue;
+	private final String label;						//화면 표시용
+	private final String urlCode;					//API 용
+	private final String dbCode;					//DB에서 구분할 값
 
-	LedgerType(String type, String code) {
-		this.type = type;
-		this.dbValue = code;
+	LedgerType(String label, String urlCode, String dbCode) {
+		this.label = label;
+		this.urlCode = urlCode;
+		this.dbCode = dbCode;
 	}
 
 
 	/**
-	 * 가계부 카테고리 코드의 앞 2글자와 일치하는 유형을 반환합니다. <br>
-	 * 일치하는 유형이 없으면 {@link com.moneymanager.exception.custom.ClientException} 이 발생합니다.
+	 * API용 URL에서 전송된 값이 {@link LedgerType} 객체의 {@code urlCode}이 동일한지 확인합니다.
+	 * <p>
+	 *     동일한 값이 있으면 해당 {@link LedgerType} 객체를 반환합니다.
+	 *     만약 동일한 값이 없으면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
+	 * </p>
 	 *
-	 * @param code		유형을 확인할 가계부 카테고리 코드
+	 * @param urlCode		가계부 유형을 확인할 URL 값
 	 * @return	가계부 유형 정보를 담은 {@link LedgerType} 객체
 	 */
-	public static LedgerType from(String code) {
+	public static LedgerType from(String urlCode) {
 		for( LedgerType type : LedgerType.values() ) {
-			if( code.startsWith(type.getDbValue()) ) {
+			if( urlCode.equalsIgnoreCase(type.getUrlCode()) ) {
 				return type;
 			}
 		}
 
-		throw createClientException(ErrorCode.LEDGER_TYPE_INVALID, "가계부 유형을 확인해주세요.", code);
+		throw createClientException(ErrorCode.LEDGER_TYPE_INVALID, "가계부 유형을 확인해주세요.", urlCode);
 	}
 
 }

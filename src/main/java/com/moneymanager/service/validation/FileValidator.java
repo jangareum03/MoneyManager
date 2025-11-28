@@ -51,7 +51,7 @@ public class FileValidator {
 	 */
 	public <T> void validateProfileImage(ErrorDTO<T> errorDTO) {
 //		MultipartFile file = (MultipartFile) errorDTO.getRequestData();
-//		List<ErrorCode> errorCodes = ErrorCode.getGroupByPrefix(errorDTO.getCode());
+//		List<ErrorCode> errorCodes = ErrorCode.getGroupByPrefix(errorDTO.getDbCode());
 //
 //		//파일이 없는 경우
 //		if( Objects.isNull(file) || file.isEmpty() ) {

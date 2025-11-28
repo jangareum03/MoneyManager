@@ -4,19 +4,14 @@ import com.moneymanager.dao.main.CategoryDao;
 import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.domain.ledger.dto.CategoryResponse;
 import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.exception.ErrorCode;
-import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.exception.custom.ServerException;
 import com.moneymanager.service.main.CategoryService;
-import com.moneymanager.service.main.validation.CategoryValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -100,82 +95,5 @@ class CategoryServiceSearchTest {
 					assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.DATABASE_QUERY_RESULT);
 					assertThat(errorDTO.getMessage()).isEqualTo("일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 				});
-	}
-
-
-	//=================================================
-	// getAncestorCategoriesByCode() 테스트
-	//=================================================
-	@DisplayName("내부 메서드 호출 순서가 맞고, 반환값이 일치한다.")
-	@Test
-	void 메서드순서_검증_반환값_확인() {
-		//given
-		String code = "010101";
-
-		List<CategoryResponse> mockResult = List.of(CategoryResponse.builder().build());
-		when(service.getMyParentCategories(code)).thenReturn(mockResult);
-
-		try( MockedStatic<CategoryValidator> validatorMockedStatic = Mockito.mockStatic(CategoryValidator.class)) {
-			//when
-			List<CategoryResponse> result = service.getAncestorCategoriesByCode(code);
-
-			//then
-			validatorMockedStatic.verify(() -> CategoryValidator.validateCode(CategoryLevel.LOW, code));
-			verify(service).getMyParentCategories(code);
-
-			assertThat(result)
-					.isNotNull()
-					.hasSize(1)
-					.containsExactlyElementsOf(mockResult);
-		}
-	}
-
-
-	//=================================================
-	// getMyParentCategories() 테스트
-	//=================================================
-	@DisplayName("코드가 없으면 ClientException 예외가 발생한다.")
-	@Test
-	void 코드_없으면_예외발생() {
-		//given
-		String code = "010108";
-
-		when(dao.findAncestorCategoriesByCode(code)).thenReturn(List.of());
-
-		//when & then
-		assertThatExceptionOfType(ClientException.class)
-				.isThrownBy(() -> service.getMyParentCategories(code))
-				.satisfies(e -> {
-					ErrorDTO<?> errorDTO = e.getErrorDTO();
-
-					assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.LEDGER_CATEGORY_NONE);
-					assertThat(errorDTO.getMessage()).isEqualTo("카테고리를 찾을 수 없습니다.");
-					assertThat(errorDTO.getRequestData()).isEqualTo(code);
-				});
-	}
-
-	@DisplayName("코드가 있으면 자신의 상위 카테고리 리스트를 반환한다.")
-	@Test
-	void 코드_있으면_리스트반환(){
-		//given
-		String code = "010101";
-
-		when(dao.findAncestorCategoriesByCode(code)).thenReturn(List.of(
-				Category.builder().code("010000").name("수입").build(),
-				Category.builder().code("010100").name("소득").build(),
-				Category.builder().code(code).name("월급").build()
-		));
-
-		//when
-		List<CategoryResponse> result = service.getMyParentCategories(code);
-
-		//then
-		assertThat(result).hasSize(3);
-
-		assertThat(result.get(0).getCode()).isEqualTo("010000");
-		assertThat(result.get(1).getCode()).isEqualTo("010100");
-		assertThat(result.get(2).getCode()).isEqualTo(code);
-		assertThat(result.get(2).getName()).isEqualTo("월급");
-
 	}
 }

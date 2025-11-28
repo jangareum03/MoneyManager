@@ -33,6 +33,11 @@ import java.util.List;
  *		 	  <td>areum Jang</td>
  *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 11. 29</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>[메서드] findCategoryCodesByParentCode → findCategoriesByParentCode</td>
+ *		 	</tr>
  *		</tbody>
  * </table>
  */
@@ -83,7 +88,7 @@ public class CategoryDao {
 	 * @param parentCode		조회할 부모 카테고리 코드
 	 * @return	주어진 부모코드의 직접적인 하위 카테고리 리스트
 	 */
-		public List<Category> findCategoryCodesByParentCode(String parentCode) {
+		public List<Category> findCategoriesByParentCode(String parentCode) {
 			String sql = "SELECT name, code " +
 									"FROM ledger_category " +
 									"WHERE parent_code = ?" +

@@ -6,11 +6,11 @@ import com.moneymanager.domain.global.dto.ApiResultDTO;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.YearMonthRequest;
+import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.LedgerService;
 import com.moneymanager.service.main.api.GoogleChartService;
-import com.moneymanager.service.main.validation.CategoryValidator;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +22,8 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 
 /**
@@ -91,12 +93,12 @@ public class LedgerApiController {
 
 
 	/**
-	 * 클라이언트가 선택한 상위 카테고리를 기준으로 하위 카테고리 목록을 반환합니다.
+	 * 클라이언트가 선택한 카테고리를 기준으로 하위 카테고리 목록을 반환합니다.
 	 * <p>
 	 *     처리 과정:
 	 *     <ol>
-	 *         <li>클라이언트로부터 {@link CategorySearchRequest} 객체를 받습니다.</li>
-	 *         <li>{@link CategorySearchRequest}가 {@code null}이면 {@link ClientException} 을 발생시킵니다.</li>
+	 *         <li>클라이언트로부터 {@link CategoryRequest} 객체를 받습니다.</li>
+	 *         <li>{@link CategoryRequest}가 {@code null}이면 {@link ClientException} 을 발생시킵니다.</li>
 	 *         <li>가계부 서비스의 {@code getCategoriesByCode()}를 호출하여 요청에 맞는 하위 카테고리 목록을 가져옵니다.</li>
 	 *         <li>조회한 결과를 JSON 형태로 클라리언트에게 전달합니다.</li>
 	 *     </ol>
@@ -106,8 +108,11 @@ public class LedgerApiController {
 	 * @return 요청한 코드에 해당하는 하위 카테고리 목록
 	 */
 	@GetMapping("/category")
-	public List<CategoryResponse> postCategories(@RequestBody CategorySearchRequest request) {
-		CategoryValidator.validate(request);
+	public List<CategoryResponse> postCategories(@RequestBody CategoryRequest request) {
+		//요청 정보가 없는 경우
+		if (request == null) {
+			throw createClientException(ErrorCode.LEDGER_CATEGORY_MISSING, "카테고리를 확인해주세요.");
+		}
 
 		return categoryService.getSubCategories(request);
 	}

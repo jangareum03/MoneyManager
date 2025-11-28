@@ -1,5 +1,10 @@
 package com.moneymanager.domain.ledger.enums;
 
+import com.moneymanager.exception.ErrorCode;
+import lombok.Getter;
+
+import static com.moneymanager.exception.ErrorUtil.createClientException;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
@@ -27,6 +32,19 @@ package com.moneymanager.domain.ledger.enums;
  * 		</tbody>
  * </table>
  */
+@Getter
 public enum CategoryLevel {
-	TOP, MIDDLE, LOW;
+	TOP,
+	MIDDLE,
+	LOW;
+
+	public static CategoryLevel from(String level) {
+		for( CategoryLevel e : CategoryLevel.values() ) {
+			if( level.equalsIgnoreCase(e.name()) ) {
+				return e;
+			}
+		}
+
+		throw createClientException(ErrorCode.LEDGER_CATEGORY_INVALID, "지원하지 않은 카테고리 단계입니다.", level);
+	}
 }

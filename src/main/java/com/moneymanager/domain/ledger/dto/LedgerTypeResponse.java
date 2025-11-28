@@ -47,7 +47,7 @@ public class LedgerTypeResponse {
 	//Ledger enum 리스트를 한 번에 변환하는 정적 메서드
 	public static List<LedgerTypeResponse> from(LedgerType[] types ) {
 		return Arrays.stream(types)
-				.map(e -> new LedgerTypeResponse(e.getDisplay(), e.getCode()))
+				.map(e -> new LedgerTypeResponse(e.getLabel(), e.getDbCode()))
 				.collect(Collectors.toList());
 	}
 }
