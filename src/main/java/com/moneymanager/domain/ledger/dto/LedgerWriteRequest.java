@@ -1,5 +1,6 @@
 package com.moneymanager.domain.ledger.dto;
 
+import com.moneymanager.domain.ledger.vo.FixedStatus;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
@@ -44,7 +45,7 @@ public class LedgerWriteRequest {
 	//가계부 날짜
 	private String date;
 	//가계부 등록 주기
-	private LedgerFixResponse fix;
+	private FixedStatus fix;
 	//카테고리 코드
 	private String category;
 	//메모

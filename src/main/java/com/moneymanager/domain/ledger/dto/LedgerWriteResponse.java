@@ -1,5 +1,6 @@
 package com.moneymanager.domain.ledger.dto;
 
+import com.moneymanager.domain.ledger.vo.FixedStatus;
 import com.moneymanager.domain.ledger.vo.Place;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,7 +53,7 @@ public class LedgerWriteResponse {
 		private int maxImage;
 		//가계부 등록 주기
 		@Builder.Default
-		private LedgerFixResponse fix = LedgerFixResponse.defaultValue();
+		private FixedStatus fix = new FixedStatus();
 		//위치
 		@Builder.Default
 		private Place place = null;

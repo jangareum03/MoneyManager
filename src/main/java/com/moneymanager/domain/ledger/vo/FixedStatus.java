@@ -37,8 +37,13 @@ import static com.moneymanager.exception.ErrorUtil.createClientException;
 @Value
 @Getter
 public class FixedStatus {
-	boolean fixed;				//고정 여부
+	boolean fixed;				//고정 여부(true: 고정, false: 변동)
 	FixedPeriod period;		//고정 주기
+
+	public FixedStatus() {
+		this.fixed = false;
+		this.period = null;
+	}
 
 	public FixedStatus(boolean fixed, FixedPeriod period) {
 		if( fixed && period == null ) {
