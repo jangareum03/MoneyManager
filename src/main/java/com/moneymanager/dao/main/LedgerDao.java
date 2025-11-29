@@ -3,14 +3,14 @@ package com.moneymanager.dao.main;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
-import com.moneymanager.domain.ledger.vo.Money;
+import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.ledger.dto.CategoryResponse;
 import com.moneymanager.domain.ledger.dto.LedgerListResponse;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.LedgerDate;
 import com.moneymanager.domain.member.Member;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -104,8 +104,8 @@ public class LedgerDao {
 								stmt.setString(4, ledger.getCycleType().getDbValue());
 								stmt.setDate(5, Date.valueOf(ledger.getTransActionDate()));
 								stmt.setString(6, ledger.getMemo());
-								stmt.setLong(7, ledger.getMoney().getAmount());
-								stmt.setString(8, ledger.getMoney().getType().getDbValue());
+								stmt.setLong(7, ledger.getAmount().getAmountValue());
+								stmt.setString(8, ledger.getAmount().getType().getDbCode());
 								stmt.setString(9, ledger.getImage1());
 								stmt.setString(10, ledger.getImage2());
 								stmt.setString(11, ledger.getImage3());
@@ -151,7 +151,7 @@ public class LedgerDao {
 								.isReturning(isFix).cycleType(FixedPeriod.fromDbValue(rs.getString("fix_cycle")))
 								.date(new LedgerDate(rs.getString("transaction_date")))
 								.memo(rs.getString("memo"))
-								.money(new Money( rs.getInt("price"), PaymentType.fromDbValue(rs.getString("payment_type")) ))
+								.amount(AmountInfo.builder().amount(rs.getInt("price")).type(PaymentType.from(rs.getString("payment_type"))).build())
 								.image1(rs.getString("image1")).image2(rs.getString("image2")).image3(rs.getString("image3"))
 								.place(Place.builder().placeName(rs.getString("place_name")).roadAddress(rs.getString("road_address")).detailAddress(rs.getString("address")).build())
 								.createdAt(rs.getTimestamp("created_at").toLocalDateTime()).updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
@@ -439,7 +439,7 @@ public class LedgerDao {
 		return jdbcTemplate.update(
 						query,
 						ledger.getCategory().getCode(), isFixed, ledger.getCycleType().getDbValue(),
-						ledger.getMemo(), ledger.getMoney().getAmount(), ledger.getMoney().getType(),
+						ledger.getMemo(), ledger.getAmount().getAmountValue(), ledger.getAmount().getType(),
 						ledger.getPlace().getPlaceName(), ledger.getPlace().getRoadAddress(), ledger.getPlace().getDetailAddress(),
 						ledger.getMember().getId(), ledger.getId()
 		) == 1;

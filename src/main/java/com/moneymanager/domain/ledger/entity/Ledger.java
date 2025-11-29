@@ -2,7 +2,7 @@ package com.moneymanager.domain.ledger.entity;
 
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.vo.LedgerDate;
-import com.moneymanager.domain.ledger.vo.Money;
+import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.domain.member.Member;
 import lombok.Builder;
@@ -52,9 +52,9 @@ public class Ledger {
     private Category category;						//카테고리
 	private boolean isReturning;						//고정여부
 	private FixedPeriod cycleType;					//고정주기
-    private LedgerDate date;					//가계부 날짜
+    private LedgerDate date;							//가계부 날짜
     private String memo;									//내용
-	private Money money;								//가격
+	private AmountInfo amount;						//금액
     private String image1;								//이미지1
     private String image2;								//이미지2
     private String image3;								//이미지3

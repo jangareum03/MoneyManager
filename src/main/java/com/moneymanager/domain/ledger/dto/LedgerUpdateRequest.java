@@ -3,10 +3,7 @@ package com.moneymanager.domain.ledger.dto;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.domain.ledger.vo.LedgerDate;
-import com.moneymanager.domain.ledger.vo.FixedStatus;
-import com.moneymanager.domain.ledger.vo.Money;
-import com.moneymanager.domain.ledger.vo.Place;
+import com.moneymanager.domain.ledger.vo.*;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import lombok.*;
 
@@ -79,7 +76,7 @@ public class LedgerUpdateRequest {
 				.isReturning(fix.isFixed()).cycleType(fix.getPeriod())
 				.category(Category.builder().code(category).build())
 				.memo(memo)
-				.money(new Money(price, paymentType))
+				.amount(AmountInfo.builder().amount(price).type(paymentType).build())
 				.image1(image.get(0).getFileName()).image2(image.get(1).getFileName()).image3(image.get(2).getFileName())
 				.place(Place.builder().placeName(place.getPlaceName()).roadAddress(place.getRoadAddress()).detailAddress(place.getDetailAddress()).build())
 				.build();

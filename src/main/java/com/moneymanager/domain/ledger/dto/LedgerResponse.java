@@ -1,7 +1,7 @@
 package com.moneymanager.domain.ledger.dto;
 
+import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.FixedStatus;
-import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import lombok.Builder;
 import lombok.Getter;
@@ -43,7 +43,7 @@ public class LedgerResponse {
 	private FixedStatus fix;									//가계브 고정
 	private CategoryResponse category;			//카테고리
 	private String memo;										//메모
-	private Money money;									//금액
+	private AmountInfo amount;							//금액정보
 	private List<String> image;							//가계부 사진
 	private Place place;										//위치
 }

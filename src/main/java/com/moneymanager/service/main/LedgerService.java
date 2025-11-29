@@ -11,7 +11,6 @@ import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
-import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.vo.*;
 import com.moneymanager.domain.ledger.enums.DateType;
@@ -339,7 +338,7 @@ public class LedgerService {
 					.place(place)
 					.id(ledger.getId())
 					.memo(ledger.getMemo())
-					.money(new Money(ledger.getMoney().getAmount(), ledger.getMoney().getType()))
+					.amount(ledger.getAmount())
 					.build();
 		} else {
 			throw new RuntimeException("");

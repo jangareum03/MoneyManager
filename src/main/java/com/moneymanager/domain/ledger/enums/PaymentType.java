@@ -39,19 +39,19 @@ public enum PaymentType {
 	CARD("카드", "CARD"),
 	BANK("계좌이체", "BANK");
 
-	private final String displayName;
-	private final String dbValue;
+	private final String label;
+	private final String dbCode;
 
-	PaymentType(String displayName, String dbValue) {
-		this.displayName = displayName;
-		this.dbValue = dbValue;
+	PaymentType(String label, String dbCode) {
+		this.label = label;
+		this.dbCode = dbCode;
 	}
 
-	public static PaymentType fromDbValue(String dbValue) {
+	public static PaymentType from(String code) {
 		for( PaymentType type : values() ) {
-			if(type.dbValue.equalsIgnoreCase(dbValue)) return type;
+			if(type.dbCode.equalsIgnoreCase(code)) return type;
 		}
 
-		throw createClientException(ErrorCode.LEDGER_PAYMENT_FORMAT, "지원하지 않은 결제유형입니다.", dbValue);
+		throw createClientException(ErrorCode.LEDGER_PAYMENT_FORMAT, "지원하지 않은 결제유형입니다.", code);
 	}
 }

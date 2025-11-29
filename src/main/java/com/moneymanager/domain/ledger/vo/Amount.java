@@ -1,6 +1,5 @@
 package com.moneymanager.domain.ledger.vo;
 
-import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
 import lombok.Value;
@@ -10,7 +9,7 @@ import static com.moneymanager.exception.ErrorUtil.createClientException;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.vo<br>
- * 파일이름       : Money<br>
+ * 파일이름       : Amount<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 8. 31.<br>
  * 설명              : 금액 값을 나타내는 클래스
@@ -36,22 +35,16 @@ import static com.moneymanager.exception.ErrorUtil.createClientException;
  */
 @Value
 @Getter
-public class Money {
+public class Amount {
 
 	long amount;
-	PaymentType type;
 
-	public Money(long amount, PaymentType type) {
+	public Amount(long amount) {
 		if( amount <= 0 ) {	//금액이 0보다 작은 경우
 			throw createClientException(ErrorCode.LEDGER_PRICE_INVALID, "금액은 0보다 커야합니다.", amount);
 		}
 
-		if( type == null ) {
-			throw createClientException(ErrorCode.LEDGER_PAYMENT_MISSING, "금액유형은 필수입니다.");
-		}
-
 		this.amount = amount;
-		this.type = type;
 	}
 
 }
