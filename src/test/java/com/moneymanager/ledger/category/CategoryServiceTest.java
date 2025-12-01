@@ -21,7 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -203,7 +202,7 @@ class CategoryServiceTest {
 				.satisfies( e -> {
 					ErrorDTO<?> errorDTO = e.getErrorDTO();
 
-					assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.DATABASE_QUERY_RESULT);
+					assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.DATABASE_RESULT_INTERNAL);
 					assertThat(errorDTO.getMessage()).isEqualTo("일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 				});
 	}
