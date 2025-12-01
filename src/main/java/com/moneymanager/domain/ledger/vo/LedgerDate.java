@@ -40,13 +40,14 @@ import static com.moneymanager.utils.DateTimeUtils.*;
 @Getter
 public class LedgerDate {
 
-	LocalDate date;
+	LocalDate transactionDate;
 
 	public LedgerDate(String date) {
 		validateDate(date);
 
-		this.date = parseDateFlexible(date);
+		this.transactionDate = parseDateFlexible(date);
 	}
+
 
 	private void validateDate(String dateStr) {
 		if( dateStr == null || dateStr.isBlank() ) {	//날짜가 미입력된 경우
@@ -83,5 +84,4 @@ public class LedgerDate {
 	private String extractDigits(String date) {
 		return date.replaceAll("\\D", "");
 	}
-
 }

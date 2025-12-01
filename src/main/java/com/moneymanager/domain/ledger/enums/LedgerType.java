@@ -61,14 +61,37 @@ public enum LedgerType {
 	 * @param urlCode		가계부 유형을 확인할 URL 값
 	 * @return	가계부 유형 정보를 담은 {@link LedgerType} 객체
 	 */
-	public static LedgerType from(String urlCode) {
-		for( LedgerType type : LedgerType.values() ) {
+	public static LedgerType fromUrl(String urlCode) {
+		for( LedgerType type : values() ) {
 			if( urlCode.equalsIgnoreCase(type.getUrlCode()) ) {
 				return type;
 			}
 		}
 
 		throw createClientException(ErrorCode.LEDGER_TYPE_INVALID, "가계부 유형을 확인해주세요.", urlCode);
+	}
+
+
+	/**
+	 *데이터베이스에 저장된 카테고리 코드({@code code})와 비교하여 동일한 값이 있으면 해당 {@link LedgerType} 객체를 반환합니다.
+	 * <p>
+	 *     카테고리 코드({@code code})의 앞 2자리와 DB의 카테고리 코드의 앞 2자리를 비교합니다. 만약 동일한 값이 없으면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
+	 * </p>
+	 *
+	 * @param code	카테고리 코드
+	 * @return 가계부 유형 정보를 담은 {@link LedgerType} 객체
+	 */
+	public static LedgerType fromCode(String code) {
+		for( LedgerType type : values() ) {
+			String codePrefix = code.substring(0, 2);
+			String dbPrefix = type.dbCode.substring(0, 2);
+
+			if( codePrefix.equals(dbPrefix) ) {
+				return type;
+			}
+		}
+
+		throw createClientException(ErrorCode.LEDGER_TYPE_INVALID, "가계부 유형을 확인해주세요.", code);
 	}
 
 }

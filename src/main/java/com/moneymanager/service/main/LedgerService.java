@@ -95,12 +95,12 @@ public class LedgerService {
 	 */
 	public LedgerWriteResponse.ledgerDetail getWriteByData(String id, String type, String date) {
 		LedgerDate ledgerDate = new LedgerDate(date);
-		String title = DateTimeUtils.formatDateAsString(ledgerDate.getDate(), "yyyy년 MM월 dd일 E요일");
+		String title = DateTimeUtils.formatDateAsString(ledgerDate.getTransactionDate(), "yyyy년 MM월 dd일 E요일");
 
 		int availableCount = imageService.getLimitImageCount(id);        //등록 가능한 이미지 개수
 
 		//중간 카테고리를 가계부 유형에 따라 가져오기
-		String code = LedgerType.from(type).getDbCode();
+		String code = LedgerType.fromUrl(type).getDbCode();
 		CategoryValidator.validate(CategoryRequest.ofMiddleCategory(code));
 
 		List<CategoryResponse> categories = categoryService.getSubCategories(CategoryRequest.ofMiddleCategory(code));
@@ -183,7 +183,7 @@ public class LedgerService {
 		for (LedgerListResponse.DayCards dayCards : dayCardsList ) {
 			List<LedgerListResponse.Card> cardList = dayCards.getCardList();
 
-			String formatDate = DateTimeUtils.formatDateAsString(new LedgerDate(dayCards.getDate()).getDate(), "yyyy. MM. dd (E)");
+			String formatDate = DateTimeUtils.formatDateAsString(new LedgerDate(dayCards.getDate()).getTransactionDate(), "yyyy. MM. dd (E)");
 
 			cards.add( LedgerListResponse.DayCards.builder().date(formatDate).cardList(cardList).build() );
 		}
@@ -338,7 +338,7 @@ public class LedgerService {
 					.place(place)
 					.id(ledger.getId())
 					.memo(ledger.getMemo())
-					.amount(ledger.getAmount())
+					.amount(ledger.getAmountInfo())
 					.build();
 		} else {
 			throw new RuntimeException("");

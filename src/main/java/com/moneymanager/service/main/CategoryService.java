@@ -100,7 +100,7 @@ public class CategoryService {
 	public List<CategoryResponse> getTopCategories() {
 		List<Category> categories = categoryDAO.findTopCategories();
 		if( categories.isEmpty() ) {
-			throw createServerException(ErrorCode.DATABASE_QUERY_RESULT, "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+			throw createServerException(ErrorCode.DATABASE_RESULT_INTERNAL, "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
 		}
 
 		return CategoryResponse.from( categories );

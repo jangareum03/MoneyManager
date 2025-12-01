@@ -45,29 +45,31 @@ public enum ErrorCode {
 	/**
 	 * 가계부 에러 메시지
 	 */
-	LEDGER_TYPE_INVALID("C030106", "가계부 유형 범위"),
-	LEDGER_DATE_MISSING("C030201", "가계부 날짜 누락"),
-	LEDGER_DATE_FORMAT("C030202", "가계부 날짜 형식"),
-	LEDGER_DATE_INVALID("C030206", "가계부 날짜 범위"),
-	LEDGER_FIX_MISSING("C030301", "가계부 고정 누락"),
-	LEDGER_FIX_FORMAT("C030302", "가계부 고정 형식"),
-	LEDGER_FIX_INVALID("C030306", "가계부 고정 범위"),
-	LEDGER_CATEGORY_MISSING("C030401", "가계부 카테고리 누락"),
-	LEDGER_CATEGORY_FORMAT("C030402", "가계부 카테고리 형식"),
-	LEDGER_CATEGORY_NONE("C030404", "가계부 카테고리 없음"),
-	LEDGER_CATEGORY_INVALID("C030406", "가계부 카테고리 범위"),
-	LEDGER_PRICE_MISSING("C030601", "가계부 금액 누락"),
-	LEDGER_PRICE_FORMAT("C030602", "가계부 금액 형식"),
-	LEDGER_PRICE_INVALID("C030606", "가계부 금액 범위"),
-	LEDGER_PAYMENT_MISSING("C030701", "가계부 금액유형 누락"),
-	LEDGER_PAYMENT_FORMAT("C030702", "가계부 금액유형 형식"),
-	LEDGER_PLACE_MISSING("C030901", "가계부 주소 누락"),
-	LEDGER_PLACE_FORMAT("C030902", "가계부 주소 형식"),
+	LEDGER_THIS_MISSING("C030001","가계부 객체 누락"),
+	LEDGER_ID_MISSING("C030101", "가계부 번호 누락"),
+	LEDGER_TYPE_INVALID("C030206", "가계부 유형 범위"),
+	LEDGER_DATE_MISSING("C030301", "가계부 날짜 누락"),
+	LEDGER_DATE_FORMAT("C030302", "가계부 날짜 형식"),
+	LEDGER_DATE_INVALID("C030306", "가계부 날짜 범위"),
+	LEDGER_FIX_MISSING("C030401", "가계부 고정 누락"),
+	LEDGER_FIX_FORMAT("C030402", "가계부 고정 형식"),
+	LEDGER_FIX_INVALID("C030406", "가계부 고정 범위"),
+	LEDGER_CATEGORY_MISSING("C030501", "가계부 카테고리 누락"),
+	LEDGER_CATEGORY_FORMAT("C030502", "가계부 카테고리 형식"),
+	LEDGER_CATEGORY_NONE("C030504", "가계부 카테고리 없음"),
+	LEDGER_CATEGORY_INVALID("C030506", "가계부 카테고리 범위"),
+	LEDGER_PRICE_MISSING("C030701", "가계부 금액 누락"),
+	LEDGER_PRICE_FORMAT("C030702", "가계부 금액 형식"),
+	LEDGER_PRICE_INVALID("C030706", "가계부 금액 범위"),
+	LEDGER_PAYMENT_MISSING("C030801", "가계부 금액유형 누락"),
+	LEDGER_PAYMENT_FORMAT("C030802", "가계부 금액유형 형식"),
+	LEDGER_PLACE_MISSING("C031001", "가계부 주소 누락"),
+	LEDGER_PLACE_FORMAT("C031002", "가계부 주소 형식"),
 	/**
 	 * 시스템 에러 메시지
 	 */
 	SYSTEM_LOGIN_INTERNAL("S010101", "시스템 내부 오류"),
-	DATABASE_QUERY_RESULT("S020202", "기대값 없음"),
+	DATABASE_RESULT_INTERNAL("S020401", "DB 결과 오류"),
 
 
 	/**
