@@ -40,7 +40,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class LedgerUpdateRequest {
-	private Long id;
+	private String id;
 	private String date;
 	private FixedStatus fix;
 	private String category;
@@ -59,7 +59,7 @@ public class LedgerUpdateRequest {
 	 * @param imageList			수정할 이미지 리스트
 	 * @return	새 UpdateDTO 객체
 	 */
-	public static LedgerUpdateRequest of(Long id, LedgerUpdateRequest update, List<ImageDTO> imageList ) {
+	public static LedgerUpdateRequest of(String id, LedgerUpdateRequest update, List<ImageDTO> imageList ) {
 		return LedgerUpdateRequest.builder()
 				.id(id)
 				.fix(update.getFix())
@@ -76,7 +76,7 @@ public class LedgerUpdateRequest {
 				.isReturning(fix.isFixed()).cycleType(fix.getPeriod())
 				.category(Category.builder().code(category).build())
 				.memo(memo)
-				.amount(AmountInfo.builder().amount(price).type(paymentType).build())
+				.amountInfo(AmountInfo.builder().amount(price).type(paymentType).build())
 				.image1(image.get(0).getFileName()).image2(image.get(1).getFileName()).image3(image.get(2).getFileName())
 				.place(Place.builder().placeName(place.getPlaceName()).roadAddress(place.getRoadAddress()).detailAddress(place.getDetailAddress()).build())
 				.build();

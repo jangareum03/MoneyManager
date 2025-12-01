@@ -38,7 +38,7 @@ import java.util.List;
 @Builder
 @Getter
 public class LedgerResponse {
-	private Long id;												//가계부 식별 번호
+	private String id;												//가계부 식별 번호
 	private String date;										//가계부 작성 날짜
 	private FixedStatus fix;									//가계브 고정
 	private CategoryResponse category;			//카테고리

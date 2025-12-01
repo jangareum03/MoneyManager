@@ -156,7 +156,7 @@ public class ImageServiceImpl {
 
 
 	//서버에 저장할 이미지 이름을 변경합니다.
-	private String changeImageName(Long id, LocalDate date, int index, String imageName ) {
+	private String changeImageName(String id, LocalDate date, int index, String imageName ) {
 		String ext = FilenameUtils.getExtension(imageName);
 		String originName = FilenameUtils.getBaseName(imageName);
 
@@ -228,7 +228,7 @@ public class ImageServiceImpl {
 	 *
 	 * @param folder	사진이 저장된 파일
 	 */
-	public boolean deleteImage( File folder, Long id ) {
+	public boolean deleteImage( File folder, String id ) {
 		//폴더가 없거나 폴더가 아닌 경우
 		if( !folder.exists() || !folder.isDirectory() ) {
 			return false;

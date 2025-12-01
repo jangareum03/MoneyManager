@@ -47,14 +47,15 @@ import java.time.LocalDateTime;
 @Builder
 @Getter
 public class Ledger {
-    private Long id;											//가계부 번호(식별자)
+    private Long num;										//가계부 식별 번호
+	private String id;										//가계부 번호
     private Member member;							//작성자
     private Category category;						//카테고리
 	private boolean isReturning;						//고정여부
 	private FixedPeriod cycleType;					//고정주기
     private LedgerDate date;							//가계부 날짜
     private String memo;									//내용
-	private AmountInfo amount;						//금액
+	private AmountInfo amountInfo;				//금액
     private String image1;								//이미지1
     private String image2;								//이미지2
     private String image3;								//이미지3
@@ -63,7 +64,7 @@ public class Ledger {
     private LocalDateTime updatedAt;			//수정일
 
 	public LocalDate getTransActionDate() {
-		return date.getDate();
+		return date.getTransactionDate();
 	}
 
 }

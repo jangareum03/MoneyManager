@@ -159,7 +159,7 @@ public class LedgerApiController {
 	 * @return 안내 메시지
 	 */
 	@PutMapping("/{id}")
-	public ResponseEntity<ApiResultDTO> update(HttpSession session, @PathVariable Long id,
+	public ResponseEntity<ApiResultDTO> update(HttpSession session, @PathVariable String id,
 											   @RequestPart("update") LedgerUpdateRequest update,
 											   @RequestPart(value = "image", required = false) List<MultipartFile> imageFiles) {
 		try {
