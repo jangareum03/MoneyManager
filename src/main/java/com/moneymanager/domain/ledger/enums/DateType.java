@@ -34,13 +34,11 @@ import java.util.Arrays;
 @Getter
 public enum DateType {
 
-	YEAR("year", "년"), MONTH("month", "월"), WEEK("week", "주"), DAY("day", "일");
+	YEAR("년"), MONTH( "월"), WEEK( "주"), DAY( "일");
 
-	private final String type;
 	private final String text;
 
-	DateType( String type, String text ) {
-		this.type = type;
+	DateType( String text ) {
 		this.text = text;
 	}
 
@@ -53,7 +51,7 @@ public enum DateType {
 	 */
 	public static DateType from( String type ) {
 		return Arrays.stream(DateType.values())
-				.filter( t -> t.getType().equalsIgnoreCase(type) )
+				.filter( t -> t.name().equalsIgnoreCase(type) )
 				.findFirst()
 				.orElse( MONTH );
 	}

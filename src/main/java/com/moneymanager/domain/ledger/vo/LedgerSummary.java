@@ -40,7 +40,8 @@ import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 @Builder
 public class LedgerSummary {
 	String id;										//가계부 번호
-	LedgerType type;						//가계부 유형
+	String type;								//가계부 유형
+	String category;							//카테고리 이름
 	String memo;								//가계부 메모
 	Amount amount;							//가계부 금액
 
@@ -56,9 +57,14 @@ public class LedgerSummary {
 
 		return LedgerSummary.builder()
 				.id(ledger.getId())
-				.type(LedgerType.fromCode(ledger.getCategory().getCode()))
+				.type(LedgerType.fromCode(ledger.getCategory().getCode()).getUrlCode())
+				.category(ledger.getCategory().getName())
 				.memo(ledger.getMemo())
 				.amount(ledger.getAmountInfo().getAmount())
 				.build();
+	}
+
+	public long getAmountValue(){
+		return amount.getAmount();
 	}
 }

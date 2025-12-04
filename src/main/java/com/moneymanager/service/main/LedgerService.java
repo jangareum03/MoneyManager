@@ -142,55 +142,23 @@ public class LedgerService {
 	 * @param search			가계부 검색 조건 객체({@link LedgerSearchRequest})
 	 * @return	제목, 통계, 일자별 카드 데이터를 포함한 {@link LedgerListResponse}
 	 */
-	public LedgerListResponse getLedgersForSummary(String memberId, LedgerSearchRequest search) {
-		//DateScope VO 생성 및 검증
-		DateScope scope = createPeriod(search);
-		dateScopeValidator.validate(scope, search.getType());
-
-		//가계부 데이터 조회
-		List<LedgerListResponse.DayCards> dayCards = getLedgers(memberId, search);
-
-		//제목 생성
+	public LedgerGroupResponse getLedgersForSummary(String memberId, LedgerSearchRequest search) {
+		//검증된 조회범위 VO 로 제목 생성
+		DateScope scope = createAndValidateScope(search);
 		String title = formatDateAsString(scope, search.getType());
 
-		return LedgerListResponse.builder()
+		//날짜별 가계부 리스트
+		LedgerByDate cards = getLedgers(memberId, search);
+
+		//금액 통계
+		IncomeExpenseSummary stats = calculateStats(cards);
+
+		return LedgerGroupResponse.builder()
 				.title(title)
-				.stats(getPriceByCategory(dayCards))
-				.cards(dayCards)
+				.summary(cards)
+				.stats( stats )
 				.build();
 	}
-
-
-	//일자별 카드 리스트 리스트 반환
-	private List<LedgerListResponse.DayCards> getLedgers(String memberId, LedgerSearchRequest search) {
-		List<LedgerListResponse.DayCards> cards = new ArrayList<>();
-
-		//SearchPeriod VO 생성 및 검증
-		SearchPeriod period;
-		if( search.getMode().equalsIgnoreCase("period") ) {
-			List<String> dates = search.getKeywords();
-
-			period = new SearchPeriod(dates.get(0), dates.get(1));
-		}else {
-			//DateScope VO 생성 및 검증
-			DateScope scope = createPeriod(search);
-			dateScopeValidator.validate(scope, search.getType());
-
-			period = new SearchPeriodAdapter(scope).toSearchPeriod();
-		}
-
-		List<LedgerListResponse.DayCards> dayCardsList = ledgerDAO.findLedgersBySearch(memberId, search.getMode(), search.getKeywords(), period);
-		for (LedgerListResponse.DayCards dayCards : dayCardsList ) {
-			List<LedgerListResponse.Card> cardList = dayCards.getCardList();
-
-			String formatDate = DateTimeUtils.formatDateAsString(new LedgerDate(dayCards.getDate()).getTransactionDate(), "yyyy. MM. dd (E)");
-
-			cards.add( LedgerListResponse.DayCards.builder().date(formatDate).cardList(cardList).build() );
-		}
-
-		return cards;
-	}
-
 
 	//범위(type)에 따라 날짜형식의 문자열로 반환
 	private String formatDateAsString(DateScope scope, DateType type) {
@@ -200,12 +168,75 @@ public class LedgerService {
 			case YEAR:
 				return DateTimeUtils.formatDateAsString(date, "yyyy년");
 			case WEEK:
-				int week = getWeekByMonth(scope);
-
-				return String.format("%s %s주", DateTimeUtils.formatDateAsString(date, "yyyy년 MM월"), week );
+				return String.format("%s %s주", DateTimeUtils.formatDateAsString(date, "yyyy년 MM월"), scope.getWeek() );
 			case MONTH:
 			default:
 				return DateTimeUtils.formatDateAsString(date, "yyyy년 MM월");
+		}
+	}
+
+	//일자별 가계부 내역 리스트 반환
+	private LedgerByDate getLedgers(String memberId, LedgerSearchRequest search) {
+		//SearchPeriod VO 생성 및 검증
+		SearchPeriod period;
+		if( search.getMode().equalsIgnoreCase("period") ) {
+			List<String> dates = search.getKeywords();
+
+			period = new SearchPeriod(dates.get(0), dates.get(1));
+		}else {
+			//DateScope VO 생성 및 검증
+			DateScope scope = createAndValidateScope(search);
+
+			period = new SearchPeriodAdapter(scope).toSearchPeriod();
+		}
+
+		List<Ledger> ledgers = ledgerDAO.findLedgersBySearch(memberId, search.getMode(), search.getKeywords(), period);
+
+
+		return new LedgerByDate(ledgers);
+	}
+
+	//조회된 금액별 통계 계산
+	private IncomeExpenseSummary calculateStats(LedgerByDate cards) {
+		long income = getTotalAmount(cards, LedgerType.INCOME);
+		long expense = getTotalAmount(cards, LedgerType.OUTLAY);
+
+		return IncomeExpenseSummary.of(income, expense);
+	}
+
+	//금액 유형별 총합 구하기
+	private long getTotalAmount(LedgerByDate cards, LedgerType type) {
+		return cards.getDateGroups().values().stream()
+				.flatMap(Collection::stream)
+				.filter(summary -> summary.getType().equals(type.getUrlCode()))
+				.mapToLong(LedgerSummary::getAmountValue)
+				.sum();
+	}
+
+	//DateScope VO 생성 및 검증
+	private DateScope createAndValidateScope(LedgerSearchRequest search) {
+		DateScope scope = createPeriod(search);
+		dateScopeValidator.validate(scope, search.getType());
+
+		return scope;
+	}
+
+	//날짜 타입에 따른 DateScope VO 생성
+	private DateScope createPeriod(LedgerSearchRequest search) {
+		switch ( search.getType() ) {
+			case YEAR:
+				return DateScope.ofYear(search.getYear());
+			case WEEK:
+				return DateScope.ofYearMonthWeek(search.getYear(), search.getMonth(), search.getWeek());
+			case MONTH:
+			default:
+				if( search.getYear() == null ) {
+					LocalDate today = LocalDate.now();
+
+					return DateScope.ofYearMonth(today.getYear(), today.getMonthValue());
+				}
+
+				return DateScope.ofYearMonth(search.getYear(), search.getMonth());
 		}
 	}
 
@@ -385,26 +416,6 @@ public class LedgerService {
 	public void deleteLedger(String memberId, List<Long> id) {
 		if (ledgerDAO.deleteLedgerById(memberId, id)) {
 			log.debug("{} 회원의 {} 가계부 삭제 완료", memberId, id);
-		}
-	}
-
-
-	//날짜 타입에 따른 DateScope VO 생성
-	private DateScope createPeriod(LedgerSearchRequest search) {
-		switch ( search.getType() ) {
-			case YEAR:
-				return DateScope.ofYear(search.getYear());
-			case WEEK:
-				return DateScope.ofYearMonthWeek(search.getYear(), search.getMonth(), search.getWeek());
-			case MONTH:
-			default:
-				if( search.getYear() == null ) {
-					LocalDate today = LocalDate.now();
-
-					return DateScope.ofYearMonth(today.getYear(), today.getMonthValue());
-				}
-
-				return DateScope.ofYearMonth(search.getYear(), search.getMonth());
 		}
 	}
 }

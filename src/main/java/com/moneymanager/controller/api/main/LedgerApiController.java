@@ -134,18 +134,25 @@ public class LedgerApiController {
 
 
 	/**
-	 * 가계부 내역에서 원하는 내역을 검색 요청을 처리합니다.<br>
-	 * 검색어가 없는 경우에는 요청처리를 진행하지 않습니다.
+	 * 회원의 가계부 내역을 조회하여 날짜별 카드 리스트로 그룹화하고, Thymeleaf 뷰에 필요한 모델 속성을 설정한 후 가계부 리스트 페이지를 반환합니다.
+	 * <p>
+	 *     처리과정:
+	 *     <ol>
+	 *         <li>세션에서 회원ID를 가져옵니다.</li>
+	 *         <li>서비스(<code>ledgerService</code>)에서 가계부 내역 요약을 조회합니다.</li>
+	 *         <li>Thymeleaf에서 쉽게 나열할 수 있도록 내역 리스트를 카드 형태로 변환합니다.</li>
+	 *     </ol>
+	 * </p>
 	 *
-	 * @param search  검색정보
-	 * @param session 사용자 식별 및 정보를 저장하는 객체
-	 * @return 검색어에 해당하는
+	 * @param search		가계부 검색 조건 객채({@link LedgerSearchRequest})
+	 * @param session		HTTP 세션에서 회원 ID를 가져오기 위해 사용
+	 * @return	가계부 내역 리스트를 담은 {@link LedgerGroupForCardResponse} 객체
 	 */
 	@PatchMapping("/search")
-	public ResponseEntity<LedgerListResponse> patchSearch(@RequestBody LedgerSearchRequest search, HttpSession session) {
+	public ResponseEntity<LedgerGroupForCardResponse> patchSearch(@RequestBody LedgerSearchRequest search, HttpSession session) {
 		String memberId = (String) session.getAttribute("mid");
 
-		return ResponseEntity.ok(ledgerService.getLedgersForSummary(memberId, search));
+		return ResponseEntity.ok(LedgerGroupForCardResponse.from(ledgerService.getLedgersForSummary(memberId, search)));
 	}
 
 

@@ -5,6 +5,7 @@ import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
+import com.moneymanager.domain.ledger.vo.LedgerSummary;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.ledger.dto.CategoryResponse;
@@ -165,82 +166,60 @@ public class LedgerDao {
 
 
 	/**
-	 * 회원 ID와 검색 조건에 따라 가계부 내역을 조회하고, 날짜별 카드 리스트로 그룹화하여 반환합니다.
+	 * 회원번호와 검색 조건에 따라 가계부 내역 리스트를 조회합니다.
 	 * <ul>
 	 *     <li>mode값에 따라 검색 조건이 달라집니다.</li>
 	 *     <ul>
 	 *         <li>"inout" : 카테고리 계층 구조 기반 검색</li>
 	 *         <li>"category" : 선택한 카테고리 코드 기반  검색</li>
 	 *         <li>"memo" : 작성한 메모 내용 기반  검색</li>
-	 *         <li>"period" : keywords로 지정된 기간 리스트 기반 검색</li>
-	 *         <li>"all" : 지정 기간 내 모든 내역 기반 검색</li>
 	 *     </ul>
 	 * </ul>
-	 * 조회 결과는 날짜(book_date)별로 그룹화 하여 {@link LedgerListResponse.DayCards} 리스트로 반환됩니다.<p>
-	 * 각 DayCards 내부에는 해당 날짜의 {@link LedgerListResponse.Card} 리스트가 포함되어 있습니다.
+	 *	반환된 내역은 {@link Ledger} 객체 리스트로 제공되어, 각 Ledger에는 거래일, 카테고리, 금액, 메모 등의 정보가 포함되어 있습니다.
 	 *
-	 * @param memberId			조회할 회원 ID
+	 * @param memberId			조회할 회원 번호
 	 * @param mode					검색모드("inout", "category", ... ,"all")
 	 * @param keywords			검색 키워드 리스트
 	 * @param date					날짜 검색기간 객체
-	 * @return	날짜별 카드 리스트를 포함한 {@link LedgerListResponse.DayCards} 리스트
-	 * @throws RuntimeException	JSON 파싱 오류 발생 시
+	 * @return	조건에 맞는 {@link Ledger} 객체 리스트
 	 */
-	public List<LedgerListResponse.DayCards> findLedgersBySearch(String memberId, String mode, List<String> keywords, DateGroupable date) {
-		StringBuilder query
-				= new StringBuilder("SELECT transaction_date, " +
-													"JSON_ARRAYAGG( " +
-														"JSON_OBJECT( 'id' VALUE id, 'code' VALUE category_id, 'name' VALUE name, 'price' VALUE price, 'memo' VALUE memo ) " +
-													") AS datas " +
-														"FROM ledger tbb, ledger_category tc " +
+	public List<Ledger> findLedgersBySearch(String memberId, String mode, List<String> keywords, DateGroupable date) {
+		StringBuilder sql
+				= new StringBuilder("SELECT id, category_id, name, transaction_date, memo, amount " +
+														"FROM ledger, ledger_category " +
 														"WHERE member_id = ? " +
-															"AND tc.code = tbb.category_id " +
-															"AND TRUNC(tbb.transaction_date) BETWEEN TO_CHAR(?, 'YYYYMMDD') AND TO_CHAR(?, 'YYYYMMDD') ");
+															"AND category_id = code " +
+															"AND transaction_date BETWEEN TO_CHAR(?, 'YYYYMMDD') AND TO_CHAR(?, 'YYYYMMDD') ");
 
 		List<Object> params = new ArrayList<>();
 		params.add(memberId);
 		params.add(date.getStartDate());
 		params.add(date.getEndDate());
 
-		switch ( mode ) {
+		switch (mode) {
 			case "inout":
-				query.append("AND tc.CODE IN (")
-									.append("SELECT code FROM ledger_category CONNECT BY PRIOR code = parent_code START WITH parent_code = ?")
-									.append(") ")
-									.append("GROUP BY transaction_date ")
-									.append("ORDER BY tbb.transaction_date DESC");
+				sql.append("AND category_id IN (")
+						.append("SELECT code FROM ledger_category START WITH parent_code = ? CONNECT BY PRIOR code = parent_code")
+						.append(") ");
 
 				params.addAll(keywords);
 				break;
 			case "category":
-				query.append("AND category_id IN (")
-								.append(String.join(", ", Collections.nCopies(keywords.size(), "?")))
-								.append(") ")
-								.append("GROUP BY transaction_date ")
-								.append("ORDER BY tbb.transaction_date DESC");
-
 				params.addAll(keywords);
-				break;
-			case "memo"	:
-				query.append("AND memo LIKE ? ")
-									.append("GROUP BY transaction_date ")
-									.append("ORDER BY tbb.transaction_date DESC");
 
-				params.add( "%" + keywords.get(0) + "%" );
+				sql.append("AND category_id IN (")
+						.append(String.join(", ", Collections.nCopies(keywords.size(), "?")))
+						.append(") ");
 				break;
-			case "period":
-				query.append("GROUP BY transaction_date ")
-						.append("ORDER BY tbb.transaction_date DESC");
+			case "memo":
+				params.add("%" + keywords.get(0) + "%");
 
+				sql.append("AND memo LIKE ? ");
 				break;
-			case "all":
-			default:
-				query.append("GROUP BY transaction_date ")
-						.append("ORDER BY transaction_date DESC");
 		}
 
 		return jdbcTemplate.query(
-			query.toString(),
+			sql.toString(),
 
 			ps -> {
 				for( int i=0; i<params.size(); i++ ) {
@@ -249,38 +228,28 @@ public class LedgerDao {
 			},
 
 			rs -> {
-				List<LedgerListResponse.DayCards> result = new ArrayList<>();
+				List<Ledger> ledgers = new ArrayList<>();
 
 				while ( rs.next() ) {
-					String transactionDate = rs.getString("transaction_date");
-					String jsonList = rs.getString("datas");
+					Ledger ledger = Ledger.builder()
+							.id(rs.getString("id"))
+							.date(new LedgerDate(rs.getString("transaction_date")))
+							.category(Category.builder()
+									.code(rs.getString("category_id"))
+									.name(rs.getString("name"))
+									.build())
+							.memo(rs.getString("memo"))
+							.amountInfo(AmountInfo.builder()
+									.amount(rs.getLong("amount"))
+									.build())
+							.build();
 
-					try{
-						List<LedgerListResponse.Card> cards = new ArrayList<>();
-						JsonNode node = new ObjectMapper().readTree(jsonList);
-
-						for( JsonNode cardNode : node ) {
-							LedgerListResponse.Card card = LedgerListResponse.Card.builder()
-									.id(cardNode.get("id").asLong())
-									.category(CategoryResponse.builder().code(cardNode.get("code").asText()).name(cardNode.get("name").asText()).build())
-									.price(cardNode.get("price").asLong())
-									.memo(cardNode.get("memo").asText())
-									.build();
-
-							cards.add(card);
-						}
-
-						LedgerListResponse.DayCards dayCards = LedgerListResponse.DayCards.builder()
-								.date(transactionDate).cardList(cards).build();
-
-						result.add(dayCards);
-					}catch ( JsonProcessingException e ) {
-						throw new RuntimeException("JSON 파싱 오류");
-					}
+					ledgers.add(ledger);
 				}
 
-			return result;
-		});
+				return ledgers;
+			}
+		);
 	}
 
 

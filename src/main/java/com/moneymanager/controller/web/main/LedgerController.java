@@ -2,6 +2,8 @@ package com.moneymanager.controller.web.main;
 
 import com.moneymanager.domain.ledger.dto.*;
 import com.moneymanager.domain.ledger.dto.LedgerResponse;
+import com.moneymanager.domain.ledger.enums.DateType;
+import com.moneymanager.domain.ledger.vo.LedgerByDate;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.LedgerService;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.util.*;
+
+import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 
 /**
  * <p>
@@ -90,38 +94,13 @@ public class LedgerController {
 	public String getLedgerPage(@PathVariable String type, LedgerSearchRequest search, HttpSession session, Model model) {
 		String memberId = (String) session.getAttribute("mid");
 
-		if( type == null || search == null ) {
-			search = LedgerSearchRequest.getDefaultValue();
-		}
+		search.changeType(DateType.from(type));
 
-		LedgerListResponse ledgerList = ledgerService.getLedgersForSummary(memberId, search);
+		LedgerGroupResponse ledgerGroupResponse = ledgerService.getLedgersForSummary(memberId, search);
+		LedgerGroupForCardResponse cardResponse = LedgerGroupForCardResponse.from(ledgerGroupResponse);
 
-		//Thymeleaf에서 나열하기 위한 전환
-		Map<String, List<List<LedgerListResponse.Card>>> formatSummary = new LinkedHashMap<>();
-		for(LedgerListResponse.DayCards dayCards  : ledgerList.getCards() ) {
-			List<LedgerListResponse.Card> cardList = dayCards.getCardList();
-			List<List<LedgerListResponse.Card>> cardGroup = new ArrayList<>();
-
-			for( int i=0; i<cardList.size(); i+= 3 ) {
-				List<LedgerListResponse.Card> cards = new ArrayList<>();
-
-				for( int j=0; j<3; j++ ) {
-					int index = i+j;
-					cards.add( index < cardList.size() ? cardList.get(index) : null );
-				}
-
-				cardGroup.add(cards);
-			}
-
-			formatSummary.put(dayCards.getDate(), cardGroup);
-		}
-
-
-		model.addAttribute("type", type);
-		model.addAttribute("title", ledgerList.getTitle());
+		model.addAttribute("cards", cardResponse);
 		model.addAttribute("search", LedgerSearchResponse.builder().type(type).mode("all").build());
-		model.addAttribute("price", ledgerList.getStats());
-		model.addAttribute("summary", formatSummary);
 
 		return "/main/ledger_list";
 	}
