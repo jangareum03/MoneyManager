@@ -105,6 +105,7 @@ public class LedgerSummaryTest {
 		assertThat(result).isNotNull();
 		assertThat(result.getId()).isEqualTo("01ARZ3NDEKTSV4RRFFQ69G5FAV");
 		assertThat(result.getType()).isEqualTo(LedgerType.OUTLAY);
+		assertThat(result.getCategory()).isEqualTo("버스비");
 		assertThat(result.getMemo()).isEqualTo("집에서 회사");
 		assertThat(result.getAmount()).isSameAs(ledger.getAmountInfo().getAmount());
 

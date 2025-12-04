@@ -131,15 +131,15 @@ CREATE TABLE member_point_log (
 
 -- 가계부
 CREATE TABLE ledger (
-    id                                      VARCHAR2(26)                      PRIMARY KEY,
-    number                             NUMBER                                UNIQUE,
+    num                                    NUMBER                     PRIMARY KEY,
+    id                                       VARCHAR2(26)                                UNIQUE,
     member_id                       VARCHAR2(8),
     category_id                     VARCHAR2(6),
     fix                                    CHAR(1)                       DEFAULT 'N'                 NOT NULL,
     fix_cycle                         CHAR(1),
     transaction_date           VARCHAR2(8)             NOT NULL,
     memo                               VARCHAR2(500),
-    price                               NUMBER                      NOT NULL,
+    amount                             NUMBER                      NOT NULL,
     payment_type                CHAR(4)                      DEFAULT 'NONE'           NOT NULL,
     image1                            VARCHAR2(255),
     image2                           VARCHAR2(255),
