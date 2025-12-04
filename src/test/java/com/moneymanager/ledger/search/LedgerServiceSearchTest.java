@@ -1,24 +1,11 @@
 package com.moneymanager.ledger.search;
 
 import com.moneymanager.dao.main.LedgerDao;
-import com.moneymanager.domain.ledger.dto.CategoryResponse;
-import com.moneymanager.domain.ledger.dto.LedgerListResponse;
-import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
-import com.moneymanager.domain.ledger.enums.DateType;
-import com.moneymanager.domain.ledger.vo.DateScope;
 import com.moneymanager.service.main.LedgerService;
-import org.assertj.core.groups.Tuple;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 /**
  * <p>

@@ -6,7 +6,6 @@ import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.ledger.dto.*;
 import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
 import com.moneymanager.domain.ledger.dto.LedgerResponse;
-import com.moneymanager.domain.ledger.dto.LedgerListResponse;
 import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
@@ -25,11 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.temporal.TemporalAdjusters;
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.moneymanager.utils.DateTimeUtils.isDateInRange;
 
 
 /**
@@ -60,6 +55,11 @@ import static com.moneymanager.utils.DateTimeUtils.isDateInRange;
  * 		 	  <td>25. 7. 15</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 12. 05</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[메서드 삭제] getWeekByMonth, getPriceByCategory</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
@@ -128,7 +128,7 @@ public class LedgerService {
 
 
 	/**
-	 *	가계부 요약 화면에 필요한 데이터를 생성하여 {@link LedgerListResponse} 형태로 반환합니다.
+	 *	가계부 요약 화면에 필요한 데이터를 생성하여 {@link LedgerGroupResponse} 형태로 반환합니다.
 	 *<p>
 	 *     반환되는 항목:
 	 *     <ul>
@@ -140,7 +140,7 @@ public class LedgerService {
 	 *
 	 * @param memberId		가계부를 조회할 회원 ID
 	 * @param search			가계부 검색 조건 객체({@link LedgerSearchRequest})
-	 * @return	제목, 통계, 일자별 카드 데이터를 포함한 {@link LedgerListResponse}
+	 * @return	제목, 통계, 일자별 카드 데이터를 포함한 {@link LedgerGroupResponse}
 	 */
 	public LedgerGroupResponse getLedgersForSummary(String memberId, LedgerSearchRequest search) {
 		//검증된 조회범위 VO 로 제목 생성
@@ -241,28 +241,6 @@ public class LedgerService {
 	}
 
 
-	//날짜가 월의 몇주째인지 확인
-	private int getWeekByMonth(DateScope scope) {
-		int week = 1;
-		LocalDate date = scope.getStartDate();
-
-		LocalDate start = date.withDayOfMonth(1);
-		LocalDate end = start.with(TemporalAdjusters.nextOrSame(scope.getEndDay()));
-
-		//1일 ~ 첫 일요일까지 1주차
-		if( !date.isAfter(end) ) return week;
-
-		while (!isDateInRange(date, start, end)) {	//시작일 ~ 종료일 사이에 있을때까지 다음주로 넘어감
-			week++;
-
-			start = end.plusDays(1);
-			end = end.plusDays(7);
-		}
-
-		return week;
-	}
-
-
 	/**
 	 * 구글 차트에 필요한 데이터를 생성하여 {@link GoogleChartResponse} 리스트로 반환합니다.
 	 * <p>
@@ -301,30 +279,6 @@ public class LedgerService {
 			default:
 				return new ArrayList<>(ledgerDAO.findSumPriceByCategoryAndMonth(memberId, DateScope.ofYearMonth(date.getYear(), date.getMonth())));
 		}
-	}
-
-
-	//수입, 지출 카테고리별 금액 합계 반환
-	private LedgerListResponse.Stats getPriceByCategory(List<LedgerListResponse.DayCards> dayCards) {
-		List<LedgerListResponse.Card> cards = dayCards.stream().flatMap(day -> day.getCardList().stream()).collect(Collectors.toList());
-
-		Map<String, Long> categoryPrice = cards.stream()
-				.collect(Collectors.groupingBy(
-						card -> {
-							String type = card.getCategory().getCode().substring(0,2);
-
-							return type.equals("01") ? "income" : "outlay";
-						},
-
-						Collectors.summingLong( LedgerListResponse.Card::getPrice )
-				));
-
-		long income = Objects.isNull(categoryPrice.get("income")) ? 0L : categoryPrice.get("income");
-		long outlay = Objects.isNull(categoryPrice.get("outlay")) ? 0L : categoryPrice.get("outlay");
-		long total = income + outlay;
-
-		return LedgerListResponse.Stats.builder()
-				.total(total).income(income).outlay(outlay).build();
 	}
 
 
