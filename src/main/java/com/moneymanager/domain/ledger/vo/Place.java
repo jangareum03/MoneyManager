@@ -80,7 +80,7 @@ public class Place {
 	private void validatePlaceName(String placeName) {
 		if( isNullOrBlank(placeName) )	throw createClientException(ErrorCode.LEDGER_PLACE_MISSING, "장소명은 필수입니다.");
 
-		if(isMatchedPattern(placeName, ADDRESS_PLACE_NAME.getPattern())) {
+		if(!isMatchedPattern(placeName, ADDRESS_PLACE_NAME.getPattern())) {
 			throw createClientException(ErrorCode.LEDGER_PLACE_FORMAT, "장소명은 한글, 숫자, 영문자만 입력 가능합니다.", placeName);
 		}
 	}
@@ -139,7 +139,7 @@ public class Place {
 	private void validateRoadAddress(String roadAddress) {
 		if( isNullOrBlank(roadAddress) ) throw createClientException(ErrorCode.LEDGER_PLACE_MISSING, "도로명주소를 입력해주세요.");
 
-		if(isMatchedPattern(roadAddress, RegexPattern.ADDRESS_ROAD_NAME.getPattern())) {
+		if(!isMatchedPattern(roadAddress, RegexPattern.ADDRESS_ROAD_NAME.getPattern())) {
 			throw createClientException(ErrorCode.LEDGER_PLACE_FORMAT, "도로명주소는 한글, 숫자, 영문자, 특수문자(·)만 입력 가능합니다.", roadAddress);
 		}
 	}
@@ -166,7 +166,7 @@ public class Place {
 	private void validateJiBunAddress(String jiBunAddress) {
 		if( isNullOrBlank(jiBunAddress) ) throw createClientException(ErrorCode.LEDGER_PLACE_MISSING, "지번주소를 입력해주세요.");
 
-		if(isMatchedPattern(jiBunAddress, ADDRESS_JIBUN_NAME.getPattern())) {
+		if(!isMatchedPattern(jiBunAddress, ADDRESS_JIBUN_NAME.getPattern())) {
 			throw createClientException(ErrorCode.LEDGER_PLACE_FORMAT, "지번주소는 한글, 숫자, 영문자, 특수문자(-)만 입력 가능합니다.", jiBunAddress);
 		}
 	}
