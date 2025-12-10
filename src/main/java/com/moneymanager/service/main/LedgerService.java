@@ -5,7 +5,7 @@ import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.ledger.dto.*;
 import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
-import com.moneymanager.domain.ledger.dto.LedgerResponse;
+import com.moneymanager.domain.ledger.dto.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
@@ -13,11 +13,13 @@ import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.vo.*;
 import com.moneymanager.domain.ledger.enums.DateType;
+import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.service.main.validation.CategoryValidator;
 import com.moneymanager.service.main.validation.DateScopeValidator;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
+
+import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 
 /**
@@ -283,54 +287,30 @@ public class LedgerService {
 
 
 	/**
-	 * 가계부 번호에 해당하는 가계부 정보를 반환합니다. <br>
-	 * 접근한 가계부 작성자를 확인하여 작성자가 아닌 다른 회원이 접근하면 이 발생합니다.
+	 *	사용자({@code memberId})가 작성한 가계부 상세 정보를 조회 후 반환합니다.
+	 *<p>
+	 *	가계부 ID({@code id})에 해당하는 가계부 상세 정보를 데이터베이스에서 조회 후 요청한 회원이 작성한 것인지 확인합니다.
+	 *	만약 작성자가 아니거나, 요청한 가계부 번호가 없다면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
+	 *</p>
+	 * 조회한 가계부 정보({@link Ledger})를 {@link LedgerDetailResponse} 객체로 변환 후 반환합니다.
 	 *
-	 * @param memberId 회원 식별번호
-	 * @param id       가계부 번호
-	 * @return 번호에 해당하는 가계부 상세정보
+	 * @param memberId		가계부 상세 정보를 요청한 회원 ID
+	 * @param id					조회할 가계부 고유 번호
+	 * @return	가계부 상세 정보를 포함한 {@link LedgerDetailResponse} 객체
 	 */
-	public LedgerResponse getLedgerById(String memberId, Long id, String mode) {
-		Ledger ledger = ledgerDAO.findLedgerById(id);
+	public LedgerDetailResponse getLedgerDetail(String memberId, String id) {
+		try{
+			Ledger ledger = ledgerDAO.findLedgerDetailForUser(id);
 
-		//날짜 포맷
-		String formatDate = DateTimeUtils.formatDateAsString( ledger.getTransActionDate(), "yyyy. MM. dd (E)" );
-		if( mode.equalsIgnoreCase("edit") ) {
-			formatDate = DateTimeUtils.formatDateAsString( ledger.getTransActionDate(), "yyyy년 MM월 dd일 E요일" );
-		}
+			if (!memberId.equals(ledger.getMember().getId())) {
+				throw createClientException(ErrorCode.MEMBER_ID_MISMATCH, "작성자가 아닌 사용자는 해당 가계부에 접근이 불가능합니다.", memberId);
+			}
 
-		//고정주기 변환
-		FixedStatus fix = new FixedStatus( ledger.isReturning(), ledger.getCycleType() );
-
-		//위치 변환
-		Place place = Objects.isNull(ledger.getPlace().getPlaceName()) ?
-				null : Place
-							.builder()
-							.placeName(ledger.getPlace().getPlaceName())
-							.roadAddress(ledger.getPlace().getRoadAddress())
-							.detailAddress(ledger.getPlace().getDetailAddress())
-							.build();
-
-		//이미지 변환
-		List<String> profileImage = imageService.findImageUrl(ledger);
-
-		if (memberId.equals(ledger.getMember().getId())) {
-			return LedgerResponse.builder()
-					.date( formatDate )
-					.image(profileImage)
-					.fix(fix)
-					.category(CategoryResponse.from(ledger.getCategory()))
-					.place(place)
-					.id(ledger.getId())
-					.memo(ledger.getMemo())
-					.amount(ledger.getAmountInfo())
-					.build();
-		} else {
-			throw new RuntimeException("");
+			return LedgerDetailResponse.from(ledger, imageService.getBaseImagePath());
+		}catch ( DataAccessException e ) {
+			throw createClientException(ErrorCode.LEDGER_ID_NONE, "존재하지 않는 가계부입니다.", id);
 		}
 	}
-
-
 
 
 	/**

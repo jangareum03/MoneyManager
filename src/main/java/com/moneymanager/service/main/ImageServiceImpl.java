@@ -42,6 +42,11 @@ import java.util.Objects;
  *		 	  <td>areum Jang</td>
  *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 12. 08</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>[메서드 삭제] findImageUrl</td>
+ *		 	</tr>
  *		</tbody>
  * </table>
  */
@@ -57,6 +62,16 @@ public class ImageServiceImpl {
 
 	public ImageServiceImpl( LedgerDao ledgerDao ) {
 		this.ledgerDAO = ledgerDao;
+	}
+
+
+	/**
+	 * 가계부를 저장할 서버의 절대경로를 얻습니다.
+	 *
+	 * @return	저장될 절대 경로 문자열
+	 */
+	public String getBaseImagePath() {
+		return downPath;
 	}
 
 
@@ -162,37 +177,6 @@ public class ImageServiceImpl {
 
 		return String.format("%d_%s_%s_%d.%s", id, date, originName, ++index, ext);
 	}
-
-
-
-	/**
-	 * 특정 가계부에 등록된 이미지 경로를 반환합니다.<br>
-	 * 만약 가계부에 등록된 이미지가 없으면 null을 반환합니다.
-	 *
-	 * @param ledger  			가계부 정보
-	 * @return 사진과 폴더가 존재하면 '경로+사진', 존재하지 않으면 null
-	 */
-	public List<String> findImageUrl( Ledger ledger) {
-		List<String> imageUrls = new ArrayList<>();
-
-		//ledger 이미지 담기
-		List<String> ledgerImages = List.of( ledger.getImage1(), ledger.getImage2(), ledger.getImage3() );
-		for( int i=0; i<ledgerImages.size(); i++ ) {
-			String image = ledgerImages.get(i);
-
-			if( !Objects.isNull(image)) {
-				int year = ledger.getTransActionDate().getYear();
-				String name = changeImageName( ledger.getId(), ledger.getTransActionDate(), i ,image );
-
-				imageUrls.add( String.format("%s/%s/%s", ledger.getMember().getId(), year, name) );
-			}else {
-				imageUrls.add( null );
-			}
-		}
-
-		return imageUrls;
-	}
-
 
 
 	/**

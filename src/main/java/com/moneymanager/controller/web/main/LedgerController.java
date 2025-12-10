@@ -1,10 +1,8 @@
 package com.moneymanager.controller.web.main;
 
 import com.moneymanager.domain.ledger.dto.*;
-import com.moneymanager.domain.ledger.dto.LedgerResponse;
+import com.moneymanager.domain.ledger.dto.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.enums.DateType;
-import com.moneymanager.domain.ledger.vo.LedgerByDate;
-import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.LedgerService;
 import com.moneymanager.service.main.ImageServiceImpl;
@@ -16,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.util.*;
-
-import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 
 /**
  * <p>
@@ -107,40 +103,41 @@ public class LedgerController {
 
 
 	/**
-	 * 가계부 번호에 해당하는 상세정보 페이지를 요청을 처리합니다.
+	 * 회원의 가계부 내역을 조회하여 가계부 상세 페이지 또는 수정 페이지를 반환합니다.
+	 * <p>
+	 *     URL에 포함된 가계부 ID({@code id})를 이용해 가계부 정보를 조회하고, 모드({@code mode})에 따라 보여줄 화면을 다르게 처리합니다.
+	 *     세션에 저장된 사용자 ID를 가져와서 조회를 요청한 가계부 작성자인지 확인합니다. 작성자가 아니라면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
+	 * </p>
+	 * <p>
+	 *     <b>모드 설명:</b>
+	 *     <ul>
+	 *         <li>{@code view} (기본값) : 가계부 상세 조회 화면 요청</li>
+	 *         <li>{@code edit} : 가계부 수정 화면 요청(+ 회원 업로드 가능한 이미지 최대 개수도 전달)</li>
+	 *     </ul>
+	 * </p>
 	 *
 	 * @param session 사용자 식별 및 정보를 저장하는 객체
 	 * @param model   뷰에 전달할 객체
-	 * @param id      가계부 식별 번호
-	 * @return 가계부 상세 페이지
+	 * @param id      	가계부 식별 번호
+	 * @param mode		페이지 모드 (조회: {@code view}, 수정: {@code edit})
+	 * @return 가계부 상세 화면 또는 수정 화면의 경로
 	 */
 	@GetMapping("/{id}")
-	public String getLedgerDetailPage(HttpSession session, Model model, @PathVariable Long id, @RequestParam(required = false, defaultValue = "view") String mode) {
+	public String getLedgerDetailPage(@PathVariable String id, @RequestParam(required = false, defaultValue = "view") String mode, HttpSession session, Model model) {
 		String memberId = (String) session.getAttribute("mid");
-		//TODO: 모드별 메서드 통합하기
-		try {
-			LedgerResponse ledger = ledgerService.getLedgerById(memberId, id, mode);
+
+		if( mode.equalsIgnoreCase("edit") ) {
+//			LedgerEditResponse ledger =;
+//
+//			model.addAttribute("ledger", ledger);
+			model.addAttribute("max", imageService.getLimitImageCount(memberId));
+
+			return "/main/ledger_update";
+		}else {
+			LedgerDetailResponse ledger = ledgerService.getLedgerDetail(memberId, id);
 			model.addAttribute("ledger", ledger);
 
-			if (mode.equals("edit")) {
-				String categoryCode = ledger.getCategory().getCode();
-				List<CategoryResponse> category = categoryService.getAncestorCategoriesByCode(categoryCode);
-
-				model.addAttribute("selectCategory", category);
-				model.addAttribute("category", categoryService.getAllCategoriesByCode(ledger.getCategory().getCode()));
-				model.addAttribute("max", imageService.getLimitImageCount(memberId));
-
-				return "/main/ledger_update";
-			} else {
-				return "/main/ledger_detail";
-			}
-
-		} catch (ClientException e) {
-			model.addAttribute("error", e.getMessage());
-			model.addAttribute("method", "get");
-			model.addAttribute("url", "/ledgers");
-
-			return "alert";
+			return "/main/ledger_detail";
 		}
 	}
 }

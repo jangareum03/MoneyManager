@@ -1,7 +1,6 @@
 package com.moneymanager.dao.main;
 
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.Place;
@@ -13,7 +12,6 @@ import com.moneymanager.domain.member.Member;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -113,49 +111,66 @@ public class LedgerDao {
 						}, keyHolder
 		);
 
-			Long id = Objects.requireNonNull(keyHolder.getKey()).longValue();
-			return findLedgerById(id);
+			String id = Objects.requireNonNull(keyHolder.getKey()).toString();
+			return findLedgerDetailForUser(id);
 	}
 
 
-
 	/**
-	 *	가계부 번호에 해당하는 가계부를 반환합니다.<br>
-	 * 번호에 해당하는 가계부가 존재하지 않으면 null을 반환합니다.
+	 *	특정 가계부 ID에 해당하는 가계부 상세 정보를 조회합니다.
+	 *
+	 * <p>
+	 *     사용자 화면에서 필요한 카테고리, 거래일, 메모, 금액, 결제 타입, 이미지, 장소 정보 등을 포함한 {@link Ledger} 객체를 반환합니다.
 	 *
 	 *
-	 * @param id	가계부 번호
-	 * @return	번호가 있으면 가계부, 없으면 null
+	 * @param id	조회할 가계부 번호
+	 * @return	가계부 상세 정보를 담은 {@link Ledger} 객체
+	 * @throws org.springframework.dao.EmptyResultDataAccessException	조회 결과가 없을 경우 발생
 	 */
-	public Ledger findLedgerById(Long id ) {
-		String sql = "SELECT tb.*, tc.name " +
-								"FROM ledger tb, ledger_category tc " +
-								"WHERE tb.id = ? " +
-									"AND tb.category_id = tc.code";
-		try{
-			return jdbcTemplate.queryForObject(
-					sql,
-					(ResultSet rs, int row) -> {
-						boolean isFix = rs.getString("fix").equalsIgnoreCase("y");
+	public Ledger findLedgerDetailForUser(String id) {
+		String sql = "SELECT member_id, category_id, name, transaction_date, memo, amount, payment_type, image, place_name, road_address, address " +
+								"FROM ledger l JOIN ledger_category lc " +
+								"ON l.category_id = lc.code " +
+								"WHERE l.id = ? ";
 
-						return Ledger
-								.builder()
-								.id(rs.getString("id"))
-								.member(Member.builder().id(rs.getString("member_id")).build())
-								.category(Category.builder().code(rs.getString("category_id")).name(rs.getString("name")).build())
-								.isReturning(isFix).cycleType(FixedPeriod.fromDbValue(rs.getString("fix_cycle")))
-								.date(new LedgerDate(rs.getString("transaction_date")))
-								.memo(rs.getString("memo"))
-								.amountInfo(AmountInfo.builder().amount(rs.getInt("price")).type(PaymentType.from(rs.getString("payment_type"))).build())
-								.image1(rs.getString("image1")).image2(rs.getString("image2")).image3(rs.getString("image3"))
-								.place(Place.builder().placeName(rs.getString("place_name")).roadAddress(rs.getString("road_address")).detailAddress(rs.getString("address")).build())
-								.createdAt(rs.getTimestamp("created_at").toLocalDateTime()).updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
-								.build();
-			},
-					id );
-		}catch( EmptyResultDataAccessException e ) {
-			return null;
-		}
+
+		return jdbcTemplate.queryForObject(
+				sql,
+
+				(ResultSet rs, int row) -> {
+					Ledger.LedgerBuilder builder = Ledger.builder()
+							.member(Member.builder().id("member_id").build())
+							.category(
+									Category.builder()
+											.code(rs.getString("category_id"))
+											.name(rs.getString("name"))
+											.build()
+							)
+							.date(new LedgerDate(rs.getString("transaction_date")))
+							.memo(rs.getString("memo"))
+							.amountInfo(
+									AmountInfo.builder()
+											.amount(rs.getLong("amount"))
+											.type(PaymentType.from(rs.getString("payment_type")))
+											.build()
+							)
+							.image1(rs.getString("image"));
+
+					if( rs.getString("place_name") != null ) {
+						builder.place(
+								Place.builder()
+								.placeName(rs.getString("place_name"))
+								.roadAddress(rs.getString("road_address"))
+								.detailAddress(rs.getString("address"))
+								.build()
+						);
+					}
+
+					return builder.build();
+				},
+
+				id
+		);
 	}
 
 

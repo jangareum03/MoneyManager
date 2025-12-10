@@ -42,11 +42,13 @@ import lombok.Getter;
  */
 @Getter
 public enum ErrorCode {
+	MEMBER_ID_MISMATCH("C010105", "회원 아이디 불일치"),
 	/**
 	 * 가계부 에러 메시지
 	 */
 	LEDGER_THIS_MISSING("C030001","가계부 객체 누락"),
 	LEDGER_ID_MISSING("C030101", "가계부 번호 누락"),
+	LEDGER_ID_NONE("C030104", "가계부 번호 없음"),
 	LEDGER_TYPE_INVALID("C030206", "가계부 유형 범위"),
 	LEDGER_DATE_MISSING("C030301", "가계부 날짜 누락"),
 	LEDGER_DATE_FORMAT("C030302", "가계부 날짜 형식"),
@@ -63,6 +65,7 @@ public enum ErrorCode {
 	LEDGER_PRICE_INVALID("C030706", "가계부 금액 범위"),
 	LEDGER_PAYMENT_MISSING("C030801", "가계부 금액유형 누락"),
 	LEDGER_PAYMENT_FORMAT("C030802", "가계부 금액유형 형식"),
+	LEDGER_PHOTO_MISSING("C030901", "가계부 사진 누락"),
 	LEDGER_PLACE_MISSING("C031001", "가계부 주소 누락"),
 	LEDGER_PLACE_FORMAT("C031002", "가계부 주소 형식"),
 	/**
