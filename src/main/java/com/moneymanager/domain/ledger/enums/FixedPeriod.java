@@ -38,15 +38,15 @@ public enum FixedPeriod {
 	MONTHLY("한달", "M"),
 	YEARLY("일년", "Y");
 
-	private final String displayName;
+	private final String label;
 	private final String dbValue;
 
-	FixedPeriod(String displayName, String dbValue) {
-		this.displayName = displayName;
+	FixedPeriod(String label, String dbValue) {
+		this.label = label;
 		this.dbValue = dbValue;
 	}
 
-	public static FixedPeriod fromDbValue(String dbValue) {
+	public static FixedPeriod of(String dbValue) {
 		for( FixedPeriod type : values() ) {
 			if(type.dbValue.equalsIgnoreCase(dbValue)) return type;
 		}

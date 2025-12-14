@@ -43,7 +43,7 @@ public class LedgerSummary {
 	String type;								//가계부 유형
 	String category;							//카테고리 이름
 	String memo;								//가계부 메모
-	Amount amount;							//가계부 금액
+	Long amount;								//가계부 금액
 
 	//Ledger 엔티티를 변환하는 정적 메서드
 	public static LedgerSummary from(Ledger ledger) {
@@ -62,9 +62,5 @@ public class LedgerSummary {
 				.memo(ledger.getMemo())
 				.amount(ledger.getAmountInfo().getAmount())
 				.build();
-	}
-
-	public long getAmountValue(){
-		return amount.getAmount();
 	}
 }

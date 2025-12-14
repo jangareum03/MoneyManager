@@ -56,9 +56,7 @@ public class Ledger {
     private LedgerDate date;							//가계부 날짜
     private String memo;									//내용
 	private AmountInfo amountInfo;				//금액
-    private String image1;								//이미지1
-    private String image2;								//이미지2
-    private String image3;								//이미지3
+	private String image;									//이미지
 	private Place place;									//장소
     private LocalDateTime createdAt;			//등록일
     private LocalDateTime updatedAt;			//수정일

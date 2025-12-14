@@ -35,16 +35,12 @@ import lombok.Value;
 @Getter
 @Value
 public class AmountInfo {
-	Amount amount;
+	Long amount;
 	PaymentType type;
 
 	@Builder
 	AmountInfo(long amount, PaymentType type) {
-		this.amount = new Amount(amount);
+		this.amount = new Amount(amount).getAmount();
 		this.type = type;
-	}
-	
-	public Long getAmountValue() {
-		return getAmount().getAmount();
 	}
 }

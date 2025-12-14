@@ -8,10 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
 
-import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 
 /**
  * <p>
@@ -47,10 +44,10 @@ public class LedgerDetailResponse {
 	private CategoryResponse category;			//카테고리
 	private String memo;										//메모
 	private AmountInfo amount;							//금액정보
-	private List<String> image;							//가계부 사진
+	private String image;										//가계부 사진
 	private Place place;										//위치
 
-	public static LedgerDetailResponse from(Ledger ledger, String path) {
+	public static LedgerDetailResponse from(Ledger ledger) {
 		LocalDate date = ledger.getTransActionDate();
 
 		LedgerDetailResponseBuilder builder =
@@ -59,12 +56,10 @@ public class LedgerDetailResponse {
 						.category(CategoryResponse.from(ledger.getCategory()))
 						.memo(ledger.getMemo())
 						.amount(ledger.getAmountInfo())
-						.image(Collections.emptyList())
+						.image(ledger.getImage())
 						.place(ledger.getPlace());
 
-		if( !isNullOrBlank(path) ) {
-			builder.image(List.of( String.join(path, ledger.getImage1()) ));
-		}
+		//TODO: 이미지 업로드 로직 추가
 
 		return builder.build();
 	}

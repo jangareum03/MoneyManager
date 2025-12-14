@@ -19,7 +19,7 @@ import com.moneymanager.service.main.validation.DateScopeValidator;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -213,7 +213,7 @@ public class LedgerService {
 		return cards.getDateGroups().values().stream()
 				.flatMap(Collection::stream)
 				.filter(summary -> summary.getType().equals(type.getUrlCode()))
-				.mapToLong(LedgerSummary::getAmountValue)
+				.mapToLong(LedgerSummary::getAmount)
 				.sum();
 	}
 
@@ -287,7 +287,7 @@ public class LedgerService {
 
 
 	/**
-	 *	사용자({@code memberId})가 작성한 가계부 상세 정보를 조회 후 반환합니다.
+	 *	회원({@code memberId})이 작성한 가계부 상세 정보를 조회 후 반환합니다.
 	 *<p>
 	 *	가계부 ID({@code id})에 해당하는 가계부 상세 정보를 데이터베이스에서 조회 후 요청한 회원이 작성한 것인지 확인합니다.
 	 *	만약 작성자가 아니거나, 요청한 가계부 번호가 없다면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
@@ -306,8 +306,36 @@ public class LedgerService {
 				throw createClientException(ErrorCode.MEMBER_ID_MISMATCH, "작성자가 아닌 사용자는 해당 가계부에 접근이 불가능합니다.", memberId);
 			}
 
-			return LedgerDetailResponse.from(ledger, imageService.getBaseImagePath());
-		}catch ( DataAccessException e ) {
+			return LedgerDetailResponse.from(ledger);
+		}catch ( EmptyResultDataAccessException e ) {
+			throw createClientException(ErrorCode.LEDGER_ID_NONE, "존재하지 않는 가계부입니다.", id);
+		}
+	}
+
+
+	/**
+	 * 회원({@code memberId})이 수정할 가계부 상세 정보를 조회 후 반환합니다.
+	 * <p>
+	 *     수정할 가계부 정보를 데이터베이스에서 조회 후 요청한 회원이 작성한 것인지 확인합니다. 만약 작성자가 아니거나, 요청한 가계부 번호가 없다면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
+	 *     조회한 가계부 정보({@link Ledger})를 가계부 수정 정보({@link LedgerEditResponse})에 맞게 변환 후 반환합니다.
+	 * </p>
+	 *
+	 * @param memberId		수정할 가계부 정보를 요청한 회원 ID
+	 * @param id					조회할 가계부 고유 번호
+	 * @return	수정할 가계부 정보를 포함한 {{@link LedgerEditResponse}} 객체
+	 */
+	public LedgerEditResponse getLedgerEdit(String memberId, String id) {
+		try{
+			Ledger ledger = ledgerDAO.findLedgerEditForUser(id);
+
+			if (!memberId.equals(ledger.getMember().getId())) {
+				throw createClientException(ErrorCode.MEMBER_ID_MISMATCH, "작성자가 아닌 사용자는 해당 가계부에 접근이 불가능합니다.", memberId);
+			}
+
+			List<CategoryResponse> categories = categoryService.getAncestorCategoriesByCode(ledger.getCategory().getCode());
+
+			return LedgerEditResponse.from(ledger, categories);
+		}catch ( EmptyResultDataAccessException e ) {
 			throw createClientException(ErrorCode.LEDGER_ID_NONE, "존재하지 않는 가계부입니다.", id);
 		}
 	}

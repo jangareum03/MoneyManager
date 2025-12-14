@@ -1,6 +1,7 @@
 package com.moneymanager.dao.main;
 
 import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.Place;
@@ -53,6 +54,11 @@ import java.util.*;
  *		 	  <td>areum Jang</td>
  *		 	  <td>[리팩토링] 코드 정리(버전 2.0)</td>
  *		 	</tr>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 12. 10</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>[매서드 삭제] findImageLimit</td>
+ *		 	</tr>
  *		</tbody>
  * </table>
  */
@@ -80,7 +86,7 @@ public class LedgerDao {
 	 * @return	생성한 가계부
 	 */
 	public Ledger saveLedger(Ledger ledger) {
-		String sql = "INSERT INTO ledger(id, member_id, category_id, fix, fix_cycle, book_date, memo, price, payment_type, image1, image2, image3, place_name, road_address, address, created_at) " +
+		String sql = "INSERT INTO ledger(id, member_id, category_id, fix, fix_cycle, book_date, memo, price, payment_type, image, place_name, road_address, address, created_at) " +
 										"VALUES(ledger_seq.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
 
 		KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -97,14 +103,12 @@ public class LedgerDao {
 								stmt.setString(4, ledger.getCycleType().getDbValue());
 								stmt.setDate(5, Date.valueOf(ledger.getTransActionDate()));
 								stmt.setString(6, ledger.getMemo());
-								stmt.setLong(7, ledger.getAmountInfo().getAmountValue());
+								stmt.setLong(7, ledger.getAmountInfo().getAmount());
 								stmt.setString(8, ledger.getAmountInfo().getType().getDbCode());
-								stmt.setString(9, ledger.getImage1());
-								stmt.setString(10, ledger.getImage2());
-								stmt.setString(11, ledger.getImage3());
-								stmt.setString(12, ledger.getPlace().getPlaceName());
-								stmt.setString(13, ledger.getPlace().getRoadAddress());
-								stmt.setString(14, ledger.getPlace().getDetailAddress());
+								stmt.setString(9, ledger.getImage());
+								stmt.setString(10, ledger.getPlace().getPlaceName());
+								stmt.setString(11, ledger.getPlace().getRoadAddress());
+								stmt.setString(12, ledger.getPlace().getDetailAddress());
 
 								return stmt;
 							}
@@ -154,7 +158,7 @@ public class LedgerDao {
 											.type(PaymentType.from(rs.getString("payment_type")))
 											.build()
 							)
-							.image1(rs.getString("image"));
+							.image(rs.getString("image"));
 
 					if( rs.getString("place_name") != null ) {
 						builder.place(
@@ -163,6 +167,54 @@ public class LedgerDao {
 								.roadAddress(rs.getString("road_address"))
 								.detailAddress(rs.getString("address"))
 								.build()
+						);
+					}
+
+					return builder.build();
+				},
+
+				id
+		);
+	}
+
+
+	/**
+	 * 특정 가계부 ID에 해당하는 가계부 상세 정보를 조회합니다.
+	 * <p>
+	 * 가계부 수정에서 필요한 카테고리, 거래일, 메모, 금액, 결제 타입, 이미지, 장소 정보 등을 포함한 Ledger 객체를 반환합니다.
+	 * </p>
+	 *
+	 * @param id		조회할 가계부 번호
+	 * @return	수정할 가계부 정보를 담은 {@link Ledger} 객체
+	 * @throws org.springframework.dao.EmptyResultDataAccessException	조회 결과가 없을 경우
+	 */
+	public Ledger findLedgerEditForUser(String id) {
+		String sql = "SELECT 		member_id, fix, fix_cycle, transaction_date, category_id, name, memo, amount, payment_type, image, place_name, road_address, address " +
+								"FROM		ledger l JOIN ledger_category lc " +
+								"ON			l.category_id = lc.code " +
+								"WHERE	id = ?";
+
+		return jdbcTemplate.queryForObject(
+				sql,
+
+				(ResultSet rs, int row) -> {
+					Ledger.LedgerBuilder builder =	Ledger.builder()
+							.member(Member.builder().id(rs.getString("member_id")).build())
+							.date(new LedgerDate(rs.getString("transaction_date")))
+							.isReturning(rs.getBoolean(rs.getString("fix")))
+							.cycleType(FixedPeriod.of(rs.getString("fix_cycle")))
+							.category(Category.builder().name(rs.getString("name")).code(rs.getString("category_id")).build())
+							.memo(rs.getString("memo"))
+							.amountInfo(AmountInfo.builder().amount(rs.getLong("amount")).type(PaymentType.from(rs.getString("payment_type"))).build())
+							.image(rs.getString("image"));
+
+					if( rs.getString("place_name") != null ) {
+						builder.place(
+								Place.builder()
+										.placeName(rs.getString("place_name"))
+										.roadAddress(rs.getString("road_address"))
+										.detailAddress(rs.getString("address"))
+										.build()
 						);
 					}
 
@@ -368,24 +420,6 @@ public class LedgerDao {
 
 
 	/**
-	 * 가계부 이미지를 등록 가능한 수를 조회합니다.
-	 *
-	 * @param memberId		회원 고유번호
-	 * @return	등록 가능한 수
-	 */
-	public Integer findImageLimit( String memberId ) {
-		String query = "SELECT image_limit FROM tb_member_info WHERE id = ?";
-
-		return jdbcTemplate.queryForObject(
-				query,
-				Integer.class,
-				memberId
-		);
-	}
-
-
-
-	/**
 	 * 가계부 번호에 해당하는 이미지를 조회합니다.
 	 * 이미지가 없으면 null을 반환합니다.
 	 *
@@ -417,7 +451,7 @@ public class LedgerDao {
 		return jdbcTemplate.update(
 						query,
 						ledger.getCategory().getCode(), isFixed, ledger.getCycleType().getDbValue(),
-						ledger.getMemo(), ledger.getAmountInfo().getAmountValue(), ledger.getAmountInfo().getType(),
+						ledger.getMemo(), ledger.getAmountInfo().getAmount(), ledger.getAmountInfo().getType(),
 						ledger.getPlace().getPlaceName(), ledger.getPlace().getRoadAddress(), ledger.getPlace().getDetailAddress(),
 						ledger.getMember().getId(), ledger.getId()
 		) == 1;
@@ -430,13 +464,11 @@ public class LedgerDao {
 	 * @param memberId			회원번호
 	 */
 	public void updateImage( String memberId, Ledger ledger) {
-		String query = "UPDATE ledger SET image1 = ?, image2 = ?, image3 = ? WHERE member_id = ? AND id = ?";
+		String query = "UPDATE ledger SET image = ? WHERE member_id = ? AND id = ?";
 
 		jdbcTemplate.update(
 						query,
-						ledger.getImage1(),
-						ledger.getImage2(),
-						ledger.getImage3(),
+						ledger.getImage(),
 						memberId, ledger.getId()
 		);
 	}

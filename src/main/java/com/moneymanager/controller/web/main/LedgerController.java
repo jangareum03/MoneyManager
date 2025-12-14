@@ -3,9 +3,11 @@ package com.moneymanager.controller.web.main;
 import com.moneymanager.domain.ledger.dto.*;
 import com.moneymanager.domain.ledger.dto.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.enums.DateType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.LedgerService;
 import com.moneymanager.service.main.ImageServiceImpl;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
@@ -53,17 +55,11 @@ import java.util.*;
 @Slf4j
 @Controller
 @RequestMapping("/ledgers")
+@RequiredArgsConstructor
 public class LedgerController {
 
 	private final LedgerService ledgerService;
 	private final CategoryService categoryService;
-	private final ImageServiceImpl imageService;
-
-	public LedgerController(LedgerService ledgerService, CategoryService categoryService, @Qualifier("ledgerImage") ImageServiceImpl imageService) {
-		this.ledgerService = ledgerService;
-		this.categoryService = categoryService;
-		this.imageService = imageService;
-	}
 
 
 	/**
@@ -127,10 +123,12 @@ public class LedgerController {
 		String memberId = (String) session.getAttribute("mid");
 
 		if( mode.equalsIgnoreCase("edit") ) {
-//			LedgerEditResponse ledger =;
-//
-//			model.addAttribute("ledger", ledger);
-			model.addAttribute("max", imageService.getLimitImageCount(memberId));
+			LedgerEditResponse ledger = ledgerService.getLedgerEdit(memberId, id);
+			List<CategoryResponse> categoryResponse = ledger.getCategory();
+
+			model.addAttribute("ledger", ledger);
+			model.addAttribute("category", categoryService.getAllCategoriesByCode(categoryResponse.get( categoryResponse.size() - 1 ).getCode()));
+			model.addAttribute("paymentTypes", List.of(PaymentType.values()));
 
 			return "/main/ledger_update";
 		}else {

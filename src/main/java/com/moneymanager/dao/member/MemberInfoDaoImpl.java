@@ -67,6 +67,28 @@ public class MemberInfoDaoImpl {
 
 
 	/**
+	 * 회원의 이미지 업로드 가능한 개수를 조회합니다.
+	 * <p>
+	 *     회원이 가계부 사진을 업로드할 때, 몇 장까지 저장할 수 있는지 확인할 수 있습니다.
+	 * </p>
+	 *
+	 * @param memberId		업로드 가능한 이미지 정보를 조회할 회원 ID
+	 * @return	회원이 업로드할 수 있는 이미지 최대 개수
+	 */
+	public Integer findImageLimit( String memberId ) {
+		String sql = "SELECT 	image_limit " +
+							"FROM 		member_info " +
+							"WHERE 	id = ?";
+
+		return jdbcTemplate.queryForObject(
+				sql,
+				Integer.class,
+				memberId
+		);
+	}
+
+
+	/**
 	 * 회원번호(ID)에 해당하는 회원의 상세 정보를 데이터베이스에서 조회합니다.
 	 * <p>
 	 * 조회 컬럼은 성별(gender), 프로필명(profile), 연속출석일자(consecutive_days), 마지막 접속일(login_at)이며,

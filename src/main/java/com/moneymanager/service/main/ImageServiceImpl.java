@@ -1,12 +1,16 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.LedgerDao;
+import com.moneymanager.dao.member.MemberInfoDaoImpl;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.enums.RegexPattern;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +20,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 
 
 /**
@@ -52,17 +57,16 @@ import java.util.Objects;
  */
 @Slf4j
 @Service("ledgerImage")
+@RequiredArgsConstructor
 public class ImageServiceImpl {
 
 	@Value("${image.ledger.downPath}")
 	private String downPath;
-
+	@Getter
 	private final int MAX_IMAGE = 3;
-	private final LedgerDao ledgerDAO;
 
-	public ImageServiceImpl( LedgerDao ledgerDao ) {
-		this.ledgerDAO = ledgerDao;
-	}
+	private final MemberInfoDaoImpl memberInfoDao;
+	private final LedgerDao ledgerDAO;
 
 
 	/**
@@ -75,23 +79,25 @@ public class ImageServiceImpl {
 	}
 
 
-
 	/**
-	 * 회원별로 등록할 수 있는 이미지 개수를 반환합니다.
+	 * 회원이 한 가계부에 등록할 수 있는 이미지 최대 허용 개수를 계산하여 반환합니다.
+	 * <p>
+	 *     데이터베이스에서 회원의 이미지 제한값을 조회한 뒤, 시스템에서 지정한 최대 허용치({@code MAX_IMAGE})와 비교하여 더 작은 값을 반환합니다.
+	 *     만약 회원이 존재하지 않아 데이터베이스에서 조회를 할 수 없다면 기본값인 1이 반환됩니다.
+	 * </p>
 	 *
-	 * @param memberId		회원 고유번호
-	 * @return	회원의 등록 가능한 이미지 개수
+	 * @param memberId		조회할 회원 ID
+	 * @return	이미지 업로드 가능한 이미지 개수
 	 */
-	public  int getLimitImageCount( String memberId ) {
-		Integer limitSize = ledgerDAO.findImageLimit(memberId);
+	public int getLimitImageCount( String memberId ) {
+		try{
+			Integer count = memberInfoDao.findImageLimit(memberId);
 
-		if( Objects.isNull(limitSize) || limitSize <= 0 ) {
+			return Math.min( count, MAX_IMAGE );
+		}catch ( EmptyResultDataAccessException e ) {
 			return 1;
 		}
-
-		return limitSize;
 	}
-
 
 
 	/**

@@ -77,7 +77,6 @@ public class LedgerUpdateRequest {
 				.category(Category.builder().code(category).build())
 				.memo(memo)
 				.amountInfo(AmountInfo.builder().amount(price).type(paymentType).build())
-				.image1(image.get(0).getFileName()).image2(image.get(1).getFileName()).image3(image.get(2).getFileName())
 				.place(Place.builder().placeName(place.getPlaceName()).roadAddress(place.getRoadAddress()).detailAddress(place.getDetailAddress()).build())
 				.build();
 	}
