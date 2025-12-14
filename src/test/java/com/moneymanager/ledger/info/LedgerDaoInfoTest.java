@@ -1,14 +1,23 @@
 package com.moneymanager.ledger.info;
 
 import com.moneymanager.dao.main.LedgerDao;
+import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import org.junit.jupiter.api.BeforeEach;
+import com.moneymanager.domain.ledger.enums.FixedPeriod;
+import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.AmountInfo;
+import com.moneymanager.domain.ledger.vo.LedgerDate;
+import com.moneymanager.domain.ledger.vo.Place;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * <p>
@@ -39,28 +48,93 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest
 @ActiveProfiles("test")
+@Transactional
 public class LedgerDaoInfoTest {
 
 	@Autowired
-	private LedgerDao budgetBookDao;
+	private LedgerDao dao;
 
-	@BeforeEach
-	void 초기화() {
-
-	}
 
 	//=================================================
-	// findBudgetBookById() 테스트
+	// findLedgerDetailForUser() 테스트
 	//=================================================
+	@DisplayName("모든 정보가 입력된 가계부 내역은 조회가 되어야 한다.")
 	@Test
-	void 가게부번호_있으면_한건반환(){
+	void 필수값_반드시_조회가능(){
 		//given
-		long id = 1;
+		String id = "01H5HZ8X9E7EY2XKZCW2FQX16B";
+		Ledger expected = Ledger.builder()
+				.category(
+						Category.builder()
+								.code("010101")
+								.name("월급")
+								.build()
+				)
+				.date(new LedgerDate("20251130"))
+				.memo("내용 없음")
+				.amountInfo(
+						AmountInfo.builder()
+								.amount(2500000L)
+								.type(PaymentType.CASH)
+								.build()
+				)
+				.place(
+						Place.builder()
+								.placeName("동물병원")
+								.roadAddress("서울시 송파구 잠실동 456-78")
+								.detailAddress("201동 13층")
+								.build()
+				)
+				.build();
 
 		//when
-		Ledger result = budgetBookDao.findLedgerById(id);
+		Ledger result = dao.findLedgerDetailForUser(id);
 
 		//then
-		assertThat(result).isNull();
+		assertThat(result)
+				.usingRecursiveComparison()
+				.isEqualTo(expected);
 	}
+
+	@DisplayName("필수값 아닌 선택값이 없는 가계부 내역은 조회가 되어야 한다.")
+	@Test
+	void 필수값_제외한_나머지값_없어도_조회가능(){
+		//given
+		String id = "01HJF8V8W3KDRJDW86XQRZPD96";
+
+		Ledger expected = Ledger.builder()
+				.category(
+						Category.builder()
+								.code("020902")
+								.name("적금")
+								.build()
+				)
+				.date(new LedgerDate("20251001"))
+				.amountInfo(
+						AmountInfo.builder()
+								.amount(20000000L)
+								.type(PaymentType.BANK)
+								.build()
+				)
+				.build();
+
+		//when
+		Ledger result = dao.findLedgerDetailForUser(id);
+
+		//then
+		assertThat(result.getMemo()).isNull();
+		assertThat(result.getPlace()).isNull();
+	}
+
+	@DisplayName("존재하지 않는 가계부 내역을 조회하면 DataAccessException 예외가 발생한다.")
+	@Test
+	void 없는_가계부내역_조회하면_예외발생(){
+		//given
+		String id ="none1232349ADMVI";
+
+		//when & then
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> dao.findLedgerDetailForUser(id));
+	}
+
 }

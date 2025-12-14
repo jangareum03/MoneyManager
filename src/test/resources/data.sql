@@ -17,9 +17,9 @@ VALUES('UCc06001', 'C', 'D', 'ROLE_USER', 'cherry', 'cherry123!', '한체리', '
 
 -- 회원상세
 INSERT INTO member_info(id) VALUES('UCh11001');
-INSERT INTO member_info(id, gender, point, consecutive_days, login_at) VALUES('UCa12001', 'F', 10, 1, '2025-11-30 19:12:54');
+INSERT INTO member_info(id, gender, point, consecutive_days, image_limit, login_at) VALUES('UCa12001', 'F', 10, 1, 2, '2025-11-30 19:12:54');
 INSERT INTO member_info(id, gender, point, consecutive_days, login_at) VALUES('UKb11001', 'M', 62000, 120, '2025-12-01 02:32:45');
-INSERT INTO member_info(id, consecutive_days, login_at) VALUES('UNn12001', 2, '2025-12-02 08:12:24');
+INSERT INTO member_info(id, consecutive_days, image_limit, login_at) VALUES('UNn12001', 2, 3, '2025-12-02 08:12:24');
 
 -- 카테고리
 INSERT INTO ledger_category VALUES('010000', NULL, '수입');
@@ -91,8 +91,8 @@ INSERT INTO ledger_category VALUES('020904', '020900', '기타');
 INSERT INTO ledger(num, id, member_id, category_id, transaction_date, amount)
                         VALUES(ledger_seq.NEXTVAL, '01ARZ3NDEKTSV4RRFFQ69G5FAV','UCh11001', '020101', '20251101', 15000);
 
-INSERT INTO ledger(num, id, member_id, category_id, transaction_date, amount)
-                        VALUES(ledger_seq.NEXTVAL, '01H5HZ8X9E7EY2XKZCW2FQX16B','UCh11001', '010101', '20251130', 2500000);
+INSERT INTO ledger
+                        VALUES(ledger_seq.NEXTVAL, '01H5HZ8X9E7EY2XKZCW2FQX16B','UCh11001', '010101', 'Y', 'W',  '20251130', '내용 없음', 2500000, 'CASH', null, '동물병원', '서울시 송파구 잠실동 456-78', '201동 13층', '2025-11-30 09:21:24', '2025-11-30 17:23:45');
 
 INSERT INTO ledger(num, id, member_id, category_id, transaction_date, amount, payment_type, created_at)
                         VALUES(ledger_seq.NEXTVAL, '01HJF8V8W3KDRJDW86XQRZPD96','UCa12001', '020902', '20251001', 20000000, 'BANK', '2025-10-15 13:12:29' );

@@ -70,7 +70,7 @@ public class CategoryService {
 	 * @param code		조회할 하위 카테고리 코드
 	 * @return	각 계층별 {@link CategoryResponse} 리스트를 담은 맵
 	 */
-	public Map<CategoryLevel, List<CategoryResponse>> getAllCategoriesByCode(String code) {
+	public Map<String, List<CategoryResponse>> getAllCategoriesByCode(String code) {
 		List<Category> categories = categoryDAO.findAncestorCategoriesByCode(code);
 
 		if( categories.size() < 2 ) {
@@ -80,10 +80,10 @@ public class CategoryService {
 		String topCode = categories.get(0).getCode();
 		String middleCode = categories.get(1).getCode();
 
-		Map<CategoryLevel, List<CategoryResponse>> map = new EnumMap<>(CategoryLevel.class);
-		map.put(CategoryLevel.TOP, getTopCategories());
-		map.put(CategoryLevel.MIDDLE, CategoryResponse.from( categoryDAO.findCategoriesByParentCode(topCode)) );
-		map.put(CategoryLevel.LOW, CategoryResponse.from( categoryDAO.findCategoriesByParentCode(middleCode)) );
+		Map<String, List<CategoryResponse>> map = new HashMap<>();
+		map.put(CategoryLevel.TOP.name(), getTopCategories());
+		map.put(CategoryLevel.MIDDLE.name(), CategoryResponse.from( categoryDAO.findCategoriesByParentCode(topCode)) );
+		map.put(CategoryLevel.LOW.name(), CategoryResponse.from( categoryDAO.findCategoriesByParentCode(middleCode)) );
 
 		return map;
 	}

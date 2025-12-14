@@ -103,15 +103,15 @@ class CategoryServiceTest {
 
 
 		//when
-		Map<CategoryLevel, List<CategoryResponse>> result
+		Map<String, List<CategoryResponse>> result
 				= service.getAllCategoriesByCode(code);
 
 		//then
 		assertThat(result)
 				.hasSize(3)
-						.containsKeys(CategoryLevel.TOP, CategoryLevel.MIDDLE, CategoryLevel.LOW);
+						.containsKeys(CategoryLevel.TOP.name(), CategoryLevel.MIDDLE.name(), CategoryLevel.LOW.name());
 
-		assertThat(result.get(CategoryLevel.TOP))
+		assertThat(result.get(CategoryLevel.TOP.name()))
 				.hasSize(2)
 				.extracting(CategoryResponse::getCode, CategoryResponse::getName)
 				.containsExactly(
@@ -119,7 +119,7 @@ class CategoryServiceTest {
 					Tuple.tuple("020000", "지출")
 				);
 
-		assertThat(result.get(CategoryLevel.MIDDLE))
+		assertThat(result.get(CategoryLevel.MIDDLE.name()))
 				.hasSize(9)
 				.extracting(CategoryResponse::getCode, CategoryResponse::getName)
 				.containsExactly(
@@ -134,7 +134,7 @@ class CategoryServiceTest {
 						Tuple.tuple("020900", "저축")
 				);
 
-		assertThat(result.get(CategoryLevel.LOW))
+		assertThat(result.get(CategoryLevel.LOW.name()))
 				.hasSize(4)
 				.extracting(CategoryResponse::getCode, CategoryResponse::getName)
 				.containsExactly(
