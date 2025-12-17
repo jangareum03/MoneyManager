@@ -59,6 +59,11 @@ import java.util.*;
  *		 	  <td>areum Jang</td>
  *		 	  <td>[매서드 삭제] findImageLimit</td>
  *		 	</tr>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 12. 17</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>[매서드 삭제] findImageNameById, updateImage</td>
+ *		 	</tr>
  *		</tbody>
  * </table>
  */
@@ -105,7 +110,6 @@ public class LedgerDao {
 								stmt.setString(6, ledger.getMemo());
 								stmt.setLong(7, ledger.getAmountInfo().getAmount());
 								stmt.setString(8, ledger.getAmountInfo().getType().getDbCode());
-								stmt.setString(9, ledger.getImage());
 								stmt.setString(10, ledger.getPlace().getPlaceName());
 								stmt.setString(11, ledger.getPlace().getRoadAddress());
 								stmt.setString(12, ledger.getPlace().getDetailAddress());
@@ -132,7 +136,7 @@ public class LedgerDao {
 	 * @throws org.springframework.dao.EmptyResultDataAccessException	조회 결과가 없을 경우 발생
 	 */
 	public Ledger findLedgerDetailForUser(String id) {
-		String sql = "SELECT member_id, category_id, name, transaction_date, memo, amount, payment_type, image, place_name, road_address, address " +
+		String sql = "SELECT member_id, category_id, name, transaction_date, memo, amount, payment_type, place_name, road_address, address " +
 								"FROM ledger l JOIN ledger_category lc " +
 								"ON l.category_id = lc.code " +
 								"WHERE l.id = ? ";
@@ -157,8 +161,7 @@ public class LedgerDao {
 											.amount(rs.getLong("amount"))
 											.type(PaymentType.from(rs.getString("payment_type")))
 											.build()
-							)
-							.image(rs.getString("image"));
+							);
 
 					if( rs.getString("place_name") != null ) {
 						builder.place(
@@ -189,7 +192,7 @@ public class LedgerDao {
 	 * @throws org.springframework.dao.EmptyResultDataAccessException	조회 결과가 없을 경우
 	 */
 	public Ledger findLedgerEditForUser(String id) {
-		String sql = "SELECT 		member_id, fix, fix_cycle, transaction_date, category_id, name, memo, amount, payment_type, image, place_name, road_address, address " +
+		String sql = "SELECT 		member_id, fix, fix_cycle, transaction_date, category_id, name, memo, amount, payment_type, place_name, road_address, address " +
 								"FROM		ledger l JOIN ledger_category lc " +
 								"ON			l.category_id = lc.code " +
 								"WHERE	id = ?";
@@ -205,8 +208,7 @@ public class LedgerDao {
 							.cycleType(FixedPeriod.of(rs.getString("fix_cycle")))
 							.category(Category.builder().name(rs.getString("name")).code(rs.getString("category_id")).build())
 							.memo(rs.getString("memo"))
-							.amountInfo(AmountInfo.builder().amount(rs.getLong("amount")).type(PaymentType.from(rs.getString("payment_type"))).build())
-							.image(rs.getString("image"));
+							.amountInfo(AmountInfo.builder().amount(rs.getLong("amount")).type(PaymentType.from(rs.getString("payment_type"))).build());
 
 					if( rs.getString("place_name") != null ) {
 						builder.place(
@@ -420,24 +422,6 @@ public class LedgerDao {
 
 
 	/**
-	 * 가계부 번호에 해당하는 이미지를 조회합니다.
-	 * 이미지가 없으면 null을 반환합니다.
-	 *
-	 * @param id		가계부 번호
-	 * @return	가계부 이미지 이름, 없으면 null
-	 */
-	public String findImageNameById( Long id ) {
-		String query = "SELECT image1 FROM ledger WHERE id = ?";
-
-		return jdbcTemplate.queryForObject(
-						query,
-						String.class,
-						id
-		);
-	}
-
-
-	/**
 	 * 가계부 번호에 해당하는 가계부 정보(이미지 제외)를 변경합니다. <br>
 	 *
 	 * @param ledger 가계부 정보
@@ -457,21 +441,6 @@ public class LedgerDao {
 		) == 1;
 	}
 
-
-	/**
-	 * 가계부 번호에 해당하는 이미지명을 수정합니다.<br>
-	 *
-	 * @param memberId			회원번호
-	 */
-	public void updateImage( String memberId, Ledger ledger) {
-		String query = "UPDATE ledger SET image = ? WHERE member_id = ? AND id = ?";
-
-		jdbcTemplate.update(
-						query,
-						ledger.getImage(),
-						memberId, ledger.getId()
-		);
-	}
 
 
 	/**
