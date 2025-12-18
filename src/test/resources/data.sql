@@ -92,7 +92,7 @@ INSERT INTO ledger(num, id, member_id, category_id, transaction_date, amount)
                         VALUES(ledger_seq.NEXTVAL, '01ARZ3NDEKTSV4RRFFQ69G5FAV','UCh11001', '020101', '20251101', 15000);
 
 INSERT INTO ledger
-                        VALUES(ledger_seq.NEXTVAL, '01H5HZ8X9E7EY2XKZCW2FQX16B','UCh11001', '010101', 'Y', 'W',  '20251130', '내용 없음', 2500000, 'CASH', null, '동물병원', '서울시 송파구 잠실동 456-78', '201동 13층', '2025-11-30 09:21:24', '2025-11-30 17:23:45');
+                        VALUES(ledger_seq.NEXTVAL, '01H5HZ8X9E7EY2XKZCW2FQX16B','UCh11001', '010101', 'Y', 'W',  '20251130', '내용 없음', 2500000, 'CASH', '동물병원', '서울시 송파구 잠실동 456-78', '201동 13층', '2025-11-30 09:21:24', '2025-11-30 17:23:45');
 
 INSERT INTO ledger(num, id, member_id, category_id, transaction_date, amount, payment_type, created_at)
                         VALUES(ledger_seq.NEXTVAL, '01HJF8V8W3KDRJDW86XQRZPD96','UCa12001', '020902', '20251001', 20000000, 'BANK', '2025-10-15 13:12:29' );
@@ -123,3 +123,14 @@ INSERT INTO ledger(num, id, member_id, category_id, transaction_date, memo, amou
 
 INSERT INTO ledger(num, id, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, created_at)
                         VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D8','UNn12001', '020704', 'Y', 'M', '20251201', '넷플릭스', 9900, 'CARD', '2025-12-01 13:56:20' );
+
+-- 가계부 이미지 테이블
+INSERT INTO ledger_image(id, ledger_id, image_path, sort_order)
+        VALUES( ledger_image_seq.NEXTVAL, 2, '/2025/11/30/8a1d7f4e-2f9a-4c2d-9b1e-5a0b3c4f6d8e.png', 1);
+
+INSERT INTO ledger_image(id, ledger_id, image_path, sort_order, created_at)
+        VALUES( ledger_image_seq.NEXTVAL, 3, '/2025/10/15/f47ac10b-58cc-4372-a567-0e02b2c3d479.png', 1, '2025-10-15 15:46:32');
+
+INSERT INTO ledger_image(id, ledger_id, image_path, sort_order, created_at, updated_at)
+        VALUES( ledger_image_seq.NEXTVAL, 3, '/2025/10/22/3c2a8f0e-7d6b-4e1c-9f5a-0d4b3c2e1f0d.png', 2,  '2025-10-15 15:46:32', '2025-10-22 12:34:21');
+

@@ -1,6 +1,8 @@
 package com.moneymanager.domain.ledger.dto;
 
 import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.utils.DateTimeUtils;
@@ -8,6 +10,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -41,26 +45,39 @@ import java.time.LocalDate;
 @Getter
 public class LedgerDetailResponse {
 	private String date;										//가계부 날짜
+	private LedgerType type;								//가계부 유형
 	private CategoryResponse category;			//카테고리
 	private String memo;										//메모
-	private AmountInfo amount;							//금액정보
-	private String image;										//가계부 사진
+	private AmountInfo amountInfo;							//금액정보
+	private List<String> images;							//가계부 사진
 	private Place place;										//위치
 
-	public static LedgerDetailResponse from(Ledger ledger) {
+	public static LedgerDetailResponse from(Ledger ledger, List<LedgerImage> images) {
 		LocalDate date = ledger.getTransActionDate();
 
 		LedgerDetailResponseBuilder builder =
 				LedgerDetailResponse.builder()
 						.date(DateTimeUtils.formatDateAsString(date, "yyyy. MM. dd (E)"))
+						.type(LedgerType.fromCode(ledger.getCategory().getCode()))
 						.category(CategoryResponse.from(ledger.getCategory()))
 						.memo(ledger.getMemo())
-						.amount(ledger.getAmountInfo())
-						.image(ledger.getImage())
+						.amountInfo(ledger.getAmountInfo())
 						.place(ledger.getPlace());
 
-		//TODO: 이미지 업로드 로직 추가
+		if( !images.isEmpty() ) {
+			builder.images(
+					toImagePaths(images)
+			);
+		}
 
 		return builder.build();
+	}
+
+	private static List<String> toImagePaths(List<LedgerImage> images) {
+		return images.stream()
+				.map( image ->
+					image == null ? null : image.getImagePath()
+				)
+				.collect(Collectors.toList());
 	}
 }

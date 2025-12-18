@@ -134,6 +134,7 @@ public class LedgerController {
 		}else {
 			LedgerDetailResponse ledger = ledgerService.getLedgerDetail(memberId, id);
 			model.addAttribute("ledger", ledger);
+			model.addAttribute("paymentTypes", List.of(PaymentType.values()));
 
 			return "/main/ledger_detail";
 		}

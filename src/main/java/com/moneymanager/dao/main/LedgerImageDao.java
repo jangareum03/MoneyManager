@@ -1,11 +1,11 @@
 package com.moneymanager.dao.main;
 
-import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,19 +88,23 @@ public class LedgerImageDao {
 					List<LedgerImage> images = new ArrayList<>();
 
 					while ( rs.next() ) {
+						Timestamp update = rs.getTimestamp("updated_at");
+
 						LedgerImage image = LedgerImage.builder()
 								.id(rs.getLong("id"))
 								.imagePath(rs.getString("image_path"))
 								.sortOrder(rs.getInt("sort_order"))
 								.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-								.updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
+								.updatedAt(update != null ? update.toLocalDateTime() : null)
 								.build();
 
 						images.add(image);
 					}
 
 					return images;
-				}
+				},
+
+				id
 		);
 	}
 

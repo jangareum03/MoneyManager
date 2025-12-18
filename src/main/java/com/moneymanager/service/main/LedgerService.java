@@ -10,6 +10,7 @@ import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
+import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.vo.*;
 import com.moneymanager.domain.ledger.enums.DateType;
@@ -289,13 +290,13 @@ public class LedgerService {
 	/**
 	 *	회원({@code memberId})이 작성한 가계부 상세 정보를 조회 후 반환합니다.
 	 *<p>
-	 *	가계부 ID({@code id})에 해당하는 가계부 상세 정보를 데이터베이스에서 조회 후 요청한 회원이 작성한 것인지 확인합니다.
+	 *	가계부 번호({@code id})에 해당하는 가계부 상세 정보를 데이터베이스에서 조회 후 요청한 회원이 작성한 것인지 확인합니다.
 	 *	만약 작성자가 아니거나, 요청한 가계부 번호가 없다면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
 	 *</p>
 	 * 조회한 가계부 정보({@link Ledger})를 {@link LedgerDetailResponse} 객체로 변환 후 반환합니다.
 	 *
 	 * @param memberId		가계부 상세 정보를 요청한 회원 ID
-	 * @param id					조회할 가계부 고유 번호
+	 * @param id					조회할 가계부 번호
 	 * @return	가계부 상세 정보를 포함한 {@link LedgerDetailResponse} 객체
 	 */
 	public LedgerDetailResponse getLedgerDetail(String memberId, String id) {
@@ -306,7 +307,11 @@ public class LedgerService {
 				throw createClientException(ErrorCode.MEMBER_ID_MISMATCH, "작성자가 아닌 사용자는 해당 가계부에 접근이 불가능합니다.", memberId);
 			}
 
-			return LedgerDetailResponse.from(ledger);
+			//이미지 조회
+			int limit = imageService.getLimitImageCount(memberId);
+			List<LedgerImage> imageList = imageService.getImageListByLedger(ledger.getNum(), limit);
+
+			return LedgerDetailResponse.from(ledger, imageList);
 		}catch ( EmptyResultDataAccessException e ) {
 			throw createClientException(ErrorCode.LEDGER_ID_NONE, "존재하지 않는 가계부입니다.", id);
 		}

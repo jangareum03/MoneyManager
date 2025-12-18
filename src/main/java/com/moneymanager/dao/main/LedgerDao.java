@@ -136,7 +136,7 @@ public class LedgerDao {
 	 * @throws org.springframework.dao.EmptyResultDataAccessException	조회 결과가 없을 경우 발생
 	 */
 	public Ledger findLedgerDetailForUser(String id) {
-		String sql = "SELECT member_id, category_id, name, transaction_date, memo, amount, payment_type, place_name, road_address, address " +
+		String sql = "SELECT num, member_id, category_id, name, transaction_date, memo, amount, payment_type, place_name, road_address, address " +
 								"FROM ledger l JOIN ledger_category lc " +
 								"ON l.category_id = lc.code " +
 								"WHERE l.id = ? ";
@@ -147,6 +147,7 @@ public class LedgerDao {
 
 				(ResultSet rs, int row) -> {
 					Ledger.LedgerBuilder builder = Ledger.builder()
+							.num(rs.getLong("num"))
 							.member(Member.builder().id("member_id").build())
 							.category(
 									Category.builder()

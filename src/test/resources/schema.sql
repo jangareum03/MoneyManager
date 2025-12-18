@@ -5,6 +5,7 @@ DROP TABLE inquiry_question;
 DROP TABLE notice;
 DROP TABLE admin;
 
+DROP TABLE ledger_image;
 DROP TABLE ledger;
 DROP TABLE ledger_category;
 
@@ -141,7 +142,6 @@ CREATE TABLE ledger (
     memo                               VARCHAR2(500),
     amount                             NUMBER                      NOT NULL,
     payment_type                CHAR(4)                      DEFAULT 'NONE'           NOT NULL,
-    image                            VARCHAR2(255),
     place_name                  VARCHAR2(100),
     road_address               VARCHAR2(300),
     address                         VARCHAR2(300),
@@ -153,6 +153,19 @@ CREATE TABLE ledger (
     CONSTRAINT  CK_ledger_fix                        CHECK( fix IN ('N', 'Y') ),
     CONSTRAINT  CK_ledger_fixCycle               CHECK( fix_cycle IN('Y', 'M', 'W') ),
     CONSTRAINT  CK_ledger_paymentType      CHECK(payment_type IN ('NONE', 'CASH', 'CARD', 'BANK'))
+);
+
+-- 가계부 이미지
+CREATE TABLE ledger_image (
+    id                          NUMBER                  PRIMARY KEY,
+    ledger_id             NUMBER                  NOT NULL,
+    image_path         VARCHAR2(500)       NOT NULL,
+    sort_order          NUMBER(1)                NOT NULL,
+    created_at          TIMESTAMP             DEFAULT SYSDATE       NOT NULL,
+    updated_at          TIMESTAMP,
+
+    CONSTRAINT FK_ledgerImage_ledgerId     FOREIGN KEY(ledger_id)      REFERENCES  ledger(num)                 ON DELETE CASCADE,
+    CONSTRAINT UK_ledgerImage_order         UNIQUE(ledger_id, sort_order)
 );
 
 -- 관리자
@@ -251,6 +264,12 @@ CREATE SEQUENCE member_point_log_seq
 
 DROP SEQUENCE ledger_seq;
 CREATE SEQUENCE ledger_seq
+    INCREMENT BY 1
+    START WITH 1
+    NOCYCLE;
+
+DROP SEQUENCE ledger_image_seq;
+CREATE SEQUENCE ledger_image_seq
     INCREMENT BY 1
     START WITH 1
     NOCYCLE;
