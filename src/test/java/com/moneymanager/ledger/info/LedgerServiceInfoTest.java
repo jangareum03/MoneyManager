@@ -7,6 +7,7 @@ import com.moneymanager.domain.ledger.dto.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.dto.LedgerEditResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.LedgerDate;
@@ -25,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.EmptyResultDataAccessException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -131,19 +133,47 @@ public class LedgerServiceInfoTest {
 		String id = "1";
 
 		Ledger ledger = Ledger.builder()
+				.num(1L)
 				.member(Member.builder().id(memberId).build())
 				.category(Category.builder().code("010101").name("월급").build())
-				.date(new LedgerDate("20151101"))
+				.date(new LedgerDate("20251101"))
 				.memo("메모")
 				.amountInfo(AmountInfo.builder().amount(10000L).type(PaymentType.NONE).build())
 				.build();
+
+		List<LedgerImage> mockImages = List.of(
+				LedgerImage.builder()
+						.id(1L)
+						.ledgerId(Ledger.builder().id("ledger1").build())
+						.imagePath("/2025/11/23/b8d3c9a1-4f8e-4a7b-8c6d-5e9f2a1b0c4d.png")
+						.sortOrder(2)
+						.createdAt(LocalDateTime.of(2025, 11, 23, 11,11,11))
+						.build()
+		);
+
 		when(ledgerDao.findLedgerDetailForUser(id)).thenReturn(ledger);
+		when(imageService.getLimitImageCount(memberId)).thenReturn(1);
+		when(imageService.getImageListByLedger(ledger.getNum(), 1)).thenReturn(mockImages);
 
 		//when
 		LedgerDetailResponse result = service.getLedgerDetail(memberId, id);
 
 		//then
-		assertThat(result).usingRecursiveComparison().isEqualTo(LedgerDetailResponse.from(ledger));
+		assertThat(result)
+				.usingRecursiveComparison()
+				.isEqualTo(
+						LedgerDetailResponse.builder()
+								.date("2025. 11. 01 (토)")
+								.category(CategoryResponse.from(ledger.getCategory()))
+								.memo("메모")
+								.amountInfo(ledger.getAmountInfo())
+								.place(ledger.getPlace())
+								.images(
+										List.of(
+												"/2025/11/23/b8d3c9a1-4f8e-4a7b-8c6d-5e9f2a1b0c4d.png"
+										)
+								)
+				);
 	}
 
 

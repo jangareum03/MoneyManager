@@ -4,6 +4,7 @@ import com.moneymanager.config.SecurityConfig;
 import com.moneymanager.controller.web.GlobalWebControllerAdvice;
 import com.moneymanager.controller.web.main.LedgerController;
 import com.moneymanager.domain.ledger.dto.CategoryResponse;
+import com.moneymanager.domain.ledger.dto.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.dto.LedgerEditResponse;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.LedgerType;
@@ -16,7 +17,6 @@ import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.LedgerService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -26,11 +26,9 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import static com.fasterxml.jackson.databind.type.LogicalType.Map;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -131,6 +129,42 @@ public class LedgerInfoControllerTest {
 				.andExpect(view().name("/main/ledger_update"))
 				.andExpect(model().attributeExists("ledger"))
 				.andExpect(model().attributeExists("category"))
+				.andDo(print());
+	}
+
+	@DisplayName("모드가 view면 가계부 상세내역 화면을 보여줘야 한다.")
+	@Test
+	void 상세모드_상세화면_이등() throws Exception {
+		//given
+		List<String> images = new ArrayList<>();
+		images.add("/2025/11/01/3c2a8f0e-7d6b-4e1c-9f5a-0d4b3c2e1f0d.png");
+		images.add(null);
+		images.add(null);
+
+		LedgerDetailResponse mockResponse = LedgerDetailResponse.builder()
+				.date("2025. 11. 01 (토)")
+				.type(LedgerType.INCOME)
+				.category(CategoryResponse.builder().code("010101").name("월급").build())
+				.memo("얏호~~")
+				.amountInfo(AmountInfo.builder().amount(25000L).type(PaymentType.CASH).build())
+				.place(Place.builder().placeName("성수 빵집").roadAddress("서울특별시 성수동").detailAddress("상세주소").build())
+				.images(images)
+				.build();
+
+		when(ledgerService.getLedgerDetail("member123", "123"))
+				.thenReturn(mockResponse);
+
+		//when
+		mockMvc.perform(
+				MockMvcRequestBuilders.get("/ledgers/123")
+						.param("mode", "view")
+						.sessionAttr("mid", "member123")
+						.requestAttr("member", MemberLoginResponse.Success.builder()
+								.nickName("홍길동").profile(null).build())
+		)
+				.andExpect(status().isOk())
+				.andExpect(view().name("/main/ledger_detail"))
+				.andExpect(model().attributeExists("ledger"))
 				.andDo(print());
 	}
 }
