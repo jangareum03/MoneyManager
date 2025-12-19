@@ -40,15 +40,15 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class LedgerUpdateRequest {
-	private String id;
-	private String date;
-	private FixedStatus fix;
-	private String category;
-	private String memo;
-	private Long price;
-	private PaymentType paymentType;
-	private List<ImageDTO> image;
-	private Place place;
+	private String id;										//가계부 번호
+	private String date;									//가계부 날짜
+	private FixedStatus fix;								//가계부 고정정보
+	private String category;							//카테고리
+	private String memo;									//메모
+	private Long price;									//가격
+	private PaymentType paymentType;			//결제유형
+	private List<ImageDTO> image;					//이미지
+	private Place place;									//장소
 
 
 	/**
@@ -73,7 +73,6 @@ public class LedgerUpdateRequest {
 		return Ledger.builder()
 				.id(id)
 				.date(new LedgerDate(date))
-				.isReturning(fix.isFixed()).cycleType(fix.getPeriod())
 				.category(Category.builder().code(category).build())
 				.memo(memo)
 				.amountInfo(AmountInfo.builder().amount(price).type(paymentType).build())

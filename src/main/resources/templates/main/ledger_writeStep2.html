@@ -14,19 +14,16 @@
         <section class="ledger-body">
             <form class="form" th:action="@{/ledgers/write}" method="post" enctype="multipart/form-data"  th:object="${ledger}">
                 <!-- 고정/변동 영역 -->
-<!--                <div class="form__field form__field&#45;&#45;fix">-->
-<!--                    <label class="form__label">고정/변동</label>-->
-<!--                    <div class="form__input-container form__input-container&#45;&#45;fix">-->
-<!--                        <section class="form__input-box form__input-box&#45;&#45;main">-->
-<!--                            <label class="form__label">-->
-<!--                                <input class="form__input form__input&#45;&#45;radio" type="radio" value="y" th:field="*{fix.option}">고정-->
-<!--                            </label>-->
-<!--                            <label class="form__label">-->
-<!--                                <input class="form__input form__input&#45;&#45;radio" type="radio" value="n" th:field="*{fix.option}" checked> 변동-->
-<!--                            </label>-->
-<!--                        </section>-->
-<!--                    </div>-->
-<!--                </div>-->
+                <div class="form__field form__field--fix">
+                    <label class="form__label">고정/변동</label>
+                    <div class="form__input-container form__input-container--fix">
+                        <section class="form__input-box form__input-box--main">
+                            <label class="form__label" th:each="fix : *{fixed}">
+                                <input class="form__input form__input--radio" type="radio" th:value="${fix.value}" th:checked="${fix.value == defaultFix}">[[${fix.label}]]
+                            </label>
+                        </section>
+                    </div>
+                </div>
 
                 <!-- 카테고리 영역 -->
                 <fieldset class="form__field form__field--category">

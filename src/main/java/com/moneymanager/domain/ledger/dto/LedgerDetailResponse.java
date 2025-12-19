@@ -48,7 +48,7 @@ public class LedgerDetailResponse {
 	private LedgerType type;								//가계부 유형
 	private CategoryResponse category;			//카테고리
 	private String memo;										//메모
-	private AmountInfo amountInfo;							//금액정보
+	private AmountInfo amountInfo;					//금액정보
 	private List<String> images;							//가계부 사진
 	private Place place;										//위치
 

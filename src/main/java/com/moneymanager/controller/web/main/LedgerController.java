@@ -3,6 +3,8 @@ package com.moneymanager.controller.web.main;
 import com.moneymanager.domain.ledger.dto.*;
 import com.moneymanager.domain.ledger.dto.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.enums.DateType;
+import com.moneymanager.domain.ledger.enums.FixedPeriod;
+import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.LedgerService;
@@ -55,11 +57,17 @@ import java.util.*;
 @Slf4j
 @Controller
 @RequestMapping("/ledgers")
-@RequiredArgsConstructor
 public class LedgerController {
 
 	private final LedgerService ledgerService;
 	private final CategoryService categoryService;
+	private final ImageServiceImpl imageService;
+
+	public LedgerController(LedgerService ledgerService, CategoryService categoryService, @Qualifier("ledgerImage") ImageServiceImpl imageService) {
+		this.ledgerService = ledgerService;
+		this.categoryService = categoryService;
+		this.imageService = imageService;
+	}
 
 
 	/**
@@ -121,22 +129,27 @@ public class LedgerController {
 	@GetMapping("/{id}")
 	public String getLedgerDetailPage(@PathVariable String id, @RequestParam(required = false, defaultValue = "view") String mode, HttpSession session, Model model) {
 		String memberId = (String) session.getAttribute("mid");
+		String pagePath = "/main/ledger_detail";
 
 		if( mode.equalsIgnoreCase("edit") ) {
+			pagePath = "/main/ledger_update";
+
 			LedgerEditResponse ledger = ledgerService.getLedgerEdit(memberId, id);
 			List<CategoryResponse> categoryResponse = ledger.getCategory();
 
 			model.addAttribute("ledger", ledger);
 			model.addAttribute("category", categoryService.getAllCategoriesByCode(categoryResponse.get( categoryResponse.size() - 1 ).getCode()));
-			model.addAttribute("paymentTypes", List.of(PaymentType.values()));
+			model.addAttribute("slots", imageService.getImageSlots(memberId));
 
-			return "/main/ledger_update";
 		}else {
 			LedgerDetailResponse ledger = ledgerService.getLedgerDetail(memberId, id);
 			model.addAttribute("ledger", ledger);
-			model.addAttribute("paymentTypes", List.of(PaymentType.values()));
-
-			return "/main/ledger_detail";
 		}
+
+		model.addAttribute("paymentTypes", List.of(PaymentType.values()));
+		model.addAttribute("fixed", List.of(FixedYN.values()));
+		model.addAttribute("fixedPeriod", List.of(FixedPeriod.values()));
+
+		return pagePath;
 	}
 }

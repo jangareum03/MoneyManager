@@ -39,16 +39,16 @@ public enum FixedPeriod {
 	YEARLY("일년", "Y");
 
 	private final String label;
-	private final String dbValue;
+	private final String value;
 
 	FixedPeriod(String label, String dbValue) {
 		this.label = label;
-		this.dbValue = dbValue;
+		this.value = dbValue;
 	}
 
 	public static FixedPeriod of(String dbValue) {
 		for( FixedPeriod type : values() ) {
-			if(type.dbValue.equalsIgnoreCase(dbValue)) return type;
+			if(type.value.equalsIgnoreCase(dbValue)) return type;
 		}
 
 		throw createClientException(ErrorCode.LEDGER_FIX_FORMAT, "지원하지 않은 고정주기 유형입니다.", dbValue);

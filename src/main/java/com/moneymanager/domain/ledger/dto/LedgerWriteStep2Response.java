@@ -1,6 +1,7 @@
 package com.moneymanager.domain.ledger.dto;
 
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
+import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import lombok.Builder;
@@ -40,7 +41,7 @@ import java.util.List;
 public class LedgerWriteStep2Response {
 	private final String title;												//제목
 	private final LedgerType type;										//가계부 유형
-	private final FixedPeriod	fixedPeriod;						//고정주기
+	private final List<FixedYN> fixed;								//고정여부
 	private final List<CategoryResponse> categories;		//카테고리 리스트
 	private final List<PaymentType> paymentTypes;		//결제유형
 	private final List<Boolean> imageSlot;							//이미지 사용여부

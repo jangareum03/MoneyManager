@@ -10,6 +10,7 @@ import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.*;
@@ -104,8 +105,6 @@ public class LedgerService {
 	 * @return	가계부 상세 작성 단계에 필요한 데이터를 담은 {@link LedgerWriteStep2Response} 객체
 	 */
 	public LedgerWriteStep2Response getWriteByData(String id, String type, String date) {
-		//TODO: 고정여부 추가
-
 		//가계부 유형에 따른 카테고리 목록 조회
 		LedgerType ledgerType = LedgerType.fromUrl(type);
 		CategoryRequest categoryRequest = CategoryRequest.ofMiddleCategory(ledgerType.getDbCode());
@@ -120,6 +119,7 @@ public class LedgerService {
 		return LedgerWriteStep2Response.builder()
 				.title(DateTimeUtils.formatDateAsString(localDate, "yyyy년 MM월 dd일 E요일"))
 				.type(LedgerType.fromUrl(type))
+				.fixed(List.of(FixedYN.values()))
 				.categories(categories)
 				.paymentTypes(List.of(PaymentType.values()))
 				.imageSlot(availableSlots)

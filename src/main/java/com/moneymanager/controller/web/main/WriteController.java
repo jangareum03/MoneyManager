@@ -2,6 +2,7 @@ package com.moneymanager.controller.web.main;
 
 import com.moneymanager.domain.ledger.dto.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.LedgerWriteStep1Response;
+import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.LedgerService;
@@ -101,6 +102,7 @@ public class WriteController {
 
 			model.addAttribute("ledger", ledgerService.getWriteByData( memberId, type, date ));
 			model.addAttribute("defaultPaymentType", PaymentType.NONE.getDbCode());
+			model.addAttribute("defaultFix", FixedYN.VARIABLE.getValue());
 
 			return "/main/ledger_writeStep2";
 		}catch ( ClientException e ) {

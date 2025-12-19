@@ -2,6 +2,7 @@ package com.moneymanager.dao.main;
 
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
+import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.Place;
@@ -104,8 +105,8 @@ public class LedgerDao {
 
 								stmt.setString(1, ledger.getMember().getId());
 								stmt.setString(2, ledger.getCategory().getCode());
-								stmt.setString(3, ledger.isReturning() ? "Y" : "N");
-								stmt.setString(4, ledger.getCycleType().getDbValue());
+								stmt.setString(3, ledger.getFixed().getValue());
+								stmt.setString(4, ledger.getCycleType().getValue());
 								stmt.setDate(5, Date.valueOf(ledger.getTransActionDate()));
 								stmt.setString(6, ledger.getMemo());
 								stmt.setLong(7, ledger.getAmountInfo().getAmount());
@@ -205,7 +206,7 @@ public class LedgerDao {
 					Ledger.LedgerBuilder builder =	Ledger.builder()
 							.member(Member.builder().id(rs.getString("member_id")).build())
 							.date(new LedgerDate(rs.getString("transaction_date")))
-							.isReturning(rs.getBoolean(rs.getString("fix")))
+							.fixed(FixedYN.of(rs.getString("fix")))
 							.cycleType(FixedPeriod.of(rs.getString("fix_cycle")))
 							.category(Category.builder().name(rs.getString("name")).code(rs.getString("category_id")).build())
 							.memo(rs.getString("memo"))
@@ -432,10 +433,9 @@ public class LedgerDao {
 																	"SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, price = ?, payment_type = ?, place_name = ?, road_address = ?, address = ?, updated_at = SYSDATE " +
 																	"WHERE member_id = ? AND id = ?";
 
-		String isFixed = ledger.isReturning() ? "Y" : "N";
 		return jdbcTemplate.update(
 						query,
-						ledger.getCategory().getCode(), isFixed, ledger.getCycleType().getDbValue(),
+						ledger.getCategory().getCode(), ledger.getFixed().getValue(), ledger.getCycleType().getValue(),
 						ledger.getMemo(), ledger.getAmountInfo().getAmount(), ledger.getAmountInfo().getType(),
 						ledger.getPlace().getPlaceName(), ledger.getPlace().getRoadAddress(), ledger.getPlace().getDetailAddress(),
 						ledger.getMember().getId(), ledger.getId()

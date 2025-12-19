@@ -1,6 +1,7 @@
 package com.moneymanager.domain.ledger.entity;
 
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
+import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.vo.LedgerDate;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.Place;
@@ -51,7 +52,7 @@ public class Ledger {
 	private String id;										//가계부 번호
     private Member member;							//작성자
     private Category category;						//카테고리
-	private boolean isReturning;						//고정여부
+	private FixedYN fixed;								//고정여부
 	private FixedPeriod cycleType;					//고정주기
     private LedgerDate date;							//가계부 날짜
     private String memo;									//내용
