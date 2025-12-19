@@ -27,9 +27,14 @@ import static com.moneymanager.exception.ErrorUtil.createClientException;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 11. 24.</td>
+ * 		 	  <td>25. 11. 24</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 12. 19</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[생성자 삭제] FixedStatus()</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
@@ -39,11 +44,6 @@ import static com.moneymanager.exception.ErrorUtil.createClientException;
 public class FixedStatus {
 	boolean fixed;				//고정 여부(true: 고정, false: 변동)
 	FixedPeriod period;		//고정 주기
-
-	public FixedStatus() {
-		this.fixed = false;
-		this.period = null;
-	}
 
 	public FixedStatus(boolean fixed, FixedPeriod period) {
 		if( fixed && period == null ) {
@@ -57,5 +57,4 @@ public class FixedStatus {
 		this.fixed = fixed;
 		this.period = period;
 	}
-
 }

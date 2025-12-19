@@ -1,6 +1,7 @@
 package com.moneymanager.domain.ledger.dto;
 
 import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
@@ -10,10 +11,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-
-import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -52,10 +51,10 @@ public class LedgerEditResponse {
 	private List<CategoryResponse> category;			//카테고리
 	private String memo;												//메모
 	private AmountInfo amountInfo;							//금액
-	private String images;											//가계부 사진
+	private List<String> images;									//가계부 사진
 	private Place place;												//위치
 
-	public static LedgerEditResponse from(Ledger ledger, List<CategoryResponse> categories) {
+	public static LedgerEditResponse from(Ledger ledger, List<CategoryResponse> categories, List<LedgerImage> images) {
 		LocalDate date = ledger.getTransActionDate();
 		LedgerEditResponse.LedgerEditResponseBuilder builder =
 				LedgerEditResponse.builder()
@@ -71,8 +70,21 @@ public class LedgerEditResponse {
 			builder.fixed(List.of(FixedPeriod.values()));
 		}
 
-		//TODO: 이미지 업로드 추가
+		if( !images.isEmpty() ) {
+			builder.images(
+					toImagePaths(images)
+			);
+		}
 
 		return builder.build();
+	}
+
+	//LedgerImage 리스트를 String 리스트로 변환
+	private static List<String> toImagePaths(List<LedgerImage> images) {
+		return images.stream()
+				.map( image ->
+						image == null ? null : image.getImagePath()
+				)
+				.collect(Collectors.toList());
 	}
 }

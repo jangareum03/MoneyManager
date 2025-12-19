@@ -21,7 +21,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
+import java.util.stream.IntStream;
 
 
 /**
@@ -98,6 +98,25 @@ public class ImageServiceImpl {
 		}catch ( EmptyResultDataAccessException e ) {
 			return 1;
 		}
+	}
+
+
+	/**
+	 * 회원이 사용할 수 있는 가계부 이미지 슬롯 상태를 반환합니다.
+	 * <p>
+	 *     회원이 등록할 수 있는 최대 이미지 개수({@code MAX_IMAGE})를 기준으로,
+	 *     실제 사용 가능한 슬롯과 사용 불가능한 슬롯을 {@link Boolean} 값으로 표현합니다.
+	 * </p>
+	 *
+	 * @param memberId		이미지 슬롯 정보를 불러올 회원 ID
+	 * @return	이미지 슬롯 사용 가능 여부를 나타내는 Boolean 리스트
+	 */
+	public List<Boolean> getImageSlots(String memberId) {
+		int usedCount = getLimitImageCount(memberId);
+
+		return IntStream.range(0, MAX_IMAGE)
+				.mapToObj( s -> s < usedCount )
+				.collect(Collectors.toList());
 	}
 
 
@@ -189,7 +208,7 @@ public class ImageServiceImpl {
 		String ext = FilenameUtils.getExtension(imageName);
 		String originName = FilenameUtils.getBaseName(imageName);
 
-		return String.format("%d_%s_%s_%d.%s", id, date, originName, ++index, ext);
+		return String.format("%s_%s_%s_%d.%s", id, date, originName, ++index, ext);
 	}
 
 

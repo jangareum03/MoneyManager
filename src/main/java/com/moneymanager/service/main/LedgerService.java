@@ -6,16 +6,15 @@ import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.ledger.dto.*;
 import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
 import com.moneymanager.domain.ledger.dto.LedgerDetailResponse;
-import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.LedgerType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.*;
 import com.moneymanager.domain.ledger.enums.DateType;
 import com.moneymanager.exception.ErrorCode;
-import com.moneymanager.service.main.validation.CategoryValidator;
 import com.moneymanager.service.main.validation.DateScopeValidator;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +29,7 @@ import java.time.YearMonth;
 import java.util.*;
 
 import static com.moneymanager.exception.ErrorUtil.createClientException;
+import static com.moneymanager.utils.DateTimeUtils.parseDateFlexible;
 
 
 /**
@@ -89,31 +89,40 @@ public class LedgerService {
 
 
 	/**
-	 * 가계부 작성에 필요한 기본 정보를 반환합니다.<p>
-	 * 기본정보에는 제목, 카테고리 리스트, 등록 가능한 이미지 개수가 포함됩니다.<br>
-	 * 제목은 가계부 날짜를 {@code yyyy년 mm월 dd일 E요일} 형식으로 저장됩니다.
+	 * 가계부 상세 작성 단계에 필요한 데이터를 생성 후 반환합니다.
+	 * <p>
+	 *    가계부 초기 단계에서 선택한 가계부 유형({@code type})과 날짜({@code date})를 기준으로,
+	 *    카테고리 목록, 결제 수단, 이미지 슬롯 정보 등을 포함한 {@link LedgerWriteStep2Response} 객체를 구성합니다.
+	 * </p>
+	 * <p>
+	 *     이미지 슬롯 정보는 회원별 이미지 등록 제한 정책을 따릅니다.
+	 * </p>
 	 *
-	 * @param id 			회원 식별번호
-	 * @param type      작성할 가계부 유형("income", "outlay")
-	 * @param date		작성할 가계부 날짜 문자열
-	 * @return 작성에 필요한 기본 정보
+	 * @param id			가계부 작성할 회원 ID
+	 * @param type		가계부 유형(URL 기준값)
+	 * @param date		가계부 날짜 문자열
+	 * @return	가계부 상세 작성 단계에 필요한 데이터를 담은 {@link LedgerWriteStep2Response} 객체
 	 */
-	public LedgerWriteResponse.ledgerDetail getWriteByData(String id, String type, String date) {
-		LedgerDate ledgerDate = new LedgerDate(date);
-		String title = DateTimeUtils.formatDateAsString(ledgerDate.getTransactionDate(), "yyyy년 MM월 dd일 E요일");
+	public LedgerWriteStep2Response getWriteByData(String id, String type, String date) {
+		//TODO: 고정여부 추가
 
-		int availableCount = imageService.getLimitImageCount(id);        //등록 가능한 이미지 개수
+		//가계부 유형에 따른 카테고리 목록 조회
+		LedgerType ledgerType = LedgerType.fromUrl(type);
+		CategoryRequest categoryRequest = CategoryRequest.ofMiddleCategory(ledgerType.getDbCode());
+		List<CategoryResponse> categories = categoryService.getSubCategories(categoryRequest);
 
-		//중간 카테고리를 가계부 유형에 따라 가져오기
-		String code = LedgerType.fromUrl(type).getDbCode();
-		CategoryValidator.validate(CategoryRequest.ofMiddleCategory(code));
+		//날짜 문자열을 LocalDate로 변환
+		LocalDate localDate = parseDateFlexible(date);
 
-		List<CategoryResponse> categories = categoryService.getSubCategories(CategoryRequest.ofMiddleCategory(code));
+		//사용 가능한 이미지 슬롯 여부
+		List<Boolean> availableSlots = imageService.getImageSlots(id);
 
-		return LedgerWriteResponse.ledgerDetail.builder()
-				.date(title).type(type)
-				.maxImage(availableCount)
+		return LedgerWriteStep2Response.builder()
+				.title(DateTimeUtils.formatDateAsString(localDate, "yyyy년 MM월 dd일 E요일"))
+				.type(LedgerType.fromUrl(type))
 				.categories(categories)
+				.paymentTypes(List.of(PaymentType.values()))
+				.imageSlot(availableSlots)
 				.build();
 	}
 
@@ -339,7 +348,11 @@ public class LedgerService {
 
 			List<CategoryResponse> categories = categoryService.getAncestorCategoriesByCode(ledger.getCategory().getCode());
 
-			return LedgerEditResponse.from(ledger, categories);
+			//이미지 조회
+			int limit = imageService.getLimitImageCount(memberId);
+			List<LedgerImage> imageList = imageService.getImageListByLedger(ledger.getNum(), limit);
+
+			return LedgerEditResponse.from(ledger, categories, imageList);
 		}catch ( EmptyResultDataAccessException e ) {
 			throw createClientException(ErrorCode.LEDGER_ID_NONE, "존재하지 않는 가계부입니다.", id);
 		}

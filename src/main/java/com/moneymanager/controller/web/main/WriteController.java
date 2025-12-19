@@ -1,12 +1,11 @@
 package com.moneymanager.controller.web.main;
 
-import com.moneymanager.domain.ledger.dto.LedgerTypeResponse;
 import com.moneymanager.domain.ledger.dto.LedgerWriteRequest;
-import com.moneymanager.domain.ledger.dto.LedgerWriteResponse;
-import com.moneymanager.domain.ledger.enums.LedgerType;
+import com.moneymanager.domain.ledger.dto.LedgerWriteStep1Response;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.LedgerService;
-import com.moneymanager.utils.DateTimeUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,6 +14,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
+
+import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 
 
 /**
@@ -47,65 +48,63 @@ import java.time.LocalDate;
 @Slf4j
 @Controller
 @RequestMapping("/ledgers/write")
+@RequiredArgsConstructor
 public class WriteController {
 
 	private final LedgerService ledgerService;
 
-	public WriteController( LedgerService ledgerService) {
-		this.ledgerService = ledgerService;
-	}
-
-
-
 
 	/**
-	 * 가계부 작성을 위한 가계부 유형과 날짜 선택 페이지 요청을 처리합니다.
+	 * 가계부 초기 작성에 필요한 정보를 조회 후 가계부 작성 1단계 페이지를 반환합니다.
+	 * <p>
+	 *     가계부 신규 작성 흐름의 첫 번째 단계로, 현재 날짜 정보를 포함한 작성에 필요한 초기 데이터를 전달합니다.
+	 * </p>
 	 *
 	 * @param  model		뷰에 전달할 객체
-	 * @return 수입 또는 지출 작성 페이지
+	 * @return 가계부 작성 1단계 화면의 경로
 	 */
 	@GetMapping
 	public String getStep1Page( Model model ) {
-		LocalDate today = LocalDate.now();
+		model.addAttribute("data", new LedgerWriteStep1Response(LocalDate.now()));
 
-		//사용자에게 전달할 정보
-		model.addAttribute("year", today.getYear());
-		model.addAttribute("month", today.getMonthValue());
-		model.addAttribute("day", today.getDayOfMonth());
-		model.addAttribute("lastDay", today.lengthOfMonth());
-		model.addAttribute("today", DateTimeUtils.formatDateAsString(today, "yyyy년 MM월 dd일"));
-
-		model.addAttribute("type", LedgerTypeResponse.from(LedgerType.values()));
 		return "/main/ledger_writeStep1";
 	}
 
 
 
 	/**
-	 * 가계부 유형(수입/지출)에 따른 작성 페이지 요청을 처리합니다.<p>
-	 * 가계부 유형에 따른 카테고리 리스트와 회원마다 등록할 수 있는 이미지 개수를 전달합니다.
+	 * 가계부 초기 작성에서 선택한 가계부 유형, 날짜 정보를 전달받아,
+	 * 가계부 상세 작성에 필요한 데이터(카테고리, 이미지 슬롯 등)를 조회한 후 화면에 전달합니다.
+	 * <p>
+	 *     처리 과정:
+	 *     <ol>
+	 *         <li>가계부 유형({@code type}) 또는 날짜({@code date})가 없다면 가계부 작성 1단계 화면으로 리다이렉트 합니다.</li>
+	 *         <li>세션에서 로그인된 회원의 ID를 가져옵니다.</li>
+	 *         <li>서비스를 호출하여 가계부 상세 작성에 필요한 데이터를 조회합니다.</li>
+	 *         <li>조회된 데이터를 모델에 담아 작성 2단계 화면으로 이동합니다.</li>
+	 *         <li>처리 중 {@link ClientException} 예외가 발생하면, 1단계 화면으로 이동합니다.</li>
+	 *     </ol>
+	 * </p>
 	 *
-	 * @param type				가계부 유형
-	 * @param date				가계부 날짜
-	 * @param session	사용자 식별 및 정보를 저장하는 객체
-	 * @param model		뷰에 전달할 객체
-	 * @return	수입 또는 지출 작성 페이지
+	 * @param type				가계부 유형(URL 경로 변수)
+	 * @param date				선택한 가계부 날짜
+	 * @param session			사용자 식별 및 정보를 저장하는 객체
+	 * @param model			뷰에 전달할 데이터를 담은 객체
+	 * @return	가계부 작성 2단계 또는 1단계 화면 경로
 	 */
 	@PostMapping("/{type}")
-	public String getStep2Page( @PathVariable String type, @RequestParam String date, HttpSession session, Model model ) {
+	public String getStep2Page( @PathVariable String type, @RequestParam(required = false) String date, HttpSession session, Model model ) {
+		if( isNullOrBlank(date) ) return "redirect:/main/ledger_writeStep1";
+
 		try{
-			if( date == null ) {
-				log.warn("작성할 가계부 날짜가 없습니다.");
-				return "/main/ledger_writeStep1";
-			}
+			String memberId = (String) session.getAttribute("mid");
 
-			LedgerWriteResponse.ledgerDetail ledger = ledgerService.getWriteByData( (String)session.getAttribute("mid"), type, date );
-
-			model.addAttribute("ledger", ledger);
+			model.addAttribute("ledger", ledgerService.getWriteByData( memberId, type, date ));
+			model.addAttribute("defaultPaymentType", PaymentType.NONE.getDbCode());
 
 			return "/main/ledger_writeStep2";
 		}catch ( ClientException e ) {
-			return "/main/ledger_writeStep1";
+			return "redirect:/main/ledger_writeStep1";
 		}
 	}
 
