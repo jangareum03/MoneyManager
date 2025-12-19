@@ -5,9 +5,11 @@ import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.domain.ledger.dto.CategoryResponse;
 import com.moneymanager.domain.ledger.dto.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.dto.LedgerEditResponse;
+import com.moneymanager.domain.ledger.dto.LedgerWriteStep2Response;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.LedgerDate;
@@ -29,8 +31,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -256,12 +258,52 @@ public class LedgerServiceInfoTest {
 		when(categoryService.getAncestorCategoriesByCode(ledger.getCategory().getCode()))
 				.thenReturn(categoryResponses);
 
+		List<LedgerImage> images = List.of(
+			LedgerImage.builder().build()
+		);
+
 		//when
 		LedgerEditResponse result = service.getLedgerEdit(memberId, id);
 
 		//then
 		assertThat(result)
 				.usingRecursiveComparison()
-				.isEqualTo(LedgerEditResponse.from(ledger, categoryResponses));
+				.isEqualTo(LedgerEditResponse.from(ledger, categoryResponses, images));
+	}
+
+
+
+	//=================================================
+	// getWriteByData() 테스트
+	//=================================================
+	@DisplayName("요청값이 모두 정상이라면 LedgerWriteStep2Response 객체를 반환한다.")
+	@Test
+	void 정상값이면_응답DTO_반환(){
+		//given
+		String id = "member";
+		String type = "income";
+		String date = "20251201";
+
+		LedgerType ledgerType = LedgerType.INCOME;
+
+		List<CategoryResponse> categoryResponse = List.of(
+			CategoryResponse.builder().code("010100").name("소득").build(),
+			CategoryResponse.builder().code("010200").name("저축").build()
+		);
+		when(categoryService.getSubCategories(any())).thenReturn(categoryResponse);
+
+		List<Boolean> imageSlots = List.of(true, false, false);
+		when(imageService.getImageSlots(id)).thenReturn(imageSlots);
+
+		//when
+		LedgerWriteStep2Response result = service.getWriteByData(id, type ,date);
+
+		//then
+		assertThat(result).isNotNull();
+		assertThat(result.getTitle()).isEqualTo("2025년 12월 01일 월요일");
+		assertThat(result.getType()).isEqualTo(ledgerType);
+		assertThat(result.getCategories()).isEqualTo(categoryResponse);
+		assertThat(result.getPaymentTypes()).containsExactly(PaymentType.values());
+		assertThat(result.getImageSlot()).isEqualTo(imageSlots);
 	}
 }

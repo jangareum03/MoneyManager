@@ -8,6 +8,8 @@ import com.moneymanager.service.main.ImageServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,7 +52,7 @@ import static org.mockito.Mockito.when;
  * </table>
  */
 @ExtendWith(MockitoExtension.class)
-public class LedgerImageServiceTest {
+	public class LedgerImageServiceTest {
 
 	@InjectMocks	private ImageServiceImpl imageService;
 
@@ -172,4 +174,30 @@ public class LedgerImageServiceTest {
 		assertThat(result.get(2)).isNull();
 	}
 
+
+
+	//=================================================
+	// getImageSlots() 테스트
+	//=================================================
+	@DisplayName("이미지 슬롯은 최소 1개부터 최대 3개까지 사용 가능하다.")
+	@ParameterizedTest
+	@CsvSource({
+			"1, true, false, false",
+			"2, true, true, false",
+			"3, true, true, true",
+	})
+	void 이미지슬롯_경계값(int limit, boolean first, boolean second, boolean third){
+		//given
+		String memberId = "member123";
+		when(memberInfoDao.findImageLimit(memberId)).thenReturn(limit);
+
+		//when
+		List<Boolean> result = imageService.getImageSlots(memberId);
+
+		//then
+		assertThat(result)
+				.isNotNull()
+				.hasSize(3)
+				.containsExactly(first, second, third);
+	}
 }
