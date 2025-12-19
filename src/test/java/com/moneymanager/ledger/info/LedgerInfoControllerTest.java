@@ -6,18 +6,20 @@ import com.moneymanager.controller.web.main.LedgerController;
 import com.moneymanager.domain.ledger.dto.CategoryResponse;
 import com.moneymanager.domain.ledger.dto.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.dto.LedgerEditResponse;
-import com.moneymanager.domain.ledger.enums.CategoryLevel;
-import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.dto.LedgerFixedResponse;
+import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.domain.member.dto.MemberLoginResponse;
 import com.moneymanager.security.jwt.JwtAuthenticationFilter;
 import com.moneymanager.service.main.CategoryService;
+import com.moneymanager.service.main.ImageServiceImpl;
 import com.moneymanager.service.main.LedgerService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -80,14 +82,20 @@ public class LedgerInfoControllerTest {
 
 	@MockBean	private LedgerService ledgerService;
 	@MockBean	private CategoryService categoryService;
+	@MockBean	@Qualifier("ledgerImage") private ImageServiceImpl imageService;
 
-	@DisplayName("수정모드면 수정화면을 보여줘야 한다.")
+	@DisplayName("일회성 가게부가 수정모드면 고정주기가 화면에 안보여야 한다.")
 	@Test
-	void 수정모드_맞으면_수정화면_이동() throws Exception {
+	void 일회성_가계부_수정모드면_정상동작() throws Exception {
 		//given
 		LedgerEditResponse mockResponse = LedgerEditResponse.builder()
 				.date("2025. 11. 12 (수)")
 				.type(LedgerType.fromCode("010101"))
+				.fixed(
+						LedgerFixedResponse.from(
+								Ledger.builder().fixed(FixedYN.VARIABLE).cycleType(null).build()
+						)
+				)
 				.category(List.of(
 						CategoryResponse.builder().code("010000").name("수입").build(),
 						CategoryResponse.builder().code("010100").name("소득").build(),
@@ -129,6 +137,67 @@ public class LedgerInfoControllerTest {
 				.andExpect(view().name("/main/ledger_update"))
 				.andExpect(model().attributeExists("ledger"))
 				.andExpect(model().attributeExists("category"))
+				.andDo(print());
+	}
+
+	@DisplayName("고정 가계부가 수정모드면 고정주기가 화면에 보여야 한다.")
+	@Test
+	void 고정_가계부_수정모드면_정상동작() throws Exception {
+		//given
+		LedgerEditResponse mockResponse = LedgerEditResponse.builder()
+				.date("2025. 11. 12 (수)")
+				.type(LedgerType.fromCode("010101"))
+				.fixed(
+						LedgerFixedResponse.from(
+								Ledger.builder().fixed(FixedYN.REPEAT).cycleType(FixedPeriod.YEARLY).build()
+						)
+				)
+				.category(List.of(
+						CategoryResponse.builder().code("010000").name("수입").build(),
+						CategoryResponse.builder().code("010100").name("소득").build(),
+						CategoryResponse.builder().code("010101").name("월급").build()
+				))
+				.memo("강아지 똥")
+				.amountInfo(AmountInfo.builder().amount(15000L).type(PaymentType.NONE).build())
+				.images(
+						List.of("강아지.png", "고양이.jpg", "다람쥐.jpg")
+				)
+				.build();
+		when(ledgerService.getLedgerEdit("member123", "123"))
+				.thenReturn(mockResponse);
+
+		when(categoryService.getAllCategoriesByCode(mockResponse.getCategory().get(mockResponse.getCategory().size() -1).getCode())).thenReturn(
+				java.util.Map.of(
+						CategoryLevel.MIDDLE.name(), List.of(
+								CategoryResponse.builder().code("010100").name("소득1").build(),
+								CategoryResponse.builder().code("010200").name("소득2").build(),
+								CategoryResponse.builder().code("010300").name("소득3").build()
+						),
+						CategoryLevel.LOW.name(), List.of(
+								CategoryResponse.builder().code("010101").name("소1").build(),
+								CategoryResponse.builder().code("010102").name("소2").build(),
+								CategoryResponse.builder().code("010103").name("소3").build(),
+								CategoryResponse.builder().code("010104").name("소4").build(),
+								CategoryResponse.builder().code("010105").name("소5").build()
+						)
+				)
+		);
+
+		when(imageService.getImageSlots("member123")).thenReturn(List.of(true, true, true));
+
+		//when
+		mockMvc.perform(
+						MockMvcRequestBuilders.get("/ledgers/123")
+								.param("mode", "edit")
+								.sessionAttr("mid", "member123")
+								.requestAttr("member", MemberLoginResponse.Success.builder()
+										.nickName("홍길동").profile(null).build())
+				)
+				.andExpect(status().isOk())
+				.andExpect(view().name("/main/ledger_update"))
+				.andExpect(model().attributeExists("ledger"))
+				.andExpect(model().attributeExists("category"))
+				.andExpect(model().attributeExists("slots"))
 				.andDo(print());
 	}
 

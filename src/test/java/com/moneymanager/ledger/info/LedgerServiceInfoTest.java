@@ -2,13 +2,12 @@ package com.moneymanager.ledger.info;
 
 import com.moneymanager.dao.main.LedgerDao;
 import com.moneymanager.domain.global.dto.ErrorDTO;
-import com.moneymanager.domain.ledger.dto.CategoryResponse;
-import com.moneymanager.domain.ledger.dto.LedgerDetailResponse;
-import com.moneymanager.domain.ledger.dto.LedgerEditResponse;
-import com.moneymanager.domain.ledger.dto.LedgerWriteStep2Response;
+import com.moneymanager.domain.ledger.dto.*;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.domain.ledger.enums.FixedPeriod;
+import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
@@ -29,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -233,42 +233,130 @@ public class LedgerServiceInfoTest {
 				});
 	}
 
-	@DisplayName("가계부 번호와 회원이 일치하면 DB에서 수정화면에 필요한 정보를 조회한다.")
+	@DisplayName("가계부가 일회성인 정보면 고정주기가 null이여야 한다.")
 	@Test
-	void 인자값_정상이면_수정정보_반환(){
+	void 일회성인_가계부정보면_고정주기_null반환(){
 		//given
 		String memberId = "member";
 		String id = "1";
 
-		Ledger ledger = Ledger.builder()
-				.member(Member.builder().id(memberId).build())
-				.category(Category.builder().code("010101").name("월급").build())
-				.date(new LedgerDate("20151101"))
-				.memo("메모")
-				.amountInfo(AmountInfo.builder().amount(10000L).type(PaymentType.NONE).build())
-				.build();
+		Ledger ledger = createLedgerByFixN(memberId);
 		when(ledgerDao.findLedgerEditForUser(id)).thenReturn(ledger);
 		when(imageService.getLimitImageCount(memberId)).thenReturn(1);
 
-		List<CategoryResponse> categoryResponses = List.of(
-				CategoryResponse.builder().code("010000").name("수입").build(),
-				CategoryResponse.builder().code("010100").name("소득").build(),
-				CategoryResponse.builder().code("010101").name("월급").build()
-		);
+		List<CategoryResponse> categoryResponses = createIncomeCategory();
 		when(categoryService.getAncestorCategoriesByCode(ledger.getCategory().getCode()))
 				.thenReturn(categoryResponses);
 
-		List<LedgerImage> images = List.of(
-			LedgerImage.builder().build()
-		);
+		List<LedgerImage> images = createMinLedgerImage(ledger.getId());
+		when(imageService.getImageListByLedger(ledger.getNum(), 1)).thenReturn(images);
 
 		//when
 		LedgerEditResponse result = service.getLedgerEdit(memberId, id);
 
 		//then
-		assertThat(result)
-				.usingRecursiveComparison()
-				.isEqualTo(LedgerEditResponse.from(ledger, categoryResponses, images));
+		assertThat(result).isNotNull();
+		assertThat(result.getDate()).isEqualTo("2025. 11. 01 (토)");
+		assertThat(result.getMemo()).isEqualTo("메모");
+		assertThat(result.getPlace()).isNull();
+
+		assertThat(result.getType()).isSameAs(LedgerType.INCOME);
+		assertThat(result.getCategory()).isSameAs(categoryResponses);
+
+		assertThat(result.getImages())
+				.containsExactly("/2025/11/01/이미지1.png", null, null);
+
+		assertThat(result.getAmountInfo().getAmount()).isEqualTo(10000L);
+		assertThat(result.getAmountInfo().getType()).isSameAs(PaymentType.NONE);
+
+		assertThat(result.getFixed().isFix()).isFalse();
+		assertThat(result.getFixed().getPeriod()).isNull();
+	}
+
+	@DisplayName("가계부가 반복적인 정보면 고정주기 값이 있어야 한다.")
+	@Test
+	void 반복인_가계부정보면_고정주기_l반환(){
+		//given
+		String memberId = "member";
+		String id = "1";
+
+		Ledger ledger = createLedgerByFixY(memberId);
+		when(ledgerDao.findLedgerEditForUser(id)).thenReturn(ledger);
+		when(imageService.getLimitImageCount(memberId)).thenReturn(1);
+
+		List<CategoryResponse> categoryResponses = createIncomeCategory();
+		when(categoryService.getAncestorCategoriesByCode(ledger.getCategory().getCode()))
+				.thenReturn(categoryResponses);
+
+		List<LedgerImage> images = createMinLedgerImage(ledger.getId());
+		when(imageService.getImageListByLedger(ledger.getNum(), 1)).thenReturn(images);
+
+		//when
+		LedgerEditResponse result = service.getLedgerEdit(memberId, id);
+
+		//then
+		assertThat(result).isNotNull();
+		assertThat(result.getDate()).isEqualTo("2025. 11. 01 (토)");
+		assertThat(result.getMemo()).isEqualTo("메모");
+		assertThat(result.getPlace()).isNull();
+
+		assertThat(result.getType()).isSameAs(LedgerType.INCOME);
+		assertThat(result.getCategory()).isSameAs(categoryResponses);
+
+		assertThat(result.getImages())
+				.containsExactly("/2025/11/01/이미지1.png", null, null);
+
+		assertThat(result.getAmountInfo().getAmount()).isEqualTo(10000L);
+		assertThat(result.getAmountInfo().getType()).isSameAs(PaymentType.NONE);
+
+		assertThat(result.getFixed().isFix()).isTrue();
+		assertThat(result.getFixed().getPeriod()).isEqualTo(FixedPeriod.WEEKLY.getValue());
+	}
+
+	private Ledger createLedgerByFixN(String memberId) {
+		return Ledger.builder()
+				.id("ledger1")
+				.member(Member.builder().id(memberId).build())
+				.fixed(FixedYN.VARIABLE)
+				.category(Category.builder().code("010101").name("월급").build())
+				.date(new LedgerDate("20251101"))
+				.memo("메모")
+				.amountInfo(AmountInfo.builder().amount(10000L).type(PaymentType.NONE).build())
+				.build();
+	}
+
+	private Ledger createLedgerByFixY(String memberId) {
+		return Ledger.builder()
+				.id("ledger1")
+				.member(Member.builder().id(memberId).build())
+				.fixed(FixedYN.REPEAT)
+				.cycleType(FixedPeriod.WEEKLY)
+				.category(Category.builder().code("010101").name("월급").build())
+				.date(new LedgerDate("20251101"))
+				.memo("메모")
+				.amountInfo(AmountInfo.builder().amount(10000L).type(PaymentType.NONE).build())
+				.build();
+	}
+
+	private List<CategoryResponse> createIncomeCategory(){
+		return List.of(
+				CategoryResponse.builder().code("010000").name("수입").build(),
+				CategoryResponse.builder().code("010100").name("소득").build(),
+				CategoryResponse.builder().code("010101").name("월급").build()
+		);
+	}
+
+	private List<LedgerImage> createMinLedgerImage(String ledgerId){
+		List<LedgerImage> images = new ArrayList<>();
+
+		images.add(LedgerImage.builder().
+				ledgerId(Ledger.builder().id(ledgerId).build())
+				.imagePath("/2025/11/01/이미지1.png")
+				.build());
+		images.add(null);
+		images.add(null);
+
+		return images;
 	}
 
 
@@ -302,6 +390,7 @@ public class LedgerServiceInfoTest {
 		assertThat(result).isNotNull();
 		assertThat(result.getTitle()).isEqualTo("2025년 12월 01일 월요일");
 		assertThat(result.getType()).isEqualTo(ledgerType);
+		assertThat(result.getFixed()).containsExactly(FixedYN.values());
 		assertThat(result.getCategories()).isEqualTo(categoryResponse);
 		assertThat(result.getPaymentTypes()).containsExactly(PaymentType.values());
 		assertThat(result.getImageSlot()).isEqualTo(imageSlots);

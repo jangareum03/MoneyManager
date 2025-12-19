@@ -6,6 +6,7 @@ import com.moneymanager.controller.web.main.WriteController;
 import com.moneymanager.domain.ledger.dto.CategoryResponse;
 import com.moneymanager.domain.ledger.dto.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.dto.LedgerWriteStep2Response;
+import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.member.dto.MemberLoginResponse;
@@ -155,6 +156,7 @@ public class LedgerWriteControllerTest {
 						LedgerWriteStep2Response.builder()
 								.title("2025년 12월 01일 월요일")
 								.type(LedgerType.INCOME)
+								.fixed(List.of(FixedYN.values()))
 								.categories(
 										List.of(
 												CategoryResponse.builder()
@@ -183,6 +185,7 @@ public class LedgerWriteControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(model().attributeExists("ledger"))
 				.andExpect(model().attributeExists("defaultPaymentType"))
+				.andExpect(model().attributeExists("defaultFix"))
 				.andExpect(view().name("/main/ledger_writeStep2"))
 				.andDo(print());
 	}

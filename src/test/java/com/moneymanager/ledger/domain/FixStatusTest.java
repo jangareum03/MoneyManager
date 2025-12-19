@@ -96,15 +96,15 @@ class FixStatusTest {
 		switch (period) {
 			case YEARLY :
 				assertThat(result.getPeriod().getLabel()).isEqualTo("일년");
-				assertThat(result.getPeriod().getDbValue()).isEqualTo("Y");
+				assertThat(result.getPeriod().getValue()).isEqualTo("Y");
 				break;
 			case MONTHLY:
 				assertThat(result.getPeriod().getLabel()).isEqualTo("한달");
-				assertThat(result.getPeriod().getDbValue()).isEqualTo("M");
+				assertThat(result.getPeriod().getValue()).isEqualTo("M");
 				break;
 			case WEEKLY:
 				assertThat(result.getPeriod().getLabel()).isEqualTo("일주일");
-				assertThat(result.getPeriod().getDbValue()).isEqualTo("W");
+				assertThat(result.getPeriod().getValue()).isEqualTo("W");
 		}
 	}
 }
