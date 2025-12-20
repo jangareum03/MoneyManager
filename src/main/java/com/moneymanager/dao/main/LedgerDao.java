@@ -1,16 +1,13 @@
 package com.moneymanager.dao.main;
 
+import com.moneymanager.domain.ledger.dto.LedgerCategoryDto;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.domain.ledger.vo.AmountInfo;
-import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.domain.ledger.vo.LedgerDate;
-import com.moneymanager.domain.member.Member;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +21,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -103,17 +99,17 @@ public class LedgerDao {
 							public PreparedStatement createPreparedStatement(@NotNull Connection con) throws SQLException {
 								PreparedStatement stmt = con.prepareStatement(sql, new String[]{"id"});
 
-								stmt.setString(1, ledger.getMember().getId());
-								stmt.setString(2, ledger.getCategory().getCode());
+								stmt.setString(1, ledger.getMemberId());
+								stmt.setString(2, ledger.getCategory());
 								stmt.setString(3, ledger.getFixed().getValue());
 								stmt.setString(4, ledger.getCycleType().getValue());
-								stmt.setDate(5, Date.valueOf(ledger.getTransActionDate()));
+								stmt.setString(5, ledger.getDate());
 								stmt.setString(6, ledger.getMemo());
-								stmt.setLong(7, ledger.getAmountInfo().getAmount());
-								stmt.setString(8, ledger.getAmountInfo().getType().getDbCode());
-								stmt.setString(10, ledger.getPlace().getPlaceName());
-								stmt.setString(11, ledger.getPlace().getRoadAddress());
-								stmt.setString(12, ledger.getPlace().getDetailAddress());
+								stmt.setLong(7, ledger.getAmount());
+								stmt.setString(8, ledger.getPaymentType().getValue());
+								stmt.setString(10, ledger.getPlaceName());
+								stmt.setString(11, ledger.getRoadAddress());
+								stmt.setString(12, ledger.getDetailAddress());
 
 								return stmt;
 							}
@@ -121,7 +117,7 @@ public class LedgerDao {
 		);
 
 			String id = Objects.requireNonNull(keyHolder.getKey()).toString();
-			return findLedgerDetailForUser(id);
+			return findLedgerDetailForUser(id).getLedger();
 	}
 
 
@@ -136,7 +132,7 @@ public class LedgerDao {
 	 * @return	가계부 상세 정보를 담은 {@link Ledger} 객체
 	 * @throws org.springframework.dao.EmptyResultDataAccessException	조회 결과가 없을 경우 발생
 	 */
-	public Ledger findLedgerDetailForUser(String id) {
+	public LedgerCategoryDto findLedgerDetailForUser(String id) {
 		String sql = "SELECT num, member_id, category_id, name, transaction_date, memo, amount, payment_type, place_name, road_address, address " +
 								"FROM ledger l JOIN ledger_category lc " +
 								"ON l.category_id = lc.code " +
@@ -147,35 +143,28 @@ public class LedgerDao {
 				sql,
 
 				(ResultSet rs, int row) -> {
-					Ledger.LedgerBuilder builder = Ledger.builder()
+					Ledger.LedgerBuilder ledger = Ledger.builder()
 							.num(rs.getLong("num"))
-							.member(Member.builder().id("member_id").build())
-							.category(
-									Category.builder()
-											.code(rs.getString("category_id"))
-											.name(rs.getString("name"))
-											.build()
-							)
-							.date(new LedgerDate(rs.getString("transaction_date")))
+							.memberId(rs.getString("member_id"))
+							.date(rs.getString("transaction_date"))
 							.memo(rs.getString("memo"))
-							.amountInfo(
-									AmountInfo.builder()
-											.amount(rs.getLong("amount"))
-											.type(PaymentType.from(rs.getString("payment_type")))
-											.build()
-							);
+							.amount(rs.getLong("amount"))
+							.paymentType(PaymentType.from(rs.getString("payment_type")));
 
 					if( rs.getString("place_name") != null ) {
-						builder.place(
-								Place.builder()
+						ledger
 								.placeName(rs.getString("place_name"))
 								.roadAddress(rs.getString("road_address"))
 								.detailAddress(rs.getString("address"))
-								.build()
-						);
+								.build();
 					}
 
-					return builder.build();
+					Category category = Category.builder()
+							.code(rs.getString("category_id"))
+							.name(rs.getString("name"))
+							.build();
+
+					return new LedgerCategoryDto( ledger.build(), category );
 				},
 
 				id
@@ -193,7 +182,7 @@ public class LedgerDao {
 	 * @return	수정할 가계부 정보를 담은 {@link Ledger} 객체
 	 * @throws org.springframework.dao.EmptyResultDataAccessException	조회 결과가 없을 경우
 	 */
-	public Ledger findLedgerEditForUser(String id) {
+	public LedgerCategoryDto findLedgerEditForUser(String id) {
 		String sql = "SELECT 		member_id, fix, fix_cycle, transaction_date, category_id, name, memo, amount, payment_type, place_name, road_address, address " +
 								"FROM		ledger l JOIN ledger_category lc " +
 								"ON			l.category_id = lc.code " +
@@ -203,26 +192,29 @@ public class LedgerDao {
 				sql,
 
 				(ResultSet rs, int row) -> {
-					Ledger.LedgerBuilder builder =	Ledger.builder()
-							.member(Member.builder().id(rs.getString("member_id")).build())
-							.date(new LedgerDate(rs.getString("transaction_date")))
+					Ledger.LedgerBuilder ledger =	Ledger.builder()
+							.memberId(rs.getString("member_id"))
+							.date(rs.getString("transaction_date"))
 							.fixed(FixedYN.of(rs.getString("fix")))
 							.cycleType(FixedPeriod.of(rs.getString("fix_cycle")))
-							.category(Category.builder().name(rs.getString("name")).code(rs.getString("category_id")).build())
 							.memo(rs.getString("memo"))
-							.amountInfo(AmountInfo.builder().amount(rs.getLong("amount")).type(PaymentType.from(rs.getString("payment_type"))).build());
+							.amount(rs.getLong("amount"))
+							.paymentType(PaymentType.from(rs.getString("payment_type")));
 
 					if( rs.getString("place_name") != null ) {
-						builder.place(
-								Place.builder()
-										.placeName(rs.getString("place_name"))
-										.roadAddress(rs.getString("road_address"))
-										.detailAddress(rs.getString("address"))
-										.build()
-						);
+						ledger
+								.placeName(rs.getString("place_name"))
+								.roadAddress(rs.getString("road_address"))
+								.detailAddress(rs.getString("address"))
+								.build();
 					}
 
-					return builder.build();
+					Category category = Category.builder()
+							.code(rs.getString("category_id"))
+							.name(rs.getString("name"))
+							.build();
+
+					return new LedgerCategoryDto( ledger.build(), category );
 				},
 
 				id
@@ -248,9 +240,9 @@ public class LedgerDao {
 	 * @param date					날짜 검색기간 객체
 	 * @return	조건에 맞는 {@link Ledger} 객체 리스트
 	 */
-	public List<Ledger> findLedgersBySearch(String memberId, String mode, List<String> keywords, DateGroupable date) {
+	public List<LedgerCategoryDto> findLedgersBySearch(String memberId, String mode, List<String> keywords, DateGroupable date) {
 		StringBuilder sql
-				= new StringBuilder("SELECT id, category_id, name, transaction_date, memo, amount " +
+				= new StringBuilder("SELECT id, name, transaction_date, memo, amount " +
 														"FROM ledger, ledger_category " +
 														"WHERE member_id = ? " +
 															"AND category_id = code " +
@@ -293,23 +285,22 @@ public class LedgerDao {
 			},
 
 			rs -> {
-				List<Ledger> ledgers = new ArrayList<>();
+				List<LedgerCategoryDto> ledgers = new ArrayList<>();
 
 				while ( rs.next() ) {
 					Ledger ledger = Ledger.builder()
 							.id(rs.getString("id"))
-							.date(new LedgerDate(rs.getString("transaction_date")))
-							.category(Category.builder()
-									.code(rs.getString("category_id"))
-									.name(rs.getString("name"))
-									.build())
+							.date(rs.getString("transaction_date"))
 							.memo(rs.getString("memo"))
-							.amountInfo(AmountInfo.builder()
-									.amount(rs.getLong("amount"))
-									.build())
+							.amount(rs.getLong("amount"))
+							.paymentType(PaymentType.from(rs.getString("payment_type")))
 							.build();
 
-					ledgers.add(ledger);
+					Category category = Category.builder()
+							.name(rs.getString("name"))
+							.build();
+
+					ledgers.add(new LedgerCategoryDto(ledger, category));
 				}
 
 				return ledgers;
@@ -430,15 +421,15 @@ public class LedgerDao {
 	 */
 	public boolean updateLedger(Ledger ledger) {
 		String query = "UPDATE ledger " +
-																	"SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, price = ?, payment_type = ?, place_name = ?, road_address = ?, address = ?, updated_at = SYSDATE " +
-																	"WHERE member_id = ? AND id = ?";
+									"SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, price = ?, payment_type = ?, place_name = ?, road_address = ?, address = ?, updated_at = SYSDATE " +
+									"WHERE member_id = ? AND id = ?";
 
 		return jdbcTemplate.update(
 						query,
-						ledger.getCategory().getCode(), ledger.getFixed().getValue(), ledger.getCycleType().getValue(),
-						ledger.getMemo(), ledger.getAmountInfo().getAmount(), ledger.getAmountInfo().getType(),
-						ledger.getPlace().getPlaceName(), ledger.getPlace().getRoadAddress(), ledger.getPlace().getDetailAddress(),
-						ledger.getMember().getId(), ledger.getId()
+						ledger.getCategory(), ledger.getFixed().getValue(), ledger.getCycleType().getValue(),
+						ledger.getMemo(), ledger.getAmount(), ledger.getPaymentType().getValue(),
+						ledger.getPlaceName(), ledger.getRoadAddress(), ledger.getDetailAddress(),
+						ledger.getMemberId(), ledger.getId()
 		) == 1;
 	}
 

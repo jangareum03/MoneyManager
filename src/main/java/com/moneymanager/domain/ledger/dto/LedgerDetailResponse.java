@@ -1,10 +1,10 @@
 package com.moneymanager.domain.ledger.dto;
 
+import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.domain.ledger.vo.AmountInfo;
-import com.moneymanager.domain.ledger.vo.Place;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.Builder;
 import lombok.Getter;
@@ -48,21 +48,29 @@ public class LedgerDetailResponse {
 	private LedgerType type;								//가계부 유형
 	private CategoryResponse category;			//카테고리
 	private String memo;										//메모
-	private AmountInfo amountInfo;					//금액정보
 	private List<String> images;							//가계부 사진
-	private Place place;										//위치
 
-	public static LedgerDetailResponse from(Ledger ledger, List<LedgerImage> images) {
-		LocalDate date = ledger.getTransActionDate();
+	private Long amount;									//금액
+	private PaymentType paymentType;				//금액 유형
+
+	private String placeName;								//장소명
+	private String roadAddress;							//기본주소
+	private String detailAddress;						//상세주소
+
+	public static LedgerDetailResponse from(Ledger ledger, Category category, List<LedgerImage> images) {
+		LocalDate date = DateTimeUtils.parseDateFlexible(ledger.getDate());
 
 		LedgerDetailResponseBuilder builder =
 				LedgerDetailResponse.builder()
 						.date(DateTimeUtils.formatDateAsString(date, "yyyy. MM. dd (E)"))
-						.type(LedgerType.fromCode(ledger.getCategory().getCode()))
-						.category(CategoryResponse.from(ledger.getCategory()))
+						.type(LedgerType.fromCode(category.getCode()))
+						.category(CategoryResponse.from(category))
 						.memo(ledger.getMemo())
-						.amountInfo(ledger.getAmountInfo())
-						.place(ledger.getPlace());
+						.amount(ledger.getAmount())
+						.paymentType(ledger.getPaymentType())
+						.placeName(ledger.getPlaceName())
+						.roadAddress(ledger.getRoadAddress())
+						.detailAddress(ledger.getDetailAddress());
 
 		if( !images.isEmpty() ) {
 			builder.images(

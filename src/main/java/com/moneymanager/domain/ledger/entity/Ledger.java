@@ -2,14 +2,10 @@ package com.moneymanager.domain.ledger.entity;
 
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.ledger.vo.LedgerDate;
-import com.moneymanager.domain.ledger.vo.AmountInfo;
-import com.moneymanager.domain.ledger.vo.Place;
-import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
@@ -48,20 +44,23 @@ import java.time.LocalDateTime;
 @Builder
 @Getter
 public class Ledger {
-    private Long num;										//가계부 식별 번호
-	private String id;										//가계부 번호
-    private Member member;							//작성자
-    private Category category;						//카테고리
+    private Long num;										//가계부 시스템 고유번호
+	private String id;										//가계부 서비스 고유번호
+    private String memberId;							//작성자(회원 고유번호)
+	private String date;									//날짜
+    private String category;							//카테고리 코드
+	private String memo;									//내용
+
+	private Long amount;								//금액
+	private PaymentType paymentType;			//금액 유형
+
+	private String placeName;							//장소명
+	private String roadAddress;						//기본주소
+	private String detailAddress;					//상세주소
+
 	private FixedYN fixed;								//고정여부
 	private FixedPeriod cycleType;					//고정주기
-    private LedgerDate date;							//가계부 날짜
-    private String memo;									//내용
-	private AmountInfo amountInfo;				//금액
-	private Place place;									//장소
-    private LocalDateTime createdAt;			//등록일
-    private LocalDateTime updatedAt;			//수정일
 
-	public LocalDate getTransActionDate() {
-		return date.getTransactionDate();
-	}
+	private LocalDateTime createdAt;			//등록일
+    private LocalDateTime updatedAt;			//수정일
 }

@@ -101,7 +101,7 @@ public class WriteController {
 			String memberId = (String) session.getAttribute("mid");
 
 			model.addAttribute("ledger", ledgerService.getWriteByData( memberId, type, date ));
-			model.addAttribute("defaultPaymentType", PaymentType.NONE.getDbCode());
+			model.addAttribute("defaultPaymentType", PaymentType.NONE.getValue());
 			model.addAttribute("defaultFix", FixedYN.VARIABLE.getValue());
 
 			return "/main/ledger_writeStep2";
@@ -142,10 +142,9 @@ public class WriteController {
 
 			return "redirect:/ledgers/write";
 		}catch ( ClientException  e ) {
-			log.info("[DEBUG] 값: {}", create.toString());
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 
-			return "redirect:/ledgers/write";
+			return "";	//TODO: 경로 지정
 		}
 	}
 }

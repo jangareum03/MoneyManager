@@ -38,22 +38,16 @@ import java.util.List;
  * </table>
  */
 @Getter
-@Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString
 public class LedgerWriteRequest {
-	//가계부 날짜
-	private String date;
-	//가계부 등록 주기
-	private FixedStatus fix;
-	//카테고리 코드
-	private String category;
-	//메모
-	private String memo;
-	//금액
-	private Long price;
-	//금액유형
-	private String paymentType;
-	//가계부 사진
-	private List<MultipartFile> image;
+	private String date;									//날짜
+	private String category;							//카테고리 코드
+	private String memo;									//메모
+
+	private boolean fixed;								//고정여부(true: 반복, false: 일회성)
+	private String period;								//반복주기
+
+	private Long amount;								//금액
+	private String paymentType;						//금액 유형
+
+	private List<MultipartFile> image;			//이미지 리스트
 }

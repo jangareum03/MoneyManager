@@ -73,7 +73,7 @@ public class GoogleChartService {
 		switch ( type ) {
 			case WEEK:
 				// 범위가 주간인 경우
-				data.add( List.of( type.getText(), "수입", "지출") );
+				data.add( List.of( type.getLabel(), "수입", "지출") );
 
 				for( GoogleChartResponse chart : chartList ) {
 					data.add( List.of( chart.getLabel(), chart.getIncomePrice(), chart.getOutlayPrice() ) );
@@ -81,7 +81,7 @@ public class GoogleChartService {
 				break;
 			case YEAR:
 				// 범위가 연간인 경우
-				data.add(List.of( type.getText(), "수입", "지출")) ;
+				data.add(List.of( type.getLabel(), "수입", "지출")) ;
 
 				for( GoogleChartResponse chart : chartList ) {
 					data.add( List.of( chart.getLabel(), chart.getIncomePrice(), chart.getOutlayPrice() ) );

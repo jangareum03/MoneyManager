@@ -1,6 +1,7 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.LedgerDao;
+import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.ledger.dto.*;
@@ -10,11 +11,8 @@ import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
-import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.ledger.vo.*;
-import com.moneymanager.domain.ledger.enums.DateType;
 import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.service.main.validation.DateScopeValidator;
 import com.moneymanager.utils.DateTimeUtils;
@@ -28,6 +26,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.moneymanager.exception.ErrorUtil.createClientException;
 import static com.moneymanager.utils.DateTimeUtils.parseDateFlexible;
@@ -127,17 +126,9 @@ public class LedgerService {
 	}
 
 
-	/**
-	 * 가계부를 등록합니다.<br>
-	 * 등록할 가계부 정보거 없거나 가계부 사진이 등록되지 않은 경우에는 이 발생합니다.
-	 *
-	 * @param memberId 회원번호
-	 * @param create   가계부 정보
-	 */
-	@Transactional
-	public void createLedger(String memberId, LedgerWriteRequest create) {
-		//TODO: 값 검증 로직 추가
 
+	@Transactional
+	public void createLedger(String memberId, LedgerWriteRequest ledger) {
 	}
 
 
@@ -204,8 +195,11 @@ public class LedgerService {
 			period = new SearchPeriodAdapter(scope).toSearchPeriod();
 		}
 
-		List<Ledger> ledgers = ledgerDAO.findLedgersBySearch(memberId, search.getMode(), search.getKeywords(), period);
-
+		List<LedgerCategoryDto> ledgerWithCategory = ledgerDAO.findLedgersBySearch(memberId, search.getMode(), search.getKeywords(), period);
+		List<Ledger> ledgers = ledgerWithCategory.stream()
+				.map(LedgerCategoryDto::getLedger)
+				.distinct()
+				.collect(Collectors.toList());
 
 		return new LedgerByDate(ledgers);
 	}
@@ -310,9 +304,11 @@ public class LedgerService {
 	 */
 	public LedgerDetailResponse getLedgerDetail(String memberId, String id) {
 		try{
-			Ledger ledger = ledgerDAO.findLedgerDetailForUser(id);
+			LedgerCategoryDto ledgerAndCategory = ledgerDAO.findLedgerDetailForUser(id);
+			Ledger ledger = ledgerAndCategory.getLedger();
+			Category category = ledgerAndCategory.getCategory();
 
-			if (!memberId.equals(ledger.getMember().getId())) {
+			if (!memberId.equals(ledger.getMemberId())) {
 				throw createClientException(ErrorCode.MEMBER_ID_MISMATCH, "작성자가 아닌 사용자는 해당 가계부에 접근이 불가능합니다.", memberId);
 			}
 
@@ -320,7 +316,7 @@ public class LedgerService {
 			int limit = imageService.getLimitImageCount(memberId);
 			List<LedgerImage> imageList = imageService.getImageListByLedger(ledger.getNum(), limit);
 
-			return LedgerDetailResponse.from(ledger, imageList);
+			return LedgerDetailResponse.from(ledger, category, imageList);
 		}catch ( EmptyResultDataAccessException e ) {
 			throw createClientException(ErrorCode.LEDGER_ID_NONE, "존재하지 않는 가계부입니다.", id);
 		}
@@ -340,19 +336,21 @@ public class LedgerService {
 	 */
 	public LedgerEditResponse getLedgerEdit(String memberId, String id) {
 		try{
-			Ledger ledger = ledgerDAO.findLedgerEditForUser(id);
+			LedgerCategoryDto ledgerAndCategory = ledgerDAO.findLedgerEditForUser(id);
+			Ledger ledger = ledgerAndCategory.getLedger();
+			Category category = ledgerAndCategory.getCategory();
 
-			if (!memberId.equals(ledger.getMember().getId())) {
+			if (!memberId.equals(ledger.getMemberId())) {
 				throw createClientException(ErrorCode.MEMBER_ID_MISMATCH, "작성자가 아닌 사용자는 해당 가계부에 접근이 불가능합니다.", memberId);
 			}
 
-			List<CategoryResponse> categories = categoryService.getAncestorCategoriesByCode(ledger.getCategory().getCode());
+			List<CategoryResponse> categories = categoryService.getAncestorCategoriesByCode(category.getCode());
 
 			//이미지 조회
 			int limit = imageService.getLimitImageCount(memberId);
 			List<LedgerImage> imageList = imageService.getImageListByLedger(ledger.getNum(), limit);
 
-			return LedgerEditResponse.from(ledger, categories, imageList);
+			return LedgerEditResponse.from(ledger, category, categories, imageList);
 		}catch ( EmptyResultDataAccessException e ) {
 			throw createClientException(ErrorCode.LEDGER_ID_NONE, "존재하지 않는 가계부입니다.", id);
 		}

@@ -36,10 +36,10 @@ public enum DateType {
 
 	YEAR("년"), MONTH( "월"), WEEK( "주"), DAY( "일");
 
-	private final String text;
+	private final String label;
 
-	DateType( String text ) {
-		this.text = text;
+	DateType( String label ) {
+		this.label = label;
 	}
 
 

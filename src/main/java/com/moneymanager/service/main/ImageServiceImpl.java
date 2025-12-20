@@ -5,6 +5,7 @@ import com.moneymanager.dao.member.MemberInfoDaoImpl;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.domain.ledger.vo.LedgerDate;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -172,8 +173,10 @@ public class ImageServiceImpl {
 	 */
 	public void saveImage(Ledger ledger, MultipartFile image, int index ) throws IOException {
 		//폴더와 저장할 이미지 얻은 후 서버에 저장
-		java.io.File directory = makeDirectory( ledger.getMember().getId(), ledger.getTransActionDate().getYear() );
-		String saveName = changeImageName( ledger.getId(), ledger.getTransActionDate(), index, image.getOriginalFilename() );
+		LocalDate date = new LedgerDate(ledger.getDate()).getTransactionDate();
+
+		java.io.File directory = makeDirectory( ledger.getMemberId(), date.getYear());
+		String saveName = changeImageName( ledger.getId(), date, index, image.getOriginalFilename() );
 
 		java.io.File saveImage = new java.io.File( directory, saveName );
 
@@ -223,7 +226,8 @@ public class ImageServiceImpl {
 	 * @throws IOException  사용자가 업로드한 이미지 문제 시
 	 */
 	public void changeImage(String memberId, Ledger ledger, List<ImageDTO> imageList ) throws IOException {
-		java.io.File directory = makeDirectory( memberId, ledger.getTransActionDate().getYear());
+		LocalDate date = new LedgerDate(ledger.getDate()).getTransactionDate();
+		java.io.File directory = makeDirectory( memberId, date.getYear());
 
 		//기존 이미지 삭제
 		boolean isDelete = deleteImage( directory, ledger.getId() );

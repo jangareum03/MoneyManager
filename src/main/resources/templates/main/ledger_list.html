@@ -94,7 +94,7 @@
                             </svg>
                         </div>
                         <span class="ledger-card__category" th:text="${card != null ? card.category : ''}"></span>
-                        <span class="ledger-card__price" th:text="${card != null ? #numbers.formatInteger(card.amount.amount, 3, 'COMMA') : ''}"></span>
+                        <span class="ledger-card__price" th:text="${card != null ? #numbers.formatInteger(card.amount, 3, 'COMMA') : ''}"></span>
                         <p class="ledger-card__memo" th:text="${card != null ? card.memo : ''}"></p>
                     </li>
                 </ul>

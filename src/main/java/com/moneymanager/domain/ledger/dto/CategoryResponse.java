@@ -46,8 +46,7 @@ public class CategoryResponse {
 	public static List<CategoryResponse> from(List<Category> categories) {
 		return categories.stream()
 				.map(
-						e -> CategoryResponse.builder()
-								.code(e.getCode()).name(e.getName()).build()
+						CategoryResponse::from
 				).collect(Collectors.toList());
 	}
 

@@ -47,7 +47,7 @@ public class LedgerByDate {
 		Map<String, List<LedgerSummary>> map = new LinkedHashMap<>();
 
 		for( Ledger ledger : ledgers ) {
-			String key = DateTimeUtils.formatDateAsString(ledger.getTransActionDate(), "yyyy. MM. dd (E)");
+			String key = DateTimeUtils.formatDateAsString(DateTimeUtils.parseDateFlexible(ledger.getDate()), "yyyy. MM. dd (E)");
 
 			//키가 없으면 새로운 리스트 추가
 			map.putIfAbsent(key, new ArrayList<>());

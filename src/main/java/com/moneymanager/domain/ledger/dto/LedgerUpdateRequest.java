@@ -72,11 +72,12 @@ public class LedgerUpdateRequest {
 	public Ledger toEntity() {
 		return Ledger.builder()
 				.id(id)
-				.date(new LedgerDate(date))
-				.category(Category.builder().code(category).build())
+				.date(date)
+				.category(category)
 				.memo(memo)
-				.amountInfo(AmountInfo.builder().amount(price).type(paymentType).build())
-				.place(Place.builder().placeName(place.getPlaceName()).roadAddress(place.getRoadAddress()).detailAddress(place.getDetailAddress()).build())
+				.placeName(place.getPlaceName())
+				.roadAddress(place.getRoadAddress())
+				.detailAddress(place.getDetailAddress())
 				.build();
 	}
 }

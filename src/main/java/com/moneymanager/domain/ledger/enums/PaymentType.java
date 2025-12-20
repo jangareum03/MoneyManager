@@ -67,18 +67,18 @@ public enum PaymentType {
 	);
 
 	private final String label;
-	private final String dbCode;
+	private final String value;
 	private final String svg;
 
 	PaymentType(String label, String dbCode, String svg) {
 		this.label = label;
-		this.dbCode = dbCode;
+		this.value = dbCode;
 		this.svg = svg;
 	}
 
 	public static PaymentType from(String code) {
 		for( PaymentType type : values() ) {
-			if(type.dbCode.equalsIgnoreCase(code)) return type;
+			if(type.value.equalsIgnoreCase(code)) return type;
 		}
 
 		throw createClientException(ErrorCode.LEDGER_PAYMENT_FORMAT, "지원하지 않은 결제유형입니다.", code);

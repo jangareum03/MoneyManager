@@ -62,7 +62,7 @@
                         <!-- 금액 입력 -->
                         <section class="form__input-box form__input-box--main">
                             <label>
-                                <input class="form__input form__input--text" name="price" type="text" placeholder="금액을 입력해주세요." th:value="${ledger.amountInfo.amount}">
+                                <input class="form__input form__input--text" name="price" type="text" placeholder="금액을 입력해주세요." th:value="${ledger.amount}">
                             </label>
                         </section>
 
@@ -72,8 +72,8 @@
                                 <input class="form__input form__input--radio"
                                             name="paymentType"
                                             type="radio"
-                                            th:value="${payType.dbCode}"
-                                            th:checked="${ledger.amountInfo.type.dbCode == payType.dbCode}">
+                                            th:value="${payType.value}"
+                                            th:checked="${ledger.paymentType.value == payType.value}">
 
                                 <span th:utext="${payType.svg}"></span>
                             </label>
@@ -117,16 +117,16 @@
                 <div class="form__field form__field--location">
                     <label class="form__label">위치</label>
                     <div class="form__input-container form__input-container--location">
-                        <div th:if="${ledger.place == null}" class="form__input-box form__input-box--empty">
+                        <div th:if="${ledger.placeName == null}" class="form__input-box form__input-box--empty">
                             <img th:src="@{/image/location.png}" alt="위치 아이콘">
                             <span>위치를 입력해주세요</span>
                         </div>
-                        <div th:unless="${ledger.place == null}" class="form__input-box form__input-box--filled">
-                            <span class="location__name" th:text="${ledger.place.placeName}"></span>
-                            <span class="location__road" th:text="${ledger.place.roadAddress}"></span>
-                            <span class="location__add" th:text="${ledger.place.detailAddress}"></span>
+                        <div th:unless="${ledger.placeName == null}" class="form__input-box form__input-box--filled">
+                            <span class="location__name" th:text="${ledger.placeName}"></span>
+                            <span class="location__road" th:text="${ledger.roadAddress}"></span>
+                            <span class="location__add" th:text="${ledger.detailAddress}"></span>
                         </div>
-                        <svg th:unless="${ledger.place == null}" class="icon icon--del" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg th:unless="${ledger.placeName == null}" class="icon icon--del" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M3.121 17.85a3 3 0 0 1 0-4.243l7.071-7.072l8.486 8.486l-3.243 3.242H20a1 1 0 1 1 0 2H6.778a3 3 0 0 1-2.121-.878L3.12 17.849zm16.97-4.243l1.415-1.415a3 3 0 0 0 0-4.242l-4.243-4.243a3 3 0 0 0-4.242 0l-1.414 1.414z"/>
                         </svg>
                     </div>

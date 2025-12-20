@@ -1,8 +1,10 @@
 package com.moneymanager.domain.ledger.dto;
 
+import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.LedgerType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.utils.DateTimeUtils;
@@ -44,25 +46,35 @@ import java.util.stream.Collectors;
 @Getter
 public class LedgerEditResponse {
 	private final String date;												//가계부 날짜
+	private final String memo;												//메모
+	private final List<CategoryResponse> category;			//카테고리
+	private final List<String> images;									//가계부 사진
+
 	private final LedgerType type;										//가계부 유형
 	private final LedgerFixedResponse fixed;					//가계부 고정여부
-	private final List<CategoryResponse> category;			//카테고리
-	private final String memo;												//메모
-	private final AmountInfo amountInfo;						//금액
-	private final List<String> images;									//가계부 사진
-	private final Place place;												//위치
 
-	public static LedgerEditResponse from(Ledger ledger, List<CategoryResponse> categories, List<LedgerImage> images) {
-		LocalDate date = ledger.getTransActionDate();
+	private Long amount;													//금액
+	private PaymentType paymentType;								//금액 유형
+
+	private String placeName;								//장소명
+	private String roadAddress;							//기본주소
+	private String detailAddress;						//상세주소
+
+	public static LedgerEditResponse from(Ledger ledger, Category category, List<CategoryResponse> categories, List<LedgerImage> images) {
+		LocalDate date = DateTimeUtils.parseDateFlexible(ledger.getDate());
+
 		LedgerEditResponse.LedgerEditResponseBuilder builder =
 				LedgerEditResponse.builder()
 						.date(DateTimeUtils.formatDateAsString(date, "yyyy. MM. dd (E)"))
-						.type(LedgerType.fromCode(ledger.getCategory().getCode()))
+						.type(LedgerType.fromCode(category.getCode()))
 						.fixed(LedgerFixedResponse.from(ledger))
 						.category(categories)
 						.memo(ledger.getMemo())
-						.amountInfo(ledger.getAmountInfo())
-						.place(ledger.getPlace());
+						.amount(ledger.getAmount())
+						.paymentType(ledger.getPaymentType())
+						.placeName(ledger.getPlaceName())
+						.roadAddress(ledger.getRoadAddress())
+						.detailAddress(ledger.getDetailAddress());
 
 		if( !images.isEmpty() ) {
 			builder.images(
