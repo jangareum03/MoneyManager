@@ -1,6 +1,5 @@
-package com.moneymanager.domain.ledger.dto;
+package com.moneymanager.domain.ledger.dto.response;
 
-import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.enums.PaymentType;

@@ -1,6 +1,5 @@
-package com.moneymanager.domain.ledger.dto;
+package com.moneymanager.domain.ledger.dto.request;
 
-import com.moneymanager.domain.ledger.vo.FixedStatus;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;

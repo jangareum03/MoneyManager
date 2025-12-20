@@ -2,8 +2,8 @@ package com.moneymanager.ledger.summary;
 
 import com.moneymanager.dao.main.LedgerDao;
 import com.moneymanager.domain.ledger.dto.LedgerCategoryDto;
-import com.moneymanager.domain.ledger.dto.LedgerGroupResponse;
-import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
+import com.moneymanager.domain.ledger.dto.response.LedgerGroupResponse;
+import com.moneymanager.domain.ledger.dto.request.LedgerSearchRequest;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.DateType;

@@ -1,4 +1,4 @@
-package com.moneymanager.domain.ledger.dto;
+package com.moneymanager.domain.ledger.dto.response;
 
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
@@ -13,14 +13,13 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 /**
  * <p>
- * * 패키지이름    : com.areum.moneymanager.domain.ledger.dto<br>
- * * 파일이름       : LedgerDetailResponse<br>
- * * 작성자          : areum Jang<br>
- * * 생성날짜       : 25. 7. 26.<br>
- * * 설명              : 가계부 단건 조회 응답을 위한 데이터 클래스
+ * 패키지이름    : com.moneymanager.domain.ledger.dto<br>
+ * 파일이름       : LedgerEditResponse<br>
+ * 작성자          : areum Jang<br>
+ * 생성날짜       : 25. 12. 5<br>
+ * 설명              : 가계부 단건 수정 응답을 위한 데이터 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -34,7 +33,7 @@ import java.util.stream.Collectors;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 7. 26.</td>
+ * 		 	  <td>25. 12. 5.</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
@@ -43,28 +42,31 @@ import java.util.stream.Collectors;
  */
 @Builder
 @Getter
-public class LedgerDetailResponse {
-	private String date;										//가계부 날짜
-	private LedgerType type;								//가계부 유형
-	private CategoryResponse category;			//카테고리
-	private String memo;										//메모
-	private List<String> images;							//가계부 사진
+public class LedgerEditResponse {
+	private final String date;												//가계부 날짜
+	private final String memo;												//메모
+	private final List<CategoryResponse> category;			//카테고리
+	private final List<String> images;									//가계부 사진
 
-	private Long amount;									//금액
-	private PaymentType paymentType;				//금액 유형
+	private final LedgerType type;										//가계부 유형
+	private final LedgerFixedResponse fixed;					//가계부 고정여부
+
+	private Long amount;													//금액
+	private PaymentType paymentType;								//금액 유형
 
 	private String placeName;								//장소명
 	private String roadAddress;							//기본주소
 	private String detailAddress;						//상세주소
 
-	public static LedgerDetailResponse from(Ledger ledger, Category category, List<LedgerImage> images) {
+	public static LedgerEditResponse from(Ledger ledger, Category category, List<CategoryResponse> categories, List<LedgerImage> images) {
 		LocalDate date = DateTimeUtils.parseDateFlexible(ledger.getDate());
 
-		LedgerDetailResponseBuilder builder =
-				LedgerDetailResponse.builder()
+		LedgerEditResponse.LedgerEditResponseBuilder builder =
+				LedgerEditResponse.builder()
 						.date(DateTimeUtils.formatDateAsString(date, "yyyy. MM. dd (E)"))
 						.type(LedgerType.fromCode(category.getCode()))
-						.category(CategoryResponse.from(category))
+						.fixed(LedgerFixedResponse.from(ledger))
+						.category(categories)
 						.memo(ledger.getMemo())
 						.amount(ledger.getAmount())
 						.paymentType(ledger.getPaymentType())
@@ -81,10 +83,11 @@ public class LedgerDetailResponse {
 		return builder.build();
 	}
 
+	//LedgerImage 리스트를 String 리스트로 변환
 	private static List<String> toImagePaths(List<LedgerImage> images) {
 		return images.stream()
 				.map( image ->
-					image == null ? null : image.getImagePath()
+						image == null ? null : image.getImagePath()
 				)
 				.collect(Collectors.toList());
 	}

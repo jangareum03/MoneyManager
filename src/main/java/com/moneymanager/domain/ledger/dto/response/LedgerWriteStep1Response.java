@@ -1,4 +1,4 @@
-package com.moneymanager.domain.ledger.dto;
+package com.moneymanager.domain.ledger.dto.response;
 
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.utils.DateTimeUtils;

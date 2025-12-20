@@ -2,8 +2,8 @@ package com.moneymanager.ledger.category;
 
 import com.moneymanager.dao.main.CategoryDao;
 import com.moneymanager.domain.global.dto.ErrorDTO;
-import com.moneymanager.domain.ledger.dto.CategoryRequest;
-import com.moneymanager.domain.ledger.dto.CategoryResponse;
+import com.moneymanager.domain.ledger.dto.request.CategoryRequest;
+import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.exception.ErrorCode;

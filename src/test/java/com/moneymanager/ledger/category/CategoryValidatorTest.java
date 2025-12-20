@@ -1,7 +1,7 @@
 package com.moneymanager.ledger.category;
 
 import com.moneymanager.domain.global.dto.ErrorDTO;
-import com.moneymanager.domain.ledger.dto.CategoryRequest;
+import com.moneymanager.domain.ledger.dto.request.CategoryRequest;
 import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.validation.CategoryValidator;

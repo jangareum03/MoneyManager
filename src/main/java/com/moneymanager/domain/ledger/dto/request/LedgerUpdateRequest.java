@@ -1,7 +1,6 @@
-package com.moneymanager.domain.ledger.dto;
+package com.moneymanager.domain.ledger.dto.request;
 
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.*;
 import com.moneymanager.domain.global.dto.ImageDTO;

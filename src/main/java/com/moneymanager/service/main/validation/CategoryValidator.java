@@ -1,6 +1,6 @@
 package com.moneymanager.service.main.validation;
 
-import com.moneymanager.domain.ledger.dto.CategoryRequest;
+import com.moneymanager.domain.ledger.dto.request.CategoryRequest;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.exception.ErrorCode;
 

@@ -1,4 +1,4 @@
-package com.moneymanager.domain.ledger.dto;
+package com.moneymanager.domain.ledger.dto.response;
 
 import com.moneymanager.domain.ledger.vo.IncomeExpenseSummary;
 import com.moneymanager.domain.ledger.vo.LedgerSummary;

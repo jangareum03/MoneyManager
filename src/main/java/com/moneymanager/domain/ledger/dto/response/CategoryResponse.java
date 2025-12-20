@@ -1,4 +1,4 @@
-package com.moneymanager.domain.ledger.dto;
+package com.moneymanager.domain.ledger.dto.response;
 
 import com.moneymanager.domain.ledger.entity.Category;
 import lombok.Builder;

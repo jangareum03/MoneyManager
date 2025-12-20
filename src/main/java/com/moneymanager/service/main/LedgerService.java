@@ -1,12 +1,15 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.LedgerDao;
+import com.moneymanager.domain.ledger.dto.request.CategoryRequest;
+import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
+import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
+import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.ledger.dto.*;
-import com.moneymanager.domain.ledger.dto.LedgerSearchRequest;
-import com.moneymanager.domain.ledger.dto.LedgerDetailResponse;
+import com.moneymanager.domain.ledger.dto.request.LedgerSearchRequest;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;

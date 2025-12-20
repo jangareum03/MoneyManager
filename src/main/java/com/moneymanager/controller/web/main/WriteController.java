@@ -1,7 +1,7 @@
 package com.moneymanager.controller.web.main;
 
-import com.moneymanager.domain.ledger.dto.LedgerWriteRequest;
-import com.moneymanager.domain.ledger.dto.LedgerWriteStep1Response;
+import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
+import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.exception.custom.ClientException;
