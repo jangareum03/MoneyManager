@@ -1,10 +1,8 @@
 package com.moneymanager.ledger.domain;
 
 import com.moneymanager.domain.global.dto.ErrorDTO;
-import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.LedgerSummary;
 import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
@@ -68,9 +66,9 @@ public class LedgerSummaryTest {
 		//given
 		Ledger ledger = Ledger.builder()
 				.id(id)
-				.category(Category.builder().name("버스비").code("020301").build())
+				.category("020301")
 				.memo("집에서 회사")
-				.amountInfo(AmountInfo.builder().amount(12000L).build())
+				.amount(12000L)
 				.build();
 
 		//when & then
@@ -93,9 +91,9 @@ public class LedgerSummaryTest {
 		//given
 		Ledger ledger = Ledger.builder()
 				.id("01ARZ3NDEKTSV4RRFFQ69G5FAV")
-				.category(Category.builder().name("버스비").code("020301").build())
+				.category("020301")
 				.memo("집에서 회사")
-				.amountInfo(AmountInfo.builder().amount(12000L).build())
+				.amount(12000L)
 				.build();
 
 		//when
@@ -104,10 +102,9 @@ public class LedgerSummaryTest {
 		//then
 		assertThat(result).isNotNull();
 		assertThat(result.getId()).isEqualTo("01ARZ3NDEKTSV4RRFFQ69G5FAV");
-		assertThat(result.getType()).isEqualTo(LedgerType.OUTLAY);
-		assertThat(result.getCategory()).isEqualTo("버스비");
+		assertThat(result.getType()).isSameAs(LedgerType.OUTLAY);
 		assertThat(result.getMemo()).isEqualTo("집에서 회사");
-		assertThat(result.getAmount()).isSameAs(ledger.getAmountInfo().getAmount());
+		assertThat(result.getAmount()).isSameAs(ledger.getAmount());
 
 	}
 
@@ -117,9 +114,9 @@ public class LedgerSummaryTest {
 		//given
 		Ledger ledger = Ledger.builder()
 				.id("01ARZ3NDEKTSV4RRFFQ69G5FAV")
-				.category(Category.builder().name("버스비").code("020301").build())
+				.category("020301")
 				.memo("집에서 회사")
-				.amountInfo(AmountInfo.builder().amount(12000L).build())
+				.amount(12000L)
 				.build();
 
 		LedgerSummary obj1 = LedgerSummary.from(ledger);

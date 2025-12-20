@@ -2,10 +2,9 @@ package com.moneymanager.ledger.search;
 
 import com.moneymanager.dao.main.LedgerDao;
 import com.moneymanager.domain.global.vo.DateGroupable;
+import com.moneymanager.domain.ledger.dto.LedgerCategoryDto;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.vo.AmountInfo;
-import com.moneymanager.domain.ledger.vo.LedgerDate;
 import com.moneymanager.domain.ledger.vo.SearchPeriod;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -73,13 +72,27 @@ class LedgerDaoSearchTest {
 		String memberId = "UCh11001";
 		List<String> keywords = List.of();
 
-		List<Ledger> expected = List.of(
-				Ledger.builder().id("01ARZ3NDEKTSV4RRFFQ69G5FAV").category(Category.builder().code("020101").build()).date(new LedgerDate("20251101")).amountInfo(AmountInfo.builder().amount(15000).build()).build(),
-				Ledger.builder().id("01H5HZ8X9E7EY2XKZCW2FQX16B").category(Category.builder().code("010101").build()).date(new LedgerDate("20251130")).amountInfo(AmountInfo.builder().amount(2500000).build()).build()
+		List<LedgerCategoryDto> expected = List.of(
+				new LedgerCategoryDto(
+						Ledger.builder()
+								.id("01ARZ3NDEKTSV4RRFFQ69G5FAV")
+								.date("20251101")
+								.amount(15000L)
+								.build(),
+						Category.builder().code("020101").name("식사").build()
+				),
+				new LedgerCategoryDto(
+						Ledger.builder()
+								.id("01H5HZ8X9E7EY2XKZCW2FQX16B")
+								.date("20251130")
+								.amount(2500000L)
+								.build(),
+						Category.builder().code("010101").name("월급").build()
+				)
 		);
 
 		//when
-		List<Ledger> result = dao.findLedgersBySearch( memberId, "all", keywords, dateGroupable);
+		List<LedgerCategoryDto> result = dao.findLedgersBySearch( memberId, "all", keywords, dateGroupable);
 
 		//then
 		assertThat(result)
@@ -96,7 +109,7 @@ class LedgerDaoSearchTest {
 		List<String> keywords = List.of();
 
 		//when
-		List<Ledger> result = dao.findLedgersBySearch( memberId, "all", keywords, dateGroupable);
+		List<LedgerCategoryDto> result = dao.findLedgersBySearch( memberId, "all", keywords, dateGroupable);
 
 		//then
 		assertThat(result).isEmpty();
@@ -110,18 +123,20 @@ class LedgerDaoSearchTest {
 		List<String> keywords = List.of("010000");
 		DateGroupable dateGroupable = new SearchPeriod("20251201", "20251207");
 
-		List<Ledger> expected = List.of(
-			Ledger.builder()
-					.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D7")
-					.category(Category.builder().code("010101").build())
-					.date(new LedgerDate("20251202"))
-					.memo("12월 월급")
-					.amountInfo(AmountInfo.builder().amount(2500000).build())
-					.build()
+		List<LedgerCategoryDto> expected = List.of(
+				new LedgerCategoryDto(
+						Ledger.builder()
+								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D7")
+								.date("20251202")
+								.memo("12월 월급")
+								.amount(2500000L)
+								.build(),
+						Category.builder().name("식사").build()
+				)
 		);
 
 		//when
-		List<Ledger> result = dao.findLedgersBySearch( memberId, "inout", keywords, dateGroupable);
+		List<LedgerCategoryDto> result = dao.findLedgersBySearch( memberId, "inout", keywords, dateGroupable);
 
 		//then
 		assertThat(result)
@@ -139,7 +154,7 @@ class LedgerDaoSearchTest {
 		DateGroupable dateGroupable = new SearchPeriod("20251201", "20251207");
 
 		//when
-		List<Ledger> result = dao.findLedgersBySearch( memberId, "inout", keywords, dateGroupable);
+		List<LedgerCategoryDto> result = dao.findLedgersBySearch( memberId, "inout", keywords, dateGroupable);
 
 		//then
 		assertThat(result).isEmpty();
@@ -152,18 +167,20 @@ class LedgerDaoSearchTest {
 		String memberId = "UCa12001";
 		List<String> keywords = List.of("020301");
 
-		List<Ledger> expected = List.of(
-				Ledger.builder()
-						.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D3")
-						.category(Category.builder().code("020301").build())
-						.date(new LedgerDate("20251108"))
-						.memo("주토피아2")
-						.amountInfo(AmountInfo.builder().amount(15000).build())
-						.build()
+		List<LedgerCategoryDto> expected = List.of(
+				new LedgerCategoryDto(
+						Ledger.builder()
+								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D3")
+								.date("20251108")
+								.memo("주토피아2")
+								.amount(15000L)
+								.build(),
+						Category.builder().name("영화").build()
+				)
 		);
 
 		//when
-		List<Ledger> result = dao.findLedgersBySearch( memberId, "category", keywords, dateGroupable);
+		List<LedgerCategoryDto> result = dao.findLedgersBySearch( memberId, "category", keywords, dateGroupable);
 
 		//then
 		assertThat(result)
@@ -181,7 +198,7 @@ class LedgerDaoSearchTest {
 		DateGroupable dateGroupable = new SearchPeriod("20251201", "20251207");
 
 		//when
-		List<Ledger> result = dao.findLedgersBySearch( memberId, "category", keywords, dateGroupable);
+		List<LedgerCategoryDto> result = dao.findLedgersBySearch( memberId, "category", keywords, dateGroupable);
 
 		//then
 		assertThat(result).isEmpty();
@@ -195,18 +212,20 @@ class LedgerDaoSearchTest {
 		List<String> keywords = List.of("넷");
 		DateGroupable dateGroupable = new SearchPeriod("20251201", "20251207");
 
-		List<Ledger> expected = List.of(
-				Ledger.builder()
-						.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D8")
-						.category(Category.builder().code("020704").build())
-						.date(new LedgerDate("20251201"))
-						.memo("넷플릭스")
-						.amountInfo(AmountInfo.builder().amount(9900).build())
-						.build()
+		List<LedgerCategoryDto> expected = List.of(
+				new LedgerCategoryDto(
+						Ledger.builder()
+								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D8")
+								.date("20251201")
+								.memo("넷플릭스")
+								.amount(7000L)
+								.build(),
+						Category.builder().name("OTT").build()
+				)
 		);
 
 		//when
-		List<Ledger> result = dao.findLedgersBySearch( memberId, "memo", keywords, dateGroupable);
+		List<LedgerCategoryDto> result = dao.findLedgersBySearch( memberId, "memo", keywords, dateGroupable);
 
 		//then
 		assertThat(result)
@@ -224,7 +243,7 @@ class LedgerDaoSearchTest {
 		DateGroupable dateGroupable = new SearchPeriod("20251201", "20251207");
 
 		//when
-		List<Ledger> result = dao.findLedgersBySearch( memberId, "memo", keywords, dateGroupable);
+		List<LedgerCategoryDto> result = dao.findLedgersBySearch( memberId, "memo", keywords, dateGroupable);
 
 		//then
 		assertThat(result).isEmpty();
@@ -238,25 +257,27 @@ class LedgerDaoSearchTest {
 		DateGroupable dateGroupable = new SearchPeriod("20251123", "20251205");
 		List<String> keywords = Collections.emptyList();
 
-		List<Ledger> expected = List.of(
-				Ledger.builder()
-						.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D6")
-						.category(Category.builder().code("020105").build())
-						.date(new LedgerDate("20251123"))
-						.memo("도시락")
-						.amountInfo(AmountInfo.builder().amount(9500).build())
-						.build(),
-				Ledger.builder()
-						.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D7")
-						.category(Category.builder().code("010101").build())
-						.date(new LedgerDate("20251202"))
-						.memo("12월 월급")
-						.amountInfo(AmountInfo.builder().amount(2500000).build())
-						.build()
+		List<LedgerCategoryDto> expected = List.of(
+				new LedgerCategoryDto(
+						Ledger.builder()
+								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D6")
+								.date("20251123")
+								.amount(9500L)
+								.build(),
+						Category.builder().name("식사").build()
+				),
+				new LedgerCategoryDto(
+						Ledger.builder()
+								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D7")
+								.date("20251202")
+								.amount(2500000L)
+								.build(),
+						Category.builder().name("월급").build()
+				)
 		);
 
 		//when
-		List<Ledger> result = dao.findLedgersBySearch( memberId, "period", keywords, dateGroupable);
+		List<LedgerCategoryDto> result = dao.findLedgersBySearch( memberId, "period", keywords, dateGroupable);
 
 		//then
 		assertThat(result)
@@ -274,7 +295,7 @@ class LedgerDaoSearchTest {
 		List<String> keywords = Collections.emptyList();
 
 		//when
-		List<Ledger> result = dao.findLedgersBySearch( memberId, "period", keywords, dateGroupable);
+		List<LedgerCategoryDto> result = dao.findLedgersBySearch( memberId, "period", keywords, dateGroupable);
 
 		//then
 		assertThat(result).isEmpty();

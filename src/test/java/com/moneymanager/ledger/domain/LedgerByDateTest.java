@@ -1,6 +1,5 @@
 package com.moneymanager.ledger.domain;
 
-import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.*;
@@ -60,16 +59,18 @@ public class LedgerByDateTest {
 		List<Ledger>  obj = List.of(
 				Ledger.builder()
 						.id("01AN4Z07BY79KA1307SR9X4MV3")
-						.date(new LedgerDate("20251101"))
-						.category(Category.builder().name("간식").code("020101").build())
+						.date("20251101")
+						.category("020101")
 						.memo("팥빵 2개, 우유 1개")
-						.amountInfo(AmountInfo.builder().amount(8800L).type(PaymentType.CARD).build())
+						.amount(8800L)
+						.paymentType(PaymentType.CARD)
 						.build(),
 				Ledger.builder()
 						.id("01H5HZ8X9E7EY2XKZCW2FQX16B")
-						.date(new LedgerDate("20251102"))
-						.category(Category.builder().name("택시").code("020302").build())
-						.amountInfo(AmountInfo.builder().amount(12500L).type(PaymentType.CASH).build())
+						.date("20251102")
+						.category("020302")
+						.amount(12500L)
+						.paymentType(PaymentType.CASH)
 						.build()
 		);
 
@@ -89,30 +90,34 @@ public class LedgerByDateTest {
 		List<Ledger>  obj = List.of(
 				Ledger.builder()
 						.id("01AN4Z07BY79KA1307SR9X4MV3")
-						.date(new LedgerDate("20251101"))
-						.category(Category.builder().name("간식").code("020101").build())
+						.date("20251101")
+						.category("020101")
 						.memo("팥빵 2개, 우유 1개")
-						.amountInfo(AmountInfo.builder().amount(8800L).type(PaymentType.CARD).build())
+						.amount(8800L)
+						.paymentType(PaymentType.CARD)
 						.build(),
 				Ledger.builder()
 						.id("01H5HZ8X9E7EY2XKZCW2FQX16B")
-						.date(new LedgerDate("20251105"))
-						.category(Category.builder().name("택시").code("020302").build())
-						.amountInfo(AmountInfo.builder().amount(12500L).type(PaymentType.CASH).build())
+						.date("20251105")
+						.category("020302")
+						.amount(12500L)
+						.paymentType(PaymentType.CASH)
 						.build(),
 				Ledger.builder()
 						.id("01AN4Z07BY79KA1307SR9X4MV3")
-						.date(new LedgerDate("20251101"))
-						.category(Category.builder().name("간식").code("020101").build())
+						.date("20251101")
+						.category("020101")
 						.memo("팥빵 2개, 우유 1개")
-						.amountInfo(AmountInfo.builder().amount(8800L).type(PaymentType.CARD).build())
+						.amount(8800L)
+						.paymentType(PaymentType.CARD)
 						.build(),
 				Ledger.builder()
 						.id("01ARZ3NDEKTSV4RRFFQ69G5FAF")
-						.date(new LedgerDate("20251120"))
-						.category(Category.builder().name("용돈").code("010101").build())
+						.date("20251120")
+						.category("010101")
 						.memo("11월 용돈")
-						.amountInfo(AmountInfo.builder().amount(200000L).type(PaymentType.BANK).build())
+						.amount(200000L)
+						.paymentType(PaymentType.BANK)
 						.build()
 		);
 
@@ -134,23 +139,25 @@ public class LedgerByDateTest {
 		List<Ledger>  obj = List.of(
 				Ledger.builder()
 						.id("01AN4Z07BY79KA1307SR9X4MV3")
-						.date(new LedgerDate("20251101"))
-						.category(Category.builder().name("간식").code("020101").build())
+						.date("20251101")
+						.category("020101")
 						.memo("팥빵 2개, 우유 1개")
-						.amountInfo(AmountInfo.builder().amount(8800L).type(PaymentType.CARD).build())
+						.amount(8800L)
+						.paymentType(PaymentType.CARD)
 						.build(),
 				Ledger.builder()
 						.id("01H5HZ8X9E7EY2XKZCW2FQX16B")
-						.date(new LedgerDate("20251101"))
-						.category(Category.builder().name("택시").code("020302").build())
-						.amountInfo(AmountInfo.builder().amount(12500L).type(PaymentType.CASH).build())
+						.date("20251101")
+						.category("020302")
+						.amount(12500L)
+						.paymentType(PaymentType.CASH)
 						.build(),
 				Ledger.builder()
 						.id("01ARZ3NDEKTSV4RRFFQ69G5FAV")
-						.date(new LedgerDate("20251105"))
-						.category(Category.builder().name("간식").code("020101").build())
-						.memo("떡볶이")
-						.amountInfo(AmountInfo.builder().amount(5000L).type(PaymentType.CARD).build())
+						.date("20251105")
+						.category("020101")
+						.amount(5000L)
+						.paymentType(PaymentType.CARD)
 						.build()
 		);
 
@@ -171,17 +178,17 @@ public class LedgerByDateTest {
 		List<Ledger>  obj = List.of(
 				Ledger.builder()
 						.id("01AN4Z07BY79KA1307SR9X4MV3")
-						.date(new LedgerDate("20251101"))
-						.category(Category.builder().name("간식").code("020101").build())
-						.memo("팥빵 2개, 우유 1개")
-						.amountInfo(AmountInfo.builder().amount(8800L).type(PaymentType.CARD).build())
+						.date("20251101")
+						.category("020101")
+						.amount(8800L)
+						.paymentType(PaymentType.CARD)
 						.build(),
 				Ledger.builder()
 						.id("01ARZ3NDEKTSV4RRFFQ69G5FAV")
-						.date(new LedgerDate("20251105"))
-						.category(Category.builder().name("간식").code("020101").build())
-						.memo("떡볶이")
-						.amountInfo(AmountInfo.builder().amount(5000L).type(PaymentType.CARD).build())
+						.date("20251105")
+						.category("020101")
+						.amount(5000L)
+						.paymentType(PaymentType.CARD)
 						.build()
 		);
 

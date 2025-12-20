@@ -10,9 +10,6 @@ import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.domain.ledger.vo.AmountInfo;
-import com.moneymanager.domain.ledger.vo.LedgerDate;
-import com.moneymanager.domain.member.Member;
 import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.CategoryService;
@@ -107,13 +104,15 @@ public class LedgerServiceInfoTest {
 		String id = "1";
 
 		Ledger ledger = Ledger.builder()
-				.member(Member.builder().id("not").build())
-				.category(Category.builder().code("010101").name("월급").build())
-				.date(new LedgerDate("20151101"))
+				.memberId("not")
+				.date("20151101")
 				.memo("메모")
-				.amountInfo(AmountInfo.builder().amount(10000L).type(PaymentType.NONE).build())
+				.amount(10000L)
+				.paymentType(PaymentType.NONE)
 				.build();
-		when(ledgerDao.findLedgerDetailForUser(id)).thenReturn(ledger);
+		Category category = Category.builder().code("010101").name("월급").build();
+
+		when(ledgerDao.findLedgerDetailForUser(id)).thenReturn(new LedgerCategoryDto(ledger, category));
 
 		//when & then
 		assertThatExceptionOfType(ClientException.class)
@@ -136,12 +135,14 @@ public class LedgerServiceInfoTest {
 
 		Ledger ledger = Ledger.builder()
 				.num(1L)
-				.member(Member.builder().id(memberId).build())
-				.category(Category.builder().code("010101").name("월급").build())
-				.date(new LedgerDate("20251101"))
+				.memberId(memberId)
+				.date("20251101")
 				.memo("메모")
-				.amountInfo(AmountInfo.builder().amount(10000L).type(PaymentType.NONE).build())
+				.amount(10000L)
+				.paymentType(PaymentType.NONE)
 				.build();
+
+		Category category = Category.builder().code("010101").name("월급").build();
 
 		List<LedgerImage> mockImages = List.of(
 				LedgerImage.builder()
@@ -153,7 +154,7 @@ public class LedgerServiceInfoTest {
 						.build()
 		);
 
-		when(ledgerDao.findLedgerDetailForUser(id)).thenReturn(ledger);
+		when(ledgerDao.findLedgerDetailForUser(id)).thenReturn(new LedgerCategoryDto(ledger, category));
 		when(imageService.getLimitImageCount(memberId)).thenReturn(1);
 		when(imageService.getImageListByLedger(ledger.getNum(), 1)).thenReturn(mockImages);
 
@@ -166,10 +167,11 @@ public class LedgerServiceInfoTest {
 				.isEqualTo(
 						LedgerDetailResponse.builder()
 								.date("2025. 11. 01 (토)")
-								.category(CategoryResponse.from(ledger.getCategory()))
+								.type(LedgerType.INCOME)
+								.category(CategoryResponse.builder().code("010101").name("월급").build())
 								.memo("메모")
-								.amountInfo(ledger.getAmountInfo())
-								.place(ledger.getPlace())
+								.amount(10000L)
+								.paymentType(PaymentType.NONE)
 								.images(
 										List.of(
 												"/2025/11/23/b8d3c9a1-4f8e-4a7b-8c6d-5e9f2a1b0c4d.png"
@@ -213,13 +215,14 @@ public class LedgerServiceInfoTest {
 		String id = "1";
 
 		Ledger ledger = Ledger.builder()
-				.member(Member.builder().id("not").build())
-				.category(Category.builder().code("010101").name("월급").build())
-				.date(new LedgerDate("20151101"))
+				.memberId("not")
+				.date("20151101")
 				.memo("메모")
-				.amountInfo(AmountInfo.builder().amount(10000L).type(PaymentType.NONE).build())
+				.amount(10000L)
+				.paymentType(PaymentType.NONE)
 				.build();
-		when(ledgerDao.findLedgerEditForUser(id)).thenReturn(ledger);
+		Category category = Category.builder().code("010101").name("월급").build();
+		when(ledgerDao.findLedgerEditForUser(id)).thenReturn(new LedgerCategoryDto(ledger, category));
 
 		//when & then
 		assertThatExceptionOfType(ClientException.class)
@@ -240,14 +243,15 @@ public class LedgerServiceInfoTest {
 		String memberId = "member";
 		String id = "1";
 
-		Ledger ledger = createLedgerByFixN(memberId);
-		when(ledgerDao.findLedgerEditForUser(id)).thenReturn(ledger);
+		LedgerCategoryDto ledgerAndCategory = createLedgerByFixN(memberId);
+		when(ledgerDao.findLedgerEditForUser(id)).thenReturn(ledgerAndCategory);
 		when(imageService.getLimitImageCount(memberId)).thenReturn(1);
 
 		List<CategoryResponse> categoryResponses = createIncomeCategory();
-		when(categoryService.getAncestorCategoriesByCode(ledger.getCategory().getCode()))
+		when(categoryService.getAncestorCategoriesByCode(ledgerAndCategory.getCategory().getCode()))
 				.thenReturn(categoryResponses);
 
+		Ledger ledger = ledgerAndCategory.getLedger();
 		List<LedgerImage> images = createMinLedgerImage(ledger.getId());
 		when(imageService.getImageListByLedger(ledger.getNum(), 1)).thenReturn(images);
 
@@ -258,7 +262,9 @@ public class LedgerServiceInfoTest {
 		assertThat(result).isNotNull();
 		assertThat(result.getDate()).isEqualTo("2025. 11. 01 (토)");
 		assertThat(result.getMemo()).isEqualTo("메모");
-		assertThat(result.getPlace()).isNull();
+		assertThat(result.getPlaceName()).isNull();
+		assertThat(result.getRoadAddress()).isNull();
+		assertThat(result.getDetailAddress()).isNull();
 
 		assertThat(result.getType()).isSameAs(LedgerType.INCOME);
 		assertThat(result.getCategory()).isSameAs(categoryResponses);
@@ -266,8 +272,8 @@ public class LedgerServiceInfoTest {
 		assertThat(result.getImages())
 				.containsExactly("/2025/11/01/이미지1.png", null, null);
 
-		assertThat(result.getAmountInfo().getAmount()).isEqualTo(10000L);
-		assertThat(result.getAmountInfo().getType()).isSameAs(PaymentType.NONE);
+		assertThat(result.getAmount()).isEqualTo(10000L);
+		assertThat(result.getPaymentType()).isSameAs(PaymentType.NONE);
 
 		assertThat(result.getFixed().isFix()).isFalse();
 		assertThat(result.getFixed().getPeriod()).isNull();
@@ -280,14 +286,15 @@ public class LedgerServiceInfoTest {
 		String memberId = "member";
 		String id = "1";
 
-		Ledger ledger = createLedgerByFixY(memberId);
-		when(ledgerDao.findLedgerEditForUser(id)).thenReturn(ledger);
+		LedgerCategoryDto ledgerAndCategory = createLedgerByFixY(memberId);
+		when(ledgerDao.findLedgerEditForUser(id)).thenReturn(ledgerAndCategory);
 		when(imageService.getLimitImageCount(memberId)).thenReturn(1);
 
 		List<CategoryResponse> categoryResponses = createIncomeCategory();
-		when(categoryService.getAncestorCategoriesByCode(ledger.getCategory().getCode()))
+		when(categoryService.getAncestorCategoriesByCode(ledgerAndCategory.getCategory().getCode()))
 				.thenReturn(categoryResponses);
 
+		Ledger ledger = ledgerAndCategory.getLedger();
 		List<LedgerImage> images = createMinLedgerImage(ledger.getId());
 		when(imageService.getImageListByLedger(ledger.getNum(), 1)).thenReturn(images);
 
@@ -298,7 +305,9 @@ public class LedgerServiceInfoTest {
 		assertThat(result).isNotNull();
 		assertThat(result.getDate()).isEqualTo("2025. 11. 01 (토)");
 		assertThat(result.getMemo()).isEqualTo("메모");
-		assertThat(result.getPlace()).isNull();
+		assertThat(result.getPlaceName()).isNull();
+		assertThat(result.getRoadAddress()).isNull();
+		assertThat(result.getDetailAddress()).isNull();
 
 		assertThat(result.getType()).isSameAs(LedgerType.INCOME);
 		assertThat(result.getCategory()).isSameAs(categoryResponses);
@@ -306,36 +315,44 @@ public class LedgerServiceInfoTest {
 		assertThat(result.getImages())
 				.containsExactly("/2025/11/01/이미지1.png", null, null);
 
-		assertThat(result.getAmountInfo().getAmount()).isEqualTo(10000L);
-		assertThat(result.getAmountInfo().getType()).isSameAs(PaymentType.NONE);
+		assertThat(result.getAmount()).isEqualTo(10000L);
+		assertThat(result.getPaymentType()).isSameAs(PaymentType.NONE);
 
 		assertThat(result.getFixed().isFix()).isTrue();
 		assertThat(result.getFixed().getPeriod()).isEqualTo(FixedPeriod.WEEKLY.getValue());
 	}
 
-	private Ledger createLedgerByFixN(String memberId) {
-		return Ledger.builder()
-				.id("ledger1")
-				.member(Member.builder().id(memberId).build())
-				.fixed(FixedYN.VARIABLE)
-				.category(Category.builder().code("010101").name("월급").build())
-				.date(new LedgerDate("20251101"))
-				.memo("메모")
-				.amountInfo(AmountInfo.builder().amount(10000L).type(PaymentType.NONE).build())
-				.build();
+	private LedgerCategoryDto createLedgerByFixN(String memberId) {
+		Ledger ledger = Ledger.builder()
+			.id("ledger1")
+			.memberId(memberId)
+			.fixed(FixedYN.VARIABLE)
+			.date("20251101")
+			.memo("메모")
+			.amount(10000L)
+			.paymentType(PaymentType.NONE)
+			.build();
+
+		Category category = Category.builder().code("010101").name("월급").build();
+
+		return new LedgerCategoryDto(ledger, category);
 	}
 
-	private Ledger createLedgerByFixY(String memberId) {
-		return Ledger.builder()
+	private LedgerCategoryDto createLedgerByFixY(String memberId) {
+		Ledger ledger = Ledger.builder()
 				.id("ledger1")
-				.member(Member.builder().id(memberId).build())
+				.memberId(memberId)
 				.fixed(FixedYN.REPEAT)
 				.cycleType(FixedPeriod.WEEKLY)
-				.category(Category.builder().code("010101").name("월급").build())
-				.date(new LedgerDate("20251101"))
+				.date("20251101")
 				.memo("메모")
-				.amountInfo(AmountInfo.builder().amount(10000L).type(PaymentType.NONE).build())
+				.amount(10000L)
+				.paymentType(PaymentType.NONE)
 				.build();
+
+		Category category = Category.builder().code("010101").name("월급").build();
+
+		return new LedgerCategoryDto(ledger, category);
 	}
 
 	private List<CategoryResponse> createIncomeCategory(){

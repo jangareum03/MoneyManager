@@ -9,8 +9,6 @@ import com.moneymanager.domain.ledger.dto.LedgerEditResponse;
 import com.moneymanager.domain.ledger.dto.LedgerFixedResponse;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.*;
-import com.moneymanager.domain.ledger.vo.AmountInfo;
-import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.domain.member.dto.MemberLoginResponse;
 import com.moneymanager.security.jwt.JwtAuthenticationFilter;
 import com.moneymanager.service.main.CategoryService;
@@ -102,8 +100,9 @@ public class LedgerInfoControllerTest {
 						CategoryResponse.builder().code("010101").name("월급").build()
 				))
 				.memo("강아지 똥")
-				.amountInfo(AmountInfo.builder().amount(15000L).type(PaymentType.NONE).build())
-				.place(Place.builder().placeName("강남 CGV").roadAddress("서울특별시 강남구 강남대로 123").detailAddress("☆☆빌딩 2층").build())
+				.amount(15000L)
+				.paymentType(PaymentType.NONE)
+				.placeName("강남 CGV").roadAddress("서울특별시 강남구 강남대로 123").detailAddress("☆☆빌딩 2층")
 				.build();
 		when(ledgerService.getLedgerEdit("member123", "123"))
 						.thenReturn(mockResponse);
@@ -158,7 +157,8 @@ public class LedgerInfoControllerTest {
 						CategoryResponse.builder().code("010101").name("월급").build()
 				))
 				.memo("강아지 똥")
-				.amountInfo(AmountInfo.builder().amount(15000L).type(PaymentType.NONE).build())
+				.amount(15000L)
+				.paymentType(PaymentType.NONE)
 				.images(
 						List.of("강아지.png", "고양이.jpg", "다람쥐.jpg")
 				)
@@ -215,8 +215,9 @@ public class LedgerInfoControllerTest {
 				.type(LedgerType.INCOME)
 				.category(CategoryResponse.builder().code("010101").name("월급").build())
 				.memo("얏호~~")
-				.amountInfo(AmountInfo.builder().amount(25000L).type(PaymentType.CASH).build())
-				.place(Place.builder().placeName("성수 빵집").roadAddress("서울특별시 성수동").detailAddress("상세주소").build())
+				.amount(25000L)
+				.paymentType(PaymentType.CASH)
+				.placeName("성수 빵집").roadAddress("서울특별시 성수동").detailAddress("상세주소")
 				.images(images)
 				.build();
 
