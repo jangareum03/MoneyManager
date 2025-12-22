@@ -132,8 +132,8 @@ CREATE TABLE member_point_log (
 
 -- 가계부
 CREATE TABLE ledger (
-    num                                    NUMBER                     PRIMARY KEY,
-    id                                       VARCHAR2(26)                                UNIQUE,
+    id                                    NUMBER                     PRIMARY KEY,
+    code                                VARCHAR2(26)                                UNIQUE,
     member_id                       VARCHAR2(8),
     category_id                     VARCHAR2(6),
     fix                                    CHAR(1)                       DEFAULT 'N'                 NOT NULL,
