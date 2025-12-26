@@ -1,4 +1,4 @@
-package com.moneymanager.ledger.image;
+package com.moneymanager.ledger.repository;
 
 import com.moneymanager.dao.main.LedgerImageDao;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.ledger.image<br>
- * 파일이름       : LedgerImageDaoTest<br>
+ * 파일이름       : LedgerImageRepositoryTest<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 12. 18<br>
  * 설명              : 가계부 이미지 정보를 DB에서 조회 가능한지 확인하는 테스트 클래스
@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-public class LedgerImageDaoTest {
+public class LedgerImageRepositoryTest {
 
 	@Autowired
 	private LedgerImageDao dao;

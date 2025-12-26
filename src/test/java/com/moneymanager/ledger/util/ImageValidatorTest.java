@@ -1,4 +1,4 @@
-package com.moneymanager.ledger.image;
+package com.moneymanager.ledger.util;
 
 import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.exception.ErrorCode;

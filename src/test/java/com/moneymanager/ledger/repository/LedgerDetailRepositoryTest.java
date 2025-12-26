@@ -1,4 +1,4 @@
-package com.moneymanager.ledger.info;
+package com.moneymanager.ledger.repository;
 
 import com.moneymanager.dao.main.LedgerDao;
 import com.moneymanager.domain.ledger.dto.LedgerCategoryDto;
@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.budgetBook.info<br>
- * 파일이름       : LedgerDaoInfoTest<br>
+ * 파일이름       : LedgerDetailRepositoryTest<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 11. 24.<br>
  * 설명              : 가계부 정보를 DB에서 조회 가능한지 확인하는 테스트 클래스
@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-public class LedgerDaoInfoTest {
+public class LedgerDetailRepositoryTest {
 
 	@Autowired
 	private LedgerDao dao;

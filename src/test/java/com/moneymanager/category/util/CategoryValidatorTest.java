@@ -1,4 +1,4 @@
-package com.moneymanager.ledger.category;
+package com.moneymanager.category.util;
 
 import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.domain.ledger.dto.request.CategoryRequest;

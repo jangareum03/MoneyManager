@@ -1,14 +1,12 @@
-package com.moneymanager.ledger.summary;
-
+package com.moneymanager.ledger.controller;
 
 import com.moneymanager.config.SecurityConfig;
 import com.moneymanager.controller.web.GlobalWebControllerAdvice;
 import com.moneymanager.controller.web.main.LedgerController;
 import com.moneymanager.domain.ledger.dto.request.LedgerSearchRequest;
-import com.moneymanager.domain.ledger.dto.response.LedgerGroupForCardResponse;
-import com.moneymanager.domain.ledger.dto.response.LedgerGroupResponse;
-import com.moneymanager.domain.ledger.dto.response.LedgerSearchResponse;
+import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.ledger.vo.IncomeExpenseSummary;
 import com.moneymanager.domain.ledger.vo.LedgerByDate;
 import com.moneymanager.domain.member.dto.MemberLoginResponse;
@@ -30,35 +28,65 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.servlet.ModelAndView;
 
-
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = LedgerController.class,
+/**
+ * <p>
+ * 패키지이름    : com.moneymanager.ledger.info<br>
+ * 파일이름       : LedgerDetailControllerTest<br>
+ * 작성자          : areum Jang<br>
+ * 생성날짜       : 25. 12. 10<br>
+ * 설명              : 가계부 정보 요청에 대한 컨트롤러 테스트 클래스
+ * </p>
+ * <br>
+ * <p color='#FFC658'>📢 변경이력</p>
+ * <table border="1" cellpadding="5" cellspacing="0" style="width: 100%">
+ * 		<thead>
+ * 		 	<tr style="border-top: 2px solid; border-bottom: 2px solid">
+ * 		 	  	<td>날짜</td>
+ * 		 	  	<td>작성자</td>
+ * 		 	  	<td>변경내용</td>
+ * 		 	</tr>
+ * 		</thead>
+ * 		<tbody>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 12. 10</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		</tbody>
+ * </table>
+ */
+@WebMvcTest(
+		controllers = LedgerController.class,
 		excludeFilters = {
-		@ComponentScan.Filter(
-				type = FilterType.ASSIGNABLE_TYPE,
-				classes = {
-						SecurityConfig.class,
-						JwtAuthenticationFilter.class,
-						GlobalWebControllerAdvice.class
-				}
-		)
-})
-@AutoConfigureMockMvc(addFilters = false)		//스프링 시큐리티 필터 제거
-public class LedgerControllerSummaryTest {
+				@ComponentScan.Filter(
+						type = FilterType.ASSIGNABLE_TYPE,
+						classes = {
+								SecurityConfig.class,
+								JwtAuthenticationFilter.class,
+								GlobalWebControllerAdvice.class
+						}
+				)
+		}
+)
+@AutoConfigureMockMvc(addFilters = false)
+public class LedgerDetailControllerTest {
 
-	@Autowired	private MockMvc mockMvc;
+	@Autowired	private MockMvc	mockMvc;
 
 	@MockBean	private LedgerService ledgerService;
-	@MockBean	private CategoryService	categoryService;
-	@MockBean @Qualifier("ledgerImage")	private ImageServiceImpl imageService;
+	@MockBean	private CategoryService categoryService;
+	@MockBean	@Qualifier("ledgerImage") private ImageServiceImpl imageService;
 
 
 	@DisplayName("정상 요청 시 데이터와 뷰 이름이 반환된다.")
@@ -118,16 +146,16 @@ public class LedgerControllerSummaryTest {
 
 		//when
 		MvcResult result = mockMvc.perform(
-				MockMvcRequestBuilders.get("/ledgers/list/{type}", "week")
-						.sessionAttr("mid", memberId)
-						.requestAttr("member", MemberLoginResponse.Success.builder()
-								.nickName("홍길동").profile(null).build())
-		)
+						MockMvcRequestBuilders.get("/ledgers/list/{type}", "week")
+								.sessionAttr("mid", memberId)
+								.requestAttr("member", MemberLoginResponse.Success.builder()
+										.nickName("홍길동").profile(null).build())
+				)
 
-		.andExpect(status().isOk())
+				.andExpect(status().isOk())
 				.andExpect(xpath("//h1[@class='ledger-date']/@data-type").string(is("week")))
 				.andDo(print())
-		.andReturn();
+				.andReturn();
 
 		//then
 		ModelAndView mav = result.getModelAndView();
@@ -135,5 +163,42 @@ public class LedgerControllerSummaryTest {
 		assertThat(mav.getViewName()).isEqualTo("/main/ledger_list");
 		assertThat(mav.getModel().get("cards")).usingRecursiveComparison().isEqualTo(mockCard);
 		assertThat(mav.getModel().get("search")).usingRecursiveComparison().isEqualTo(mockSearch);
+	}
+
+	@DisplayName("모드가 view면 가계부 상세내역 화면을 보여줘야 한다.")
+	@Test
+	void 상세모드_상세화면_이등() throws Exception {
+		//given
+		List<String> images = new ArrayList<>();
+		images.add("/2025/11/01/3c2a8f0e-7d6b-4e1c-9f5a-0d4b3c2e1f0d.png");
+		images.add(null);
+		images.add(null);
+
+		LedgerDetailResponse mockResponse = LedgerDetailResponse.builder()
+				.date("2025. 11. 01 (토)")
+				.type(LedgerType.INCOME)
+				.category(CategoryResponse.builder().code("010101").name("월급").build())
+				.memo("얏호~~")
+				.amount(25000L)
+				.paymentType(PaymentType.CASH)
+				.placeName("성수 빵집").roadAddress("서울특별시 성수동").detailAddress("상세주소")
+				.images(images)
+				.build();
+
+		when(ledgerService.getLedgerDetail("member123", "123"))
+				.thenReturn(mockResponse);
+
+		//when
+		mockMvc.perform(
+				MockMvcRequestBuilders.get("/ledgers/123")
+						.param("mode", "view")
+						.sessionAttr("mid", "member123")
+						.requestAttr("member", MemberLoginResponse.Success.builder()
+								.nickName("홍길동").profile(null).build())
+		)
+				.andExpect(status().isOk())
+				.andExpect(view().name("/main/ledger_detail"))
+				.andExpect(model().attributeExists("ledger"))
+				.andDo(print());
 	}
 }

@@ -1,10 +1,7 @@
-package com.moneymanager.ledger.category;
+package com.moneymanager.category.repository;
 
 import com.moneymanager.dao.main.CategoryDao;
-import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.exception.ErrorCode;
-import com.moneymanager.exception.custom.ServerException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -14,17 +11,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.when;
 
 /**
  * <p>
  * 패키지이름    : com.moneymanager.ledger.category<br>
- * 파일이름       : CategoryDaoSearchTest<br>
+ * 파일이름       : CategorySearchRepositoryTest<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 11. 27.<br>
  * 설명              : 데이터베이스에서 카테고리 조회 관련 테스트 클래스
@@ -50,7 +44,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringBootTest
 @ActiveProfiles("test")
-class CategoryDaoSearchTest {
+class CategorySearchRepositoryTest {
 
 	@Autowired
 	private CategoryDao categoryDao;

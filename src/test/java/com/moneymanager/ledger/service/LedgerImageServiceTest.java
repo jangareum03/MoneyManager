@@ -1,4 +1,4 @@
-package com.moneymanager.ledger.image;
+package com.moneymanager.ledger.service;
 
 import com.moneymanager.dao.main.LedgerImageDao;
 import com.moneymanager.dao.member.MemberInfoDaoImpl;

@@ -1,4 +1,4 @@
-package com.moneymanager.ledger.write;
+package com.moneymanager.ledger.controller;
 
 import com.moneymanager.config.SecurityConfig;
 import com.moneymanager.controller.web.GlobalWebControllerAdvice;
@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * <p>
  * 패키지이름    : com.moneymanager.ledger.write<br>
- * 파일이름       : LedgerWriteControllerTest<br>
+ * 파일이름       : LedgerCreationControllerTest<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 12. 18<br>
  * 설명              : 가계부 작성 요청에 대한 컨트롤러 테스트 클래스
@@ -78,7 +78,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 		}
 )
 @AutoConfigureMockMvc(addFilters = false)
-public class LedgerWriteControllerTest {
+public class LedgerCreationControllerTest {
 
 	@Autowired	private MockMvc mockMvc;
 

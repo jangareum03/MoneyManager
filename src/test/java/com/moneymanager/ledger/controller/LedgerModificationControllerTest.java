@@ -1,10 +1,12 @@
-package com.moneymanager.ledger.info;
+package com.moneymanager.ledger.controller;
 
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moneymanager.config.SecurityConfig;
 import com.moneymanager.controller.web.GlobalWebControllerAdvice;
 import com.moneymanager.controller.web.main.LedgerController;
+import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
-import com.moneymanager.domain.ledger.dto.response.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerEditResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerFixedResponse;
 import com.moneymanager.domain.ledger.entity.Ledger;
@@ -14,6 +16,7 @@ import com.moneymanager.security.jwt.JwtAuthenticationFilter;
 import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.ImageServiceImpl;
 import com.moneymanager.service.main.LedgerService;
+import com.moneymanager.service.main.api.GoogleChartService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,23 +26,29 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.ledger.info<br>
- * 파일이름       : LedgerInfoControllerTest<br>
+ * 패키지이름    : com.moneymanager.ledger.controller<br>
+ * 파일이름       : LedgerModificationControllerTest<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 25. 12. 10<br>
- * 설명              : 가계부 정보 요청에 대한 컨트롤러 테스트 클래스
+ * 생성날짜       : 25. 12. 27<br>
+ * 설명              : 가계부 변경 요청에 대한 컨트롤러 테스트 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -53,34 +62,35 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 12. 10</td>
+ * 		 	  <td>25. 12. 27.</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
  */
-@WebMvcTest(
-		controllers = LedgerController.class,
+@WebMvcTest(controllers = LedgerController.class,
 		excludeFilters = {
-				@ComponentScan.Filter(
-						type = FilterType.ASSIGNABLE_TYPE,
-						classes = {
-								SecurityConfig.class,
-								JwtAuthenticationFilter.class,
-								GlobalWebControllerAdvice.class
-						}
-				)
-		}
-)
-@AutoConfigureMockMvc(addFilters = false)
-public class LedgerInfoControllerTest {
+		@ComponentScan.Filter(
+				type = FilterType.ASSIGNABLE_TYPE,
+				classes = {
+						SecurityConfig.class,
+						JwtAuthenticationFilter.class,
+						GlobalWebControllerAdvice.class
+				}
+		)
+})
+@AutoConfigureMockMvc(addFilters = false)		//스프링 시큐리티 필터 제거
+public class LedgerModificationControllerTest {
 
-	@Autowired	private MockMvc	mockMvc;
+	@Autowired	private MockMvc mockMvc;
+	@Autowired	private ObjectMapper objectMapper;
 
 	@MockBean	private LedgerService ledgerService;
-	@MockBean	private CategoryService categoryService;
-	@MockBean	@Qualifier("ledgerImage") private ImageServiceImpl imageService;
+	@MockBean	private CategoryService	categoryService;
+	@MockBean	private GoogleChartService chartService;
+	@MockBean @Qualifier("ledgerImage")	private ImageServiceImpl imageService;
+
 
 	@DisplayName("일회성 가게부가 수정모드면 고정주기가 화면에 안보여야 한다.")
 	@Test
@@ -105,7 +115,7 @@ public class LedgerInfoControllerTest {
 				.placeName("강남 CGV").roadAddress("서울특별시 강남구 강남대로 123").detailAddress("☆☆빌딩 2층")
 				.build();
 		when(ledgerService.getLedgerEdit("member123", "123"))
-						.thenReturn(mockResponse);
+				.thenReturn(mockResponse);
 
 		when(categoryService.getAllCategoriesByCode(mockResponse.getCategory().get(mockResponse.getCategory().size() -1).getCode())).thenReturn(
 				java.util.Map.of(
@@ -126,12 +136,12 @@ public class LedgerInfoControllerTest {
 
 		//when
 		mockMvc.perform(
-				MockMvcRequestBuilders.get("/ledgers/123")
-						.param("mode", "edit")
-						.sessionAttr("mid", "member123")
-						.requestAttr("member", MemberLoginResponse.Success.builder()
-								.nickName("홍길동").profile(null).build())
-		)
+						MockMvcRequestBuilders.get("/ledgers/123")
+								.param("mode", "edit")
+								.sessionAttr("mid", "member123")
+								.requestAttr("member", MemberLoginResponse.Success.builder()
+										.nickName("홍길동").profile(null).build())
+				)
 				.andExpect(status().isOk())
 				.andExpect(view().name("/main/ledger_update"))
 				.andExpect(model().attributeExists("ledger"))
@@ -201,40 +211,49 @@ public class LedgerInfoControllerTest {
 				.andDo(print());
 	}
 
-	@DisplayName("모드가 view면 가계부 상세내역 화면을 보여줘야 한다.")
+	@DisplayName("가계부 정보를 수정이 가능하다.")
 	@Test
-	void 상세모드_상세화면_이등() throws Exception {
+	void 임시() throws Exception {
 		//given
-		List<String> images = new ArrayList<>();
-		images.add("/2025/11/01/3c2a8f0e-7d6b-4e1c-9f5a-0d4b3c2e1f0d.png");
-		images.add(null);
-		images.add(null);
-
-		LedgerDetailResponse mockResponse = LedgerDetailResponse.builder()
-				.date("2025. 11. 01 (토)")
-				.type(LedgerType.INCOME)
-				.category(CategoryResponse.builder().code("010101").name("월급").build())
-				.memo("얏호~~")
-				.amount(25000L)
-				.paymentType(PaymentType.CASH)
-				.placeName("성수 빵집").roadAddress("서울특별시 성수동").detailAddress("상세주소")
-				.images(images)
+		LedgerUpdateRequest request = LedgerUpdateRequest.builder()
+				.category("010101").memo("수정욥 :)")
+				.fixed(false)
+				.amount(15000L).paymentType(PaymentType.CARD)
 				.build();
+		String updateJson = objectMapper.writeValueAsString(request);
 
-		when(ledgerService.getLedgerDetail("member123", "123"))
-				.thenReturn(mockResponse);
+		MockMultipartFile updateInfo = new MockMultipartFile(
+				"update",
+				"update.json",
+				MediaType.APPLICATION_JSON_VALUE,
+				updateJson.getBytes()
+		);
 
-		//when
+		MockMultipartFile updateFiles = new MockMultipartFile(
+				"image",
+				"apple.jpg",
+				MediaType.IMAGE_JPEG_VALUE,
+				"apple is fruit".getBytes()
+		);
+
+		doNothing().when(ledgerService).updateLedger(anyString(), anyString(), any());
+
+		//when & then
 		mockMvc.perform(
-				MockMvcRequestBuilders.get("/ledgers/123")
-						.param("mode", "view")
-						.sessionAttr("mid", "member123")
-						.requestAttr("member", MemberLoginResponse.Success.builder()
-								.nickName("홍길동").profile(null).build())
-		)
+						multipart("/api/ledgers/{id}", "1")
+								.file(updateInfo)
+								.file(updateFiles)
+								.with(servletRequest -> {
+									servletRequest.setMethod("PUT");
+									return servletRequest;
+								})
+								.sessionAttr("mid" ,"member123")
+								.contentType(MediaType.MULTIPART_FORM_DATA)
+								.requestAttr("member", MemberLoginResponse.Success.builder()
+										.nickName("홍길동").profile(null).build())
+				)
 				.andExpect(status().isOk())
-				.andExpect(view().name("/main/ledger_detail"))
-				.andExpect(model().attributeExists("ledger"))
-				.andDo(print());
+				.andExpect(jsonPath("$.success").value(true))
+				.andExpect(jsonPath("$.message").value("수정 완료했습니다."));
 	}
 }

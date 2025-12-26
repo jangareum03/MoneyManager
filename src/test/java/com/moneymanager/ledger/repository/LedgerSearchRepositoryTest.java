@@ -1,4 +1,4 @@
-package com.moneymanager.ledger.search;
+package com.moneymanager.ledger.repository;
 
 import com.moneymanager.dao.main.LedgerDao;
 import com.moneymanager.domain.global.vo.DateGroupable;
@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.budgetBook<br>
- * 파일이름       : LedgerDaoSearchTest<br>
+ * 파일이름       : LedgerSearchRepositoryTest<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 11. 24.<br>
  * 설명              : 가계부 검색 기능을 검증하는 테스트 클래스
@@ -50,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class LedgerDaoSearchTest {
+class LedgerSearchRepositoryTest {
 
 	private static DateGroupable dateGroupable;
 
