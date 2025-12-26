@@ -65,7 +65,7 @@ public class LedgerSummaryTest {
 	void entity_id필드_null이면_변환실패(String id){
 		//given
 		Ledger ledger = Ledger.builder()
-				.id(id)
+				.code(id)
 				.category("020301")
 				.memo("집에서 회사")
 				.amount(12000L)
@@ -90,7 +90,7 @@ public class LedgerSummaryTest {
 	void entity_vo로_변환성공(){
 		//given
 		Ledger ledger = Ledger.builder()
-				.id("01ARZ3NDEKTSV4RRFFQ69G5FAV")
+				.code("01ARZ3NDEKTSV4RRFFQ69G5FAV")
 				.category("020301")
 				.memo("집에서 회사")
 				.amount(12000L)
@@ -113,7 +113,7 @@ public class LedgerSummaryTest {
 	void 두객체_동일하면_true반환(){
 		//given
 		Ledger ledger = Ledger.builder()
-				.id("01ARZ3NDEKTSV4RRFFQ69G5FAV")
+				.code("01ARZ3NDEKTSV4RRFFQ69G5FAV")
 				.category("020301")
 				.memo("집에서 회사")
 				.amount(12000L)

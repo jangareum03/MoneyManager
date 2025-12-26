@@ -142,7 +142,7 @@ public class LedgerServiceSummaryTest {
 		List<LedgerCategoryDto> mockDao = List.of(
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D2")
+								.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D2")
 								.date("20251105")
 								.amount(50000L)
 								.memo("초밥 먹었어용")
@@ -151,7 +151,7 @@ public class LedgerServiceSummaryTest {
 				),
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D3")
+								.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D3")
 								.date("20251108")
 								.amount(15000L)
 								.memo("양초 구매 완료!!!")
@@ -181,7 +181,7 @@ public class LedgerServiceSummaryTest {
 		List<LedgerCategoryDto> mockDao = List.of(
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D2")
+								.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D2")
 								.date("20251105")
 								.amount(50000L)
 								.memo("초밥 먹었어용")
@@ -190,7 +190,7 @@ public class LedgerServiceSummaryTest {
 				),
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D3")
+								.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D3")
 								.date("20251108")
 								.amount(15000L)
 								.memo("양초 구매 완료!!!")
@@ -220,7 +220,7 @@ public class LedgerServiceSummaryTest {
 		List<LedgerCategoryDto> mockDao = List.of(
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D2")
+								.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D2")
 								.date("20251105")
 								.amount(500000L)
 								.build(),
@@ -228,7 +228,7 @@ public class LedgerServiceSummaryTest {
 				),
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01H5HZ8X9E7EY2XKZCW2FQX16B")
+								.code("01H5HZ8X9E7EY2XKZCW2FQX16B")
 								.date("20251106")
 								.amount(2500000L)
 								.memo("월급")
@@ -237,7 +237,7 @@ public class LedgerServiceSummaryTest {
 				),
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D3")
+								.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D3")
 								.date("20251108")
 								.amount(15000L)
 								.memo("주토피아2")

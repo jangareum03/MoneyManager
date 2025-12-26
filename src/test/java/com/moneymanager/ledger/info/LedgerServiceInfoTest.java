@@ -3,6 +3,8 @@ package com.moneymanager.ledger.info;
 import com.moneymanager.dao.main.LedgerDao;
 import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.domain.ledger.dto.*;
+import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
+import com.moneymanager.domain.ledger.dto.request.LedgerUpdateWithFileRequest;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerEditResponse;
@@ -23,10 +25,12 @@ import com.moneymanager.service.main.validation.DateScopeValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,7 +38,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * <p>
@@ -138,7 +142,7 @@ public class LedgerServiceInfoTest {
 		String id = "1";
 
 		Ledger ledger = Ledger.builder()
-				.num(1L)
+				.id(1L)
 				.memberId(memberId)
 				.date("20251101")
 				.memo("메모")
@@ -151,7 +155,7 @@ public class LedgerServiceInfoTest {
 		List<LedgerImage> mockImages = List.of(
 				LedgerImage.builder()
 						.id(1L)
-						.ledgerId(Ledger.builder().id("ledger1").build())
+						.ledgerId(1L)
 						.imagePath("/2025/11/23/b8d3c9a1-4f8e-4a7b-8c6d-5e9f2a1b0c4d.png")
 						.sortOrder(2)
 						.createdAt(LocalDateTime.of(2025, 11, 23, 11,11,11))
@@ -160,7 +164,7 @@ public class LedgerServiceInfoTest {
 
 		when(ledgerDao.findLedgerDetailForUser(id)).thenReturn(new LedgerCategoryDto(ledger, category));
 		when(imageService.getLimitImageCount(memberId)).thenReturn(1);
-		when(imageService.getImageListByLedger(ledger.getNum(), 1)).thenReturn(mockImages);
+		when(imageService.getImageListByLedger(ledger.getId(), 1)).thenReturn(mockImages);
 
 		//when
 		LedgerDetailResponse result = service.getLedgerDetail(memberId, id);
@@ -256,8 +260,8 @@ public class LedgerServiceInfoTest {
 				.thenReturn(categoryResponses);
 
 		Ledger ledger = ledgerAndCategory.getLedger();
-		List<LedgerImage> images = createMinLedgerImage(ledger.getId());
-		when(imageService.getImageListByLedger(ledger.getNum(), 1)).thenReturn(images);
+		List<LedgerImage> images = createMinLedgerImage(ledger.getCode());
+		when(imageService.getImageListByLedger(ledger.getId(), 1)).thenReturn(images);
 
 		//when
 		LedgerEditResponse result = service.getLedgerEdit(memberId, id);
@@ -299,8 +303,8 @@ public class LedgerServiceInfoTest {
 				.thenReturn(categoryResponses);
 
 		Ledger ledger = ledgerAndCategory.getLedger();
-		List<LedgerImage> images = createMinLedgerImage(ledger.getId());
-		when(imageService.getImageListByLedger(ledger.getNum(), 1)).thenReturn(images);
+		List<LedgerImage> images = createMinLedgerImage(ledger.getCode());
+		when(imageService.getImageListByLedger(ledger.getId(), 1)).thenReturn(images);
 
 		//when
 		LedgerEditResponse result = service.getLedgerEdit(memberId, id);
@@ -328,7 +332,7 @@ public class LedgerServiceInfoTest {
 
 	private LedgerCategoryDto createLedgerByFixN(String memberId) {
 		Ledger ledger = Ledger.builder()
-			.id("ledger1")
+			.code("ledger1")
 			.memberId(memberId)
 			.fixed(FixedYN.VARIABLE)
 			.date("20251101")
@@ -344,7 +348,7 @@ public class LedgerServiceInfoTest {
 
 	private LedgerCategoryDto createLedgerByFixY(String memberId) {
 		Ledger ledger = Ledger.builder()
-				.id("ledger1")
+				.code("ledger1")
 				.memberId(memberId)
 				.fixed(FixedYN.REPEAT)
 				.cycleType(FixedPeriod.WEEKLY)
@@ -371,7 +375,7 @@ public class LedgerServiceInfoTest {
 		List<LedgerImage> images = new ArrayList<>();
 
 		images.add(LedgerImage.builder().
-				ledgerId(Ledger.builder().id(ledgerId).build())
+				ledgerId(1L)
 				.imagePath("/2025/11/01/이미지1.png")
 				.build());
 		images.add(null);
@@ -416,4 +420,54 @@ public class LedgerServiceInfoTest {
 		assertThat(result.getPaymentTypes()).containsExactly(PaymentType.values());
 		assertThat(result.getImageSlot()).isEqualTo(imageSlots);
 	}
+
+
+
+	//=================================================
+	// updateLedger() 테스트
+	//=================================================
+	void 가계부_번호가_없으면_예외발생(){}
+
+	void 작성자_아니면_예외발생(){}
+
+	@Test
+	void 가계부_정보가_수정완료(){
+		//given
+		Ledger ledger = Ledger.builder()
+				.id(1L).memberId("member")
+				.category("010102")
+				.fixed(FixedYN.VARIABLE)
+				.amount(5000L).paymentType(PaymentType.NONE)
+				.build();
+
+		LedgerUpdateWithFileRequest request = LedgerUpdateWithFileRequest.builder()
+				.update(LedgerUpdateRequest.builder()
+						.category("010101").memo("메롱")
+						.amount(10000L).paymentType(PaymentType.CARD)
+						.fixed(true).period(FixedPeriod.MONTHLY)
+						.placeName("스타벅스 강남점").roadAddress("서울시 강남구").build())
+				.images(List.of(mock(MockMultipartFile.class), mock(MockMultipartFile.class)))
+				.build();
+
+		when(ledgerDao.findById(any())).thenReturn(ledger);
+		when(ledgerDao.updateLedger(any())).thenReturn(1);
+
+		doNothing().when(imageService).changeImages(any(), any());
+
+		//when
+		service.updateLedger("member", "1", request);
+
+		//then
+		ArgumentCaptor<Ledger> daoResult = ArgumentCaptor.forClass(Ledger.class);
+		verify(ledgerDao).updateLedger(daoResult.capture());
+
+		Ledger updated = daoResult.getValue();
+
+		assertThat(updated.getAmount()).isEqualTo(10000L);
+		assertThat(updated.getPaymentType()).isSameAs(PaymentType.CARD);
+		assertThat(updated.getFixed()).isSameAs(FixedYN.REPEAT);
+		assertThat(updated.getPlaceName()).isEqualTo("스타벅스 강남점");
+	}
+
+
 }

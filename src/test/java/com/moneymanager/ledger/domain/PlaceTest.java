@@ -6,6 +6,7 @@ import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.exception.custom.ClientException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -44,14 +45,12 @@ class PlaceTest {
 
 	private String placeName;			//장소명
 	private String roadAddress;		//도로명 주소
-	private String jiBunAddress;		//지번주소
 	private String detailAddress;		//상세주소
 
 	@BeforeEach
 	void setUp(){
 		this.placeName = "CGV 강남점";
 		this.roadAddress = "서울 강남구 테헤란로 123";
-		this.jiBunAddress = "서울 강남구 123-45";
 		this.detailAddress = "강남빌딩 A동 3층";
 	}
 
@@ -61,7 +60,7 @@ class PlaceTest {
 	void 장소명_없으면_예외발생(String place){
 		//when & then
 		assertThatExceptionOfType(ClientException.class)
-				.isThrownBy(() -> new Place(place, roadAddress, jiBunAddress, detailAddress))
+				.isThrownBy(() -> new Place(place, roadAddress,detailAddress))
 				.satisfies(e -> {
 					ErrorDTO<?> errorDTO = e.getErrorDTO();
 
@@ -76,7 +75,7 @@ class PlaceTest {
 	void 장소명_특수문자_예외발생(String placeName) {
 		//when & then
 		assertThatExceptionOfType(ClientException.class)
-				.isThrownBy(() -> new Place(placeName, roadAddress, jiBunAddress, detailAddress))
+				.isThrownBy(() -> new Place(placeName, roadAddress, detailAddress))
 				.satisfies(e -> {
 					ErrorDTO<?> errorDTO = e.getErrorDTO();
 
@@ -85,18 +84,18 @@ class PlaceTest {
 				});
 	}
 
-	@DisplayName("도로명주소와 지번주소 둘 다 없으면 ClientException 예외가 발생한다.")
+	@DisplayName("도로명주소 없으면 ClientException 예외가 발생한다.")
 	@ParameterizedTest
 	@NullAndEmptySource
-	void 도로명과지번_모두없으면_예외발생(String address){
+	void 도로명_없으면_예외발생(String address){
 		//when & then
 		assertThatExceptionOfType(ClientException.class)
-				.isThrownBy(() -> new Place(placeName, address, address, detailAddress))
+				.isThrownBy(() -> new Place(placeName, address, detailAddress))
 				.satisfies(e -> {
 					ErrorDTO<?> errorDTO = e.getErrorDTO();
 
 					assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.LEDGER_PLACE_MISSING);
-					assertThat(errorDTO.getMessage()).isEqualTo("주소는 필수입니다.");
+					assertThat(errorDTO.getMessage()).isEqualTo("도로명주소를 입력해주세요.");
 				});
 	}
 
@@ -106,7 +105,7 @@ class PlaceTest {
 	void 도로명_특수문자_예외발생(String roadAddress) {
 		//when & then
 		assertThatExceptionOfType(ClientException.class)
-				.isThrownBy(() -> new Place(placeName, roadAddress, jiBunAddress, detailAddress))
+				.isThrownBy(() -> new Place(placeName, roadAddress, detailAddress))
 				.satisfies(e -> {
 					ErrorDTO<?> errorDTO = e.getErrorDTO();
 
@@ -116,49 +115,16 @@ class PlaceTest {
 				});
 	}
 
-	@DisplayName("지번 주소에 특수문자(- 제외) 포함되면 ClientException 예외가 발생한다.")
-	@ParameterizedTest
-	@ValueSource(strings = {"강남구... 1234", "강남 123&34", "지번주소 姜빌딩 3층", "안녕 4F"})
-	void 지번_특수문자_예외발생(String jiBunAddress) {
-		//when & then
-		assertThatExceptionOfType(ClientException.class)
-				.isThrownBy(() -> new Place(placeName, roadAddress, jiBunAddress, detailAddress))
-				.satisfies(e -> {
-					ErrorDTO<?> errorDTO = e.getErrorDTO();
-
-					assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.LEDGER_PLACE_FORMAT);
-					assertThat(errorDTO.getMessage()).isEqualTo("지번주소는 한글, 숫자, 영문자, 특수문자(-)만 입력 가능합니다.");
-					assertThat(errorDTO.getRequestData()).isEqualTo(jiBunAddress);
-				});
-	}
-
 	@DisplayName("장소명과 도로명 주소가 있으면 객체를 생성한다.")
-	@ParameterizedTest
-	@NullAndEmptySource
-	void 지번주소만_없으면_객체생성(String jiBunAddress) {
+	@Test
+	void 지번주소만_없으면_객체생성() {
 		//when
-		Place result = new Place(placeName, roadAddress, jiBunAddress, detailAddress);
+		Place result = new Place(placeName, roadAddress, detailAddress);
 
 		//then
 		assertThat(result).isNotNull();
 		assertThat(result.getPlaceName()).isEqualTo(placeName);
 		assertThat(result.getRoadAddress()).isEqualTo(roadAddress);
-		assertThat(result.getJiBunAddress()).isEqualTo(jiBunAddress);
-		assertThat(result.getDetailAddress()).isEqualTo(detailAddress);
-	}
-
-	@DisplayName("장소명과 지번 주소가 있으면 객체를 생성한다.")
-	@ParameterizedTest
-	@NullAndEmptySource
-	void 도로명주소만_없으면_객체생성(String roadAddress){
-		//when
-		Place result = new Place(placeName, roadAddress, jiBunAddress, detailAddress);
-
-		//then
-		assertThat(result).isNotNull();
-		assertThat(result.getPlaceName()).isEqualTo(placeName);
-		assertThat(result.getRoadAddress()).isEqualTo(roadAddress);
-		assertThat(result.getJiBunAddress()).isEqualTo(jiBunAddress);
 		assertThat(result.getDetailAddress()).isEqualTo(detailAddress);
 	}
 
@@ -167,13 +133,12 @@ class PlaceTest {
 	@NullAndEmptySource
 	void 상세주소_없으면_객체생성(String detailAddress){
 		//when
-		Place result = new Place(placeName, roadAddress, jiBunAddress, detailAddress);
+		Place result = new Place(placeName, roadAddress, detailAddress);
 
 		//then
 		assertThat(result).isNotNull();
 		assertThat(result.getPlaceName()).isEqualTo(placeName);
 		assertThat(result.getRoadAddress()).isEqualTo(roadAddress);
-		assertThat(result.getJiBunAddress()).isEqualTo(jiBunAddress);
 		assertThat(result.getDetailAddress()).isEqualTo(detailAddress);
 	}
 }

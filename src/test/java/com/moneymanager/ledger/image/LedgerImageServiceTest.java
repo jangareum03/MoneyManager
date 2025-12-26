@@ -2,9 +2,14 @@ package com.moneymanager.ledger.image;
 
 import com.moneymanager.dao.main.LedgerImageDao;
 import com.moneymanager.dao.member.MemberInfoDaoImpl;
+import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.exception.ErrorCode;
+import com.moneymanager.exception.custom.ServerException;
+import com.moneymanager.service.main.FileService;
 import com.moneymanager.service.main.ImageServiceImpl;
+import com.moneymanager.service.main.validation.ImageValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,17 +17,20 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * <p>
@@ -54,10 +62,14 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 	public class LedgerImageServiceTest {
 
+	@Spy
 	@InjectMocks	private ImageServiceImpl imageService;
 
 	@Mock				private LedgerImageDao imageDao;
 	@Mock				private MemberInfoDaoImpl memberInfoDao;
+	@Mock				private FileService	fileService;
+
+	@Mock				private MockMultipartFile	multipartFile;
 
 
 	//=================================================
@@ -121,14 +133,14 @@ import static org.mockito.Mockito.when;
 						List.of(
 								LedgerImage.builder()
 										.id(1L)
-										.ledgerId(Ledger.builder().id("ledger1").build())
+										.ledgerId(1L)
 										.imagePath("/2025/11/23/b8d3c9a1-4f8e-4a7b-8c6d-5e9f2a1b0c4d.png")
 										.sortOrder(2)
 										.createdAt(LocalDateTime.of(2025, 11, 23, 11,11,11))
 										.build(),
 								LedgerImage.builder()
 										.id(2L)
-										.ledgerId(Ledger.builder().id("ledger1").build())
+										.ledgerId(1L)
 										.imagePath("/2025/11/25/3c2a8f0e-7d6b-4e1c-9f5a-0d4b3c2e1f0d.jpg")
 										.sortOrder(1)
 										.createdAt(LocalDateTime.of(2025, 11, 23, 11,11,11))
@@ -141,7 +153,7 @@ import static org.mockito.Mockito.when;
 		mockResult.add(
 				LedgerImage.builder()
 						.id(2L)
-						.ledgerId(Ledger.builder().id("ledger1").build())
+						.ledgerId(1L)
 						.imagePath("/2025/11/25/3c2a8f0e-7d6b-4e1c-9f5a-0d4b3c2e1f0d.jpg")
 						.sortOrder(1)
 						.createdAt(LocalDateTime.of(2025, 11, 23, 11,11,11))
@@ -151,7 +163,7 @@ import static org.mockito.Mockito.when;
 		mockResult.add(
 				LedgerImage.builder()
 						.id(1L)
-						.ledgerId(Ledger.builder().id("ledger1").build())
+						.ledgerId(1L)
 						.imagePath("/2025/11/23/b8d3c9a1-4f8e-4a7b-8c6d-5e9f2a1b0c4d.png")
 						.sortOrder(2)
 						.createdAt(LocalDateTime.of(2025, 11, 23, 11,11,11))
@@ -199,5 +211,191 @@ import static org.mockito.Mockito.when;
 				.isNotNull()
 				.hasSize(3)
 				.containsExactly(first, second, third);
+	}
+
+
+	//=================================================
+	// saveImages() 테스트
+	//=================================================
+	@DisplayName("파일이 잘못되면 IOException 예외가 발생한다.")
+	@Test
+	void 파일_비정상이면_예외발생() throws IOException {
+		//given
+		Ledger ledger = Ledger.builder()
+				.id(1L)
+				.memberId("member")
+				.date("20251101")
+				.build();
+		List<MultipartFile> files = List.of(multipartFile, multipartFile);
+
+		//when
+		when(fileService.getFolder(anyString(), any())).thenReturn(new File("test-folder"));
+		doThrow(IOException.class).when(fileService).saveFile( eq(files.get(0)), any(File.class) );
+
+
+		//then
+		try(MockedStatic<ImageValidator> mocked = mockStatic(ImageValidator.class)) {
+			mocked.when(() -> ImageValidator.validate(any())).thenAnswer(invocationOnMock -> null);
+
+			assertThatExceptionOfType(ServerException.class)
+					.isThrownBy(() -> imageService.saveImages(ledger, files))
+					.satisfies(e -> {
+						ErrorDTO errorDTO = e.getErrorDTO();
+
+						assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.STORAGE_FILE_INTERNAL);
+
+					});
+		}
+
+		verify(fileService, times(2)).saveFile(eq(multipartFile), any(File.class));
+		verify(imageDao, never()).insertAll(any());
+	}
+
+	@DisplayName("파일들 중 저장이 하나라도 실패하면 이전에 생성된 파일들이 모두 삭제된다.")
+	@Test
+	void 파일저장_실패하면_이전에_생성된_파일들은_삭제() throws IOException {
+		//given
+		Ledger ledger = Ledger.builder()
+				.id(1L)
+				.memberId("member")
+				.date("20251101")
+				.build();
+
+		MultipartFile file1 = mock(MultipartFile.class);
+		MultipartFile file2 =mock(MultipartFile.class);
+		List<MultipartFile> files = List.of(file1, file2);
+
+		File spyFile1 = spy(new File("file1"));
+		File spyFile2 = spy(new File("file2"));
+
+		when(fileService.createFile(any(), any())).thenReturn(spyFile1, spyFile2);
+
+		doNothing().doThrow(IOException.class)
+				.when(fileService).saveFile(any(), any());
+
+		when(spyFile1.exists()).thenReturn(true);
+
+		try( MockedStatic<ImageValidator> mockedStatic = mockStatic(ImageValidator.class) ) {
+			mockedStatic.when( () -> ImageValidator.validate(any()) )
+					.thenAnswer( invocation -> null );
+
+			//when
+			assertThatExceptionOfType(ServerException.class)
+					.isThrownBy(() -> imageService.saveImages(ledger, files));
+		}
+
+		verify(spyFile2, never()).delete();
+
+		verify(imageDao, never()).insertAll(any());
+	}
+
+	@DisplayName("정상적으로 파일이 저장되고 데이터베이스에 추가된다.")
+	@Test
+	void 파일_정상이면_저장하고_DB_반영완료() throws IOException {
+		//given
+		Ledger ledger = Ledger.builder()
+				.id(1L)
+				.memberId("member")
+				.date("20251101")
+				.build();
+
+		MultipartFile file1 = mock(MultipartFile.class);
+		MultipartFile file2 = mock(MultipartFile.class);
+		List<MultipartFile> files = List.of(file1, file2);
+
+		File spyFile1 = spy(new File("file1"));
+		File spyFile2 = spy(new File("file2"));
+
+		when(fileService.getFolder(any(), any()))
+				.thenReturn(new File("folder"));
+
+		when(fileService.createFile(any(), anyString()))
+				.thenReturn(spyFile1, spyFile1);
+
+		doNothing()
+				.when(fileService)
+				.saveFile(any(), any());
+
+		try( MockedStatic<ImageValidator> mockedStatic = mockStatic(ImageValidator.class) ) {
+			mockedStatic.when(() -> ImageValidator.validate(any()))
+					.thenAnswer(invocation -> null);
+
+			//when
+			imageService.saveImages(ledger, files);
+		}
+
+		//then
+		verify(fileService, times(2)).saveFile(any(), any());
+		verify(imageDao, times(1))
+				.insertAll(argThat(
+						images ->
+							images.size() == 2 && images.get(0).getSortOrder() == 1 && images.get(1).getSortOrder() == 2
+				));
+
+		verify(spyFile1, never()).delete();
+		verify(spyFile2, never()).delete();
+	}
+
+
+
+	//=================================================
+	// changeImages() 테스트
+	//=================================================
+	@DisplayName("기존 이미지와 변경될 이미지가 모두 있으면 기존 이미지는 삭제되고 변경될 이미지는 저장된다.")
+	@Test
+	void 기존이미지와_새이미지_모두_있으면_저장및삭제(){
+		//given
+		Ledger ledger = Ledger.builder().id(1L).build();
+
+		List<MultipartFile> newImages = List.of(mock(MultipartFile.class));
+		List<LedgerImage> oldImages = List.of(mock(LedgerImage.class));
+
+		when(imageDao.findImageListByLedger(1L)).thenReturn(oldImages);
+
+		doNothing().when(imageService).saveImages(any(), any());
+		doNothing().when(imageService).deleteImages(any(), any());
+
+		//when
+		imageService.changeImages( ledger, newImages );
+
+		//then
+		verify(imageService).saveImages(ledger, newImages);
+		verify(imageService).deleteImages(ledger, oldImages);
+	}
+
+	@DisplayName("기존 이미지는 있지만, 새 이미지가 없으면 기존 이미지를 삭제만 한다.")
+	@Test
+	void 기존이미지_있고_새이미지_없으면_삭제() {
+		//given
+		Ledger ledger = Ledger.builder().id(1L).build();
+		List<LedgerImage> oldFiles = List.of(mock(LedgerImage.class));
+
+		when(imageDao.findImageListByLedger(1L)).thenReturn(oldFiles);
+		doNothing().when(imageService).deleteImages(any(), any());
+
+		//when
+		imageService.changeImages(ledger, Collections.emptyList());
+
+		//then
+		verify(imageService, never()).saveImages(any(), any());
+		verify(imageService).deleteImages(eq(ledger), eq(oldFiles));
+	}
+
+	@DisplayName("기존 이미지가 없고, 새 이미지만 있다면 저장만 한다.")
+	@Test
+	void 기존이미지_없고_새이미지_있으면_저장() {
+		//given
+		Ledger ledger = Ledger.builder().id(1L).build();
+		List<MultipartFile> newImages = List.of(mock(MultipartFile.class));
+
+		when( imageDao.findImageListByLedger(1L) ).thenReturn(Collections.emptyList());
+		doNothing().when(imageService).saveImages(any(), any());
+
+		//when
+		imageService.changeImages(ledger, newImages);
+
+		//then
+		verify(imageService, never()).deleteImages(any(), any());
+		verify(imageService).saveImages(eq(ledger), eq(newImages));
 	}
 }

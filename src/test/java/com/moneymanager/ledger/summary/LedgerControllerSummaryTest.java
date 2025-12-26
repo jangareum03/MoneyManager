@@ -70,33 +70,33 @@ public class LedgerControllerSummaryTest {
 		//가짜 결과
 		List<Ledger> mockDao = List.of(
 				Ledger.builder()
-						.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D6")
+						.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D6")
 						.category("020105")
 						.date("20251123")
 						.memo("도시락")
 						.amount(9500L)
 						.build(),
 				Ledger.builder()
-						.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D7")
+						.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D7")
 						.category("010101")
 						.date("20251202")
 						.memo("12월 월급")
 						.amount(2500000L)
 						.build(),
 				Ledger.builder()
-						.id("01ARZ3NDEKTSV4RRFFQ69G5FAV")
+						.code("01ARZ3NDEKTSV4RRFFQ69G5FAV")
 						.category("010201")
 						.date("20251123")
 						.amount(200000L)
 						.build(),
 				Ledger.builder()
-						.id("01H5HZ8X9E7EY2XKZCW2FQX16B")
+						.code("01H5HZ8X9E7EY2XKZCW2FQX16B")
 						.category("020201")
 						.date("20251123")
 						.amount(10000L)
 						.build(),
 				Ledger.builder()
-						.id("01F8Z6YQJ3G5Z7K1V2A9B0C1E0")
+						.code("01F8Z6YQJ3G5Z7K1V2A9B0C1E0")
 						.category("020502")
 						.date("20251123")
 						.memo("배고파")

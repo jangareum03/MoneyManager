@@ -64,7 +64,7 @@ public class LedgerDaoInfoTest {
 		Category category = Category.builder().code("010101").name("월급").build();
 		Ledger ledger = Ledger.builder()
 				.memberId("UCh11001")
-				.num(2L)
+				.id(2L)
 				.date("20251130")
 				.memo("내용 없음")
 				.amount(2500000L)

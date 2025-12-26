@@ -164,7 +164,7 @@ CREATE TABLE ledger_image (
     created_at          TIMESTAMP             DEFAULT SYSDATE       NOT NULL,
     updated_at          TIMESTAMP,
 
-    CONSTRAINT FK_ledgerImage_ledgerId     FOREIGN KEY(ledger_id)      REFERENCES  ledger(num)                 ON DELETE CASCADE,
+    CONSTRAINT FK_ledgerImage_ledgerId     FOREIGN KEY(ledger_id)      REFERENCES  ledger(id)                 ON DELETE CASCADE,
     CONSTRAINT UK_ledgerImage_order         UNIQUE(ledger_id, sort_order)
 );
 

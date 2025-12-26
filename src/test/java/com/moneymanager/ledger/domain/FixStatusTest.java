@@ -1,6 +1,7 @@
 package com.moneymanager.ledger.domain;
 
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
+import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.vo.FixedStatus;
 import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.exception.ErrorCode;
@@ -90,7 +91,7 @@ class FixStatusTest {
 
 		//then
 		assertThat(result).isNotNull();
-		assertThat(result.isFixed()).isTrue();
+		assertThat(result.getFixed()).isSameAs(FixedYN.REPEAT);
 
 		assertThat(result.getPeriod()).isNotNull();
 		switch (period) {

@@ -75,7 +75,7 @@ class LedgerDaoSearchTest {
 		List<LedgerCategoryDto> expected = List.of(
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01ARZ3NDEKTSV4RRFFQ69G5FAV")
+								.code("01ARZ3NDEKTSV4RRFFQ69G5FAV")
 								.date("20251101")
 								.amount(15000L)
 								.build(),
@@ -83,7 +83,7 @@ class LedgerDaoSearchTest {
 				),
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01H5HZ8X9E7EY2XKZCW2FQX16B")
+								.code("01H5HZ8X9E7EY2XKZCW2FQX16B")
 								.date("20251130")
 								.amount(2500000L)
 								.build(),
@@ -126,7 +126,7 @@ class LedgerDaoSearchTest {
 		List<LedgerCategoryDto> expected = List.of(
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D7")
+								.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D7")
 								.date("20251202")
 								.memo("12월 월급")
 								.amount(2500000L)
@@ -170,7 +170,7 @@ class LedgerDaoSearchTest {
 		List<LedgerCategoryDto> expected = List.of(
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D3")
+								.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D3")
 								.date("20251108")
 								.memo("주토피아2")
 								.amount(15000L)
@@ -215,7 +215,7 @@ class LedgerDaoSearchTest {
 		List<LedgerCategoryDto> expected = List.of(
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D8")
+								.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D8")
 								.date("20251201")
 								.memo("넷플릭스")
 								.amount(7000L)
@@ -260,7 +260,7 @@ class LedgerDaoSearchTest {
 		List<LedgerCategoryDto> expected = List.of(
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D6")
+								.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D6")
 								.date("20251123")
 								.amount(9500L)
 								.build(),
@@ -268,7 +268,7 @@ class LedgerDaoSearchTest {
 				),
 				new LedgerCategoryDto(
 						Ledger.builder()
-								.id("01F8Z6YQJ3G5Z7K1V2A9B0C1D7")
+								.code("01F8Z6YQJ3G5Z7K1V2A9B0C1D7")
 								.date("20251202")
 								.amount(2500000L)
 								.build(),
