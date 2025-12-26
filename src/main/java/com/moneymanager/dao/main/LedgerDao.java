@@ -122,6 +122,48 @@ public class LedgerDao {
 
 
 	/**
+	 * 가계부 ID에 해당하는 가계부 모든 정보를 조회합니다.
+	 * <p>
+	 *		가계부의 번호, 금액, 고정, 메모, 가격 등을 포함한 {@link Ledger}객체를 반환합니다.
+	 * </p>
+	 *
+	 * @param id		조회할 가계부 번호
+	 * @return	가계부 정보를 담은 {@link Ledger} 객체
+	 */
+	public Ledger findById(String id) {
+		String sql = "SELECT * " +
+								"FROM ledger " +
+								"WHERE id = ?";
+
+		return jdbcTemplate.queryForObject(
+				sql,
+
+				(ResultSet rs, int row) -> {
+					return Ledger.builder()
+							.id(rs.getLong("num"))
+							.code(rs.getString("id"))
+							.memberId(rs.getString("member_id"))
+							.category(rs.getNString("category_id"))
+							.fixed(FixedYN.of(rs.getString("fix")))
+							.cycleType(FixedPeriod.of(rs.getString("fix_cycle")))
+							.date(rs.getString("transaction_date"))
+							.memo(rs.getString("memo"))
+							.amount(rs.getLong("amount"))
+							.paymentType(PaymentType.of(rs.getString("payment_type")))
+							.placeName(rs.getString("place_name"))
+							.roadAddress(rs.getString("road_address"))
+							.detailAddress(rs.getString("address"))
+							.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+							.updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
+							.build();
+				},
+
+				id
+		);
+	}
+
+
+	/**
 	 *	특정 가계부 ID에 해당하는 가계부 상세 정보를 조회합니다.
 	 *
 	 * <p>
@@ -144,12 +186,12 @@ public class LedgerDao {
 
 				(ResultSet rs, int row) -> {
 					Ledger.LedgerBuilder ledger = Ledger.builder()
-							.num(rs.getLong("num"))
+							.id(rs.getLong("num"))
 							.memberId(rs.getString("member_id"))
 							.date(rs.getString("transaction_date"))
 							.memo(rs.getString("memo"))
 							.amount(rs.getLong("amount"))
-							.paymentType(PaymentType.from(rs.getString("payment_type")));
+							.paymentType(PaymentType.of(rs.getString("payment_type")));
 
 					if( rs.getString("place_name") != null ) {
 						ledger
@@ -199,7 +241,7 @@ public class LedgerDao {
 							.cycleType(FixedPeriod.of(rs.getString("fix_cycle")))
 							.memo(rs.getString("memo"))
 							.amount(rs.getLong("amount"))
-							.paymentType(PaymentType.from(rs.getString("payment_type")));
+							.paymentType(PaymentType.of(rs.getString("payment_type")));
 
 					if( rs.getString("place_name") != null ) {
 						ledger
@@ -289,11 +331,11 @@ public class LedgerDao {
 
 				while ( rs.next() ) {
 					Ledger ledger = Ledger.builder()
-							.id(rs.getString("id"))
+							.code(rs.getString("id"))
 							.date(rs.getString("transaction_date"))
 							.memo(rs.getString("memo"))
 							.amount(rs.getLong("amount"))
-							.paymentType(PaymentType.from(rs.getString("payment_type")))
+							.paymentType(PaymentType.of(rs.getString("payment_type")))
 							.build();
 
 					Category category = Category.builder()
@@ -415,22 +457,24 @@ public class LedgerDao {
 
 
 	/**
-	 * 가계부 번호에 해당하는 가계부 정보(이미지 제외)를 변경합니다. <br>
+	 * 수정할 가계부 정보({@link Ledger}) 데이터베이스에 저장합니다.
+	 * <p>
+	 *     가계부 ID와 회원 ID를 기준으로 기존 가계부 정보를 조회한 후 카테고리, 고정, 메모, 금액 등을 업데이트 합니다.
+	 * </p>
 	 *
-	 * @param ledger 가계부 정보
+	 * @param ledger	수정할 가계부 정보
+	 * @return    가계부 정보가 수정되면 1, 아니면 0
 	 */
-	public boolean updateLedger(Ledger ledger) {
+	public int updateLedger(Ledger ledger) {
 		String query = "UPDATE ledger " +
-									"SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, price = ?, payment_type = ?, place_name = ?, road_address = ?, address = ?, updated_at = SYSDATE " +
+									"SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, amount = ?, payment_type = ?, place_name = ?, road_address = ?, address = ?, updated_at = ? " +
 									"WHERE member_id = ? AND id = ?";
 
 		return jdbcTemplate.update(
 						query,
-						ledger.getCategory(), ledger.getFixed().getValue(), ledger.getCycleType().getValue(),
-						ledger.getMemo(), ledger.getAmount(), ledger.getPaymentType().getValue(),
-						ledger.getPlaceName(), ledger.getRoadAddress(), ledger.getDetailAddress(),
-						ledger.getMemberId(), ledger.getId()
-		) == 1;
+						ledger.getCategory(), ledger.getFixed().getValue(), ledger.getCycleType().getValue(), ledger.getMemo(), ledger.getAmount(), ledger.getPaymentType().getValue(), ledger.getPlaceName(), ledger.getRoadAddress(), ledger.getDetailAddress(), ledger.getUpdatedAt(),
+						ledger.getMemberId(), ledger.getCode()
+		);
 	}
 
 

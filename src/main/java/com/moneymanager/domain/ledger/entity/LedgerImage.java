@@ -36,9 +36,11 @@ import java.time.LocalDateTime;
 @Getter
 public class LedgerImage {
 	private Long id;										//이미지 식별번호
-	private Ledger ledgerId;						//가계부 정보
+	private Long ledgerId;							//가계부 시스템 고유번호
+
 	private String imagePath;						//이미지 상대경로
 	private int sortOrder;							//나열 순서
+
 	private LocalDateTime createdAt;		//등록일
 	private LocalDateTime updatedAt;		//수정일
 }

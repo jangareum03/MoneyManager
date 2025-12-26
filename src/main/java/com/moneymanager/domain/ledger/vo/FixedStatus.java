@@ -1,6 +1,7 @@
 package com.moneymanager.domain.ledger.vo;
 
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
+import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
 import lombok.Value;
@@ -42,7 +43,7 @@ import static com.moneymanager.exception.ErrorUtil.createClientException;
 @Value
 @Getter
 public class FixedStatus {
-	boolean fixed;				//고정 여부(true: 고정, false: 변동)
+	FixedYN fixed;				//고정 여부
 	FixedPeriod period;		//고정 주기
 
 	public FixedStatus(boolean fixed, FixedPeriod period) {
@@ -54,7 +55,7 @@ public class FixedStatus {
 			throw createClientException(ErrorCode.LEDGER_FIX_INVALID, "고정 여부를 확인해주세요.", period);
 		}
 
-		this.fixed = fixed;
+		this.fixed = fixed ? FixedYN.REPEAT : FixedYN.VARIABLE;
 		this.period = period;
 	}
 }

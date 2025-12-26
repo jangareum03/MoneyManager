@@ -2,12 +2,12 @@ package com.moneymanager.controller.api.main;
 
 
 import com.moneymanager.domain.global.dto.ApiResultDTO;
-import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.YearMonthRequest;
 import com.moneymanager.domain.ledger.dto.request.CategoryRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerSearchRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
+import com.moneymanager.domain.ledger.dto.request.LedgerUpdateWithFileRequest;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerGroupForCardResponse;
 import com.moneymanager.exception.ErrorCode;
@@ -16,7 +16,6 @@ import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.LedgerService;
 import com.moneymanager.service.main.api.GoogleChartService;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,8 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpSession;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static com.moneymanager.exception.ErrorUtil.createClientException;
 
@@ -162,27 +159,31 @@ public class LedgerApiController {
 
 
 	/**
-	 * 특정 가계부 내역 수정 요청을 처리합니다.
+	 *	가계부 정보를 수정하고, 첨부된 이미지를 함께 처리합니다. 처리된 결과를 JSON 응답으로 반환합니다.
+	 *<p>
+	 *     처리과정:
+	 *     <ol>
+	 *         <li>세션에서 회원ID를 가져옵니다.</li>
+	 *         <li>가계부 수정정보({@link LedgerUpdateRequest})와 이미지 파일을 {@link LedgerUpdateWithFileRequest} 객체로 합칩니다.</li>
+	 *         <li>서비스({@code ledgerService})에서 가계부 정보와 이미지 변경을 처리합니다.</li>
+	 *         <li>수정 요청이 성공하면 성공 메시지를, 실패하면 안내 메시지를 반환합니다.</li>
+	 *     </ol>
+	 *</p>
 	 *
-	 * @param session 사용자 식별 및 정보를 저장하는 객체
-	 * @param id      가계부 번호
-	 * @param update  수정할 가계부 정보
-	 * @return 안내 메시지
+	 * @param id				수정할 가계부 ID
+	 * @param request		수정할 가계부 정보를 담은 {@link LedgerUpdateRequest} 객체
+	 * @param files			변경할 가계부 이미지 파일 리스트
+	 * @param session		로그인한 회원정보를 담은 객체
+	 * @return	가계부 수정 처리 결과를 담은 {@link ApiResultDTO} 객체
 	 */
 	@PutMapping("/{id}")
-	public ResponseEntity<ApiResultDTO> update(HttpSession session, @PathVariable String id,
-											   @RequestPart("update") LedgerUpdateRequest update,
-											   @RequestPart(value = "image", required = false) List<MultipartFile> imageFiles) {
+	public ResponseEntity<ApiResultDTO> update(@PathVariable String id, @RequestPart("update") LedgerUpdateRequest request, @RequestPart(value = "image", required = false) List<MultipartFile> files, HttpSession session) {
+		String memberId = (String)session.getAttribute("mid");
+		LedgerUpdateWithFileRequest update = LedgerUpdateWithFileRequest.builder().update(request).images(files).build();
+
 		try {
-			//이미지 리스트 변환 후 LedgerUpdateRequest 맵칭
-			List<ImageDTO> imageList = imageFiles.stream()
-							.filter(Objects::nonNull)
-							.map( file -> { return ImageDTO.builder().file(file).fileName(file.getOriginalFilename()).fileExtension(FilenameUtils.getExtension(file.getOriginalFilename())).build(); })
-									.collect(Collectors.toList());
+			ledgerService.updateLedger(memberId, id, update);
 
-			LedgerUpdateRequest updateReqDTO = LedgerUpdateRequest.of( id, update, imageList );
-
-			ledgerService.updateLedger((String) session.getAttribute("mid"), updateReqDTO );
 			return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("수정 완료했습니다.").build());
 		} catch (ClientException e) {
 			return ResponseEntity.ok(ApiResultDTO.builder().success(false).message(e.getMessage()).build());

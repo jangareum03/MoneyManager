@@ -35,6 +35,11 @@ import static com.moneymanager.utils.ValidationUtils.*;
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 12. 27</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[메서드 삭제] validateAddress, validateJiBunAddress</td>
+ * 		 	</tr>
  * 		</tbody>
  * </table>
  */
@@ -43,18 +48,16 @@ import static com.moneymanager.utils.ValidationUtils.*;
 public class Place {
 	String placeName;			//장소명
 	String roadAddress;		//도로명 주소
-	String jiBunAddress;		//지번주소
 	String detailAddress;		//상세주소
 
 
 	@Builder
-	public Place(String placeName, String roadAddress, String jiBunAddress, String detailAddress) {
+	public Place(String placeName, String roadAddress, String detailAddress) {
 		validatePlaceName(placeName);
-		validateAddress(roadAddress, jiBunAddress);
+		validateAddress(roadAddress);
 
 		this.placeName = placeName;
 		this.roadAddress = roadAddress;
-		this.jiBunAddress = jiBunAddress;
 		this.detailAddress = detailAddress;
 	}
 
@@ -88,37 +91,6 @@ public class Place {
 
 
 	/**
-	 * 도로명주소와 지번주소 문자열이 유효한지 검증합니다.
-	 * <ul>
-	 *     <li>도로명·지번 주소가 모두 비어있으면 검증 불가 → {@link ErrorCode#LEDGER_PLACE_MISSING}</li>
-	 *     <li>각 주소는 각각의 형식 규칙에 따라 상세 검증 진행</li>
-	 * </ul>
-	 *
-	 * <p>
-	 *     예제 사용법:
-	 *     <pre>{@code
-	 *     	validateAddress("서울 강남구 테헤란로 123", null);		//도로명주소만 입력되어 통과
-	 *     	validateAddress(null, "서울 강남구 123-45");				//지번주소만 입력되어 통과
-	 *
-	 *     	validateAddress(null, null);										//둘 다 없어 예외 발생
-	 *     }</pre>
-	 * </p>
-	 *
-	 * @param roadAddress			검증할 도로명 주소 문자열
-	 * @param jiBunAddress		검증할 지번 주소 문자열
-	 * @throws ClientException	값이 모두 없거나, 각 주소 형식이 잘못된 경우 발생
-	 */
-	private void validateAddress(String roadAddress, String jiBunAddress) {
-		if( isNullOrBlank(roadAddress) && isNullOrBlank(jiBunAddress) ) {
-			throw createClientException(ErrorCode.LEDGER_PLACE_MISSING, "주소는 필수입니다.");
-		}
-
-		if( !isNullOrBlank(roadAddress) )	validateRoadAddress(roadAddress);
-		if( !isNullOrBlank(jiBunAddress) ) validateJiBunAddress(jiBunAddress);
-	}
-
-
-	/**
 	 * 주어진 도로명 주소 문자열이 유효한지 검증합니다.
 	 * <ul>
 	 *     <li>값이 비어있으면 검증 불가 → {@link ErrorCode#LEDGER_PLACE_MISSING}</li>
@@ -136,38 +108,11 @@ public class Place {
 	 * @param roadAddress			검증할 도로명 주소 문자열
 	 * @throws ClientException	값이 없거나 형식이 잘못된 경우 발생
 	 */
-	private void validateRoadAddress(String roadAddress) {
+	private void validateAddress(String roadAddress) {
 		if( isNullOrBlank(roadAddress) ) throw createClientException(ErrorCode.LEDGER_PLACE_MISSING, "도로명주소를 입력해주세요.");
 
 		if(!isMatchedPattern(roadAddress, RegexPattern.ADDRESS_ROAD_NAME.getPattern())) {
 			throw createClientException(ErrorCode.LEDGER_PLACE_FORMAT, "도로명주소는 한글, 숫자, 영문자, 특수문자(·)만 입력 가능합니다.", roadAddress);
-		}
-	}
-
-
-	/**
-	 * 주어진 지번주소 문자열이 유효한지 검증합니다.
-	 * <ul>
-	 *     <li>값이 비어있으면 검증 불가 → {@link ErrorCode#LEDGER_PLACE_MISSING}</li>
-	 *     <li>한글·숫자·영문자·특수문자(-) 외의 문자가 포함되면 형식 오류 → {@link ErrorCode#LEDGER_PLACE_FORMAT}</li>
-	 * </ul>
-	 *
-	 * <p>
-	 *     예제 사용법:
-	 *     <pre>{@code
-	 *     	validateJiBunAddress("서울 강남구 123-45");		//지번주소 형식이 일치하여 통과
-	 *     	validateJiBunAddress("강남구@111");					//지번주소 형식이 불일치하여 예외 발생
-	 *     }</pre>
-	 * </p>
-	 *
-	 * @param 	jiBunAddress		검증할 지번 주소 문자열
-	 * @throws ClientException	값이 없거나 형식이 잘못된 경우 발생
-	 */
-	private void validateJiBunAddress(String jiBunAddress) {
-		if( isNullOrBlank(jiBunAddress) ) throw createClientException(ErrorCode.LEDGER_PLACE_MISSING, "지번주소를 입력해주세요.");
-
-		if(!isMatchedPattern(jiBunAddress, ADDRESS_JIBUN_NAME.getPattern())) {
-			throw createClientException(ErrorCode.LEDGER_PLACE_FORMAT, "지번주소는 한글, 숫자, 영문자, 특수문자(-)만 입력 가능합니다.", jiBunAddress);
 		}
 	}
 

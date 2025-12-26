@@ -76,7 +76,7 @@ public enum PaymentType {
 		this.svg = svg;
 	}
 
-	public static PaymentType from(String code) {
+	public static PaymentType of(String code) {
 		for( PaymentType type : values() ) {
 			if(type.value.equalsIgnoreCase(code)) return type;
 		}

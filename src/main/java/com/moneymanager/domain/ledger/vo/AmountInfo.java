@@ -40,7 +40,7 @@ public class AmountInfo {
 	Long amount;
 	PaymentType type;
 
-	AmountInfo(long amount, PaymentType type) {
+	public AmountInfo(long amount, PaymentType type) {
 		validateAmount(amount);
 
 		this.amount = amount;

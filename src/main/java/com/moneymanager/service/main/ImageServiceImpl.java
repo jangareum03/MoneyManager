@@ -1,28 +1,33 @@
 package com.moneymanager.service.main;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.dao.main.LedgerImageDao;
 import com.moneymanager.dao.member.MemberInfoDaoImpl;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.vo.LedgerDate;
+import com.moneymanager.exception.ErrorCode;
+import com.moneymanager.service.main.event.DeleteFileEvent;
+import com.moneymanager.service.main.validation.ImageValidator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static com.moneymanager.exception.ErrorUtil.createServerException;
 
 
 /**
@@ -54,6 +59,14 @@ import java.util.stream.IntStream;
  *		 	  <td>areum Jang</td>
  *		 	  <td>[메서드 삭제] findImageUrl</td>
  *		 	</tr>
+ *		 	<tr style="border-bottom: 1px dotted">
+ *		 	  <td>25. 12. 23</td>
+ *		 	  <td>areum Jang</td>
+ *		 	  <td>
+ *		 	      [메서드 삭제] createImageName, getBaseImagePath<br>
+ *		 	      [필드 삭제] downPath
+ *		 	  </td>
+ *		 	</tr>
  *		</tbody>
  * </table>
  */
@@ -62,23 +75,14 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class ImageServiceImpl {
 
-	@Value("${image.ledger.downPath}")
-	private String downPath;
 	@Getter
 	private final int MAX_IMAGE = 3;
 
 	private final MemberInfoDaoImpl memberInfoDao;
 	private final LedgerImageDao imageDao;
+	private final FileService fileService;
 
-
-	/**
-	 * 가계부를 저장할 서버의 절대경로를 얻습니다.
-	 *
-	 * @return	저장될 절대 경로 문자열
-	 */
-	public String getBaseImagePath() {
-		return downPath;
-	}
+	private final ApplicationEventPublisher	eventPublisher;
 
 
 	/**
@@ -161,113 +165,119 @@ public class ImageServiceImpl {
 	}
 
 
-
 	/**
-	 *	가계부 이미지를 서버에 저장합니다.<P>
-	 * 이미지 외 가계부 정보를 먼저 저장해야 하므로, 가계부 정보가 없으면 이미지를 저장할 수 없습니다.
+	 *	가계부에 업로드 된 이미지를 변경합니다.
+	 *<p>
+	 *     기존 이미지와 새로 업로드된 이미지의 존재 여부에 따라 다음과 같은 방식으로 동작합니다.
+	 *     <ul>
+	 *         <li>새 이미지가 존재하면 기존 이미지와 상관없이 저장됩니다.</li>
+	 *         <li>기존 이미지가 존재하면 기존 이미지와 DB 데이터를 삭제합니다.</li>
+	 *     </ul>
+	 *     결과적으로 가계부에는 새로 업로드된 이미지만 남게 됩니다.
+	 *</p>
 	 *
-	 * @param ledger					등록할 가계부 정보
-	 * @param image							등록할 가계부 이미지
-	 * @param index							등록할 이미지 순서
-	 * @throws IOException	가계부 이미지가 없을 시
+	 * @param ledger	이미지가 저장된 가계부 객체
+	 * @param files		새로 업로드 될 이미지 파일 목록
 	 */
-	public void saveImage(Ledger ledger, MultipartFile image, int index ) throws IOException {
-		//폴더와 저장할 이미지 얻은 후 서버에 저장
-		LocalDate date = new LedgerDate(ledger.getDate()).getTransactionDate();
+	public void changeImages(Ledger ledger, List<MultipartFile> files ) {
+		List<LedgerImage> images = imageDao.findImageListByLedger(ledger.getId());
 
-		java.io.File directory = makeDirectory( ledger.getMemberId(), date.getYear());
-		String saveName = changeImageName( ledger.getId(), date, index, image.getOriginalFilename() );
+		boolean hasOldImage = !images.isEmpty();
+		boolean hasNewImage = files != null && !files.isEmpty();
 
-		java.io.File saveImage = new java.io.File( directory, saveName );
-
-		image.transferTo(saveImage);
-	}
-
-
-
-	/**
-	 * 폴더를 생성합니다. <br>
-	 * 생성하려는 폴더가 기존에 존재한다면 새로 생성하진 않습니다.
-	 *
-	 * @param memberId		회원번호
-	 * @param year						가계부 날짜 년도
-	 * @return	경로에 생성한 폴더
-	 */
-	private java.io.File makeDirectory(String memberId, int year ) {
-		String url = downPath + memberId + "/" + year;
-
-		java.io.File directory = new java.io.File(url);
-
-		if( !directory.exists() ) {
-			directory.mkdirs();
+		if( hasNewImage ) {
+			saveImages( ledger, files );
 		}
 
-		return directory;
-	}
-
-
-	//서버에 저장할 이미지 이름을 변경합니다.
-	private String changeImageName(String id, LocalDate date, int index, String imageName ) {
-		String ext = FilenameUtils.getExtension(imageName);
-		String originName = FilenameUtils.getBaseName(imageName);
-
-		return String.format("%s_%s_%s_%d.%s", id, date, originName, ++index, ext);
+		if( hasOldImage ) {
+			deleteImages( ledger, images );
+		}
 	}
 
 
 	/**
-	 * 가게부 이미지의 변경여부를 확인합니다. <br>
-	 * 서버에 저장된 이미지(serverImage)가 있는 상태에서 저장할 이미지(clientImage) 여부에 따라 다르게 동작합니다.<br>
+	 *	가계부에 업로드된 이미지 파일들을 서버에 저장하고, 이미지 메타데이터를 데이터베이스에 모두 저장합니다.
+	 *<p>
+	 *     파일 저장 중 {@link IOException}이 발생하면, 이미 저장된 파일들을 모두 삭제하고 {@link com.moneymanager.exception.custom.ServerException} 예외를 발생시킵니다.
+	 *     데이터베이스 중 예외가 발생 시 트랜잭션은 롤백됩니다.
+	 *</p>
 	 *
-	 * @param memberId			회원 고유번호
-	 * @param ledger 		변경할 가계부 정보
-	 * @param imageList			변경할 이미지 정보
-	 *
-	 * @throws IOException  사용자가 업로드한 이미지 문제 시
+	 * @param ledger		이미지가 저장될 가계부 정보를 담은 {@link Ledger} 객체
+	 * @param files			업로드된 이미지 파일 목록
 	 */
-	public void changeImage(String memberId, Ledger ledger, List<ImageDTO> imageList ) throws IOException {
-		LocalDate date = new LedgerDate(ledger.getDate()).getTransactionDate();
-		java.io.File directory = makeDirectory( memberId, date.getYear());
+	@Transactional
+	public void saveImages( Ledger ledger, List<MultipartFile> files ) {
+		List<LedgerImage> newImages = new ArrayList<>();
+		List<File> saveFiles = new ArrayList<>();
+		int orderNum = 1;
 
-		//기존 이미지 삭제
-		boolean isDelete = deleteImage( directory, ledger.getId() );
-		if( isDelete ) {
-			//TODO: 이미지 수정
+		try{
+			for( MultipartFile multipartFile : files ) {
+				ImageValidator.validate(multipartFile);
 
-			for( int i=0; i < imageList.size(); i++ ) {
-				if( Objects.nonNull( imageList.get(i).getFile() ) ) {
-					saveImage(ledger, imageList.get(i).getFile(), i );
-				}
+				//서버에 저장할 파일명 변경(중복 방지)
+				String newName = File.separatorChar + UlidCreator.getUlid().toString();
+
+				//이미지를 서버에 저장
+				LocalDate date = new LedgerDate(ledger.getDate()).getTransactionDate();
+				File folder = fileService.getFolder(ledger.getMemberId(), date);
+				File newFile = fileService.createFile( folder, newName );
+				fileService.saveFile(multipartFile, newFile);
+				saveFiles.add(newFile);
+
+				newImages.add(
+						LedgerImage.builder()
+								.ledgerId(ledger.getId())
+								.imagePath(fileService.getRelativePath(ledger.getMemberId(), date))
+								.sortOrder(orderNum++)
+								.build()
+				);
+			}
+
+			imageDao.insertAll(newImages);
+		} catch (IOException e) {
+			for(File file : saveFiles ) if( file.exists() ) file.delete();
+
+			throw createServerException(ErrorCode.STORAGE_FILE_INTERNAL, "파일을 저장할 수 없습니다.", ledger.getId());
+		}
+	}
+
+
+
+	/**
+	 *	가계부에 등록된 이미지를 삭제합니다.
+	 *<p>
+	 *     가계부 날짜와 회원 정보를 기준으로 이미지 저장 폴더를 조회한 뒤,
+	 *     전달된 이미지 목록에 포함된 파일들을 서버 파일 시스템에서 삭제합니다.
+	 *</p>
+	 * <p>
+	 *     조건:
+	 *     <ul>
+	 *         <li>가계부 이미지 폴더인 경우에만 삭제 수행</li>
+	 *         <li>폴더 내 파일목록이 없는 경우에는 종료</li>
+	 *         <li>삭제 대상은 {@link LedgerImage}객체에 포함된 이미지 파일 경로</li>
+	 *     </ul>
+	 * </p>
+	 *
+	 * @param ledger		이미지가 삭제될 가계부 정보를 담은 {@link Ledger} 객체
+	 * @param images		삭제할 이미지 정보 리스트
+	 */
+	@Transactional
+	public void deleteImages(Ledger ledger, List<LedgerImage> images) {
+		List<String> paths = new ArrayList<>();
+
+		for( LedgerImage image : images ) {
+			int result = imageDao.deleteByLedgerId(image.getId());
+
+			if( result == 1 ) {
+				//절대경로
+				File folder = fileService.getFolder(ledger.getMemberId(), new LedgerDate(ledger.getDate()).getTransactionDate());
+				String path = folder + image.getImagePath();
+				paths.add(path);
 			}
 		}
-	}
 
-
-
-	/**
-	 * 회원이 이전에 변경한 가계부 사진 삭제하는 메서드
-	 *
-	 * @param folder	사진이 저장된 파일
-	 */
-	public boolean deleteImage(java.io.File folder, String id ) {
-		//폴더가 없거나 폴더가 아닌 경우
-		if( !folder.exists() || !folder.isDirectory() ) {
-			return false;
-		}
-
-		java.io.File[] files = folder.listFiles();
-
-		//파일 목록이 없는 경우
-		if( files == null ) {
-			return false;
-		}
-
-		for( java.io.File file : files ) {
-			if(  file.isFile() && file.getName().contains(String.valueOf(id)) ) {
-				return file.delete();
-			}
-		}
-
-		return true;
+		//트랜잭션 성공 후 커밋 완료
+		eventPublisher.publishEvent(new DeleteFileEvent(paths));
 	}
 }

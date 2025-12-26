@@ -1,12 +1,9 @@
 package com.moneymanager.domain.ledger.dto.request;
 
-import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.domain.ledger.vo.*;
-import com.moneymanager.domain.global.dto.ImageDTO;
 import lombok.*;
 
-import java.util.List;
 
 /**
  * <p>
@@ -28,55 +25,31 @@ import java.util.List;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>25. 7. 25.</td>
+ * 		 	  <td>25. 7. 25</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>25. 12. 26</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[메서드 삭제] of, toEntity</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
  */
 @Builder
 @Getter
-@AllArgsConstructor
 public class LedgerUpdateRequest {
-	private String id;										//가계부 번호
-	private String date;									//가계부 날짜
-	private FixedStatus fix;								//가계부 고정정보
 	private String category;							//카테고리
 	private String memo;									//메모
-	private Long price;									//가격
+
+	private boolean fixed;								//가계부 고정여부
+	private FixedPeriod period;						//가계부 고정주기
+
+	private Long amount;								//가격
 	private PaymentType paymentType;			//결제유형
-	private List<ImageDTO> image;					//이미지
-	private Place place;									//장소
 
-
-	/**
-	 * 기존 요청객체(update)와 이미지 리스트를 기반으로 새로운 UpdateDTO 객체를 생성합니다.
-	 *
-	 * @param id						수정할 가계부 번호
-	 * @param update				기존 가계부 정보
-	 * @param imageList			수정할 이미지 리스트
-	 * @return	새 UpdateDTO 객체
-	 */
-	public static LedgerUpdateRequest of(String id, LedgerUpdateRequest update, List<ImageDTO> imageList ) {
-		return LedgerUpdateRequest.builder()
-				.id(id)
-				.fix(update.getFix())
-				.place(update.getPlace())
-				.date(update.getDate()).category(update.getCategory()).memo(update.getMemo())
-				.price(update.getPrice()).paymentType(update.getPaymentType()).image(imageList)
-				.build();
-	}
-
-	public Ledger toEntity() {
-		return Ledger.builder()
-				.id(id)
-				.date(date)
-				.category(category)
-				.memo(memo)
-				.placeName(place.getPlaceName())
-				.roadAddress(place.getRoadAddress())
-				.detailAddress(place.getDetailAddress())
-				.build();
-	}
+	private String placeName;							//장소명
+	private String roadAddress;						//기본주소
+	private String detailAddress;					//상세주소
 }

@@ -40,7 +40,7 @@ import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 @Builder
 public class LedgerSummary {
 	String id;										//가계부 번호
-	LedgerType type;							//가계부 유형
+	LedgerType type;						//가계부 유형
 	String category;							//카테고리 이름
 	String memo;								//가계부 메모
 	Long amount;								//가계부 금액
@@ -51,12 +51,12 @@ public class LedgerSummary {
 			throw createClientException(ErrorCode.LEDGER_THIS_MISSING, "가계부 정보를 확인해주세요.", "Ledger");
 		}
 
-		if( isNullOrBlank(ledger.getId()) ) {
+		if( isNullOrBlank(ledger.getCode()) ) {
 			throw createClientException(ErrorCode.LEDGER_ID_MISSING, "가계부 번호를 확인해주세요.");
 		}
 
 		return LedgerSummary.builder()
-				.id(ledger.getId())
+				.id(ledger.getCode())
 				.type(LedgerType.fromCode(ledger.getCategory()))
 				.memo(ledger.getMemo())
 				.amount(ledger.getAmount())

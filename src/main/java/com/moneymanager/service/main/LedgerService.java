@@ -1,16 +1,12 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.LedgerDao;
-import com.moneymanager.domain.ledger.dto.request.CategoryRequest;
-import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
-import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
+import com.moneymanager.domain.ledger.dto.request.*;
 import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.ledger.dto.*;
-import com.moneymanager.domain.ledger.dto.request.LedgerSearchRequest;
-import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.global.dto.DateRequest;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
@@ -25,7 +21,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
@@ -33,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static com.moneymanager.exception.ErrorUtil.createClientException;
 import static com.moneymanager.utils.DateTimeUtils.parseDateFlexible;
+import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 
 
 /**
@@ -317,7 +313,7 @@ public class LedgerService {
 
 			//이미지 조회
 			int limit = imageService.getLimitImageCount(memberId);
-			List<LedgerImage> imageList = imageService.getImageListByLedger(ledger.getNum(), limit);
+			List<LedgerImage> imageList = imageService.getImageListByLedger(ledger.getId(), limit);
 
 			return LedgerDetailResponse.from(ledger, category, imageList);
 		}catch ( EmptyResultDataAccessException e ) {
@@ -351,7 +347,7 @@ public class LedgerService {
 
 			//이미지 조회
 			int limit = imageService.getLimitImageCount(memberId);
-			List<LedgerImage> imageList = imageService.getImageListByLedger(ledger.getNum(), limit);
+			List<LedgerImage> imageList = imageService.getImageListByLedger(ledger.getId(), limit);
 
 			return LedgerEditResponse.from(ledger, category, categories, imageList);
 		}catch ( EmptyResultDataAccessException e ) {
@@ -360,32 +356,51 @@ public class LedgerService {
 	}
 
 
+
 	/**
-	 *	회원의 가계부 내역을 수정하고, 수정된 가계부와 관련된 이미지를 업데이트 합니다.
+	 *	가계부 정보와 함께 변경된 이미지 정보를 변경합니다.
 	 *<p>
-	 * 가계부 내역 수정이 성공하고 {@link LedgerUpdateRequest} 객체애 담긴 이미지의 리스트가 0이 아니라면 이미지 수정을 진행합니다.
-	 * 만약 두 개의 조건을 모두 만족하지 못 한다면 이미지 수정은 불가합니다.
+	 *     가계부 정보(금액, 메모, 카테고리 등)를 수정한 뒤, 첨부된 이미지 파일 변경을 처리합니다.
+	 *     가계부 정보 수정은 성공하고 이미지 변경이 실패해도 수정된 정보는 그대로 반영됩니다.
+	 *</p>
 	 *
-	 * @param memberId		수정할 가계부를 작성한 회원 ID
-	 * @param update			수정할 내역과 이미지 정보를 담은 {@link LedgerUpdateRequest} 객체
+	 * @param memberId		수정할 가계부 정보를 요청한 회워 ID
+	 * @param update			수정할 가계부 정보
 	 */
-	@Transactional
-	public void updateLedger(String memberId, LedgerUpdateRequest update) {
-		//이미지리스트
-		List<ImageDTO> imageFiles = update.getImage();
-
-		Ledger ledger = update.toEntity();
-		try {
-			boolean isUpdate = ledgerDAO.updateLedger(ledger);
-
-			if( isUpdate && !imageFiles.isEmpty()) {
-				imageService.changeImage(memberId, ledger, imageFiles);
-			}
-
-		} catch (IOException e) {
-			log.debug("변경하려는 가계부 이미지 미존재로 저장 실패");
+	public void updateLedger(String memberId, String id, LedgerUpdateWithFileRequest update) {
+		//기존 Ledger 조회
+		Ledger ledger = ledgerDAO.findById(id);
+		if( ledger == null ) {
+			throw createClientException(ErrorCode.LEDGER_ID_NONE, "존재하지 않은 가계부입니다. 다시 확인해주세요.");
+		}else if( !ledger.getMemberId().equals(memberId) ) {
+			throw createClientException(ErrorCode.MEMBER_ID_MISMATCH, "작성자가 아닌 사용자는 해당 가계부룰 수정할 수 없습니다.", memberId);
 		}
+
+		boolean isUpdated = changeLedgerInfo( ledger, update.getUpdate() );
+		//TODO: isUpdated가 true면 변경로그 작성, false이면 로그없음
+
+		imageService.changeImages(ledger, update.getImages());
 	}
+
+	//가계부 정보만 변경
+	private boolean changeLedgerInfo(Ledger ledger, LedgerUpdateRequest updateLedger) {
+		//필수값 검증 후 수정
+		AmountInfo amount = new AmountInfo( updateLedger.getAmount(), updateLedger.getPaymentType() );
+		FixedStatus fixed = new FixedStatus(updateLedger.isFixed(), updateLedger.getPeriod());
+
+		ledger.updateBasicInfo(updateLedger.getCategory(), updateLedger.getMemo());
+		ledger.updateFix(fixed);
+		ledger.updateAmount(amount);
+
+		//선택값 검증 후 수정
+		if( !isNullOrBlank(updateLedger.getPlaceName()) && !isNullOrBlank(updateLedger.getRoadAddress()) ) {
+			Place place = new Place( updateLedger.getPlaceName(), updateLedger.getRoadAddress(), updateLedger.getDetailAddress() );
+			ledger.updatePlace(place);
+		}
+
+		return ledgerDAO.updateLedger( ledger ) == 1;
+	}
+
 
 
 	/**

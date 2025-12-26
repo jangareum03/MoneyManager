@@ -46,6 +46,31 @@ public class LedgerImageDao {
 	}
 
 
+	/**
+	 * 가계부에 등록될 이미지 정보를 한번에 {@code ledger_image} 테이블에 저장합니다.
+	 * <p>
+	 *     전달받은 {@link LedgerImage} 리스트를 기준으로, 각 이미지의 가계부 ID, 이미지 경로, 정렬 순서를  함께 저장합니다.
+	 *     배치 처리를 사용해 여러 건의 이미지 정보를 한 번에 INSERT 할 수 있습니다.
+	 * </p>
+	 *
+	 * @param images		가계부에 등록할 이미지 정보 리스트
+	 */
+	public void insertAll(List<LedgerImage> images ) {
+		String sql = "INSERT INTO ledger_image(id, ledger_id, image_path, sort_order) " +
+				"VALUES(ledger_image_seq.NEXTVAL, ?, ?, ?)";
+
+		jdbcTemplate.batchUpdate(
+			sql,
+				images,
+				images.size(),
+				(ps, image) -> {
+					ps.setLong(1, image.getLedgerId());
+					ps.setString(2, image.getImagePath());
+					ps.setInt(3, image.getSortOrder());
+				}
+		);
+	}
+
 
 	/**
 	 * 특정 가계부에 저장할 이미지를 모두 {@code ledger_image} 테이블에 저장합니다.
@@ -53,16 +78,15 @@ public class LedgerImageDao {
 	 *     매개변수로 전달받은 {@link LedgerImage} 객체가 null이면 저장하지 않습니다. 저장할 요소는 이미지 ID, 가계부 ID, 이미지 저장한 상대 경로, 정렬 순서, 등록일 입니다.
 	 * </p>
 	 *
-	 * @param id				이미지를 등록할 가계부 ID
 	 * @param image		이미지 정보를 담은 {@link LedgerImage} 객체
 	 */
-	public void insertImageByLedger(Long id, LedgerImage image) {
-		String sql = "INSERT INTO ledger_image(id, ledger_id, image_path, sort_order, created_at) " +
-				"VALUES(ledger_image_seq.NEXTVAL, ?, ?, ?, ?)";
+	public void insertImageByLedger(LedgerImage image) {
+		String sql = "INSERT INTO ledger_image(id, ledger_id, image_path, sort_order) " +
+				"VALUES(ledger_image_seq.NEXTVAL, ?, ?, ?)";
 
 		jdbcTemplate.update(
 				sql,
-				id, image.getImagePath(), image.getSortOrder(), image.getCreatedAt()
+				image.getLedgerId(), image.getImagePath(), image.getSortOrder()
 		);
 	}
 
@@ -122,7 +146,26 @@ public class LedgerImageDao {
 
 		jdbcTemplate.update(
 				sql,
-				image.getImagePath(), image.getLedgerId().getId()
+				image.getImagePath(), image.getLedgerId()
+		);
+	}
+
+
+	/**
+	 * 특정 가계부에 저장된 이미지 정보를 {@code ledger_image}테이블에서 삭제합니다.
+	 * <p>
+	 *     삭제할 가계부 ID가 없다면 0이 반환되고, 있다면 1이 반환됩니다.
+	 * </p>
+	 *
+	 * @param id	삭제할 이미지 정보 ID
+	 * @return 삭제 성공하면 1, 실패하면 0
+	 */
+	public int deleteByLedgerId(Long id) {
+		String sql = "DELETE FROM ledger_image WHERE id = ?";
+
+		return jdbcTemplate.update(
+				sql,
+				id
 		);
 	}
 }

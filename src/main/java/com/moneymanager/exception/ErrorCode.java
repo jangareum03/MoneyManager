@@ -66,6 +66,9 @@ public enum ErrorCode {
 	LEDGER_PAYMENT_MISSING("C030801", "가계부 금액유형 누락"),
 	LEDGER_PAYMENT_FORMAT("C030802", "가계부 금액유형 형식"),
 	LEDGER_PHOTO_MISSING("C030901", "가계부 사진 누락"),
+	LEDGER_PHOTO_CORRUPTED("C030908", "가계부 사진 손상"),
+	LEDGER_PHOTO_SUPPORTED("C030909", "가계부 사진 미지원"),
+	LEDGER_PHOTO_SIZE_EXCEEDED("C030909", "가계부 사진 크기 초과"),
 	LEDGER_PLACE_MISSING("C031001", "가계부 주소 누락"),
 	LEDGER_PLACE_FORMAT("C031002", "가계부 주소 형식"),
 	/**
@@ -73,6 +76,8 @@ public enum ErrorCode {
 	 */
 	SYSTEM_LOGIN_INTERNAL("S010101", "시스템 내부 오류"),
 	DATABASE_RESULT_INTERNAL("S020401", "DB 결과 오류"),
+	STORAGE_FILE_INTERNAL("S040101", "파일 오류"),
+
 
 
 	/**

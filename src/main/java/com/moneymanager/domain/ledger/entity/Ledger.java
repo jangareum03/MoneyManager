@@ -3,10 +3,16 @@ package com.moneymanager.domain.ledger.entity;
 import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.AmountInfo;
+import com.moneymanager.domain.ledger.vo.FixedStatus;
+import com.moneymanager.domain.ledger.vo.Place;
+import com.moneymanager.utils.ValidationUtils;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+
+import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 
 
 /**
@@ -44,8 +50,8 @@ import java.time.LocalDateTime;
 @Builder
 @Getter
 public class Ledger {
-    private Long num;										//가계부 시스템 고유번호
-	private String id;										//가계부 서비스 고유번호
+    private Long id;											//가계부 시스템 고유번호
+	private String code;									//가계부 서비스 고유번호
     private String memberId;							//작성자(회원 고유번호)
 	private String date;									//날짜
     private String category;							//카테고리 코드
@@ -63,4 +69,48 @@ public class Ledger {
 
 	private LocalDateTime createdAt;			//등록일
     private LocalDateTime updatedAt;			//수정일
+
+	public void updateBasicInfo(String category, String memo) {
+		if( !this.category.equals(category) ) {
+			this.category = category;
+			this.updatedAt = LocalDateTime.now();
+		}
+
+		if( !isNullOrBlank(this.memo) && !this.memo.equals(memo) ) {
+			this.memo = memo;
+			this.updatedAt = LocalDateTime.now();
+		}
+	}
+
+	public void updateFix(FixedStatus fixedStatus) {
+		FixedStatus entityFixed = new FixedStatus(fixed.getValue().equalsIgnoreCase("y"), cycleType);
+
+		if( entityFixed.equals(fixedStatus) ) return;
+
+		this.fixed = fixedStatus.getFixed();
+		this.cycleType = fixedStatus.getPeriod();
+		this.updatedAt = LocalDateTime.now();
+	}
+
+	public void updateAmount(AmountInfo amountInfo) {
+		AmountInfo entityAmount = new AmountInfo(amount, paymentType);
+
+		if( entityAmount.equals(amountInfo) ) return;
+
+		this.amount = amountInfo.getAmount();
+		this.paymentType = amountInfo.getType();
+		this.updatedAt = LocalDateTime.now();
+	}
+
+	public void updatePlace(Place place) {
+		if( placeName != null && roadAddress != null ) {
+			if( place.equals(new Place(placeName, roadAddress, detailAddress)) ) return;
+		}
+
+		this.placeName = place.getPlaceName();
+		this.roadAddress = place.getRoadAddress();
+		this.detailAddress = place.getDetailAddress();
+
+		this.updatedAt = LocalDateTime.now();
+	}
 }
