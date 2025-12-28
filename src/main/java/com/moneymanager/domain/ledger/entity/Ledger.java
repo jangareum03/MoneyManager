@@ -83,9 +83,11 @@ public class Ledger {
 	}
 
 	public void updateFix(FixedStatus fixedStatus) {
-		FixedStatus entityFixed = new FixedStatus(fixed.getValue().equalsIgnoreCase("y"), cycleType);
+		if( cycleType != null ) {
+			FixedStatus entityFixed = new FixedStatus(true, cycleType);
 
-		if( entityFixed.equals(fixedStatus) ) return;
+			if( entityFixed.equals(fixedStatus) ) return;
+		}
 
 		this.fixed = fixedStatus.getFixed();
 		this.cycleType = fixedStatus.getPeriod();

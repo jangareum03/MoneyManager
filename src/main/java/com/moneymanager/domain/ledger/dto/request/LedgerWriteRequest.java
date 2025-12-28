@@ -4,6 +4,7 @@ import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
+
 /**
  * <p>
  * 패키지이름    : com.areum.moneymanager.domain.ledger.dto<br>
@@ -36,6 +37,7 @@ import java.util.List;
  * 		</tbody>
  * </table>
  */
+@Builder
 @Getter
 public class LedgerWriteRequest {
 	private String date;									//날짜
@@ -49,4 +51,8 @@ public class LedgerWriteRequest {
 	private String paymentType;						//금액 유형
 
 	private List<MultipartFile> image;			//이미지 리스트
+
+	private String placeName;							//장소명
+	private String roadAddress;						//기본주소
+	private String detailAddress;					//상세주소
 }

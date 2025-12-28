@@ -2,6 +2,7 @@ package com.moneymanager.controller.web.main;
 
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
+import com.moneymanager.domain.ledger.enums.DateType;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.exception.custom.ClientException;
@@ -95,7 +96,7 @@ public class WriteController {
 	 */
 	@PostMapping("/{type}")
 	public String getStep2Page( @PathVariable String type, @RequestParam(required = false) String date, HttpSession session, Model model ) {
-		if( isNullOrBlank(date) ) return "redirect:/main/ledger_writeStep1";
+		if( isNullOrBlank(date) ) return "redirect:/ledgers/write";
 
 		try{
 			String memberId = (String) session.getAttribute("mid");
@@ -106,7 +107,7 @@ public class WriteController {
 
 			return "/main/ledger_writeStep2";
 		}catch ( ClientException e ) {
-			return "redirect:/main/ledger_writeStep1";
+			return "redirect:/ledgers/write";
 		}
 	}
 
@@ -140,11 +141,12 @@ public class WriteController {
 		try{
 			ledgerService.createLedger( memberId, create );
 
-			return "redirect:/ledgers/write";
+			redirectAttributes.addAttribute("type", DateType.MONTH.name().toLowerCase());
+			return "redirect:/ledgers/list/{type}";
 		}catch ( ClientException  e ) {
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 
-			return "";	//TODO: 경로 지정
+			return "redirect:/ledgers/write";
 		}
 	}
 }

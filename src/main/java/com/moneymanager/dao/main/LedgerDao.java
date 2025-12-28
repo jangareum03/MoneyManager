@@ -80,16 +80,20 @@ public class LedgerDao {
 	}
 
 
-
 	/**
-	 * 생성된 가계부를 반환합니다.
+	 * 새로운 가계부 정보를 데이터베이스에 저장합니다.
+	 * <p>
+	 *     회원이 작성한 가계부 정보를 {@code ledger}테이블에 INSERT 합니다.
+	 *     저장이 완료된 가계부의 상세정보를 조회 후 반환합니다.
+	 * </p>
 	 *
-	 * @param ledger	가계부 정보
-	 * @return	생성한 가계부
+	 * @param memberId		가계부를 작성한 회원 ID
+	 * @param ledger			저장할 가계부 정보를 담은 객체
+	 * @return	저장 완료된 가계부의 상세 정보를 담은 {@link Ledger} 객체
 	 */
-	public Ledger saveLedger(Ledger ledger) {
-		String sql = "INSERT INTO ledger(id, member_id, category_id, fix, fix_cycle, book_date, memo, price, payment_type, image, place_name, road_address, address, created_at) " +
-										"VALUES(ledger_seq.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
+	public Ledger insertLedger(String memberId, Ledger ledger) {
+		String sql = "INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, address, created_at) " +
+										"VALUES(ledger_seq.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
 
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		jdbcTemplate.update(
@@ -99,21 +103,23 @@ public class LedgerDao {
 							public PreparedStatement createPreparedStatement(@NotNull Connection con) throws SQLException {
 								PreparedStatement stmt = con.prepareStatement(sql, new String[]{"id"});
 
-								stmt.setString(1, ledger.getMemberId());
-								stmt.setString(2, ledger.getCategory());
-								stmt.setString(3, ledger.getFixed().getValue());
-								stmt.setString(4, ledger.getCycleType().getValue());
-								stmt.setString(5, ledger.getDate());
-								stmt.setString(6, ledger.getMemo());
-								stmt.setLong(7, ledger.getAmount());
-								stmt.setString(8, ledger.getPaymentType().getValue());
+								stmt.setString(1, ledger.getCode());
+								stmt.setString(2, memberId);
+								stmt.setString(3, ledger.getCategory());
+								stmt.setString(4, ledger.getFixed().getValue());
+								stmt.setString(5, ledger.getCycleType().getValue());
+								stmt.setString(6, ledger.getDate());
+								stmt.setString(7, ledger.getMemo());
+								stmt.setLong(8, ledger.getAmount());
+								stmt.setString(9, ledger.getPaymentType().getValue());
 								stmt.setString(10, ledger.getPlaceName());
 								stmt.setString(11, ledger.getRoadAddress());
 								stmt.setString(12, ledger.getDetailAddress());
 
 								return stmt;
 							}
-						}, keyHolder
+						},
+				keyHolder
 		);
 
 			String id = Objects.requireNonNull(keyHolder.getKey()).toString();
@@ -170,15 +176,15 @@ public class LedgerDao {
 	 *     사용자 화면에서 필요한 카테고리, 거래일, 메모, 금액, 결제 타입, 이미지, 장소 정보 등을 포함한 {@link Ledger} 객체를 반환합니다.
 	 *
 	 *
-	 * @param id	조회할 가계부 번호
+	 * @param code	조회할 가계부 외부용 번호
 	 * @return	가계부 상세 정보를 담은 {@link Ledger} 객체
 	 * @throws org.springframework.dao.EmptyResultDataAccessException	조회 결과가 없을 경우 발생
 	 */
-	public LedgerCategoryDto findLedgerDetailForUser(String id) {
-		String sql = "SELECT num, member_id, category_id, name, transaction_date, memo, amount, payment_type, place_name, road_address, address " +
+	public LedgerCategoryDto findLedgerDetailForUser(String code) {
+		String sql = "SELECT id, member_id, category_id, name, transaction_date, memo, amount, payment_type, place_name, road_address, address " +
 								"FROM ledger l JOIN ledger_category lc " +
 								"ON l.category_id = lc.code " +
-								"WHERE l.id = ? ";
+								"WHERE l.code = ? ";
 
 
 		return jdbcTemplate.queryForObject(
@@ -186,7 +192,7 @@ public class LedgerDao {
 
 				(ResultSet rs, int row) -> {
 					Ledger.LedgerBuilder ledger = Ledger.builder()
-							.id(rs.getLong("num"))
+							.id(rs.getLong("id"))
 							.memberId(rs.getString("member_id"))
 							.date(rs.getString("transaction_date"))
 							.memo(rs.getString("memo"))
@@ -209,7 +215,7 @@ public class LedgerDao {
 					return new LedgerCategoryDto( ledger.build(), category );
 				},
 
-				id
+				code
 		);
 	}
 

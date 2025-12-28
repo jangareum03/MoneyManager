@@ -1,5 +1,6 @@
 package com.moneymanager.service.main;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.dao.main.LedgerDao;
 import com.moneymanager.domain.ledger.dto.request.*;
 import com.moneymanager.domain.ledger.dto.response.*;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -125,9 +127,42 @@ public class LedgerService {
 	}
 
 
-
+	/**
+	 *	새로운 가계부를 생성한다.
+	 * <p>
+	 *     고정 지출 여부, 장소 정보, 이미지 첨부 여부에 따라 추가적인 도메인 설정 및 이미지 저장 처리를 함께 진행합니다.
+	 *     가계부 저장 중 이미지 저장 과정에서 예외가 발생하는 경우 전체 트랜잭션은 롤백되어 데이터의 일관성을 유지합니다.
+	 * </p>
+	 *
+	 * @param memberId		가계부를 작성한 회원 ID
+	 * @param request			작성한 가계부 정보를 담은 {@link LedgerWriteRequest} 객체
+	 */
 	@Transactional
-	public void createLedger(String memberId, LedgerWriteRequest ledger) {
+	public void createLedger(String memberId, LedgerWriteRequest request) {
+		//요청DTO → Entity 변환
+		Ledger ledger = Ledger.builder()
+				.code(UlidCreator.getUlid().toString())
+				.date(request.getDate())
+				.category(request.getCategory())
+				.fixed(FixedYN.of(request.isFixed()))
+				.amount(request.getAmount())
+				.paymentType(PaymentType.of(request.getPaymentType()))
+				.build();
+
+		if( request.isFixed() ) {
+			FixedStatus fixedStatus = new FixedStatus(true, FixedPeriod.of(request.getPeriod()));
+			ledger.updateFix( fixedStatus );
+		}
+
+		if( !isNullOrBlank(request.getPlaceName()) && !isNullOrBlank(request.getRoadAddress()) ) {
+			Place place = new Place(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress());
+			ledger.updatePlace(place);
+		}
+
+		Ledger saveLedger = ledgerDAO.insertLedger(memberId, ledger);
+		if( request.getImage() != null && !request.getImage().isEmpty() ) {
+			imageService.saveImages( saveLedger, request.getImage() );
+		}
 	}
 
 

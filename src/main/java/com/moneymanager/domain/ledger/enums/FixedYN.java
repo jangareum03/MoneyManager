@@ -56,4 +56,8 @@ public enum FixedYN {
 	public static boolean isRepeat(String dbValue) {
 		return REPEAT.value.equalsIgnoreCase(dbValue);
 	}
+
+	public static FixedYN of(boolean fixed) {
+		return fixed ? FixedYN.REPEAT : FixedYN.VARIABLE;
+	}
 }
