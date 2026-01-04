@@ -1,6 +1,5 @@
 package com.moneymanager.service.main;
 
-import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.dao.main.LedgerImageDao;
 import com.moneymanager.dao.member.MemberInfoDaoImpl;
 import com.moneymanager.domain.ledger.entity.Ledger;
@@ -75,21 +74,22 @@ import static com.moneymanager.exception.ErrorUtil.createServerException;
 @RequiredArgsConstructor
 public class ImageServiceImpl {
 
-	@Getter
-	private final int MAX_IMAGE = 3;
-
+	private final FileService fileService;
+	private final ImageValidator imageValidator;
 	private final MemberInfoDaoImpl memberInfoDao;
 	private final LedgerImageDao imageDao;
-	private final FileService fileService;
-
 	private final ApplicationEventPublisher	eventPublisher;
+
+
+	@Getter
+	private final int MAX_IMAGE = 3;
 
 
 	/**
 	 * 회원이 한 가계부에 등록할 수 있는 이미지 최대 허용 개수를 계산하여 반환합니다.
 	 * <p>
 	 *     데이터베이스에서 회원의 이미지 제한값을 조회한 뒤, 시스템에서 지정한 최대 허용치({@code MAX_IMAGE})와 비교하여 더 작은 값을 반환합니다.
-	 *     만약 회원이 존재하지 않아 데이터베이스에서 조회를 할 수 없다면 기본값인 1이 반환됩니다.
+	 *     만약 회원이 존재하지 않아 데이터베이스에서 조회를 할 수 없다면 기본값인 0이 반환됩니다.
 	 * </p>
 	 *
 	 * @param memberId		조회할 회원 ID
@@ -101,7 +101,7 @@ public class ImageServiceImpl {
 
 			return Math.min( count, MAX_IMAGE );
 		}catch ( EmptyResultDataAccessException e ) {
-			return 1;
+			return 0;
 		}
 	}
 
@@ -111,6 +111,7 @@ public class ImageServiceImpl {
 	 * <p>
 	 *     회원이 등록할 수 있는 최대 이미지 개수({@code MAX_IMAGE})를 기준으로,
 	 *     실제 사용 가능한 슬롯과 사용 불가능한 슬롯을 {@link Boolean} 값으로 표현합니다.
+	 *     사용 가능한 슬롯은 {@code true}로, 사용 불가능한 슬롯은 {@code false}로 표현합니다.
 	 * </p>
 	 *
 	 * @param memberId		이미지 슬롯 정보를 불러올 회원 ID
@@ -186,10 +187,10 @@ public class ImageServiceImpl {
 		boolean hasNewImage = files != null && !files.isEmpty();
 
 		if( hasNewImage ) {
-			saveImages( ledger, files );
+			upload( ledger, files );
 		}
 
-		if( hasOldImage ) {
+		if( hasOldImage && hasNewImage ) {
 			deleteImages( ledger, images );
 		}
 	}
@@ -206,21 +207,21 @@ public class ImageServiceImpl {
 	 * @param files			업로드된 이미지 파일 목록
 	 */
 	@Transactional
-	public void saveImages( Ledger ledger, List<MultipartFile> files ) {
+	public void upload(Ledger ledger, List<MultipartFile> files ) {
 		List<LedgerImage> newImages = new ArrayList<>();
 		List<File> saveFiles = new ArrayList<>();
 		int orderNum = 1;
 
 		try{
 			for( MultipartFile multipartFile : files ) {
-				ImageValidator.validate(multipartFile);
+				imageValidator.validate(multipartFile);
 
 				//서버에 저장할 파일명 변경(중복 방지)
-				String newName = File.separatorChar + UlidCreator.getUlid().toString();
+				String newName = fileService.buildFileName(multipartFile);
 
 				//이미지를 서버에 저장
 				LocalDate date = new LedgerDate(ledger.getDate()).getTransactionDate();
-				File folder = fileService.getFolder(ledger.getMemberId(), date);
+				File folder = fileService.createFolder(ledger.getMemberId(), date);
 				File newFile = fileService.createFile( folder, newName );
 				fileService.saveFile(multipartFile, newFile);
 				saveFiles.add(newFile);
@@ -228,7 +229,7 @@ public class ImageServiceImpl {
 				newImages.add(
 						LedgerImage.builder()
 								.ledgerId(ledger.getId())
-								.imagePath(fileService.getRelativePath(ledger.getMemberId(), date))
+								.imagePath(fileService.buildFolderPath(ledger.getMemberId(), date))
 								.sortOrder(orderNum++)
 								.build()
 				);
@@ -271,7 +272,7 @@ public class ImageServiceImpl {
 
 			if( result == 1 ) {
 				//절대경로
-				File folder = fileService.getFolder(ledger.getMemberId(), new LedgerDate(ledger.getDate()).getTransactionDate());
+				File folder = fileService.createFolder(ledger.getMemberId(), new LedgerDate(ledger.getDate()).getTransactionDate());
 				String path = folder + image.getImagePath();
 				paths.add(path);
 			}

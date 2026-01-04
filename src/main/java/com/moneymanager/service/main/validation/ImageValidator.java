@@ -1,6 +1,7 @@
 package com.moneymanager.service.main.validation;
 
 import com.moneymanager.exception.ErrorCode;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -39,9 +40,10 @@ import static com.moneymanager.exception.ErrorUtil.createClientException;
  * 		</tbody>
  * </table>
  */
+@Component
 public class ImageValidator {
 
-	public static final long MAX_SIZE = 1024 * 1024L;
+	public final long MAX_SIZE = 1024 * 1024L;
 
 	/**
 	 * {@link MultipartFile} 객체의 유효성을 검증합니다.
@@ -59,7 +61,7 @@ public class ImageValidator {
 	 * @param file		검증할 파일 객체
 	 * @throws IOException	허용되지 않은 파일인 경우
 	 */
-	public static void validate(MultipartFile file) throws IOException {
+	public void validate(MultipartFile file) throws IOException {
 		if( file.isEmpty() ) {
 			throw createClientException(ErrorCode.LEDGER_PHOTO_MISSING, "저장할 가계부 이미지가 없습니다.");
 		}
@@ -72,7 +74,7 @@ public class ImageValidator {
 		validateImpairment(file);
 	}
 
-	private static void validateImpairment(MultipartFile file) throws IOException{
+	private void validateImpairment(MultipartFile file) throws IOException{
 		byte[] bytes = file.getBytes();
 
 		try(InputStream is = new ByteArrayInputStream(bytes)) {
@@ -83,7 +85,7 @@ public class ImageValidator {
 		}
 	}
 
-	private static void validateExtension(MultipartFile file) {
+	private void validateExtension(MultipartFile file) {
 		if( !List.of("image/jpeg", "image/png").contains(file.getContentType()) ){
 			throw createClientException(ErrorCode.LEDGER_PHOTO_SUPPORTED, "미지원한 이미지여서 저장할 수 없습니다.", file.getContentType());
 		}

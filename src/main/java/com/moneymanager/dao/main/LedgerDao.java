@@ -95,6 +95,16 @@ public class LedgerDao {
 		String sql = "INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, address, created_at) " +
 										"VALUES(ledger_seq.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
 
+		FixedYN fixedYN = ledger.getFixed();
+		String fixed = fixedYN.getValue();
+
+		String cycleType;
+		if( fixedYN.isFixed() ) {
+			cycleType = ledger.getCycleType().getValue();
+		}else {
+			cycleType = null;
+		}
+
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		jdbcTemplate.update(
 						new PreparedStatementCreator() {
@@ -106,8 +116,8 @@ public class LedgerDao {
 								stmt.setString(1, ledger.getCode());
 								stmt.setString(2, memberId);
 								stmt.setString(3, ledger.getCategory());
-								stmt.setString(4, ledger.getFixed().getValue());
-								stmt.setString(5, ledger.getCycleType().getValue());
+								stmt.setString(4, fixed);
+								stmt.setString(5, cycleType);
 								stmt.setString(6, ledger.getDate());
 								stmt.setString(7, ledger.getMemo());
 								stmt.setLong(8, ledger.getAmount());
@@ -123,7 +133,7 @@ public class LedgerDao {
 		);
 
 			String id = Objects.requireNonNull(keyHolder.getKey()).toString();
-			return findLedgerDetailForUser(id).getLedger();
+			return findById(id);
 	}
 
 
@@ -143,15 +153,25 @@ public class LedgerDao {
 
 		return jdbcTemplate.queryForObject(
 				sql,
-
 				(ResultSet rs, int row) -> {
+
+					String fixed = rs.getString("fix");
+					String fixCycle = rs.getString("fix_cycle");
+
+					FixedYN fixedYN = FixedYN.of(fixed);
+
+					FixedPeriod cycleType = null;
+					if( fixedYN.isFixed() ) {
+						cycleType = FixedPeriod.of(fixCycle);
+					}
+
 					return Ledger.builder()
-							.id(rs.getLong("num"))
-							.code(rs.getString("id"))
+							.id(rs.getLong("id"))
+							.code(rs.getString("code"))
 							.memberId(rs.getString("member_id"))
 							.category(rs.getNString("category_id"))
-							.fixed(FixedYN.of(rs.getString("fix")))
-							.cycleType(FixedPeriod.of(rs.getString("fix_cycle")))
+							.fixed(fixedYN)
+							.cycleType(cycleType)
 							.date(rs.getString("transaction_date"))
 							.memo(rs.getString("memo"))
 							.amount(rs.getLong("amount"))
@@ -160,7 +180,7 @@ public class LedgerDao {
 							.roadAddress(rs.getString("road_address"))
 							.detailAddress(rs.getString("address"))
 							.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-							.updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
+							.updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
 							.build();
 				},
 

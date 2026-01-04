@@ -62,7 +62,7 @@ public class GlobalWebControllerAdvice {
 		if( request.getCookies() == null) return  null;
 
 		for(Cookie cookie : request.getCookies() ) {
-			if( "accessToken".equals(cookie.getName()) ) {
+			if( "ACCESS_TOKEN".equals(cookie.getName()) ) {
 				return cookie.getValue();
 			}
 		}

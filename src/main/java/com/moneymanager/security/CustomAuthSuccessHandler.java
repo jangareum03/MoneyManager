@@ -66,7 +66,7 @@ public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHand
 		tokenService.createMemberToken( userDetails.getUsername(), accessToken, refreshToken );
 
 		//쿠키 설정
-		Cookie accessCookie = new Cookie("accessToken", accessToken);
+		Cookie accessCookie = new Cookie("ACCESS_TOKEN", accessToken);
 		accessCookie.setHttpOnly(true);
 		accessCookie.setPath("/");
 		accessCookie.setMaxAge(60 * 60);

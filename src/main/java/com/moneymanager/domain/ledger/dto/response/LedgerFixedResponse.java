@@ -42,7 +42,7 @@ public class LedgerFixedResponse {
 	}
 
 	public static LedgerFixedResponse from(Ledger ledger) {
-		boolean isRepeat = FixedYN.isRepeat(ledger.getFixed().getValue());
+		boolean isRepeat = ledger.getFixed().isFixed();
 
 		return new LedgerFixedResponse( isRepeat, isRepeat ? ledger.getCycleType().getValue() : null );
 	}

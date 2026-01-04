@@ -1,6 +1,5 @@
 package com.moneymanager.service.main;
 
-import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.dao.main.LedgerDao;
 import com.moneymanager.domain.ledger.dto.request.*;
 import com.moneymanager.domain.ledger.dto.response.*;
@@ -21,7 +20,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -141,12 +139,15 @@ public class LedgerService {
 	public void createLedger(String memberId, LedgerWriteRequest request) {
 		//요청DTO → Entity 변환
 		Ledger ledger = Ledger.builder()
-				.code(UlidCreator.getUlid().toString())
 				.date(request.getDate())
 				.category(request.getCategory())
+				.memo(request.getMemo())
 				.fixed(FixedYN.of(request.isFixed()))
 				.amount(request.getAmount())
 				.paymentType(PaymentType.of(request.getPaymentType()))
+				.placeName(request.getPlaceName())
+				.roadAddress(request.getRoadAddress())
+				.detailAddress(request.getDetailAddress())
 				.build();
 
 		if( request.isFixed() ) {
@@ -161,7 +162,7 @@ public class LedgerService {
 
 		Ledger saveLedger = ledgerDAO.insertLedger(memberId, ledger);
 		if( request.getImage() != null && !request.getImage().isEmpty() ) {
-			imageService.saveImages( saveLedger, request.getImage() );
+			imageService.upload( saveLedger, request.getImage() );
 		}
 	}
 

@@ -46,11 +46,11 @@ public enum FixedPeriod {
 		this.value = dbValue;
 	}
 
-	public static FixedPeriod of(String dbValue) {
+	public static FixedPeriod of(String value) {
 		for( FixedPeriod type : values() ) {
-			if(type.value.equalsIgnoreCase(dbValue)) return type;
+			if(type.value.equalsIgnoreCase(value)) return type;
 		}
 
-		throw createClientException(ErrorCode.LEDGER_FIX_FORMAT, "지원하지 않은 고정주기 유형입니다.", dbValue);
+		throw createClientException(ErrorCode.LEDGER_FIX_FORMAT, "지원하지 않은 고정주기 유형입니다.", value);
 	}
 }

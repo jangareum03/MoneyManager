@@ -45,19 +45,19 @@ public enum FixedYN {
 		this.value = value;
 	}
 
-	public static FixedYN of(String dbValue) {
+	public static FixedYN of(String value) {
 		for( FixedYN fixed : values() ) {
-			if( fixed.value.equalsIgnoreCase(dbValue) ) return fixed;
+			if( fixed.value.equalsIgnoreCase(value) ) return fixed;
 		}
 
-		throw createServerException(ErrorCode.DATABASE_RESULT_INTERNAL, "DB값이 FixedYN에 유효하지 않습니다.", dbValue);
-	}
-
-	public static boolean isRepeat(String dbValue) {
-		return REPEAT.value.equalsIgnoreCase(dbValue);
+		throw createServerException(ErrorCode.DATABASE_RESULT_INTERNAL, "DB값이 FixedYN에 유효하지 않습니다.", value);
 	}
 
 	public static FixedYN of(boolean fixed) {
 		return fixed ? FixedYN.REPEAT : FixedYN.VARIABLE;
+	}
+
+	public boolean isFixed(){
+		return this == REPEAT;
 	}
 }
