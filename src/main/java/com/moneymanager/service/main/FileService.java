@@ -3,8 +3,8 @@ package com.moneymanager.service.main;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.service.main.event.DeleteFileEvent;
-import com.moneymanager.service.main.strategy.FilePathStrategy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -48,10 +48,10 @@ import static com.moneymanager.exception.ErrorUtil.createServerException;
 @Slf4j
 public class FileService {
 
-	private final FilePathStrategy pathStrategy;
+	private final String basePath;
 
-	public FileService( FilePathStrategy pathStrategy ) {
-		this.pathStrategy = pathStrategy;
+	public FileService( @Value("${image.ledger.downPath}") String path ) {
+		this.basePath = path;
 	}
 
 
@@ -83,7 +83,7 @@ public class FileService {
 	 * @return	생성되었거나 이미 존재하는 이미지 저장 폴더
 	 */
 	public File createFolder(String memberId, LocalDate date) {
-		File folder = new File( pathStrategy.basePath() + buildFolderPath(memberId, date) );
+		File folder = new File( basePath + buildFolderPath(memberId, date) );
 
 		if( !folder.exists() ) {
 			folder.mkdirs();
