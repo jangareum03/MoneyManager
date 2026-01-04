@@ -48,7 +48,7 @@ public class MemberValidator {
 	 * @throws LoginException	유효하지 않은 아이디/비밀번호 입력한 경우 발생
 	 */
 	public static void validateLogin( String id, String password ) {
-		ErrorDTO<String> errorDTO = validateId(id);
+		ErrorDTO errorDTO = validateId(id);
 
 		//아이디 검증 실패한 상태
 		if( errorDTO != null ) {
@@ -71,19 +71,19 @@ public class MemberValidator {
 	 * @param id		검증할 회원의 아이디
 	 * @return 검증에 통과하면 <code>null</code>, 실패하면  {@link ErrorDTO}
 	 */
-	private static ErrorDTO<String> validateId( String id ) {
-		ErrorDTO<String> errorDTO = null;
+	private static ErrorDTO validateId( String id ) {
+		ErrorDTO errorDTO = null;
 
 		if( id == null || id.isBlank() ) {	//아이디 미입력한 경우
-			errorDTO = ErrorDTO.<String>builder()
+			errorDTO = ErrorDTO.builder()
 					.errorCode(ErrorCode.MEMBER_ID_MISSING)
 					.message("아이디를 입력해주세요.")
-					.requestData(id).build();
+					.data(id).build();
 		}else if( !id.matches(RegexPattern.MEMBER_ID.getPattern()) ) {	//아이디 형식 불일치한 경우
-			errorDTO = ErrorDTO.<String>builder()
+			errorDTO = ErrorDTO.builder()
 					.errorCode(ErrorCode.MEMBER_ID_FORMAT)
 					.message("아이디는 4~15자 사이의 영어와 숫자만 입력 가능합니다.")
-					.requestData(id).build();
+					.data(id).build();
 		}
 
 		return errorDTO;
@@ -99,19 +99,19 @@ public class MemberValidator {
 	 * @param password		검증할 회원의 비밀번호
 	 * @return 검증에 통과하면 <code>null</code>, 실패하면  {@link ErrorDTO}
 	 */
-	private static ErrorDTO<String> validatePassword( String password ) {
-		ErrorDTO<String> errorDTO = null;
+	private static ErrorDTO validatePassword( String password ) {
+		ErrorDTO errorDTO = null;
 
 		if( password == null || password.isBlank() ) {	//비밀번호 미입력한 경우
-			errorDTO = ErrorDTO.<String>builder()
+			errorDTO = ErrorDTO.builder()
 					.errorCode(ErrorCode.MEMBER_PASSWORD_MISSING)
 					.message("비밀번호를 입력해주세요.")
-					.requestData(password).build();
+					.data(password).build();
 		}else if( !password.matches(RegexPattern.MEMBER_PWD.getPattern()) ) {	//비밀번호 형식 불일치한 경우
-			errorDTO = ErrorDTO.<String>builder()
+			errorDTO = ErrorDTO.builder()
 					.errorCode(ErrorCode.MEMBER_PASSWORD_FORMAT)
 					.message("비밀번호는 8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다.")
-					.requestData(password).build();
+					.data(password).build();
 		}
 
 		return errorDTO;

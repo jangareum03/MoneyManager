@@ -49,7 +49,7 @@ public class CustomAuthFailureHandler implements AuthenticationFailureHandler {
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
 		LoginException loginException = (LoginException) exception;
 
-		ErrorDTO<?> errorDTO = loginException.getErrorDTO();
+		ErrorDTO errorDTO = loginException.getErrorDTO();
 		request.getSession().setAttribute("error", errorDTO.getMessage());
 
 		LoggerUtil.logUserWarn(errorDTO, "회원 로그인");

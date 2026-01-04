@@ -74,7 +74,7 @@ public enum ErrorCode {
 	/**
 	 * 시스템 에러 메시지
 	 */
-	SYSTEM_LOGIN_INTERNAL("S010101", "시스템 내부 오류"),
+	SYSTEM_LOGIC_INTERNAL("S010101", "시스템 내부 오류"),
 	DATABASE_RESULT_INTERNAL("S020401", "DB 결과 오류"),
 	STORAGE_FILE_INTERNAL("S040101", "파일 오류"),
 
@@ -145,11 +145,11 @@ public enum ErrorCode {
 
 
 	private final String code;
-	private final String message;
+	private final String logMessage;
 
-	ErrorCode(String code, String message) {
+	ErrorCode(String code, String logMsg) {
 		this.code = code;
-		this.message = message;
+		this.logMessage = logMsg;
 	}
 
 

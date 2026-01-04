@@ -5,6 +5,9 @@ import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.exception.custom.ServerException;
 
+import static com.moneymanager.utils.LoggerUtil.logSystemError;
+import static com.moneymanager.utils.LoggerUtil.logUserWarn;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.exception<br>
@@ -46,31 +49,53 @@ public final class ErrorUtil {
 		return createClientException(code, message, null);
 	}
 
-	public static <T> RuntimeException createClientException(ErrorCode code, String message, T data) {
-		ErrorDTO<T> errorDTO = ErrorDTO.<T>builder()
+	public static RuntimeException createClientException(ErrorCode code, String message, Object data) {
+		ErrorDTO errorDTO = ErrorDTO.builder()
 				.errorCode(code)
 				.message(message)
-				.requestData(data)
 				.build();
 
 		return new ClientException(errorDTO);
 	}
 
-	public static <T> RuntimeException createServerException(ErrorCode code) {
+	public static RuntimeException createServerException(ErrorCode code) {
 		return createServerException(code, null, null);
 	}
 
-	public static <T> RuntimeException createServerException(ErrorCode code, String message) {
+	public static RuntimeException createServerException(ErrorCode code, String message) {
 		return createServerException(code, message, null);
 	}
 
-	public static <T> RuntimeException createServerException(ErrorCode code, String message, T data) {
-		ErrorDTO<T> errorDTO = ErrorDTO.<T>builder()
+	public static  RuntimeException createServerException(ErrorCode code, String message, Object data) {
+		ErrorDTO errorDTO = ErrorDTO.builder()
 				.errorCode(code)
 				.message(message)
-				.requestData(data)
 				.build();
 
 		return new ServerException(errorDTO);
+	}
+
+	public static RuntimeException throwClientException(ErrorCode code, String serviceName, String message, String data) {
+		ErrorDTO errorDTO = ErrorDTO.builder()
+				.errorCode(code)
+				.message(message)
+				.data(data)
+				.build();
+
+		logUserWarn(errorDTO, serviceName);
+
+		throw new ClientException(errorDTO);
+	}
+
+	public static void throwServerException(ErrorCode code, String logMessage, String data) {
+		ErrorDTO errorDTO = ErrorDTO.builder()
+				.errorCode(code)
+				.message(logMessage)
+				.data(data)
+				.build();
+
+		logSystemError(errorDTO);
+
+		throw new ServerException(errorDTO);
 	}
 }

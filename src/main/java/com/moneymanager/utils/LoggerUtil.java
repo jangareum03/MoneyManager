@@ -48,17 +48,16 @@ public class LoggerUtil {
 	 *     로그에는 에러ID, 에러코드, 서비스이름, 사용자메시지, 요청 데이터가 포함됩니다.
 	 * </p>
 	 *
-	 * @param <T>				요청 데이터(requestData)의 타입
 	 * @param errorDTO   	에러 정보를 담은 객체
 	 * @param service			로그를 남기는 서비스 이름
 	 */
-	public static <T> void logUserWarn(ErrorDTO<T> errorDTO, String service) {
+	public static void logUserWarn(ErrorDTO errorDTO, String service) {
 		ErrorCode errorCode = errorDTO.getErrorCode();
 
 		log.warn("[USER_WARN] errorId={}, errorCode={}", errorDTO.getErrorId(), errorCode.getCode());
-		log.warn("▶ service={}, cause={}", service, errorCode.getMessage());
+		log.warn("▶ service={}, cause={}", service, errorCode.getLogMessage());
 		log.warn("▶ UserMessage={}", errorDTO.getMessage());
-		log.warn("▶ requestData={}", Objects.isNull(errorDTO.getRequestData()) || errorDTO.getRequestData().toString().isBlank() ? "없음" : errorDTO.getRequestData());
+		log.warn("▶ requestData={}", Objects.isNull(errorDTO.getData()) ? "없음" : errorDTO.getData());
 	}
 
 
@@ -102,12 +101,11 @@ public class LoggerUtil {
 	 * @param <T>			요청 데이터(requestData)의 타입
 	 * @param errorDTO	에러 정보를 담은 객체
 	 */
-	public static <T> void logSystemError(ErrorDTO<T> errorDTO) {
+	public static <T> void logSystemError(ErrorDTO errorDTO) {
 		ErrorCode errorCode = errorDTO.getErrorCode();
 
-		log.error("[ERROR] errorCode={}, LogMessage={}", errorCode.getCode(), errorCode.getMessage());
+		log.error("[ERROR] errorCode={}, LogMessage={}", errorCode.getCode(), errorCode.getLogMessage());
 		log.error("▶ errorId={}", errorDTO.getErrorId());
-		log.error("▶ UserMessage={}", errorCode.getMessage());
-		log.error("▶ requestData={}", Objects.isNull(errorDTO.getRequestData()) ? "없음" : errorDTO.getRequestData());
+		log.error("▶ requestData={}", Objects.isNull(errorDTO.getData()) ? "없음" : errorDTO.getData());
 	}
 }

@@ -39,9 +39,9 @@ import org.springframework.security.core.AuthenticationException;
 @Getter
 public class LoginException extends AuthenticationException {
 
-	private final ErrorDTO<?> errorDTO;
+	private final ErrorDTO errorDTO;
 
-	public LoginException( ErrorDTO<?> errorDTO ) {
+	public LoginException( ErrorDTO errorDTO ) {
 		super(errorDTO.getMessage());
 
 		this.errorDTO = errorDTO;
