@@ -34,7 +34,7 @@ import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 /**
  * <p>
  * * 패키지이름    : com.areum.moneymanager.service.main<br>
- * * 파일이름       : LedgerService<br>
+ * * 파일이름       : LedgerReadService<br>
  * * 작성자          : areum Jang<br>
  * * 생성날짜       : 22. 11. 15<br>
  * * 설명              : 가계부 관련 비즈니스 로직을 처리하는 클래스

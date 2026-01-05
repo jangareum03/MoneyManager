@@ -56,23 +56,6 @@ public class WriteController {
 	private final LedgerService ledgerService;
 
 
-	/**
-	 * 가계부 초기 작성에 필요한 정보를 조회 후 가계부 작성 1단계 페이지를 반환합니다.
-	 * <p>
-	 *     가계부 신규 작성 흐름의 첫 번째 단계로, 현재 날짜 정보를 포함한 작성에 필요한 초기 데이터를 전달합니다.
-	 * </p>
-	 *
-	 * @param  model		뷰에 전달할 객체
-	 * @return 가계부 작성 1단계 화면의 경로
-	 */
-	@GetMapping
-	public String getStep1Page( Model model ) {
-		model.addAttribute("data", new LedgerWriteStep1Response(LocalDate.now()));
-
-		return "/main/ledger_writeStep1";
-	}
-
-
 
 	/**
 	 * 가계부 초기 작성에서 선택한 가계부 유형, 날짜 정보를 전달받아,

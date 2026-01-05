@@ -54,7 +54,6 @@ import java.util.*;
  * </table>
  */
 @Slf4j
-@Controller
 @RequestMapping("/ledgers")
 public class LedgerController {
 
