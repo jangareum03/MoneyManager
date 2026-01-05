@@ -75,14 +75,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 							throw new LoginException(ErrorDTO.<String>builder()
 									.errorCode(ErrorCode.MEMBER_STATUS_LOCKED)
 									.message( String.format("로그인 시도 횟수를 초과하셨습니다. %s 00시부터 다시 이용하실 수 있습니다.", today.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일"))) )
-									.data(username)
 									.build());
 						}
 
 						throw new LoginException(ErrorDTO.<String>builder()
 								.errorCode(ErrorCode.MEMBER_STATUS_UNAUTHORIZED)
 								.message("아이디 또는 비밀번호를 확인해주세요.")
-								.data(username)
 								.build());
 					}
 
@@ -91,28 +89,28 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 					throw new LoginException(ErrorDTO.builder()
 							.errorCode(ErrorCode.MEMBER_STATUS_LOCKED)
 							.message( String.format("로그인 횟수 초과로 로그인이 불가능합니다. %s 00시부터 다시 로그인이 가능합니다.", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일"))) )
-							.data(username).build());
+							.build());
 				case REPAIR:
 					throw new LoginException(ErrorDTO.builder()
 							.errorCode(ErrorCode.MEMBER_STATUS_WITHDRAW_RECOVERABLE)
 							.message("해당 계정은 탈퇴된 상태로 로그인이 불가능합니다. 가입하실 때 입력하신 이메일로 임시 비밀번호를 보내드렸으니, 다시 한 번 로그인 부탁드립니다.")
-							.data(username).build());
+							.build());
 				case DELETE:
 					throw new LoginException( ErrorDTO.builder()
 							.errorCode(ErrorCode.MEMBER_STATUS_WITHDRAW_NONRECOVERABLE)
 							.message("회원가입 하지 않는 아이디입니다. 회원가입을 진행해 주세요.")
-							.data(username).build() );
+							.build() );
 			}
 
 			throw new LoginException( ErrorDTO.builder()
 					.errorCode(ErrorCode.MEMBER_STATUS_UNKNOWN)
 					.message("알 수 없는 회원 계정 상태입니다. 잠시 후 다시 시도해주세요.")
-					.data(username).build() );
+					.build() );
 		}catch ( EmptyResultDataAccessException e ) {
 			throw new LoginException(ErrorDTO.builder()
 					.errorCode(ErrorCode.MEMBER_ID_NONE)
 					.message("아이디 또는 비밀번호를 확인해주세요.")
-					.data(username).build());
+					.build());
 		}
 	}
 

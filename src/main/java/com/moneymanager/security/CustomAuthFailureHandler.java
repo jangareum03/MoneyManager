@@ -52,7 +52,7 @@ public class CustomAuthFailureHandler implements AuthenticationFailureHandler {
 		ErrorDTO errorDTO = loginException.getErrorDTO();
 		request.getSession().setAttribute("error", errorDTO.getMessage());
 
-		LoggerUtil.logUserWarn(errorDTO, "회원 로그인");
+		LoggerUtil.logUserWarn(errorDTO);
 		LoggerUtil.logSystemInfo("로그인 실패 - 사용자ID: {}", request.getParameter("username") );
 		response.sendRedirect("/");
 	}

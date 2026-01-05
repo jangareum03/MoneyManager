@@ -67,9 +67,9 @@ public class MemberValidationService {
 	 */
 	public static void checkIdAvailability( String id ) {
 		if(Objects.isNull(id) || id.trim().isEmpty() ) {
-			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_ID_NONE).message("아이디를 입력해주세요.").data(id).build());
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_ID_NONE).message("아이디를 입력해주세요.").build());
 		}else if( !id.trim().matches(RegexPattern.MEMBER_ID.getPattern()) ) {
-			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_ID_FORMAT).message("4~15자 사이의 영어와 숫자만 입력 가능합니다.").data(id).build());
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_ID_FORMAT).message("4~15자 사이의 영어와 숫자만 입력 가능합니다.").build());
 		}
 	}
 
@@ -84,7 +84,7 @@ public class MemberValidationService {
 		checkIdAvailability(id.trim());
 
 		if(  memberDAO.countByUsername(id) != 0 ) {
-			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_ID_DUPLICATE).message("이미 사용중인 아이디입니다.").data(id).build());
+			throw new ClientException(ErrorDTO.builder().errorCode(ErrorCode.MEMBER_ID_DUPLICATE).message("이미 사용중인 아이디입니다.").build());
 		}
 	}
 

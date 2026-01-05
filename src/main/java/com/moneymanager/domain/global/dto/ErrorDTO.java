@@ -47,10 +47,10 @@ public class ErrorDTO {
 	//식별번호
 	@Builder.Default
 	private String errorId = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + '-' + UUID.randomUUID().toString().substring(0, 8);
-	//요청 데이터
-	private String data;
 	//에러코드
 	private ErrorCode errorCode;
-	//안내 메시지
+	//발생 요청
+	private String serviceName;
+	//메시지
 	private String message;
 }

@@ -45,19 +45,16 @@ public class LoggerUtil {
 	 * 사용자 경고 로그를 기록합니다.
 	 * <p>
 	 *     사용자의 요청으로 인해 발생한 경미한 문제나 주의가 필요한 상황을 기록할 때 사용합니다. <br>
-	 *     로그에는 에러ID, 에러코드, 서비스이름, 사용자메시지, 요청 데이터가 포함됩니다.
+	 *     로그에는 에러ID, 에러코드, 로그가 포함됩니다.
 	 * </p>
 	 *
 	 * @param errorDTO   	에러 정보를 담은 객체
-	 * @param service			로그를 남기는 서비스 이름
 	 */
-	public static void logUserWarn(ErrorDTO errorDTO, String service) {
+	public static void logUserWarn(ErrorDTO errorDTO) {
 		ErrorCode errorCode = errorDTO.getErrorCode();
 
-		log.warn("[USER_WARN] errorId={}, errorCode={}", errorDTO.getErrorId(), errorCode.getCode());
-		log.warn("▶ service={}, cause={}", service, errorCode.getLogMessage());
-		log.warn("▶ UserMessage={}", errorDTO.getMessage());
-		log.warn("▶ requestData={}", Objects.isNull(errorDTO.getData()) ? "없음" : errorDTO.getData());
+		log.warn("[{}] errorCode={}, errorType={}", errorDTO.getErrorId(), errorCode.getCode(), errorCode.getType());
+		log.warn("[{}] service={}, cause={}", errorDTO.getErrorId(), errorDTO.getServiceName(), errorDTO.getMessage());
 	}
 
 
@@ -98,14 +95,12 @@ public class LoggerUtil {
 	 *     로그에는 에러ID, 에러 코드, 에러메시지, 사용자 메시지, 요청 데이터를 포합합니다.
 	 * </p>
 	 *
-	 * @param <T>			요청 데이터(requestData)의 타입
 	 * @param errorDTO	에러 정보를 담은 객체
 	 */
-	public static <T> void logSystemError(ErrorDTO errorDTO) {
+	public static void logSystemError(ErrorDTO errorDTO) {
 		ErrorCode errorCode = errorDTO.getErrorCode();
 
-		log.error("[ERROR] errorCode={}, LogMessage={}", errorCode.getCode(), errorCode.getLogMessage());
-		log.error("▶ errorId={}", errorDTO.getErrorId());
-		log.error("▶ requestData={}", Objects.isNull(errorDTO.getData()) ? "없음" : errorDTO.getData());
+		log.error("[{}] errorCode={}, errorType={}", errorDTO.getErrorId(), errorCode.getCode(), errorCode.getType());
+		log.error("[{}] service={}, cause={}", errorDTO.getErrorId(), errorDTO.getServiceName(), errorDTO.getMessage());
 	}
 }

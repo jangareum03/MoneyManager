@@ -5,16 +5,13 @@ import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.exception.custom.ServerException;
 
-import static com.moneymanager.utils.LoggerUtil.logSystemError;
-import static com.moneymanager.utils.LoggerUtil.logUserWarn;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.exception<br>
  * 파일이름       : ErrorUtil<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 8. 1.<br>
- * 설명              : 공통적으로 검증할 때 필요한 클래스
+ * 설명              : 공통적인 에러 처리 할 때 필요한 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -75,27 +72,11 @@ public final class ErrorUtil {
 		return new ServerException(errorDTO);
 	}
 
-	public static RuntimeException throwClientException(ErrorCode code, String serviceName, String message, String data) {
-		ErrorDTO errorDTO = ErrorDTO.builder()
-				.errorCode(code)
-				.message(message)
-				.data(data)
-				.build();
-
-		logUserWarn(errorDTO, serviceName);
-
-		throw new ClientException(errorDTO);
+	public static RuntimeException createClientException(String message) {
+		throw new ClientException(message);
 	}
 
-	public static void throwServerException(ErrorCode code, String logMessage, String data) {
-		ErrorDTO errorDTO = ErrorDTO.builder()
-				.errorCode(code)
-				.message(logMessage)
-				.data(data)
-				.build();
-
-		logSystemError(errorDTO);
-
-		throw new ServerException(errorDTO);
+	public static RuntimeException createServerException(String message) {
+		return new ServerException(message);
 	}
 }

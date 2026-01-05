@@ -78,12 +78,12 @@ public class MemberValidator {
 			errorDTO = ErrorDTO.builder()
 					.errorCode(ErrorCode.MEMBER_ID_MISSING)
 					.message("아이디를 입력해주세요.")
-					.data(id).build();
+					.build();
 		}else if( !id.matches(RegexPattern.MEMBER_ID.getPattern()) ) {	//아이디 형식 불일치한 경우
 			errorDTO = ErrorDTO.builder()
 					.errorCode(ErrorCode.MEMBER_ID_FORMAT)
 					.message("아이디는 4~15자 사이의 영어와 숫자만 입력 가능합니다.")
-					.data(id).build();
+					.build();
 		}
 
 		return errorDTO;
@@ -106,12 +106,12 @@ public class MemberValidator {
 			errorDTO = ErrorDTO.builder()
 					.errorCode(ErrorCode.MEMBER_PASSWORD_MISSING)
 					.message("비밀번호를 입력해주세요.")
-					.data(password).build();
+					.build();
 		}else if( !password.matches(RegexPattern.MEMBER_PWD.getPattern()) ) {	//비밀번호 형식 불일치한 경우
 			errorDTO = ErrorDTO.builder()
 					.errorCode(ErrorCode.MEMBER_PASSWORD_FORMAT)
 					.message("비밀번호는 8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다.")
-					.data(password).build();
+					.build();
 		}
 
 		return errorDTO;

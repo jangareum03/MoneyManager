@@ -145,11 +145,11 @@ public enum ErrorCode {
 
 
 	private final String code;
-	private final String logMessage;
+	private final String type;
 
-	ErrorCode(String code, String logMsg) {
+	ErrorCode(String code, String type) {
 		this.code = code;
-		this.logMessage = logMsg;
+		this.type = type;
 	}
 
 
