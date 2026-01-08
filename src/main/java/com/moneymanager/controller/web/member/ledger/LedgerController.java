@@ -1,8 +1,11 @@
 package com.moneymanager.controller.web.user.ledger;
 
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
+import com.moneymanager.security.CustomUserDetails;
+import com.moneymanager.security.jwt.JwtTokenProvider;
 import com.moneymanager.service.ledger.LedgerReadService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +43,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/ledgers")
 public class LedgerController {
 
+	private final JwtTokenProvider jwtTokenProvider;
+
 	private final LedgerReadService ledgerReadService;
 
 
@@ -54,11 +59,18 @@ public class LedgerController {
 	 */
 	@GetMapping("/new/step1")
 	public String writeStep1View(Model model){
-		LedgerWriteStep1Response response = ledgerReadService.getInitialData();
+		LedgerWriteStep1Response response = ledgerReadService.getWriteStep1Data();
 
 		model.addAttribute("ledger", response);
 
 		return "/main/ledger_writeStep1";
+	}
+
+	@GetMapping("/new/step2")
+	public String writeStep2View(@AuthenticationPrincipal CustomUserDetails userDetails) {
+		String username = userDetails.getUsername();
+
+		return "/main/ledger_writeStep2";
 	}
 
 }

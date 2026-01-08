@@ -4,6 +4,7 @@ package com.moneymanager.exception;
 import com.moneymanager.domain.global.dto.ErrorDTO;
 import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.exception.custom.ServerException;
+import com.moneymanager.utils.LoggerUtil;
 
 /**
  * <p>
@@ -72,11 +73,17 @@ public final class ErrorUtil {
 		return new ServerException(errorDTO);
 	}
 
-	public static RuntimeException createClientException(String message) {
-		throw new ClientException(message);
+	public static RuntimeException createClientException(ErrorDTO errorDTO, String message) {
+		//로그 작성
+		LoggerUtil.logUserWarn(errorDTO);
+
+		return new ClientException(message);
 	}
 
-	public static RuntimeException createServerException(String message) {
+	public static RuntimeException createServerException(ErrorDTO errorDTO, String message) {
+		//로그 작성
+		LoggerUtil.logSystemError(errorDTO);
+
 		return new ServerException(message);
 	}
 }

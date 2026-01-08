@@ -81,6 +81,14 @@ public class CustomUserDetails implements UserDetails {
 
 
 	/**
+	 * 로그인 완료된 사용자의 회원번호를 반환합니다.
+	 * @return	회원번호(PK)
+	 */
+	public String getId() {
+		return member.getId();
+	}
+
+	/**
 	 * 로그인 처리 중인 사용자의 닉네임을 반환합니다.
 	 *
 	 * @return	닉네임

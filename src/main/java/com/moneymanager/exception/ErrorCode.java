@@ -42,6 +42,7 @@ import lombok.Getter;
  */
 @Getter
 public enum ErrorCode {
+	COMMON_AUTHENTICATION_NONE("C990104", "인증정보 없음"),
 	MEMBER_ID_MISMATCH("C010105", "회원 아이디 불일치"),
 	/**
 	 * 가계부 에러 메시지
