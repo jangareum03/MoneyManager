@@ -12,14 +12,14 @@
 
         <!-- 본문 : 작성폼 -->
         <section class="ledger-body">
-            <form class="form" th:action="@{/ledgers/write}" method="post" enctype="multipart/form-data"  th:object="${ledger}">
+            <form class="form" th:action="@{/ledgers}" method="post" enctype="multipart/form-data"  th:object="${ledger}">
                 <!-- 고정/변동 영역 -->
                 <div class="form__field form__field--fix">
                     <label class="form__label">고정/변동</label>
                     <div class="form__input-container form__input-container--fix">
                         <section class="form__input-box form__input-box--main">
                             <label class="form__label" th:each="fix : *{fixed}">
-                                <input class="form__input form__input--radio" type="radio" th:value="${fix.value}" th:checked="${fix.value == defaultFix}">[[${fix.label}]]
+                                <input class="form__input form__input--radio" type="radio" th:value="${fix.value}" th:checked="${fix.value == 'N'}">[[${fix.label}]]
                             </label>
                         </section>
                     </div>
@@ -59,9 +59,9 @@
 
                         <!-- 금액 유형 -->
                         <section class="form__input-box form__input-box--type">
-                            <label th:each="type : *{paymentTypes}">
-                                <input class="form__input form__input--radio" name="paymentType" type="radio" th:value="${type.dbCode}" th:checked="${type.dbCode == defaultPaymentType}">
-                                <th:block th:utext="${type.svg}"></th:block>
+                            <label th:each="pay : *{paymentTypes}">
+                                <input class="form__input form__input--radio" name="paymentType" type="radio" th:value="${pay.value}" th:checked="${pay.value == 'NONE'}">
+                                <th:block th:utext="${pay.svg}"></th:block>
                             </label>
                         </section>
                     </div>

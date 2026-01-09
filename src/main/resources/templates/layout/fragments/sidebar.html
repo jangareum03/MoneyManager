@@ -39,8 +39,8 @@
             </li>
 
             <!-- 작성하기 메뉴 -->
-            <li class="sidebar-menu__item" th:classappend="${#httpServletRequest.requestURI.startsWith('/ledger/write')} ? 'sidebar-menu__item--selected'">
-                <a class="sidebar-menu__link" th:href="@{/ledger/write}" >
+            <li class="sidebar-menu__item" th:classappend="${#httpServletRequest.requestURI.startsWith('/ledgers/new')} ? 'sidebar-menu__item--selected'">
+                <a class="sidebar-menu__link" th:href="@{/ledgers/new/step1}" >
                     <div class="sidebar-menu__icon">
                         <svg class="icon icon--menu" viewBox="0 0 19 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M0.385498 21.1948C0.385498 20.9876 0.467808 20.7889 0.614321 20.6424C0.760834 20.4959 0.959548 20.4136 1.16675 20.4136H17.8334C18.0406 20.4136 18.2393 20.4959 18.3858 20.6424C18.5324 20.7889 18.6147 20.9876 18.6147 21.1948C18.6147 21.402 18.5324 21.6007 18.3858 21.7473C18.2393 21.8938 18.0406 21.9761 17.8334 21.9761H1.16675C0.959548 21.9761 0.760834 21.8938 0.614321 21.7473C0.467808 21.6007 0.385498 21.402 0.385498 21.1948Z"/>

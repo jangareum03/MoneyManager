@@ -1,7 +1,9 @@
 package com.moneymanager.utils;
 
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  * <p>
@@ -23,25 +25,62 @@ import java.time.format.DateTimeFormatter;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 1. 5.</td>
+ * 		 	  <td>26. 1. 5</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>26. 1. 5</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>[메서드 이름] formatKorean → formatKoreanDate</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
  */
 public class DateFormatUtils {
 
-	private static final String KOREAN_FORMAT = "yyyy년 MM월 dd일";
+	private static final String KOREAN_DATE = "yyyy년 MM월 dd일";
+	private static final String KOREAN_DATE_WITH_DAY = "yyyy년 MM월 dd일 E요일";
 
 	/**
-	 * 날짜 객체를 {@code yyyy년 MM월 dd일} 날짜 형식으로 지정 후 문자열로 반환합니다.
+	 *	주어진 날짜 문자열({@code date})을 {@link LocalDate} 객체로 변환합니다.
+	 *<p>
+	 *     날짜 문자열은 {@code yyyyMMdd} 형식이여 하며, 날짜 형식과 일치하지 않으면 {@link IllegalArgumentException}이 발생합니다.
+	 *</p>
+	 *
+	 * @param date			변환할 날짜 문자열 (yyyyMMdd 형식)
+	 * @return 변환한 {@link LocalDate} 객체
+	 * @throws IllegalArgumentException	날짜 형식이 올바르지 않을 경우
+	 */
+	public static LocalDate parse(String date){
+		try{
+			return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
+		}catch (DateTimeParseException e) {
+			throw new IllegalArgumentException(
+					String.format("잘못된 날짜 형식 (date=%s)", date)
+			);
+		}
+	}
+
+	/**
+	 * 날짜 객체를 {@value KOREAN_DATE} 날짜 형식으로 지정 후 문자열로 반환합니다.
 	 *
 	 * @param date	문자열로 포맷할 {@link LocalDate} 객체
-	 * @return 지정한 날짜 형식({@code yyyy년 MM월 dd일})으로 변환된 문자열
+	 * @return 지정한 날짜 형식으로 변환된 문자열
 	 */
-	public static String formatKorean(LocalDate date) {
-		return formatDate( date, KOREAN_FORMAT);
+	public static String formatKoreanDate(LocalDate date)	 {
+		return formatDate(date, KOREAN_DATE);
+	}
+
+
+	/**
+	 * 날짜 객체를 {@value KOREAN_DATE_WITH_DAY} 날짜 형식으로 지정 후 문자열로 반환합니다.
+	 *
+	 * @param date	문자열로 포맷할 {@link LocalDate} 객체
+	 * @return	지정한 날짜 형식으로 변환된 문자을
+	 */
+	public static String formatKoreanDateWithDay(LocalDate date) {
+		return formatDate(date, KOREAN_DATE_WITH_DAY);
 	}
 
 	//날짜를 pattern으로 포맷 후 문자열로 반환

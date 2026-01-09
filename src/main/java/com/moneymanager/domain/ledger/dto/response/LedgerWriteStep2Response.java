@@ -35,7 +35,6 @@ import java.util.List;
  * 		</tbody>
  * </table>
  */
-@Builder
 @Getter
 public class LedgerWriteStep2Response {
 	private final String title;												//제목
@@ -44,4 +43,45 @@ public class LedgerWriteStep2Response {
 	private final List<CategoryResponse> categories;		//카테고리 리스트
 	private final List<PaymentType> paymentTypes;		//결제유형
 	private final List<Boolean> imageSlot;							//이미지 사용여부
+
+	private LedgerWriteStep2Response(String title, LedgerType type, List<CategoryResponse> categories, List<Boolean> imageSlot) {
+		this.title = title;
+		this.categories = categories;
+		this.imageSlot =imageSlot;
+		this.type = type;
+
+		this.fixed = List.of(FixedYN.values());
+		this.paymentTypes = List.of(PaymentType.values());
+	}
+
+	/**
+	 * 수입 유형에 필요한 가계부 작성 2단계의 기본 데이터를 생성한다.
+	 * <p>
+	 *     화면 제목, 중분류 수입 카테고리 목록과 이미지 슬롯 사용 여부 정보를 담은 {@code boolean}형 리스트를 포함한 응답 객체를 반환합니다.
+	 * </p>
+	 *
+	 * @param title				화면에 보일 제목
+	 * @param categories	중간 단계({@link com.moneymanager.domain.ledger.enums.CategoryLevel#MIDDLE})의 수입 카테고리 리스트
+	 * @param imageSlot		사용 여부를 담은 이미지 슬롯 리스트
+	 * @return	가계부 작성 2단계에 필요한 정보를 담은 객체
+	 */
+	public static LedgerWriteStep2Response ofDataByIncome(String title, List<CategoryResponse> categories, List<Boolean> imageSlot){
+		return new LedgerWriteStep2Response(title, LedgerType.INCOME, categories, imageSlot);
+	}
+
+
+	/**
+	 * 지출 유형에 필요한 가계부 작성 2단계의 기본 데이터를 생성한다.
+	 * <p>
+	 *     화면 제목, 중분류 지출 카테고리 목록과 이미지 슬롯 사용 여부 정보를 담은 {@code boolean}형 리스트를 포함한 응답 객체를 반환합니다.
+	 * </p>
+	 *
+	 * @param title				화면에 보일 제목
+	 * @param categories	중간 단계({@link com.moneymanager.domain.ledger.enums.CategoryLevel#MIDDLE})의 지출 카테고리 리스트
+	 * @param imageSlot		사용 여부를 담은 이미지 슬롯 리스트
+	 * @return	가계부 작성 2단계에 필요한 정보를 담은 객체
+	 */
+	public static LedgerWriteStep2Response ofDataByOutlay(String title, List<CategoryResponse> categories, List<Boolean> imageSlot){
+		return new LedgerWriteStep2Response(title, LedgerType.OUTLAY, categories, imageSlot);
+	}
 }

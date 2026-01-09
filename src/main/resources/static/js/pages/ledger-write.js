@@ -99,7 +99,7 @@ function handlerClick( event ) {
             //이전버튼 클릭할 때
             const prevButton = target.classList.contains('button--cancel');
             if( prevButton && confirm('작성을 취소하시겠습니까?') ) {
-                goToPage('/ledgers/write');
+                goToPage('/ledgers/new/step1');
             }
 
 
@@ -291,19 +291,14 @@ function getDateValues() {
 
 
 
-//----------[ ▼ 가계부 상세 화면으로 이동합니다. ]----------
+//----------[ ▼ 가계부 2단계 작성 화면으로 이동합니다. ]----------
 function goToNextStep() {
-    const type = document.querySelector('input[name="type"]:checked')?.value;
-
     const { year, month, day } = getDateValues();
 
     const date = `${year}${String(month).padStart(2, '0')}${String(day).padStart(2, '0')}`;
+    const type = document.querySelector('input[name="type"]:checked')?.value;
 
-    const form = createForm({ method: 'POST', action: `/ledgers/write/${type}` });
-    form.appendChild( createHiddenInput( {name: 'date', value: date} ) );
-
-    document.body.appendChild(form);
-    form.submit();
+    goToPage(`/ledgers/new/step2?type=${type}&date=${date}`);
 }
 
 
