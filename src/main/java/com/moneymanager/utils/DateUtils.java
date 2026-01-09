@@ -24,9 +24,17 @@ import java.util.stream.IntStream;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 1. 5.</td>
+ * 		 	  <td>26. 1. 5</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>26. 1. 9</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>
+ * 		 	      [메서드 이름]
+ * 		 	      getListByYearRange → getYearsInRange, getListByMonthRange → getMonthsInRange, getListByDayRange → getDaysInRange
+ * 		 	  </td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
@@ -45,8 +53,8 @@ public class DateUtils {
 	 * <p>
 	 *     예제 사용법:
 	 *     <pre>{@code
-	 *     	DateUtils.getListByYearRange(2020, 2025);	// [2020, 2021, 2022, 2023, 2024, 2025]
-	 *     	DateUtils.getListByYearRange(1900, 1900);	// [1900]
+	 *     	DateUtils.getYearsInRange(2020, 2025);	// [2020, 2021, 2022, 2023, 2024, 2025]
+	 *     	DateUtils.getYearsInRange(1900, 1900);	// [1900]
 	 *     }</pre>
 	 * </p>
 	 *
@@ -54,7 +62,7 @@ public class DateUtils {
 	 * @param end   종료 연도(포함)
 	 * @return 시작부터 종료까지의 연도를 오름차순으로 담은 정수 리스트
 	 */
-	public static List<Integer> getListByYearRange(int start, int end) {
+	public static List<Integer> getYearsInRange(int start, int end) {
 		if (start <= 0 || end <= 0) {
 			throw new IllegalArgumentException(
 					String.format("연도는 0보다 커야합니다. (start: %d, end: %d)", start, end)
@@ -83,8 +91,8 @@ public class DateUtils {
 	 * <p>
 	 *     예제 사용법:
 	 *     <pre>{@code
-	 *     	DateUtils.getListByMonthRange(1, 3);	// [1, 2, 3]
-	 *     	DateUtils.getListByMonthRange(9, 12);	// [9, 10, 11, 12]
+	 *     	DateUtils.getMonthsInRange(1, 3);	// [1, 2, 3]
+	 *     	DateUtils.getMonthsInRange(9, 12);	// [9, 10, 11, 12]
 	 *     }</pre>
 	 * </p>
 	 *
@@ -92,7 +100,7 @@ public class DateUtils {
 	 * @param end   종료 월(포함)
 	 * @return 시작부터 종료까지의 월을 오름차순으로 담은 정수 리스트
 	 */
-	public static List<Integer> getListByMonthRange(int start, int end) {
+	public static List<Integer> getMonthsInRange(int start, int end) {
 		if (start < 1 || start > 12) {
 			throw new IllegalArgumentException(
 					String.format("월은 1~12 사이여야 합니다. (start: %d)", start)
@@ -127,8 +135,8 @@ public class DateUtils {
 	 * <p>
 	 *     예제 사용법:
 	 *     <pre>{@code
-	 *     	DateUtils.getListByDayRange(1, 31);	// [1, 2, 3, 4, ... , 30, 31]
-	 *     	DateUtils.getListByDayRange(9, 12);	// [9, 10, 11, 12]
+	 *     	DateUtils.getDaysInRange(1, 31);	// [1, 2, 3, 4, ... , 30, 31]
+	 *     	DateUtils.getDaysInRange(9, 12);	// [9, 10, 11, 12]
 	 *     }</pre>
 	 * </p>
 	 *
@@ -136,22 +144,22 @@ public class DateUtils {
 	 * @param end   종료일(포함)
 	 * @return 시작부터 종료까지의 일을 오름차순으로 담은 정수 리스트
 	 */
-	public static List<Integer> getListByDayRange(int start, int end) {
+	public static List<Integer> getDaysInRange(int start, int end) {
 		if( start <= 0 || start > 31 ) {
 			throw new IllegalArgumentException(
-					String.format("일은 1~31 사이여야 합니다. (start: %d)", start)
+					String.format("시작일이 1~31 범위에서 벗어남 (start=%d)", start)
 			);
 		}
 
 		if( end <= 0 || end > 31 ) {
 			throw new IllegalArgumentException(
-					String.format("일은 1~31 사이여야 합니다. (end: %d)", end)
+					String.format("종료일이 1~31 범위에서 벗어남 (end=%d)", end)
 			);
 		}
 
 		if( start > end ) {
 			throw new IllegalArgumentException(
-					String.format("시작일이 종료일보다 큽니다. (start: %d, end: %d)", start, end)
+					String.format("시작일이 종료일보다 큼 (start=%d, end=%d)", start, end)
 			);
 		}
 
