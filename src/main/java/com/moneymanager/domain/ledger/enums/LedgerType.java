@@ -55,11 +55,12 @@ public enum LedgerType {
 	 * API용 URL에서 전송된 값이 {@link LedgerType} 객체의 {@code urlCode}이 동일한지 확인합니다.
 	 * <p>
 	 *     동일한 값이 있으면 해당 {@link LedgerType} 객체를 반환합니다.
-	 *     만약 동일한 값이 없으면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
+	 *     만약 동일한 값이 없으면 {@link IllegalArgumentException} 예외가 발생합니다.
 	 * </p>
 	 *
 	 * @param urlCode		가계부 유형을 확인할 URL 값
 	 * @return	가계부 유형 정보를 담은 {@link LedgerType} 객체
+	 * @throws IllegalArgumentException 없는 가계부 유형인 경우
 	 */
 	public static LedgerType fromUrl(String urlCode) {
 		for( LedgerType type : values() ) {
@@ -68,7 +69,9 @@ public enum LedgerType {
 			}
 		}
 
-		throw createClientException(ErrorCode.LEDGER_TYPE_INVALID, "가계부 유형을 확인해주세요.", urlCode);
+		throw new IllegalArgumentException(
+				String.format("지원하지 않은 가계부 유형 (urlCode=%s)",urlCode)
+		);
 	}
 
 

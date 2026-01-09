@@ -1,9 +1,7 @@
 package com.moneymanager.domain.ledger.enums;
 
-import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
 
-import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 /**
  * <p>
@@ -70,9 +68,9 @@ public enum PaymentType {
 	private final String value;
 	private final String svg;
 
-	PaymentType(String label, String dbCode, String svg) {
+	PaymentType(String label, String value, String svg) {
 		this.label = label;
-		this.value = dbCode;
+		this.value = value;
 		this.svg = svg;
 	}
 
@@ -81,6 +79,8 @@ public enum PaymentType {
 			if(type.value.equalsIgnoreCase(code)) return type;
 		}
 
-		throw createClientException(ErrorCode.LEDGER_PAYMENT_FORMAT, "지원하지 않은 결제유형입니다.", code);
+		throw new IllegalArgumentException(
+				String.format("지원하지 않은 결제 유형 (code=%s)",code)
+		);
 	}
 }
