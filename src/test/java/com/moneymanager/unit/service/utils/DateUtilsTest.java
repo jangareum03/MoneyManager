@@ -45,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class DateUtilsTest {
 
-	//==================[ 📌getListByYearRange  ]==================
+	//==================[ 📌getYearsInRange  ]==================
 	@ParameterizedTest(name = "[{index}] start={0}, end={1} -> size={2}")
 	@CsvSource({
 			"2020, 2025, 6",
@@ -54,7 +54,7 @@ public class DateUtilsTest {
 	@DisplayName("연도 start와 end가 모두 1 이상이면 정상 동작한다.")
 	void 연도가_정상_범위이면_리스트를_반환(int start, int end, int expected){
 		//when
-		List<Integer> result = DateUtils.getListByYearRange(start, end);
+		List<Integer> result = DateUtils.getYearsInRange(start, end);
 
 		//then
 		assertThat(result)
@@ -71,7 +71,7 @@ public class DateUtilsTest {
 		int end = 2020;
 
 		//when
-		List<Integer> result = DateUtils.getListByYearRange(start, end);
+		List<Integer> result = DateUtils.getYearsInRange(start, end);
 
 		//then
 		assertThat(result)
@@ -93,7 +93,7 @@ public class DateUtilsTest {
 	void 연도가_0이하면_예외발생(int start, int end){
 		//when & then
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> DateUtils.getListByYearRange(start, end))
+				.isThrownBy(() -> DateUtils.getYearsInRange(start, end))
 				.withMessageContainingAll("연도", "0보다", String.valueOf(start));
 	}
 
@@ -106,12 +106,12 @@ public class DateUtilsTest {
 
 		//when & then
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> DateUtils.getListByYearRange(start, end))
+				.isThrownBy(() -> DateUtils.getYearsInRange(start, end))
 				.withMessageContainingAll("시작연도", "큽니다", String.valueOf(start));
 	}
 
 
-	//==================[ 📌getListByMonthRange  ]==================
+	//==================[ 📌getMonthsInRange  ]==================
 	@ParameterizedTest(name = "start={0}, end={1} -> size={2}")
 	@CsvSource({
 			"1, 12, 12",
@@ -121,7 +121,7 @@ public class DateUtilsTest {
 	@DisplayName("월 start와 end가 모두 1~12 범위 내이면 정상 동작한다.")
 	void 월이_정상_범위이면_리스트를_반환(int start, int end, int expected){
 		//when
-		List<Integer> result = DateUtils.getListByMonthRange(start, end);
+		List<Integer> result = DateUtils.getMonthsInRange(start, end);
 
 		//then
 		assertThat(result)
@@ -140,7 +140,7 @@ public class DateUtilsTest {
 	@DisplayName("월 start와 end가 같아도 정상 동작한다.")
 	void 월의_시작과_종료가_같아도_리스트_반환(int start, int end){
 		//when
-		List<Integer> result = DateUtils.getListByMonthRange(start, end);
+		List<Integer> result = DateUtils.getMonthsInRange(start, end);
 
 		//then
 		assertThat(result)
@@ -164,7 +164,7 @@ public class DateUtilsTest {
 	void 월이_1과_12사이_아니면_예외발생(int start, int end){
 		//when & then
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> DateUtils.getListByMonthRange(start, end))
+				.isThrownBy(() -> DateUtils.getMonthsInRange(start, end))
 				.withMessageContainingAll("월은", "사이여야");
 	}
 
@@ -177,18 +177,18 @@ public class DateUtilsTest {
 
 		//when & then
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> DateUtils.getListByMonthRange(start, end))
+				.isThrownBy(() -> DateUtils.getMonthsInRange(start, end))
 				.withMessageContainingAll("보다", "큽니다");
 	}
 
 
-	//==================[ 📌getListByDayRange  ]==================
+	//==================[ 📌getDaysInRange  ]==================
 	@ParameterizedTest(name = "[{index}] start={0}, end={1}")
 	@MethodSource("validDayRange")
 	@DisplayName("일 start와 end가 모두 1~31 범위 내이면 정상 동작한다.")
 	void 일이_정상_범위면_리스트를_반환(int start, int end){
 		//when
-		List<Integer> result = DateUtils.getListByDayRange(start, end);
+		List<Integer> result = DateUtils.getDaysInRange(start, end);
 
 		//then
 		assertThat(result)
@@ -213,7 +213,7 @@ public class DateUtilsTest {
 	void 일이_정상_범위를_벗어나면_예외발생(int start, int end){
 		//when & then
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> DateUtils.getListByDayRange(start, end))
+				.isThrownBy(() -> DateUtils.getDaysInRange(start, end))
 				.withMessageContainingAll("사이");
 	}
 
@@ -232,7 +232,7 @@ public class DateUtilsTest {
 	void 시작일이_종료일보다_크면_예외발생(int start, int end){
 		//when & then
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> DateUtils.getListByDayRange(start, end))
+				.isThrownBy(() -> DateUtils.getDaysInRange(start, end))
 				.withMessageContainingAll("보다");
 	}
 

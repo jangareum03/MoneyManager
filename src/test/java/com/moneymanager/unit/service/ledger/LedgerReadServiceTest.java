@@ -1,23 +1,33 @@
 package com.moneymanager.unit.service.ledger;
 
+import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
+import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.domain.ledger.enums.CategoryLevel;
+import com.moneymanager.domain.ledger.enums.FixedYN;
+import com.moneymanager.domain.ledger.enums.LedgerType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.LedgerRuleVO;
 import com.moneymanager.exception.custom.ServerException;
+import com.moneymanager.security.utils.SecurityUtil;
+import com.moneymanager.service.ledger.CategoryReadService;
 import com.moneymanager.service.ledger.LedgerReadService;
-import com.moneymanager.service.validation.LedgerValidator;
+import com.moneymanager.service.member.MemberReadService;
 import com.moneymanager.utils.DateUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
-import org.mockito.MockedStatic;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
@@ -54,25 +64,31 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class LedgerReadServiceTest {
 
-	@InjectMocks	private LedgerReadService service;
+	@InjectMocks
+	@Spy		private LedgerReadService service;
+
+	@Mock	private CategoryReadService categoryReadService;
+	@Mock	private SecurityUtil securityUtil;
+	@Mock	private MemberReadService memberReadService;
 
 
-	//==================[ 📌getInitialData  ]==================
+	//==================[ 📌getWriteStep1Data  ]==================
 	@ParameterizedTest(name = "[{index}] year={0}, month={1}, day={2}")
 	@MethodSource("validNowDate")
 	@DisplayName("가계부 초기 작성 데이터 조회 시 현재 기준 연/월/일 정보를 반환한다.")
 	void 가계부_초기작성에_필요한_데이터_반환(int year, int month, int day){
 		//given
-		Clock todayClock = Clock.fixed(
+		Clock clock = Clock.fixed(
 				LocalDate.of(year, month, day).atStartOfDay(ZoneId.systemDefault()).toInstant(),
 				ZoneId.systemDefault()
 		);
 
-		service = new LedgerReadService(todayClock);
-		int minYear = year - LedgerValidator.getPAST_YEAR();
+		LedgerReadService ledgerReadService = new LedgerReadService(clock, securityUtil, categoryReadService, memberReadService);
+
+		int minYear = year - LedgerRuleVO.instance.getMAX_YEAR_RANGE();
 
 		//when
-		LedgerWriteStep1Response result = service.getInitialData();
+		LedgerWriteStep1Response result = ledgerReadService.getWriteStep1Data();
 
 		//then
 		assertThat(result.getYears())
@@ -116,15 +132,79 @@ public class LedgerReadServiceTest {
 				ZoneId.systemDefault()
 		);
 
-		service = new LedgerReadService(clock);
+		LedgerReadService ledgerReadService = new LedgerReadService(clock, securityUtil, categoryReadService, memberReadService);
 
 		try(MockedStatic<DateUtils> mocked = mockStatic(DateUtils.class)) {
-			mocked.when(() -> DateUtils.getListByYearRange(anyInt(), anyInt()))
+			mocked.when(() -> DateUtils.getYearsInRange(anyInt(), anyInt()))
 					.thenThrow(new IllegalArgumentException("날짜 문제"));
 
 			//when & then
 			assertThatExceptionOfType(ServerException.class)
-					.isThrownBy(() -> service.getInitialData());
+					.isThrownBy(ledgerReadService::getWriteStep1Data);
 		}
 	}
+
+
+	//==================[ 📌getWriteStep2Data  ]==================
+	@ParameterizedTest(name = "[{index}] type={0}")
+	@EnumSource(LedgerType.class)
+	@DisplayName("가계부 유형 type에 따라 응답데이터가 반환된다.")
+	void 정상_흐름이면_작성_2단계_데이터_반환(LedgerType type){
+		//given
+		LocalDate date = LocalDate.of(2025, 8, 1);
+		List<CategoryResponse> mockCategories = List.of(
+				CategoryResponse.builder().code("010100").name("수입1").build(),
+				CategoryResponse.builder().code("010200").name("수입2").build(),
+				CategoryResponse.builder().code("010300").name("수입3").build()
+		);
+		List<Boolean> mockSlot = List.of(false, false, false);
+
+		when(categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE))
+				.thenReturn(mockCategories);
+
+		doReturn(mockSlot).when(service).fetchBooleanList();
+
+		//when
+		LedgerWriteStep2Response result = service.getWriteStep2Data(type, date);
+
+		//then
+		assertThat(result).isNotNull();
+		assertThat(result.getTitle()).isEqualTo("2025년 08월 01일 금요일");
+		assertThat(result.getType()).isSameAs(type);
+		assertThat(result.getCategories()).isEqualTo(mockCategories);
+		assertThat(result.getImageSlot()).isEqualTo(mockSlot);
+		assertThat(result.getFixed()).isEqualTo(List.of(FixedYN.values()));
+		assertThat(result.getPaymentTypes()).isEqualTo(List.of(PaymentType.values()));
+	}
+
+
+	//==================[ 📌fetchBooleanList  ]==================
+	@ParameterizedTest(name = "[{index}] limit={0}, expected={1}")
+	@MethodSource("validImageLimit")
+	@DisplayName("회원의 등록 가능한 개수별로 Boolean형 리스트를 반환한다.")
+	void 정상_흐름이면_리스트_반환(int limit, List<Boolean> expected){
+		//given
+		String memberId = "ok";
+
+		when(securityUtil.getMemberId()).thenReturn(memberId);
+		when(memberReadService.getImageLimit(memberId))
+				.thenReturn(limit);
+
+		//when
+		List<Boolean> result = service.fetchBooleanList();
+
+		//then
+		assertThat(result).isNotEmpty().hasSize(LedgerRuleVO.instance.getMAX_IMAGE_COUNT());
+		assertThat(result).isEqualTo(expected);
+	}
+
+	static Stream<Arguments> validImageLimit() {
+		return Stream.of(
+				Arguments.of(0, List.of(false, false, false)),
+				Arguments.of(1, List.of(true, false, false)),
+				Arguments.of(2, List.of(true, true, false)),
+				Arguments.of(3, List.of(true, true, true))
+		);
+	}
+
 }

@@ -98,14 +98,14 @@ public class LedgerController {
 		try {
 			ledgerType = LedgerType.fromUrl(type);
 		} catch (IllegalArgumentException e) {
-			LoggerUtil.logUserWarn(ErrorDTO.builder().errorCode(ErrorCode.LEDGER_TYPE_INVALID).errorId(this.getClass().getSimpleName()).message(e.getMessage()).build());
+			LoggerUtil.logUserWarn(ErrorDTO.builder().errorCode(ErrorCode.LEDGER_TYPE_INVALID).serviceName(this.getClass().getSimpleName()).message(e.getMessage()).build());
 			ledgerType = LedgerType.INCOME;
 		}
 
 		try {
 			localDate = DateFormatUtils.parse(date);
 		} catch (IllegalArgumentException e) {
-			LoggerUtil.logUserWarn(ErrorDTO.builder().errorCode(ErrorCode.LEDGER_DATE_FORMAT).errorId(this.getClass().getSimpleName()).message(e.getMessage()).build());
+			LoggerUtil.logUserWarn(ErrorDTO.builder().errorCode(ErrorCode.LEDGER_DATE_FORMAT).serviceName(this.getClass().getSimpleName()).message(e.getMessage()).build());
 			localDate = LocalDate.now();
 		}
 

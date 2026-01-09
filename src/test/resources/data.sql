@@ -23,29 +23,42 @@ INSERT INTO member_info(id, consecutive_days, image_limit, login_at) VALUES('UNn
 
 -- 카테고리
 INSERT INTO ledger_category VALUES('010000', NULL, '수입');
-INSERT INTO ledger_category VALUES('020000', NULL, '지출');
+
 INSERT INTO ledger_category VALUES('010100', '010000', '소득');
+INSERT INTO ledger_category VALUES('010200', '010000', '저축');
+INSERT INTO ledger_category VALUES('010300', '010000', '차입');
+
 INSERT INTO ledger_category VALUES('010101', '010100', '월급');
 INSERT INTO ledger_category VALUES('010102', '010100', '용돈');
 INSERT INTO ledger_category VALUES('010103', '010100', '알바');
-INSERT INTO ledger_category VALUES('010200', '010000', '저축');
 INSERT INTO ledger_category VALUES('010201', '010200', '예금만기');
 INSERT INTO ledger_category VALUES('010202', '010200', '적금만기');
-INSERT INTO ledger_category VALUES('010300', '010000', '차입');
 INSERT INTO ledger_category VALUES('010301', '010300', '빌린돈');
+
+INSERT INTO ledger_category VALUES('020000', NULL, '지출');
+
 INSERT INTO ledger_category VALUES('020100', '020000', '식비');
+INSERT INTO ledger_category VALUES('020200', '020000', '교통');
+INSERT INTO ledger_category VALUES('020300', '020000', '문화생활');
+INSERT INTO ledger_category VALUES('020400', '020000', '미용·패선');
+INSERT INTO ledger_category VALUES('020500', '020000', '교육');
+INSERT INTO ledger_category VALUES('020600', '020000', '주거');
+INSERT INTO ledger_category VALUES('020700', '020000', '통신');
+INSERT INTO ledger_category VALUES('020800', '020000', '의료');
+INSERT INTO ledger_category VALUES('020900', '020000', '저축');
+
 INSERT INTO ledger_category VALUES('020101', '020100', '식재료');
 INSERT INTO ledger_category VALUES('020102', '020100', '외식');
 INSERT INTO ledger_category VALUES('020103', '020100', '간식');
 INSERT INTO ledger_category VALUES('020104', '020100', '주류');
 INSERT INTO ledger_category VALUES('020105', '020100', '배달');
 INSERT INTO ledger_category VALUES('020106', '020100', '기타');
-INSERT INTO ledger_category VALUES('020200', '020000', '교통');
+
 INSERT INTO ledger_category VALUES('020201', '020200', '버스비');
 INSERT INTO ledger_category VALUES('020202', '020200', '택시비');
 INSERT INTO ledger_category VALUES('020203', '020200', '지하철');
 INSERT INTO ledger_category VALUES('020204', '020200', '기타');
-INSERT INTO ledger_category VALUES('020300', '020000', '문화생활');
+
 INSERT INTO ledger_category VALUES('020301', '020300', '영화');
 INSERT INTO ledger_category VALUES('020302', '020300', '뮤지컬');
 INSERT INTO ledger_category VALUES('020303', '020300', '전시회');
@@ -53,35 +66,35 @@ INSERT INTO ledger_category VALUES('020304', '020300', '도서');
 INSERT INTO ledger_category VALUES('020305', '020300', '스포츠');
 INSERT INTO ledger_category VALUES('020306', '020300', '여행');
 INSERT INTO ledger_category VALUES('020307', '020300', '기타');
-INSERT INTO ledger_category VALUES('020400', '020000', '미용·패선');
+
 INSERT INTO ledger_category VALUES('020401', '020400', '쇼핑');
 INSERT INTO ledger_category VALUES('020402', '020400', '미용실');
 INSERT INTO ledger_category VALUES('020403', '020400', '화장품');
 INSERT INTO ledger_category VALUES('020404', '020400', '기타');
-INSERT INTO ledger_category VALUES('020500', '020000', '교육');
+
 INSERT INTO ledger_category VALUES('020501', '020500', '학비');
 INSERT INTO ledger_category VALUES('020502', '020500', '학원비');
 INSERT INTO ledger_category VALUES('020503', '020500', '교과서·참고서');
 INSERT INTO ledger_category VALUES('020504', '020500', '인터넷강의');
 INSERT INTO ledger_category VALUES('020505', '020500', '기타');
-INSERT INTO ledger_category VALUES('020600', '020000', '주거');
+
 INSERT INTO ledger_category VALUES('020601', '020600', '월세·전세');
 INSERT INTO ledger_category VALUES('020602', '020600', '관리비');
 INSERT INTO ledger_category VALUES('020603', '020600', '수리비');
 INSERT INTO ledger_category VALUES('020604', '020600', '가구·집기');
 INSERT INTO ledger_category VALUES('020605', '020600', '기타');
-INSERT INTO ledger_category VALUES('020700', '020000', '통신');
+
 INSERT INTO ledger_category VALUES('020701', '020700', '인터넷');
 INSERT INTO ledger_category VALUES('020702', '020700', '휴대폰');
 INSERT INTO ledger_category VALUES('020703', '020700', 'TV');
 INSERT INTO ledger_category VALUES('020704', '020700', 'OTT');
 INSERT INTO ledger_category VALUES('020705', '020700', '기타');
-INSERT INTO ledger_category VALUES('020800', '020000', '의료');
+
 INSERT INTO ledger_category VALUES('020801', '020800', '병원');
 INSERT INTO ledger_category VALUES('020802', '020800', '약국');
 INSERT INTO ledger_category VALUES('020803', '020800', '건강식품');
 INSERT INTO ledger_category VALUES('020804', '020800', '기타');
-INSERT INTO ledger_category VALUES('020900', '020000', '저축');
+
 INSERT INTO ledger_category VALUES('020901', '020900', '예금');
 INSERT INTO ledger_category VALUES('020902', '020900', '적금');
 INSERT INTO ledger_category VALUES('020903', '020900', '보험');
