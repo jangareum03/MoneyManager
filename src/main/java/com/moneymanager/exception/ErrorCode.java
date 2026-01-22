@@ -48,19 +48,20 @@ public enum ErrorCode {
 	 * 가계부 에러 메시지
 	 */
 	LEDGER_THIS_MISSING("C030001","가계부 객체 누락"),
-	LEDGER_ID_MISSING("C030101", "가계부 번호 누락"),
-	LEDGER_ID_NONE("C030104", "가계부 번호 없음"),
+	LEDGER_CODE_MISSING("C030101", "가계부 코드 누락"),
+	LEDGER_CODE_NONE("C030104", "가계부 코드 없음"),
 	LEDGER_TYPE_INVALID("C030206", "가계부 유형 범위"),
-	LEDGER_DATE_MISSING("C030301", "가계부 날짜 누락"),
-	LEDGER_DATE_FORMAT("C030302", "가계부 날짜 형식"),
+	LEDGER_DATE_MISSING("C0303", "가계부 날짜 누락"),
+	LEDGER_DATE_LENGTH("C0303", "가계부 날짜 길이 오류 (8자 필수)"),
+	LEDGER_DATE_FORMAT("C030302", "가계부 날짜 형식 오류(형식: yyyyMMdd)"),
 	LEDGER_DATE_INVALID("C030306", "가계부 날짜 범위"),
 	LEDGER_FIX_MISSING("C030401", "가계부 고정 누락"),
 	LEDGER_FIX_FORMAT("C030402", "가계부 고정 형식"),
 	LEDGER_FIX_INVALID("C030406", "가계부 고정 범위"),
 	LEDGER_CATEGORY_MISSING("C030501", "가계부 카테고리 누락"),
-	LEDGER_CATEGORY_FORMAT("C030502", "가계부 카테고리 형식"),
+	LEDGER_CATEGORY_FORMAT("C030502", "가계부 카테고리 형식 오류(형식: 6자리 숫자)"),
 	LEDGER_CATEGORY_NONE("C030504", "가계부 카테고리 없음"),
-	LEDGER_CATEGORY_INVALID("C030506", "가계부 카테고리 범위"),
+	LEDGER_CATEGORY_INVALID("C030506", "가계부 카테고리 범위 벗어남"),
 	LEDGER_PRICE_MISSING("C030701", "가계부 금액 누락"),
 	LEDGER_PRICE_FORMAT("C030702", "가계부 금액 형식"),
 	LEDGER_PRICE_INVALID("C030706", "가계부 금액 범위"),
@@ -146,11 +147,11 @@ public enum ErrorCode {
 
 
 	private final String code;
-	private final String type;
+	private final String log;
 
-	ErrorCode(String code, String type) {
+	ErrorCode(String code, String log) {
 		this.code = code;
-		this.type = type;
+		this.log = log;
 	}
 
 

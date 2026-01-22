@@ -43,13 +43,4 @@ public class Place {
 	String name;					//장소명
 	String roadAddress;		//도로명 주소
 	String detailAddress;		//상세주소
-
-
-	@Builder
-	public Place(String placeName, String roadAddress, String detailAddress) {
-		this.name = placeName;
-		this.roadAddress = roadAddress;
-		this.detailAddress = detailAddress;
-	}
-
 }

@@ -133,9 +133,9 @@ CREATE TABLE member_point_log (
 -- 가계부
 CREATE TABLE ledger (
     id                                    NUMBER                     PRIMARY KEY,
-    code                                VARCHAR2(26)                                UNIQUE,
-    member_id                       VARCHAR2(8),
-    category_id                     VARCHAR2(6),
+    code                                VARCHAR2(26)         UNIQUE                         NOT NULL,
+    member_id                       VARCHAR2(8)          NOT NULL,
+    category_id                     VARCHAR2(6)         NOT NULL,
     fix                                    CHAR(1)                       DEFAULT 'N'                 NOT NULL,
     fix_cycle                         CHAR(1),
     transaction_date           VARCHAR2(8)             NOT NULL,
@@ -144,7 +144,7 @@ CREATE TABLE ledger (
     payment_type                CHAR(4)                      DEFAULT 'NONE'           NOT NULL,
     place_name                  VARCHAR2(100),
     road_address               VARCHAR2(300),
-    address                         VARCHAR2(300),
+    detail_address             VARCHAR2(300),
     created_at                  TIMESTAMP                   DEFAULT SYSDATE         NOT NULL,
     updated_at                 TIMESTAMP,
 

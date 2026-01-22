@@ -79,8 +79,6 @@ public enum PaymentType {
 			if(type.value.equalsIgnoreCase(code)) return type;
 		}
 
-		throw new IllegalArgumentException(
-				String.format("지원하지 않은 결제 유형 (code=%s)",code)
-		);
+		throw new IllegalArgumentException("가계부 결제유형 형식 오류	|	code=" + code);
 	}
 }

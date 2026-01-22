@@ -4,9 +4,7 @@ import com.moneymanager.domain.ledger.enums.FixedPeriod;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
-import com.moneymanager.domain.ledger.vo.FixedStatus;
 import com.moneymanager.domain.ledger.vo.Place;
-import com.moneymanager.utils.ValidationUtils;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -50,22 +48,20 @@ import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 @Builder
 @Getter
 public class Ledger {
-    private Long id;											//가계부 시스템 고유번호
-	private String code;									//가계부 서비스 고유번호
+    private Long id;											//가계부 번호
+	private String code;									//가계부 코드
     private String memberId;							//작성자(회원 고유번호)
-	private String date;									//날짜
+	private String date;									//거래 날짜
     private String category;							//카테고리 코드
-	private String memo;									//내용
+	private String memo;									//메모
 
 	private Long amount;								//금액
 	private PaymentType paymentType;			//금액 유형
 
-	private String placeName;							//장소명
-	private String roadAddress;						//기본주소
-	private String detailAddress;					//상세주소
+	private Place place;									//장소
 
-	private FixedYN fixed;								//고정여부
-	private FixedPeriod cycleType;					//고정주기
+	private FixedYN fix;								//고정여부
+	private FixedPeriod fixCycle;					//고정주기
 
 	private LocalDateTime createdAt;			//등록일
     private LocalDateTime updatedAt;			//수정일
@@ -82,16 +78,12 @@ public class Ledger {
 		}
 	}
 
-	public void updateFix(FixedStatus fixedStatus) {
-		if( cycleType != null ) {
-			FixedStatus entityFixed = new FixedStatus(true, cycleType);
-
-			if( entityFixed.equals(fixedStatus) ) return;
+	public void updateFixCycle(String fixCycle) {
+		if(isNullOrBlank(fixCycle)) {
+			throw new IllegalArgumentException("가계부 고정주기 없음");
 		}
 
-		this.fixed = fixedStatus.getFixed();
-		this.cycleType = fixedStatus.getPeriod();
-		this.updatedAt = LocalDateTime.now();
+		this.fixCycle = FixedPeriod.of(fixCycle);
 	}
 
 	public void updateAmount(AmountInfo amountInfo) {
@@ -101,18 +93,17 @@ public class Ledger {
 
 		this.amount = amountInfo.getAmount();
 		this.paymentType = amountInfo.getType();
-		this.updatedAt = LocalDateTime.now();
 	}
 
 	public void updatePlace(Place place) {
-		if( placeName != null && roadAddress != null ) {
-			if( place.equals(new Place(placeName, roadAddress, detailAddress)) ) return;
+		if(isNullOrBlank(place.getName()) && isNullOrBlank(place.getRoadAddress())) {
+			if( place.equals(this.place) ) return;
 		}
 
-		this.placeName = place.getPlaceName();
-		this.roadAddress = place.getRoadAddress();
-		this.detailAddress = place.getDetailAddress();
+		this.place = place;
+	}
 
+	public void updateTime() {
 		this.updatedAt = LocalDateTime.now();
 	}
 }

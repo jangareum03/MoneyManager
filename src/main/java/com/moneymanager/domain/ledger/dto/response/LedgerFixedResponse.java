@@ -1,7 +1,6 @@
 package com.moneymanager.domain.ledger.dto.response;
 
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.FixedYN;
 import lombok.Getter;
 
 /**
@@ -42,8 +41,8 @@ public class LedgerFixedResponse {
 	}
 
 	public static LedgerFixedResponse from(Ledger ledger) {
-		boolean isRepeat = ledger.getFixed().isFixed();
+		boolean isRepeat = ledger.getFix().isFixed();
 
-		return new LedgerFixedResponse( isRepeat, isRepeat ? ledger.getCycleType().getValue() : null );
+		return new LedgerFixedResponse( isRepeat, isRepeat ? ledger.getFixCycle().getValue() : null );
 	}
 }

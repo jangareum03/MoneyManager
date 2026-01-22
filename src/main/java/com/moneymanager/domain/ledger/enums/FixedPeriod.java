@@ -1,9 +1,8 @@
 package com.moneymanager.domain.ledger.enums;
 
-import com.moneymanager.exception.ErrorCode;
+
 import lombok.Getter;
 
-import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 /**
  * <p>
@@ -51,6 +50,6 @@ public enum FixedPeriod {
 			if(type.value.equalsIgnoreCase(value)) return type;
 		}
 
-		throw createClientException(ErrorCode.LEDGER_FIX_FORMAT, "지원하지 않은 고정주기 유형입니다.", value);
+		return null;
 	}
 }

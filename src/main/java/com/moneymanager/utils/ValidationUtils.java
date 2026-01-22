@@ -31,22 +31,22 @@ public class ValidationUtils {
 
 
 	/**
-	 *	주어진 문자열이 정규식 패턴과 일치하는지 확인합니다. <br>
+	 *	주어진 문자열이 정규식 패턴과 일치하지 않는지 확인합니다. <br>
 	 *	예를 들어, 숫자만 가능하다면:
 	 *	<pre>{@code
-	 *		boolean result = ValidationUtils.isMatchedPattern("111", "\\d");
+	 *		boolean result = ValidationUtils.isInvalidPattern("111", "\\d");
 	 *  }</pre>
 	 *
 	 * @param value			검사할 문자열
 	 * @param pattern		비교할 정규식 패턴
-	 * @return	문자열이 정규식과 일치하면 true, 아니면 false
+	 * @return	문자열이 유효하지 않은 경우 {@code ture}, 아니면 {@code false}
 	 */
-	public static boolean isMatchedPattern(String value, String pattern) {
+	public static boolean isInvalidPattern(String value, String pattern) {
 		if( isNullOrBlank(value) || isNullOrBlank(pattern) ) {
-			return false;
+			return true;
 		}
 
-		return value.matches(pattern);
+		return !value.matches(pattern);
 	}
 
 	/**

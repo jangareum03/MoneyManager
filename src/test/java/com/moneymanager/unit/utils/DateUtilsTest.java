@@ -1,4 +1,4 @@
-package com.moneymanager.unit.service.utils;
+package com.moneymanager.unit.utils;
 
 import com.moneymanager.utils.DateUtils;
 import org.junit.jupiter.api.DisplayName;
