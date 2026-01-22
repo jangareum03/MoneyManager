@@ -10,8 +10,6 @@ import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerUpdateWithFileRequest;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerGroupForCardResponse;
-import com.moneymanager.exception.ErrorCode;
-import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.LedgerService;
 import com.moneymanager.service.main.api.GoogleChartService;
@@ -23,8 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpSession;
 import java.time.YearMonth;
 import java.util.List;
-
-import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 
 /**
@@ -99,7 +95,7 @@ public class LedgerApiController {
 	 *     처리 과정:
 	 *     <ol>
 	 *         <li>클라이언트로부터 {@link CategoryRequest} 객체를 받습니다.</li>
-	 *         <li>{@link CategoryRequest}가 {@code null}이면 {@link ClientException} 을 발생시킵니다.</li>
+	 *         <li>{@link CategoryRequest}가 {@code null}이면 예외가 발생합니다.</li>
 	 *         <li>가계부 서비스의 {@code getCategoriesByCode()}를 호출하여 요청에 맞는 하위 카테고리 목록을 가져옵니다.</li>
 	 *         <li>조회한 결과를 JSON 형태로 클라리언트에게 전달합니다.</li>
 	 *     </ol>
@@ -110,11 +106,6 @@ public class LedgerApiController {
 	 */
 	@GetMapping("/category")
 	public List<CategoryResponse> postCategories(@RequestBody CategoryRequest request) {
-		//요청 정보가 없는 경우
-		if (request == null) {
-			throw createClientException(ErrorCode.LEDGER_CATEGORY_MISSING, "카테고리를 확인해주세요.");
-		}
-
 		return categoryService.getSubCategories(request);
 	}
 
@@ -181,13 +172,9 @@ public class LedgerApiController {
 		String memberId = (String)session.getAttribute("mid");
 		LedgerUpdateWithFileRequest update = LedgerUpdateWithFileRequest.builder().update(request).images(files).build();
 
-		try {
-			ledgerService.updateLedger(memberId, id, update);
+		ledgerService.updateLedger(memberId, id, update);
 
-			return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("수정 완료했습니다.").build());
-		} catch (ClientException e) {
-			return ResponseEntity.ok(ApiResultDTO.builder().success(false).message(e.getMessage()).build());
-		}
+		return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("수정 완료했습니다.").build());
 	}
 
 
@@ -201,12 +188,8 @@ public class LedgerApiController {
 	 */
 	@DeleteMapping
 	public ResponseEntity<ApiResultDTO> delete(@RequestBody List<Long> id, HttpSession session) {
-		try {
-			ledgerService.deleteLedger((String) session.getAttribute("mid"), id);
+		ledgerService.deleteLedger((String) session.getAttribute("mid"), id);
 
-			return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("선택하신 가계부를 삭제했습니다.").build());
-		} catch (ClientException e) {
-			return ResponseEntity.ok(ApiResultDTO.builder().success(false).message(e.getMessage()).build());
-		}
+		return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("선택하신 가계부를 삭제했습니다.").build());
 	}
 }

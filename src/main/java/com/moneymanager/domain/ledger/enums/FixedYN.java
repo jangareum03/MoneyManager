@@ -1,9 +1,6 @@
 package com.moneymanager.domain.ledger.enums;
 
-import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
-
-import static com.moneymanager.exception.ErrorUtil.createServerException;
 
 /**
  * <p>
@@ -50,7 +47,7 @@ public enum FixedYN {
 			if( fixed.value.equalsIgnoreCase(value) ) return fixed;
 		}
 
-		throw createServerException(ErrorCode.DATABASE_RESULT_INTERNAL, "DB값이 FixedYN에 유효하지 않습니다.", value);
+		return null;
 	}
 
 	public static FixedYN of(boolean fixed) {

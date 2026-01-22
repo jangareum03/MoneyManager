@@ -15,8 +15,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.exception.ErrorUtil.createServerException;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.service.ledger<br>
@@ -56,10 +54,9 @@ public class CategoryReadService {
 	 * <p>
 	 *     최초 호출 시 데이터베이스에서 카테고리 정보를 모두 조회하고,
 	 *     이후 호출부터는 캐시에 저장된 데이터를 반환합니다.
-	 *     데이터베이스 조회 결과가 비어있는 경우에는 {@link com.moneymanager.exception.custom.ServerException}이 발생합니다.
+	 *     데이터베이스 조회 결과가 비어있는 경우에는 예외가 발생합니다.
 	 * </p>
 	 * @return	전체 카테고리 정보를 담은 {@link Category} 리스트
-	 * @throws com.moneymanager.exception.custom.ServerException	카테고리 데이터가 없는 경우
 	 */
 	@Cacheable(
 			value = "category", key = "'ALL'",
@@ -70,12 +67,11 @@ public class CategoryReadService {
 
 		if( categories.isEmpty() ) {
 			ErrorDTO errorDTO = ErrorDTO.builder()
-					.errorCode(ErrorCode.DATABASE_RESULT_INTERNAL)
+					.errorCode(ErrorCode.DATABASE_RESULT_INTERNAL.getCode())
 					.serviceName(this.getClass().getSimpleName())
-					.message("DB에서 카테고리 데이터 없음")
+					.logMessage("DB에서 카테고리 데이터 없음")
 					.build();
 
-			throw createServerException(errorDTO, SystemMessage.DATABASE.getMessage());
 		}
 
 		return categories;

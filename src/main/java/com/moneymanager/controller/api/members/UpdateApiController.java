@@ -4,7 +4,6 @@ import com.moneymanager.domain.global.dto.ApiResultDTO;
 import com.moneymanager.domain.global.dto.ImageDTO;
 import com.moneymanager.domain.member.dto.MemberDeleteRequest;
 import com.moneymanager.domain.member.dto.MemberUpdateRequest;
-import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.ImageServiceImpl;
 import com.moneymanager.service.member.MemberServiceImpl;
 import org.apache.logging.log4j.LogManager;
@@ -68,15 +67,9 @@ public class UpdateApiController {
 	 */
 	@PatchMapping
 	public ResponseEntity<ApiResultDTO> updateInfo(@RequestBody MemberUpdateRequest.MemberInfo update, HttpSession session) {
-		try{
-			String result = memberService.changeMember( (String)session.getAttribute("mid"), update );
+		String result = memberService.changeMember( (String)session.getAttribute("mid"), update );
 
-			return ResponseEntity.ok( ApiResultDTO.builder().success(true).message(result).build() );
-		}catch ( ClientException e ) {
-			logger.debug("{} 회원의 정보가 수정 불가합니다.", (String)session.getAttribute("mid"));
-
-			return ResponseEntity.ok( ApiResultDTO.builder().success(false).message(e.getMessage()).build() );
-		}
+		return ResponseEntity.ok( ApiResultDTO.builder().success(true).message(result).build() );
 	}
 
 
@@ -125,12 +118,8 @@ public class UpdateApiController {
 	public ResponseEntity<ApiResultDTO> deleteMember(HttpSession session, @RequestBody MemberDeleteRequest delete ) {
 		String memberId = (String) session.getAttribute("mid");
 
-		try{
-			memberService.deleteMember( memberId, delete );
+		memberService.deleteMember( memberId, delete );
 
-			return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("탈퇴가 완료되었습니다.\n그동안 저희 서비스를 이용해주셔서 감사합니다. :)").build());
-		}catch ( ClientException e ) {
-			return ResponseEntity.ok( ApiResultDTO.builder().success(false).message(e.getMessage()).build() );
-		}
+		return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("탈퇴가 완료되었습니다.\n그동안 저희 서비스를 이용해주셔서 감사합니다. :)").build());
 	}
 }

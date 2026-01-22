@@ -110,13 +110,6 @@
             <AppenderRef ref="console" />
         </logger>
 
-        <Logger name="com.moneymanager.utils.LoggerUtil" level="debug" additivity="false">
-            <AppenderRef ref="console-debug"/>
-            <AppenderRef ref="warn-client"/>
-            <AppenderRef ref="system-info" />
-            <AppenderRef ref="error" />
-        </Logger>
-
         <Logger name="org.springframework.web" level="error" additivity="false">
             <AppenderRef ref="error" />
         </Logger>

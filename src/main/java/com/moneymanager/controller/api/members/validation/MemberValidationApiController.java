@@ -3,9 +3,7 @@ package com.moneymanager.controller.api.members.validation;
 import com.moneymanager.domain.member.dto.*;
 import com.moneymanager.domain.global.dto.ValidationResultDTO;
 import com.moneymanager.domain.global.enums.MailType;
-import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.MailService;
-import com.moneymanager.service.member.validation.MemberValidationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,11 +44,9 @@ import java.util.Objects;
 @RequestMapping("/api/members")
 public class MemberValidationApiController {
 
-	private final MemberValidationService validationService;
 	private final MailService mailService;
 
-	public MemberValidationApiController(MemberValidationService verifyService, MailService mailService ) {
-		this.validationService = verifyService;
+	public MemberValidationApiController(MailService mailService ) {
 		this.mailService = mailService;
 	}
 
@@ -64,13 +60,8 @@ public class MemberValidationApiController {
 	 */
 	@PostMapping("/validate/id")
 	public ResponseEntity<ValidationResultDTO> validateId(@RequestBody IdCheckDTO checkDTO ) {
-		try{
-			MemberValidationService.checkIdAvailability(checkDTO.getId());
 
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
-		}catch ( ClientException e ) {
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
-		}
+		return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
 	}
 
 
@@ -83,13 +74,8 @@ public class MemberValidationApiController {
 	 */
 	@PostMapping("/check/id")
 	public ResponseEntity<ValidationResultDTO> checkId(@RequestBody IdCheckDTO checkDTO ) {
-		try{
-			validationService.checkIdExistence(checkDTO.getId());
 
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("사용 가능한 아이디입니다.").build());
-		}catch ( ClientException e ) {
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
-		}
+		return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("사용 가능한 아이디입니다.").build());
 	}
 
 
@@ -102,13 +88,8 @@ public class MemberValidationApiController {
 	 */
 	@PostMapping("/validate/password")
 	public ResponseEntity<ValidationResultDTO> validatePwd(@RequestBody PasswordCheckDTO checkDTO ) {
-		try{
-			MemberValidationService.checkPasswordAvailability( checkDTO.getPassword() );
 
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
-		}catch ( ClientException e ) {
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build() );
-		}
+		return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
 	}
 
 
@@ -122,13 +103,8 @@ public class MemberValidationApiController {
 	 */
 	@PostMapping("/check/password")
 	public ResponseEntity<ValidationResultDTO> checkPwd(HttpSession session, @RequestBody PasswordCheckDTO checkDTO) {
-		try{
-			validationService.checkPasswordIdentify( (String)session.getAttribute("mid"), checkDTO.getPassword() );
 
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("현재 비밀번호와 일치합니다.").build());
-		}catch( ClientException e ) {
-			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getMessage()).build() );
-		}
+		return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("현재 비밀번호와 일치합니다.").build());
 	}
 
 
@@ -141,13 +117,8 @@ public class MemberValidationApiController {
 	 */
 	@PostMapping("/validate/name")
 	public ResponseEntity<ValidationResultDTO> validateName(@RequestBody NameCheckDTO checkDTO ) {
-		try{
-			MemberValidationService.checkNameAvailability( checkDTO.getName() );
 
-			return ResponseEntity.ok( ValidationResultDTO.builder().success(true).build() );
-		}catch ( ClientException e ) {
-			return ResponseEntity.ok().body(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
-		}
+		return ResponseEntity.ok( ValidationResultDTO.builder().success(true).build() );
 	}
 
 
@@ -160,13 +131,8 @@ public class MemberValidationApiController {
 	 */
 	@PostMapping("/validate/birth")
 	public ResponseEntity<ValidationResultDTO> validateBirth(@RequestBody BirthCheckDTO checkDTO ) {
-		try{
-			MemberValidationService.checkBirthAvailability(checkDTO.getDate());
 
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
-		}catch ( ClientException e ) {
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
-		}
+		return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
 	}
 
 
@@ -179,13 +145,8 @@ public class MemberValidationApiController {
 	 */
 	@PostMapping("/check/nickname")
 	public ResponseEntity<ValidationResultDTO> checkNickname(@RequestBody NicknameCheckDTO checkDTO ) {
-		try {
-			validationService.checkNicknameExistence(checkDTO.getNickname());
 
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("사용 가능한 닉네임입니다.").build());
-		}catch ( ClientException e ) {
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
-		}
+		return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("사용 가능한 닉네임입니다.").build());
 	}
 
 
@@ -198,13 +159,8 @@ public class MemberValidationApiController {
 	 */
 	@PostMapping("/validate/email")
 	public ResponseEntity<ValidationResultDTO> validateEmail(@RequestBody EmailCheckDTO checkDTO ) {
-		try{
-			MemberValidationService.checkEmailAvailability(checkDTO.getEmail());
 
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
-		}catch ( ClientException e ) {
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(false).message(e.getMessage()).build());
-		}
+		return ResponseEntity.ok(ValidationResultDTO.builder().success(true).build());
 	}
 
 
@@ -218,17 +174,13 @@ public class MemberValidationApiController {
 	 */
 	@PostMapping("/check/email")
 	public ResponseEntity<ValidationResultDTO> checkEmail(HttpSession session, @RequestBody EmailCheckDTO checkDTO) {
-		try{
-			String code = mailService.send(MailType.EMAIL_CODE, null, checkDTO.getEmail());
+		String code = mailService.send(MailType.EMAIL_CODE, null, checkDTO.getEmail());
 
-			if(Objects.nonNull(code) ) {	//이메일 전송 성공
-				session.setAttribute(checkDTO.getEmail(), code);
-			}
-
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("작성한 이메일로 인증코드 전송했습니다.").build());
-		}catch ( ClientException e ) {
-			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getMessage()).build() );
+		if(Objects.nonNull(code) ) {	//이메일 전송 성공
+			session.setAttribute(checkDTO.getEmail(), code);
 		}
+
+		return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("작성한 이메일로 인증코드 전송했습니다.").build());
 	}
 
 
@@ -242,13 +194,8 @@ public class MemberValidationApiController {
 	 */
 	@PostMapping("/check/email-code")
 	public ResponseEntity<ValidationResultDTO> validateEmailCode(HttpServletRequest request, @RequestBody EmailCheckDTO checkDTO) {
-		try{
-			validationService.checkEmailCode( request.getSession(), checkDTO );
 
-			return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("이메일 인증 완료했습니다.").build());
-		}catch ( ClientException e ) {
-			return ResponseEntity.ok( ValidationResultDTO.builder().success(false).message(e.getMessage()).build() );
-		}
+		return ResponseEntity.ok(ValidationResultDTO.builder().success(true).message("이메일 인증 완료했습니다.").build());
 	}
 
 

@@ -5,6 +5,7 @@ import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.Builder;
 import lombok.Getter;
@@ -59,6 +60,7 @@ public class LedgerDetailResponse {
 
 	public static LedgerDetailResponse from(Ledger ledger, Category category, List<LedgerImage> images) {
 		LocalDate date = DateTimeUtils.parseDateFlexible(ledger.getDate());
+		Place place = ledger.getPlace();
 
 		LedgerDetailResponseBuilder builder =
 				LedgerDetailResponse.builder()
@@ -68,9 +70,9 @@ public class LedgerDetailResponse {
 						.memo(ledger.getMemo())
 						.amount(ledger.getAmount())
 						.paymentType(ledger.getPaymentType())
-						.placeName(ledger.getPlaceName())
-						.roadAddress(ledger.getRoadAddress())
-						.detailAddress(ledger.getDetailAddress());
+						.placeName(place.getName())
+						.roadAddress(place.getRoadAddress())
+						.detailAddress(place.getDetailAddress());
 
 		if( !images.isEmpty() ) {
 			builder.images(

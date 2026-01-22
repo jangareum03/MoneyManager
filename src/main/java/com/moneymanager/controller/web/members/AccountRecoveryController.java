@@ -2,7 +2,6 @@ package com.moneymanager.controller.web.members;
 
 import com.moneymanager.domain.member.dto.MemberRecoveryRequest;
 import com.moneymanager.domain.member.dto.MemberRecoveryResponse;
-import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.MemberServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -80,14 +79,10 @@ public class AccountRecoveryController {
 	public String postId(MemberRecoveryRequest.Id findID, Model model ) {
 		String page = "/member/recovery_id_fail";
 
-		try{
-			MemberRecoveryResponse.Id result = memberService.findMaskedIdAndMessage( findID );
-			model.addAttribute("find", result );
+		MemberRecoveryResponse.Id result = memberService.findMaskedIdAndMessage( findID );
+		model.addAttribute("find", result );
 
-			page = "/member/recovery_id_success";
-		}catch ( ClientException e ) {
-			//logger.debug("아이디 찾기에 실패했습니다. ({}: {})", e.getErrorCode(), e.getMessage());
-		}
+		page = "/member/recovery_id_success";
 
 		return page;
 	}
@@ -121,15 +116,10 @@ public class AccountRecoveryController {
 	public String findPassword( HttpServletRequest request, MemberRecoveryRequest.Password findPwd, Model model ) {
 		String page = "/member/recovery_password_fail";
 
-		try{
-			MemberRecoveryResponse.Password email = memberService.recoverPassword( request, findPwd);
-			model.addAttribute("find", email);
+		MemberRecoveryResponse.Password email = memberService.recoverPassword( request, findPwd);
+		model.addAttribute("find", email);
 
-			page = "/member/recovery_password_success";
-		}catch ( ClientException e ) {
-			//logger.debug("비밀번호 찾기에 실패했습니다. ({}: {})", e.getErrorCode(), e.getMessage());
-		}
-
+		page = "/member/recovery_password_success";
 
 		return page;
 	}

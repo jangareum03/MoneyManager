@@ -14,13 +14,12 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 
-import static com.moneymanager.exception.ErrorUtil.createServerException;
 
 
 /**
  * <p>
  * 패키지이름    : com.moneymanager.service.main<br>
- * 파일이름       : FileService<br>
+ * 파일이름       : FileCommandService<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 12. 23.<br>
  * 설명              : 서버에서 관리할 파일들과 관련되 기능 클래스
@@ -142,19 +141,14 @@ public class FileService {
 	/**
 	 *	파일을 서버에 저장하기 위한 겹치지 않는 파일명을 생성합니다.
 	 *<p>
-	 *     파일 객체가 {@code null}이거나 원본 파일명이 없는 경우, {@link com.moneymanager.exception.custom.ServerException} 예외가 발생합니다.
+	 *     파일 객체가 {@code null}이거나 원본 파일명이 없는 경우, 예외가 발생합니다.
 	 *		파일명은 {@link UlidCreator}를 이용해 생성한 고유 식별자와 파일의 확장자를 조합하여 만들었습니다.
 	 * </p>
 	 *
 	 * @param file	서버에 저장할 파일
 	 * @return	고유 식별자와 확장자를 포함한 파일명
-	 * @throws com.moneymanager.exception.custom.ServerException	저장할 파일 정보가 유효하지 않은 경우
 	 */
 	public String buildFileName(MultipartFile file) {
-		if( file == null || file.getOriginalFilename() == null ) {
-			throw createServerException(ErrorCode.STORAGE_FILE_INTERNAL, "파일이 없습니다.");
-		}
-
 		return String.format("%s.%s", File.separatorChar + UlidCreator.getUlid().toString(), getExtension(file));
 	}
 
@@ -163,10 +157,6 @@ public class FileService {
 	private String getExtension(MultipartFile file){
 		String fileName = file.getOriginalFilename();
 		int index = fileName.lastIndexOf(".");
-
-		if( index < 0 ) {
-			throw createServerException(ErrorCode.STORAGE_FILE_INTERNAL, "확장자가 없는 파일입니다.");
-		}
 
 		return fileName.substring(index+1).toLowerCase();
 	}

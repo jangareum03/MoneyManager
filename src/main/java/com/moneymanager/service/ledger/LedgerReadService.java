@@ -22,8 +22,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.moneymanager.exception.ErrorUtil.createServerException;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.service.ledger<br>
@@ -80,40 +78,33 @@ public class LedgerReadService {
 	 *     </ul>
 	 *</p>
 	 * <p>
-	 *     날짜 계산 과정에서 유효하지 않은 값이 발생할 경우 시스템 로그를 기록하고, {@link com.moneymanager.exception.custom.ServerException} 예외가 발생합니다.
+	 *     날짜 계산 과정에서 유효하지 않은 값이 발생할 경우 시스템 로그를 기록하고, 예외가 발생합니다.
 	 * </p>
 	 *
 	 * @return	가계부 작성 1단계에 필요한 초기 데이터를 담은 {@link LedgerWriteStep1Response} 객체
 	 */
 	public LedgerWriteStep1Response getWriteStep1Data() {
 		LocalDate today = LocalDate.now(clock);
+		int pastYear = LedgerRuleVO.instance.MAX_YEAR_RANGE;
 
-		try{
-			int pastYear = LedgerRuleVO.instance.MAX_YEAR_RANGE;
+		//연도, 월, 일 리스트 구하기
+		List<Integer> years = DateUtils.getYearsInRange( today.minusYears(pastYear).getYear(), today.getYear() );
+		List<Integer> months = DateUtils.getMonthsInRange(1, today.getMonthValue());
+		List<Integer> days = DateUtils.getDaysInRange( 1, today.getDayOfMonth() );
 
-			//연도, 월, 일 리스트 구하기
-			List<Integer> years = DateUtils.getYearsInRange( today.minusYears(pastYear).getYear(), today.getYear() );
-			List<Integer> months = DateUtils.getMonthsInRange(1, today.getMonthValue());
-			List<Integer> days = DateUtils.getDaysInRange( 1, today.getDayOfMonth() );
+		//날짜를 문자열로 변환
+		String title = DateFormatUtils.formatKoreanDate(today);
 
-			//날짜를 문자열로 변환
-			String title = DateFormatUtils.formatKoreanDate(today);
-
-			return LedgerWriteStep1Response.builder()
-					.types(LedgerTypeResponse.fromEnum())
-					.years(years)
-					.months(months)
-					.days(days)
-					.currentYear(today.getYear())
-					.currentMonth(today.getMonthValue())
-					.currentDay(today.getDayOfMonth())
-					.displayDate(title)
-					.build();
-		}catch ( IllegalArgumentException e ) {
-			ErrorDTO errorDTO = ErrorDTO.builder().errorCode(ErrorCode.SYSTEM_LOGIC_INTERNAL).serviceName(this.getClass().getSimpleName()).message(e.getMessage()).build();
-
-			throw createServerException(errorDTO, SystemMessage.SYSTEM.getMessage());
-		}
+		return LedgerWriteStep1Response.builder()
+				.types(LedgerTypeResponse.fromEnum())
+				.years(years)
+				.months(months)
+				.days(days)
+				.currentYear(today.getYear())
+				.currentMonth(today.getMonthValue())
+				.currentDay(today.getDayOfMonth())
+				.displayDate(title)
+				.build();
 	}
 
 

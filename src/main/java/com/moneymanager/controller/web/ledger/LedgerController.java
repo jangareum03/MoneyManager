@@ -1,19 +1,16 @@
 package com.moneymanager.controller.web.ledger;
 
-import com.moneymanager.domain.global.dto.ErrorDTO;
+import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.exception.ErrorCode;
+import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.utils.DateFormatUtils;
-import com.moneymanager.utils.LoggerUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
@@ -50,6 +47,7 @@ import java.time.LocalDate;
 public class LedgerController {
 
 	private final LedgerReadService ledgerReadService;
+	private final LedgerCommandService ledgerCommandService;
 
 
 	/**
@@ -98,14 +96,12 @@ public class LedgerController {
 		try {
 			ledgerType = LedgerType.fromUrl(type);
 		} catch (IllegalArgumentException e) {
-			LoggerUtil.logUserWarn(ErrorDTO.builder().errorCode(ErrorCode.LEDGER_TYPE_INVALID).serviceName(this.getClass().getSimpleName()).message(e.getMessage()).build());
 			ledgerType = LedgerType.INCOME;
 		}
 
 		try {
 			localDate = DateFormatUtils.parse(date);
 		} catch (IllegalArgumentException e) {
-			LoggerUtil.logUserWarn(ErrorDTO.builder().errorCode(ErrorCode.LEDGER_DATE_FORMAT).serviceName(this.getClass().getSimpleName()).message(e.getMessage()).build());
 			localDate = LocalDate.now();
 		}
 
@@ -116,4 +112,11 @@ public class LedgerController {
 		return "/main/ledger_writeStep2";
 	}
 
+
+	@PostMapping
+	public String writeLedger(@ModelAttribute("ledger")LedgerWriteRequest request) {
+		ledgerCommandService.registerLedger(request);
+
+		return "redirect:/ledgers";
+	}
 }

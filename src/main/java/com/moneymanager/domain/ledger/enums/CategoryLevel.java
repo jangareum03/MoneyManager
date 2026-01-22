@@ -1,9 +1,8 @@
 package com.moneymanager.domain.ledger.enums;
 
-import com.moneymanager.exception.ErrorCode;
+
 import lombok.Getter;
 
-import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 /**
  * <p>
@@ -45,6 +44,6 @@ public enum CategoryLevel {
 			}
 		}
 
-		throw createClientException(ErrorCode.LEDGER_CATEGORY_INVALID, "지원하지 않은 카테고리 단계입니다.", level);
+		return null;
 	}
 }

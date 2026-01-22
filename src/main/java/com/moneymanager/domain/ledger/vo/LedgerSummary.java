@@ -2,12 +2,8 @@ package com.moneymanager.domain.ledger.vo;
 
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Value;
-
-import static com.moneymanager.exception.ErrorUtil.createClientException;
-import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 
 /**
  * <p>
@@ -47,14 +43,6 @@ public class LedgerSummary {
 
 	//Ledger 엔티티를 변환하는 정적 메서드
 	public static LedgerSummary from(Ledger ledger) {
-		if( ledger == null ) {
-			throw createClientException(ErrorCode.LEDGER_THIS_MISSING, "가계부 정보를 확인해주세요.", "Ledger");
-		}
-
-		if( isNullOrBlank(ledger.getCode()) ) {
-			throw createClientException(ErrorCode.LEDGER_ID_MISSING, "가계부 번호를 확인해주세요.");
-		}
-
 		return LedgerSummary.builder()
 				.id(ledger.getCode())
 				.type(LedgerType.fromCode(ledger.getCategory()))

@@ -1,11 +1,9 @@
 package com.moneymanager.controller.web.main;
 
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
-import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.enums.DateType;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.LedgerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
-import java.time.LocalDate;
 
 import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 
@@ -67,7 +64,7 @@ public class WriteController {
 	 *         <li>세션에서 로그인된 회원의 ID를 가져옵니다.</li>
 	 *         <li>서비스를 호출하여 가계부 상세 작성에 필요한 데이터를 조회합니다.</li>
 	 *         <li>조회된 데이터를 모델에 담아 작성 2단계 화면으로 이동합니다.</li>
-	 *         <li>처리 중 {@link ClientException} 예외가 발생하면, 1단계 화면으로 이동합니다.</li>
+	 *         <li>처리 중 예외가 발생하면, 1단계 화면으로 이동합니다.</li>
 	 *     </ol>
 	 * </p>
 	 *
@@ -81,17 +78,13 @@ public class WriteController {
 	public String getStep2Page( @PathVariable String type, @RequestParam(required = false) String date, HttpSession session, Model model ) {
 		if( isNullOrBlank(date) ) return "redirect:/ledgers/write";
 
-		try{
-			String memberId = (String) session.getAttribute("mid");
+		String memberId = (String) session.getAttribute("mid");
 
-			model.addAttribute("ledger", ledgerService.getWriteByData( memberId, type, date ));
-			model.addAttribute("defaultPaymentType", PaymentType.NONE.getValue());
-			model.addAttribute("defaultFix", FixedYN.VARIABLE.getValue());
+		model.addAttribute("ledger", ledgerService.getWriteByData( memberId, type, date ));
+		model.addAttribute("defaultPaymentType", PaymentType.NONE.getValue());
+		model.addAttribute("defaultFix", FixedYN.VARIABLE.getValue());
 
-			return "/main/ledger_writeStep2";
-		}catch ( ClientException e ) {
-			return "redirect:/ledgers/write";
-		}
+		return "/main/ledger_writeStep2";
 	}
 
 
@@ -121,15 +114,9 @@ public class WriteController {
 	public String postWrite(@ModelAttribute("ledger") LedgerWriteRequest create, HttpSession session, RedirectAttributes redirectAttributes ) {
 		String memberId = (String)session.getAttribute("mid");
 
-		try{
-			ledgerService.createLedger( memberId, create );
+		ledgerService.createLedger( memberId, create );
 
-			redirectAttributes.addAttribute("type", DateType.MONTH.name().toLowerCase());
-			return "redirect:/ledgers/list/{type}";
-		}catch ( ClientException  e ) {
-			redirectAttributes.addFlashAttribute("error", e.getMessage());
-
-			return "redirect:/ledgers/write";
-		}
+		redirectAttributes.addAttribute("type", DateType.MONTH.name().toLowerCase());
+		return "redirect:/ledgers/list/{type}";
 	}
 }

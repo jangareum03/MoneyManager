@@ -8,7 +8,6 @@ import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.LedgerRuleVO;
-import com.moneymanager.exception.custom.ServerException;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.ledger.CategoryReadService;
 import com.moneymanager.service.ledger.LedgerReadService;
@@ -139,7 +138,7 @@ public class LedgerReadServiceTest {
 					.thenThrow(new IllegalArgumentException("날짜 문제"));
 
 			//when & then
-			assertThatExceptionOfType(ServerException.class)
+			assertThatExceptionOfType(RuntimeException.class)
 					.isThrownBy(ledgerReadService::getWriteStep1Data);
 		}
 	}

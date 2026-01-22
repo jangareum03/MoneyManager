@@ -12,8 +12,6 @@ import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.ledger.vo.*;
-import com.moneymanager.exception.ErrorCode;
-import com.moneymanager.service.main.validation.DateScopeValidator;
 import com.moneymanager.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,7 +24,6 @@ import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.exception.ErrorUtil.createClientException;
 import static com.moneymanager.utils.DateTimeUtils.parseDateFlexible;
 import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
 
@@ -74,14 +71,12 @@ public class LedgerService {
 
 	private final CategoryService categoryService;
 	private final ImageServiceImpl imageService;
-	private final DateScopeValidator dateScopeValidator;
 
 	private final LedgerDao ledgerDAO;
 
-	public LedgerService(CategoryService categoryService, @Qualifier("ledgerImage") ImageServiceImpl imageService, DateScopeValidator dateScopeValidator, LedgerDao ledgerDAO) {
+	public LedgerService(CategoryService categoryService, @Qualifier("ledgerImage") ImageServiceImpl imageService,LedgerDao ledgerDAO) {
 		this.categoryService = categoryService;
 		this.imageService = imageService;
-		this.dateScopeValidator = dateScopeValidator;
 
 		this.ledgerDAO = ledgerDAO;
 	}
@@ -102,6 +97,7 @@ public class LedgerService {
 	 * @param date		가계부 날짜 문자열
 	 * @return	가계부 상세 작성 단계에 필요한 데이터를 담은 {@link LedgerWriteStep2Response} 객체
 	 */
+	@Deprecated
 	public LedgerWriteStep2Response getWriteByData(String id, String type, String date) {
 		//가계부 유형에 따른 카테고리 목록 조회
 		LedgerType ledgerType = LedgerType.fromUrl(type);
@@ -114,14 +110,7 @@ public class LedgerService {
 		//사용 가능한 이미지 슬롯 여부
 		List<Boolean> availableSlots = imageService.getImageSlots(id);
 
-		return LedgerWriteStep2Response.builder()
-				.title(DateTimeUtils.formatDateAsString(localDate, "yyyy년 MM월 dd일 E요일"))
-				.type(LedgerType.fromUrl(type))
-				.fixed(List.of(FixedYN.values()))
-				.categories(categories)
-				.paymentTypes(List.of(PaymentType.values()))
-				.imageSlot(availableSlots)
-				.build();
+		return null;
 	}
 
 
@@ -142,17 +131,14 @@ public class LedgerService {
 				.date(request.getDate())
 				.category(request.getCategory())
 				.memo(request.getMemo())
-				.fixed(FixedYN.of(request.isFixed()))
+				.fix(FixedYN.of(request.isFixed()))
 				.amount(request.getAmount())
 				.paymentType(PaymentType.of(request.getPaymentType()))
-				.placeName(request.getPlaceName())
-				.roadAddress(request.getRoadAddress())
-				.detailAddress(request.getDetailAddress())
 				.build();
 
 		if( request.isFixed() ) {
 			FixedStatus fixedStatus = new FixedStatus(true, FixedPeriod.of(request.getPeriod()));
-			ledger.updateFix( fixedStatus );
+			//ledger.changeFixCycle( fixedStatus );
 		}
 
 		if( !isNullOrBlank(request.getPlaceName()) && !isNullOrBlank(request.getRoadAddress()) ) {
@@ -259,7 +245,6 @@ public class LedgerService {
 	//DateScope VO 생성 및 검증
 	private DateScope createAndValidateScope(LedgerSearchRequest search) {
 		DateScope scope = createPeriod(search);
-		dateScopeValidator.validate(scope, search.getType());
 
 		return scope;
 	}
@@ -329,7 +314,7 @@ public class LedgerService {
 	 *	회원({@code memberId})이 작성한 가계부 상세 정보를 조회 후 반환합니다.
 	 *<p>
 	 *	가계부 번호({@code id})에 해당하는 가계부 상세 정보를 데이터베이스에서 조회 후 요청한 회원이 작성한 것인지 확인합니다.
-	 *	만약 작성자가 아니거나, 요청한 가계부 번호가 없다면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
+	 *	만약 작성자가 아니거나, 요청한 가계부 번호가 없다면 예외가 발생합니다.
 	 *</p>
 	 * 조회한 가계부 정보({@link Ledger})를 {@link LedgerDetailResponse} 객체로 변환 후 반환합니다.
 	 *
@@ -344,7 +329,7 @@ public class LedgerService {
 			Category category = ledgerAndCategory.getCategory();
 
 			if (!memberId.equals(ledger.getMemberId())) {
-				throw createClientException(ErrorCode.MEMBER_ID_MISMATCH, "작성자가 아닌 사용자는 해당 가계부에 접근이 불가능합니다.", memberId);
+				//TODO: 예외 던지기
 			}
 
 			//이미지 조회
@@ -353,7 +338,8 @@ public class LedgerService {
 
 			return LedgerDetailResponse.from(ledger, category, imageList);
 		}catch ( EmptyResultDataAccessException e ) {
-			throw createClientException(ErrorCode.LEDGER_ID_NONE, "존재하지 않는 가계부입니다.", id);
+			//TODO: 예외 던지기
+			return null;
 		}
 	}
 
@@ -361,7 +347,7 @@ public class LedgerService {
 	/**
 	 * 회원({@code memberId})이 수정할 가계부 상세 정보를 조회 후 반환합니다.
 	 * <p>
-	 *     수정할 가계부 정보를 데이터베이스에서 조회 후 요청한 회원이 작성한 것인지 확인합니다. 만약 작성자가 아니거나, 요청한 가계부 번호가 없다면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
+	 *     수정할 가계부 정보를 데이터베이스에서 조회 후 요청한 회원이 작성한 것인지 확인합니다. 만약 작성자가 아니거나, 요청한 가계부 번호가 없다면 예외가 발생합니다.
 	 *     조회한 가계부 정보({@link Ledger})를 가계부 수정 정보({@link LedgerEditResponse})에 맞게 변환 후 반환합니다.
 	 * </p>
 	 *
@@ -376,7 +362,7 @@ public class LedgerService {
 			Category category = ledgerAndCategory.getCategory();
 
 			if (!memberId.equals(ledger.getMemberId())) {
-				throw createClientException(ErrorCode.MEMBER_ID_MISMATCH, "작성자가 아닌 사용자는 해당 가계부에 접근이 불가능합니다.", memberId);
+				//TODO: 예외 던지기
 			}
 
 			List<CategoryResponse> categories = categoryService.getAncestorCategoriesByCode(category.getCode());
@@ -387,8 +373,10 @@ public class LedgerService {
 
 			return LedgerEditResponse.from(ledger, category, categories, imageList);
 		}catch ( EmptyResultDataAccessException e ) {
-			throw createClientException(ErrorCode.LEDGER_ID_NONE, "존재하지 않는 가계부입니다.", id);
+			//TODO: 예외 던지기
+			return null;
 		}
+
 	}
 
 
@@ -407,9 +395,9 @@ public class LedgerService {
 		//기존 Ledger 조회
 		Ledger ledger = ledgerDAO.findById(id);
 		if( ledger == null ) {
-			throw createClientException(ErrorCode.LEDGER_ID_NONE, "존재하지 않은 가계부입니다. 다시 확인해주세요.");
+			//TODO: 예외 던지기
 		}else if( !ledger.getMemberId().equals(memberId) ) {
-			throw createClientException(ErrorCode.MEMBER_ID_MISMATCH, "작성자가 아닌 사용자는 해당 가계부룰 수정할 수 없습니다.", memberId);
+			//TODO: 예외 던지기
 		}
 
 		boolean isUpdated = changeLedgerInfo( ledger, update.getUpdate() );
@@ -425,7 +413,7 @@ public class LedgerService {
 		FixedStatus fixed = new FixedStatus(updateLedger.isFixed(), updateLedger.getPeriod());
 
 		ledger.updateBasicInfo(updateLedger.getCategory(), updateLedger.getMemo());
-		ledger.updateFix(fixed);
+		//ledger.changeFixCycle(fixed);
 		ledger.updateAmount(amount);
 
 		//선택값 검증 후 수정

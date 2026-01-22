@@ -1,11 +1,8 @@
 package com.moneymanager.service.member;
 
 import com.moneymanager.dao.member.AttendanceDao;
-import com.moneymanager.domain.ledger.vo.YearMonthDayVO;
-import com.moneymanager.domain.ledger.vo.YearMonthVO;
 import com.moneymanager.domain.member.dto.MemberAttendanceResponse;
 import com.moneymanager.domain.member.Attendance;
-import com.moneymanager.exception.custom.ClientException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -71,108 +68,108 @@ public class AttendanceService {
 
 	private final Logger logger = LogManager.getLogger(this);
 
-
-	/**
-	 * 주어진 날짜에 맞춰 달력을 반환합니다.<p>
-	 * 달력은 일요일이 시작일이고 토요일이 끝일이며, 주의 빈 날짜는 null로 설정됩니다.<br>
-	 * 각 주는 List로 저장되며, 주의 각 날짜는 Integer로 저장됩니다.
-	 *
-	 * @param vo 	달력 날짜
-	 * @return 달력 날짜를 담은 리스트
-	 */
-	public List<List<Integer>> createCalendar(YearMonthVO vo) {
-		List<List<Integer>> resultList = new ArrayList<>();
-
-		/*
-			- start	: 달의 1일의 시작 요일	(1: 월요일 ~ 7:일요일)
-			- end	:	달의 마지막 일
-		*/
-		int start = vo.getFirstDate().get(ChronoField.DAY_OF_WEEK);
-		start = (start == 7) ? 0 : start;
-		int last = vo.getLastDate().lengthOfMonth();
-
-		//첫주 시작요일까지 빈칸 채우기
-		List<Integer> currentWeek = new ArrayList<>();
-		for (int i = 0; i < start; i++) {
-			currentWeek.add(null);
-		}
-
-		//날짜 채우기
-		for (int day = 1; day <= last; day++) {
-			currentWeek.add(day);
-
-			if (currentWeek.size() == 7) {
-				resultList.add(new ArrayList<>(currentWeek));
-				currentWeek.clear();
-			}
-		}
-
-		//마지막 주
-		if ((!currentWeek.isEmpty() && currentWeek.size() != 7)) {
-			while (currentWeek.size() < 7) {
-				currentWeek.add(null);
-			}
-			resultList.add(currentWeek);
-		}
-
-		return resultList;
-	}
-
-
-	/**
-	 * 회원({@code id})의 해당 연월({@link YearMonthDayVO})에 출석이 완료된 날짜들의 목록을 조회힙니다.
-	 * <p>
-	 *		내부적으로 해당 연월의 첫째날부터 마지막 날까지의 기간을 기준으로 출석 완료된 날짜 데이터를 조회합니다. <br>
-	 *		그 후, 출석한 날짜(=일자)만 문자열 리스트로 추출하여 {@link MemberAttendanceResponse}로 반환합니다. <br>
-	 *		예를 들어, N월의 1일부터 3일까지 출석이 완료되었다면 1, 2, 3을 리스트에 저장합니다.
-	 * </p>
-	 *
-	 *
-	 * @param id			 	회원 식별번호
-	 * @param vo     		완료된 출석 리스트를 조회하기 위한 날짜 객체
-	 * @return 출석 완료된 일자를 리스트로 담은 {@link MemberAttendanceResponse} 객체
-	 */
-	public MemberAttendanceResponse getDayByCompleteAttend(String id, YearMonthVO vo) {
-		//회원의 출석완료 리스트 조회
-		List<Attendance> entityList = attendanceDAO.findCompleteAttendBetweenDate(id, vo.getFirstDate(), vo.getLastDate());
-
-		List<String> dayList = entityList.stream()
-				.map(entity -> String.valueOf(entity.getAttendanceDate().getDayOfMonth()))
-				.collect(Collectors.toList());
-
-		return MemberAttendanceResponse.builder().dates(dayList).build();
-	}
-
-
-	/**
-	 * 회원<code>id</code>의 오늘 날짜로 출석을 등록합니다.
-	 * <p>
-	 *     이미 출석을 완료한 상태라면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다. <br>
-	 *     출석 완료 후 포인트룰 추가 후 연속 출석이라면 연속출석일에 1을 추가합니다.
-	 * </p>
-	 *
-	 * @param id 		회원 식별번호
-	 * @param vo     출석 진행할 날짜
-	 */
-	@Transactional
-	public void createAttendance(String id, YearMonthDayVO vo) {
-		validateToday(id, vo.getDate());
-		validateDuplication(id, vo.getDate());
-
-		//출석 저장 및 포인트 추가
-		int point = 5;
-		attendanceDAO.saveContinuousAttend(id);
-		pointService.addPointForAttendance(id, point);
-
-		//연속 출석
-		updateContinuousAttendance(id, vo.getDate().minusDays(1));
-	}
+//
+//	/**
+//	 * 주어진 날짜에 맞춰 달력을 반환합니다.<p>
+//	 * 달력은 일요일이 시작일이고 토요일이 끝일이며, 주의 빈 날짜는 null로 설정됩니다.<br>
+//	 * 각 주는 List로 저장되며, 주의 각 날짜는 Integer로 저장됩니다.
+//	 *
+//	 * @param vo 	달력 날짜
+//	 * @return 달력 날짜를 담은 리스트
+//	 */
+//	public List<List<Integer>> createCalendar(YearMonthVO vo) {
+//		List<List<Integer>> resultList = new ArrayList<>();
+//
+//		/*
+//			- start	: 달의 1일의 시작 요일	(1: 월요일 ~ 7:일요일)
+//			- end	:	달의 마지막 일
+//		*/
+//		int start = vo.getFirstDate().get(ChronoField.DAY_OF_WEEK);
+//		start = (start == 7) ? 0 : start;
+//		int last = vo.getLastDate().lengthOfMonth();
+//
+//		//첫주 시작요일까지 빈칸 채우기
+//		List<Integer> currentWeek = new ArrayList<>();
+//		for (int i = 0; i < start; i++) {
+//			currentWeek.add(null);
+//		}
+//
+//		//날짜 채우기
+//		for (int day = 1; day <= last; day++) {
+//			currentWeek.add(day);
+//
+//			if (currentWeek.size() == 7) {
+//				resultList.add(new ArrayList<>(currentWeek));
+//				currentWeek.clear();
+//			}
+//		}
+//
+//		//마지막 주
+//		if ((!currentWeek.isEmpty() && currentWeek.size() != 7)) {
+//			while (currentWeek.size() < 7) {
+//				currentWeek.add(null);
+//			}
+//			resultList.add(currentWeek);
+//		}
+//
+//		return resultList;
+//	}
+//
+//
+//	/**
+//	 * 회원({@code id})의 해당 연월({@link YearMonthDayVO})에 출석이 완료된 날짜들의 목록을 조회힙니다.
+//	 * <p>
+//	 *		내부적으로 해당 연월의 첫째날부터 마지막 날까지의 기간을 기준으로 출석 완료된 날짜 데이터를 조회합니다. <br>
+//	 *		그 후, 출석한 날짜(=일자)만 문자열 리스트로 추출하여 {@link MemberAttendanceResponse}로 반환합니다. <br>
+//	 *		예를 들어, N월의 1일부터 3일까지 출석이 완료되었다면 1, 2, 3을 리스트에 저장합니다.
+//	 * </p>
+//	 *
+//	 *
+//	 * @param id			 	회원 식별번호
+//	 * @param vo     		완료된 출석 리스트를 조회하기 위한 날짜 객체
+//	 * @return 출석 완료된 일자를 리스트로 담은 {@link MemberAttendanceResponse} 객체
+//	 */
+//	public MemberAttendanceResponse getDayByCompleteAttend(String id, YearMonthVO vo) {
+//		//회원의 출석완료 리스트 조회
+//		List<Attendance> entityList = attendanceDAO.findCompleteAttendBetweenDate(id, vo.getFirstDate(), vo.getLastDate());
+//
+//		List<String> dayList = entityList.stream()
+//				.map(entity -> String.valueOf(entity.getAttendanceDate().getDayOfMonth()))
+//				.collect(Collectors.toList());
+//
+//		return MemberAttendanceResponse.builder().dates(dayList).build();
+//	}
+//
+//
+//	/**
+//	 * 회원<code>id</code>의 오늘 날짜로 출석을 등록합니다.
+//	 * <p>
+//	 *     이미 출석을 완료한 상태라면 예외가 발생합니다. <br>
+//	 *     출석 완료 후 포인트룰 추가 후 연속 출석이라면 연속출석일에 1을 추가합니다.
+//	 * </p>
+//	 *
+//	 * @param id 		회원 식별번호
+//	 * @param vo     출석 진행할 날짜
+//	 */
+//	@Transactional
+//	public void createAttendance(String id, YearMonthDayVO vo) {
+//		validateToday(id, vo.getDate());
+//		validateDuplication(id, vo.getDate());
+//
+//		//출석 저장 및 포인트 추가
+//		int point = 5;
+//		attendanceDAO.saveContinuousAttend(id);
+//		pointService.addPointForAttendance(id, point);
+//
+//		//연속 출석
+//		updateContinuousAttendance(id, vo.getDate().minusDays(1));
+//	}
 
 
 	/**
 	 * 날짜(date)가 오늘인지 확인합니다.
 	 * <p>
-	 *     오늘 날짜가 아니라면 {@link ClientException}예외가 발생합니다.
+	 *     오늘 날짜가 아니라면 예외가 발생합니다.
 	 * </p>
 	 *
 	 * @param id			회원 식별번호
@@ -189,7 +186,7 @@ public class AttendanceService {
 	/**
 	 * 회원의 출석완료 리스트 중에서 날짜(date)가 있는지 확인합니다.
 	 * <p>
-	 *     날짜로 회원이 출석을 이미 완료했다면 {@link ClientException}예외가 발생합니다.
+	 *     날짜로 회원이 출석을 이미 완료했다면 예외가 발생합니다.
 	 * </p>
 	 *
 	 * @param id			회원 식별번호

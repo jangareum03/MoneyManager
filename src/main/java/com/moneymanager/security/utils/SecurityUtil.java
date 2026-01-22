@@ -1,14 +1,11 @@
 package com.moneymanager.security.utils;
 
 import com.moneymanager.domain.global.dto.ErrorDTO;
-import com.moneymanager.domain.global.enums.SystemMessage;
 import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.security.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-
-import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 /**
  * <p>
@@ -53,12 +50,10 @@ public class SecurityUtil {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if( auth == null || !(auth.getPrincipal() instanceof CustomUserDetails) ) {
 			ErrorDTO errorDTO = ErrorDTO.builder()
-					.errorCode(ErrorCode.COMMON_AUTHENTICATION_NONE)
+					.errorCode(ErrorCode.COMMON_AUTHENTICATION_NONE.getCode())
 					.serviceName(this.getClass().getSimpleName())
-					.message("인증 정보가 존재하지 않습니다.")
+					.logMessage("인증 정보가 존재하지 않습니다.")
 					.build();
-
-			throw createClientException(errorDTO, SystemMessage.SECURITY.getMessage());
 		}
 
 		return (CustomUserDetails) auth.getPrincipal();

@@ -4,7 +4,6 @@ import com.moneymanager.domain.global.dto.ApiResultDTO;
 import com.moneymanager.domain.sub.dto.InquiryAccessRequest;
 import com.moneymanager.domain.sub.dto.InquirySearchRequest;
 import com.moneymanager.domain.sub.dto.InquiryListResponse;
-import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.main.InquiryService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,13 +71,11 @@ public class InquiryApiController {
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<ApiResultDTO> delete(@PathVariable Long id, HttpSession session ) {
-		try{
-			inquiryService.deleteInquiry( (String)session.getAttribute("mid"), id );
 
-			return ResponseEntity.ok( ApiResultDTO.builder().success(true).message("문의사항을 삭제했습니다.").build() );
-		}catch ( ClientException e ) {
-			return ResponseEntity.ok( ApiResultDTO.builder().success(false).message(e.getMessage()).build() );
-		}
+		inquiryService.deleteInquiry( (String)session.getAttribute("mid"), id );
+
+		return ResponseEntity.ok( ApiResultDTO.builder().success(true).message("문의사항을 삭제했습니다.").build() );
+
 	}
 }
 

@@ -1,15 +1,9 @@
 package com.moneymanager.domain.ledger.vo;
 
-import com.moneymanager.domain.global.enums.RegexPattern;
 import com.moneymanager.exception.ErrorCode;
-import com.moneymanager.exception.custom.ClientException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
-
-import static com.moneymanager.domain.global.enums.RegexPattern.*;
-import static com.moneymanager.exception.ErrorUtil.createClientException;
-import static com.moneymanager.utils.ValidationUtils.*;
 
 /**
  * <p>
@@ -46,74 +40,16 @@ import static com.moneymanager.utils.ValidationUtils.*;
 @Value
 @Getter
 public class Place {
-	String placeName;			//장소명
+	String name;					//장소명
 	String roadAddress;		//도로명 주소
 	String detailAddress;		//상세주소
 
 
 	@Builder
 	public Place(String placeName, String roadAddress, String detailAddress) {
-		validatePlaceName(placeName);
-		validateAddress(roadAddress);
-
-		this.placeName = placeName;
+		this.name = placeName;
 		this.roadAddress = roadAddress;
 		this.detailAddress = detailAddress;
-	}
-
-
-	/**
-	 * 주어진 장소명 문자열이 유효한지 검증합니다.
-	 * <ul>
-	 *     <li>값이 비어있으면 검증 불가 → {@link ErrorCode#LEDGER_PLACE_MISSING}</li>
-	 *     <li>한글·숫자·영문자가 아니면 형식 오류 → {@link ErrorCode#LEDGER_PLACE_FORMAT}</li>
-	 * </ul>
-	 *
-	 * <p>
-	 *     예제 사용법:
-	 *     <pre>{@code
-	 *     	validatePlaceName("CGV 강남점");		//형식이 일치하여 통과
-	 *     	validatePlaceName("올리브영-A");		//특수문자(-)가 입력되어 예외 발생
-	 *     }</pre>
-	 * </p>
-	 *
-	 * @param placeName			검증할 장소 문자열
-	 * @throws ClientException	장소명 값이 없거나, 형식이 잘못된 경우 발생
-	 */
-	private void validatePlaceName(String placeName) {
-		if( isNullOrBlank(placeName) )	throw createClientException(ErrorCode.LEDGER_PLACE_MISSING, "장소명은 필수입니다.");
-
-		if(!isMatchedPattern(placeName, ADDRESS_PLACE_NAME.getPattern())) {
-			throw createClientException(ErrorCode.LEDGER_PLACE_FORMAT, "장소명은 한글, 숫자, 영문자만 입력 가능합니다.", placeName);
-		}
-	}
-
-
-
-	/**
-	 * 주어진 도로명 주소 문자열이 유효한지 검증합니다.
-	 * <ul>
-	 *     <li>값이 비어있으면 검증 불가 → {@link ErrorCode#LEDGER_PLACE_MISSING}</li>
-	 *     <li>한글·숫자·영문자·특수문자(·) 외의 문자가 포함되면 형식 오류 → {@link ErrorCode#LEDGER_PLACE_FORMAT}</li>
-	 * </ul>
-	 *
-	 * <p>
-	 *     예제 사용법:
-	 *     <pre>{@code
-	 *     	validateRoadAddress("서울 강남구 테헤란로 123");		//도로명주소 형식이 일치하여 통과
-	 *     	validateRoadAddress("강남구... 테헤란로");					//도로명주소 형식이 불일치하여 예외 발생
-	 *     }</pre>
-	 * </p>
-	 *
-	 * @param roadAddress			검증할 도로명 주소 문자열
-	 * @throws ClientException	값이 없거나 형식이 잘못된 경우 발생
-	 */
-	private void validateAddress(String roadAddress) {
-		if( isNullOrBlank(roadAddress) ) throw createClientException(ErrorCode.LEDGER_PLACE_MISSING, "도로명주소를 입력해주세요.");
-
-		if(!isMatchedPattern(roadAddress, RegexPattern.ADDRESS_ROAD_NAME.getPattern())) {
-			throw createClientException(ErrorCode.LEDGER_PLACE_FORMAT, "도로명주소는 한글, 숫자, 영문자, 특수문자(·)만 입력 가능합니다.", roadAddress);
-		}
 	}
 
 }

@@ -1,9 +1,7 @@
 package com.moneymanager.security;
 
 import com.moneymanager.security.jwt.JwtTokenProvider;
-import com.moneymanager.service.member.MemberServiceImpl;
 import com.moneymanager.service.member.TokenServiceImpl;
-import com.moneymanager.utils.LoggerUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -73,7 +71,6 @@ public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHand
 
 		response.addCookie(accessCookie);
 
-		LoggerUtil.logSystemInfo("로그인 성공 - 사용자ID: {}", tokenProvider.getUserName(accessToken));
 		response.sendRedirect("/attendance");
 	}
 

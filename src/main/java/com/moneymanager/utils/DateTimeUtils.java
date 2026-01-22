@@ -1,8 +1,6 @@
 package com.moneymanager.utils;
 
 
-import com.moneymanager.exception.ErrorCode;
-import com.moneymanager.exception.custom.ServerException;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -10,7 +8,6 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 
-import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 /**
  * <p>
@@ -72,7 +69,6 @@ public class DateTimeUtils {
 	 *
 	 * @param dateStr		해석할 날짜 문자열
 	 * @return	문자열을 분석하여 생성된 LocalDate 객체
-	 * @throws ServerException	지원하지 않는 날짜 형식인 경우 발생
 	 */
 	public static LocalDate parseDateFlexible(String dateStr) {
 		String[] patterns = {"yyyy-MM-dd", "yyyy/MM/dd", "yyyy년 MM월 dd일", "yyyyMMdd", "yyyy년 MM월 dd일 E요일"};
@@ -87,7 +83,7 @@ public class DateTimeUtils {
 			}
 		}
 
-		throw createClientException(ErrorCode.LEDGER_DATE_FORMAT, "지원하지 않은 날짜 형식입니다.", dateStr);
+		return null;
 	}
 
 

@@ -1,6 +1,5 @@
 package com.moneymanager.domain.global.dto;
 
-import com.moneymanager.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 import java.time.LocalDateTime;
@@ -48,9 +47,9 @@ public class ErrorDTO {
 	@Builder.Default
 	private String errorId = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + '-' + UUID.randomUUID().toString().substring(0, 8);
 	//에러코드
-	private ErrorCode errorCode;
+	private String errorCode;
 	//발생 요청
 	private String serviceName;
-	//메시지
-	private String message;
+	//로그 메시지
+	private String logMessage;
 }

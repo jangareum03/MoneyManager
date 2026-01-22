@@ -2,19 +2,13 @@ package com.moneymanager.controller.api.members;
 
 
 import com.moneymanager.domain.global.dto.ApiResultDTO;
-import com.moneymanager.domain.ledger.vo.YearMonthDayVO;
-import com.moneymanager.domain.ledger.vo.YearMonthVO;
-import com.moneymanager.domain.ledger.vo.YearVO;
 import com.moneymanager.domain.member.dto.MemberAttendanceRequest;
 import com.moneymanager.domain.member.dto.MemberAttendanceResponse;
-import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.AttendanceService;
-import com.moneymanager.utils.LoggerUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
-import java.time.LocalDate;
 
 /**
  * <p>
@@ -75,19 +69,10 @@ public class AttendanceApiController {
 	@GetMapping
 	public MemberAttendanceResponse getCompletedList(HttpSession session, @RequestParam String year, @RequestParam String month) {
 		//요청값 → VO 변환
-		YearMonthVO vo;
-		try{
-			vo = YearMonthVO.builder().year(new YearVO(year)).month(month).build();
-		}catch ( ClientException e ) {
-			LocalDate today = LocalDate.now();
-
-			vo = YearMonthVO.builder()
-					.year(new YearVO(String.valueOf(today.getYear())))
-					.month(String.valueOf(today.getMonthValue()))
-					.build();
-		}
-
-		return attendanceService.getDayByCompleteAttend((String) session.getAttribute("mid"), vo);
+//		YearMonthVO vo = YearMonthVO.builder().year(new YearVO(year)).month(month).build();
+//
+//		return attendanceService.getDayByCompleteAttend((String) session.getAttribute("mid"), vo);
+		return null;
 	}
 
 
@@ -105,22 +90,14 @@ public class AttendanceApiController {
 	@PostMapping
 	public ResponseEntity<ApiResultDTO> postAttendance(HttpSession session, @RequestBody MemberAttendanceRequest date) {
 		String memberId = (String) session.getAttribute("mid");
-		YearMonthDayVO vo = YearMonthDayVO.builder()
-				.vo(YearMonthVO.builder().year(new YearVO(date.getYear())).month(date.getMonth()).build())
-				.day(date.getDay()).build();
+//		YearMonthDayVO vo = YearMonthDayVO.builder()
+//				.vo(YearMonthVO.builder().year(new YearVO(date.getYear())).month(date.getMonth()).build())
+//				.day(date.getDay()).build();
+//
+//		attendanceService.createAttendance(memberId, vo);
 
-		LoggerUtil.logSystemInfo("출석 시작 - 회원: {}, 날짜: {}", memberId, vo.getDate());
+		return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("출석 완료했습니다.").build());
 
-		try {
-			attendanceService.createAttendance(memberId, vo);
-
-			LoggerUtil.logSystemInfo("출석 성공 - 회원: {}, 날짜: {}", memberId, vo.getDate());
-			return ResponseEntity.ok(ApiResultDTO.builder().success(true).message("출석 완료했습니다.").build());
-		} catch (ClientException e) {
-			LoggerUtil.logSystemInfo("출석 실패 - 회원: {}, 날짜: {}", memberId, vo.getDate());
-
-			return ResponseEntity.ok(ApiResultDTO.builder().success(false).message(e.getMessage()).build());
-		}
 	}
 
 

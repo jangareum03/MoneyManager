@@ -1,11 +1,8 @@
 package com.moneymanager.domain.ledger.vo;
 
 import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
 import lombok.Value;
-
-import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 /**
  * <p>
@@ -41,16 +38,7 @@ public class AmountInfo {
 	PaymentType type;
 
 	public AmountInfo(long amount, PaymentType type) {
-		validateAmount(amount);
-
 		this.amount = amount;
 		this.type = type;
-	}
-
-	//금액값이 유효한지 검증
-	private void validateAmount(long amount) {
-		if( amount <= 0 ) {	//금액이 0보다 작은 경우
-			throw createClientException(ErrorCode.LEDGER_PRICE_INVALID, "금액은 0보다 커야합니다.", amount);
-		}
 	}
 }

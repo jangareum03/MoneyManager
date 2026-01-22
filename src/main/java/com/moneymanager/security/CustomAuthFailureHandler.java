@@ -1,9 +1,6 @@
 package com.moneymanager.security;
 
-import com.moneymanager.domain.global.dto.ErrorDTO;
-import com.moneymanager.exception.custom.LoginException;
 import com.moneymanager.service.member.MemberServiceImpl;
-import com.moneymanager.utils.LoggerUtil;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
@@ -47,13 +44,6 @@ public class CustomAuthFailureHandler implements AuthenticationFailureHandler {
 
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-		LoginException loginException = (LoginException) exception;
-
-		ErrorDTO errorDTO = loginException.getErrorDTO();
-		request.getSession().setAttribute("error", errorDTO.getMessage());
-
-		LoggerUtil.logUserWarn(errorDTO);
-		LoggerUtil.logSystemInfo("로그인 실패 - 사용자ID: {}", request.getParameter("username") );
 		response.sendRedirect("/");
 	}
 }

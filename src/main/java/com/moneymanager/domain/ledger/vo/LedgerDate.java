@@ -1,12 +1,9 @@
 package com.moneymanager.domain.ledger.vo;
 
-import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
 import lombok.Value;
 
 import java.time.LocalDate;
-
-import static com.moneymanager.exception.ErrorUtil.createClientException;
 import static com.moneymanager.utils.DateTimeUtils.*;
 
 /**
@@ -43,23 +40,9 @@ public class LedgerDate {
 	LocalDate transactionDate;
 
 	public LedgerDate(String date) {
-		validateDate(date);
-
 		this.transactionDate = parseDateFlexible(date);
 	}
 
-
-	private void validateDate(String dateStr) {
-		if( dateStr == null || dateStr.isBlank() ) {	//날짜가 미입력된 경우
-			throw createClientException(ErrorCode.LEDGER_DATE_MISSING, "가계부 날짜는 필수입니다.");
-		}
-
-		String digits = extractDigits(dateStr);
-		if( digits.length() != 8 || digits.equals("00000000") ) {		//숫자로만 추출된 문자열 길이가 8이 아닌 경우
-			throw createClientException(ErrorCode.LEDGER_DATE_FORMAT, "가계부 날짜 형식이 올바르지 않습니다. (예: 20250101)");
-		}
-
-	}
 
 
 	/**

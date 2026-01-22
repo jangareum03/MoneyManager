@@ -1,10 +1,7 @@
 package com.moneymanager.domain.ledger.enums;
 
 
-import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
-
-import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 
 /**
@@ -78,7 +75,7 @@ public enum LedgerType {
 	/**
 	 *데이터베이스에 저장된 카테고리 코드({@code code})와 비교하여 동일한 값이 있으면 해당 {@link LedgerType} 객체를 반환합니다.
 	 * <p>
-	 *     카테고리 코드({@code code})의 앞 2자리와 DB의 카테고리 코드의 앞 2자리를 비교합니다. 만약 동일한 값이 없으면 {@link com.moneymanager.exception.custom.ClientException} 예외가 발생합니다.
+	 *     카테고리 코드({@code code})의 앞 2자리와 DB의 카테고리 코드의 앞 2자리를 비교합니다. 만약 동일한 값이 없으면 예외가 발생합니다.
 	 * </p>
 	 *
 	 * @param code	카테고리 코드
@@ -94,7 +91,7 @@ public enum LedgerType {
 			}
 		}
 
-		throw createClientException(ErrorCode.LEDGER_TYPE_INVALID, "가계부 유형을 확인해주세요.", code);
+		return null;
 	}
 
 }

@@ -1,10 +1,7 @@
 package com.moneymanager.domain.ledger.vo;
 
-import com.moneymanager.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Value;
-
-import static com.moneymanager.exception.ErrorUtil.createServerException;
 
 /**
  * <p>

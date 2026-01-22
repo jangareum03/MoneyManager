@@ -1,15 +1,12 @@
 package com.moneymanager.domain.ledger.vo;
 
 import com.moneymanager.domain.global.vo.DateGroupable;
-import com.moneymanager.exception.ErrorCode;
 import lombok.Getter;
 import lombok.Value;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
-
-import static com.moneymanager.exception.ErrorUtil.createClientException;
 
 /**
  * <p>
@@ -157,8 +154,6 @@ public class DateScope implements DateGroupable {
 	 * @return	지정한 연도로 구성된 DateScope 객체
 	 */
 	public static DateScope ofYear(int year) {
-		validateYear(year);
-
 		return new DateScope(year, null, null);
 	}
 
@@ -171,9 +166,6 @@ public class DateScope implements DateGroupable {
 	 * @return	지정한 연도와 월로 구성된 DateScope 객체
 	 */
 	public static DateScope ofYearMonth(int year, int month) {
-		validateYear(year);
-		validateMonth(month);
-
 		return new DateScope(year, month, null);
 	}
 
@@ -209,35 +201,9 @@ public class DateScope implements DateGroupable {
 	 * @return	주의 시작과 종료 요일을 지정하고 연도, 월, 주차로 구성된 {@link DateScope} 객체
 	 */
 	public static DateScope ofYearMonthWeek(int year, int month, int week, DayOfWeek startDay, DayOfWeek endDay) {
-		validateYear(year);
-		validateMonth(month);
-		validateWeek(week);
-
 		return new DateScope(year, month, week,startDay, endDay);
 	}
 
 
-	//주어진 연도가 1970 이상인지 확인
-	private static void validateYear(int year) {
-		if( year < 1970 ) {
-			throw createClientException(ErrorCode.LEDGER_DATE_INVALID, "연도는 1970년부터 가능합니다.", year);
-		}
-	}
-
-
-	//주어진 월이 0 < n <13 범위에 있는지 확인
-	private static void validateMonth(int month) {
-		if( !( 0 < month && month < 13) ) {
-			throw createClientException(ErrorCode.LEDGER_DATE_INVALID, "월은 1~12까지만 가능합니다.", month);
-		}
-	}
-
-
-	//주어진 주가 0 < n <7 범위에 있는지 확인
-	private static void validateWeek(int week) {
-		if( !(0 < week && week < 7) ) {
-			throw createClientException(ErrorCode.LEDGER_DATE_INVALID, "주는 1~6까지만 가능합니다.", week);
-		}
-	}
 
 }

@@ -1,8 +1,5 @@
 package com.moneymanager.controller.web.members;
 
-import com.moneymanager.domain.ledger.vo.YearMonthVO;
-import com.moneymanager.domain.ledger.vo.YearVO;
-import com.moneymanager.exception.custom.ClientException;
 import com.moneymanager.service.member.AttendanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -63,41 +60,25 @@ public class AttendanceController {
 	 * @param month					이동할 날짜 월
 	 * @return	홈 페이지
 	 */
-	@GetMapping("/attendance")
-	public String getAttendancePage( Model model, @RequestParam(required = false) String year, @RequestParam(required = false) String month ) {
-		YearMonthVO vo = null;
-
-		try{
-			vo = YearMonthVO.builder().year(new YearVO(year)).month(month).build();
-
-			//년도와 월이 현재와 동일한 지 확인
-			LocalDate today = LocalDate.now();
-			if( today.getYear() == vo.getYear() && today.getMonthValue() == vo.getMonth() ) {
-				model.addAttribute("today", today.getDayOfMonth());
-			}
-		}catch ( ClientException e ) {
-			//기본값(=오늘 날짜)으로 설정
-			LocalDate today = LocalDate.now();
-
-			vo = YearMonthVO.builder()
-							.year(new YearVO(year))
-									.month(month)
-											.build();
-
-			model.addAttribute("today", today.getDayOfMonth());
-		}
-
-
-		//달력 생성
-		List<List<Integer>> calendar = attendanceService.createCalendar( vo );
-
-		//사용자에게 전달할 정보
-		model.addAttribute("year", vo.getYear());
-		model.addAttribute("month", vo.getMonth());
-		model.addAttribute("calendar", calendar);
-
-		return "/main/home";
-	}
+//	@GetMapping("/attendance")
+//	public String getAttendancePage( Model model, @RequestParam(required = false) String year, @RequestParam(required = false) String month ) {
+//
+//		//년도와 월이 현재와 동일한 지 확인
+//		LocalDate today = LocalDate.now();
+//		if( today.getYear() == vo.getYear() && today.getMonthValue() == vo.getMonth() ) {
+//			model.addAttribute("today", today.getDayOfMonth());
+//		}
+//
+//		//달력 생성
+//		List<List<Integer>> calendar = attendanceService.createCalendar( vo );
+//
+//		//사용자에게 전달할 정보
+//		model.addAttribute("year", vo.getYear());
+//		model.addAttribute("month", vo.getMonth());
+//		model.addAttribute("calendar", calendar);
+//
+//		return "/main/home";
+//	}
 
 
 }

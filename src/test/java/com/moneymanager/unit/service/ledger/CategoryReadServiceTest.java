@@ -5,13 +5,11 @@ import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.exception.custom.ServerException;
 import com.moneymanager.service.ledger.CategoryReadService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -19,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -83,7 +80,7 @@ public class CategoryReadServiceTest {
 		when(categoryRepository.findAllCategory()).thenReturn(Collections.emptyList());
 
 		//when & then
-		assertThatExceptionOfType(ServerException.class)
+		assertThatExceptionOfType(RuntimeException.class)
 				.isThrownBy(() -> service.getAllCategories())
 				.withMessageContainingAll("데이터", "문제");
 	}

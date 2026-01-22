@@ -7,7 +7,6 @@ import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.vo.LedgerDate;
 import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.service.main.event.DeleteFileEvent;
-import com.moneymanager.service.main.validation.ImageValidator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +25,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.moneymanager.exception.ErrorUtil.createServerException;
 
 
 /**
@@ -75,7 +73,6 @@ import static com.moneymanager.exception.ErrorUtil.createServerException;
 public class ImageServiceImpl {
 
 	private final FileService fileService;
-	private final ImageValidator imageValidator;
 	private final MemberInfoDaoImpl memberInfoDao;
 	private final LedgerImageDao imageDao;
 	private final ApplicationEventPublisher	eventPublisher;
@@ -199,7 +196,7 @@ public class ImageServiceImpl {
 	/**
 	 *	가계부에 업로드된 이미지 파일들을 서버에 저장하고, 이미지 메타데이터를 데이터베이스에 모두 저장합니다.
 	 *<p>
-	 *     파일 저장 중 {@link IOException}이 발생하면, 이미 저장된 파일들을 모두 삭제하고 {@link com.moneymanager.exception.custom.ServerException} 예외를 발생시킵니다.
+	 *     파일 저장 중 {@link IOException}이 발생하면, 이미 저장된 파일들을 모두 삭제하고 예외를 발생시킵니다.
 	 *     데이터베이스 중 예외가 발생 시 트랜잭션은 롤백됩니다.
 	 *</p>
 	 *
@@ -214,7 +211,6 @@ public class ImageServiceImpl {
 
 		try{
 			for( MultipartFile multipartFile : files ) {
-				imageValidator.validate(multipartFile);
 
 				//서버에 저장할 파일명 변경(중복 방지)
 				String newName = fileService.buildFileName(multipartFile);
@@ -238,8 +234,6 @@ public class ImageServiceImpl {
 			imageDao.insertAll(newImages);
 		} catch (IOException e) {
 			for(File file : saveFiles ) if( file.exists() ) file.delete();
-
-			throw createServerException(ErrorCode.STORAGE_FILE_INTERNAL, "파일을 저장할 수 없습니다.", ledger.getId());
 		}
 	}
 

@@ -1,13 +1,7 @@
 package com.moneymanager.exception.handler;
 
-import com.moneymanager.exception.ErrorCode;
-import com.moneymanager.exception.custom.ClientException;
-import com.moneymanager.exception.custom.ServerException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 
 /**
  * <p>
@@ -39,19 +33,5 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-
-	@ExceptionHandler(ClientException.class)
-	public ResponseEntity<String> handleClientException(ClientException e) {
-		return ResponseEntity
-				.status(HttpStatus.BAD_REQUEST)
-				.body(e.getMessage());
-	}
-
-	@ExceptionHandler(ServerException.class)
-	public ResponseEntity<String> handleServerException(ServerException e) {
-		return ResponseEntity
-				.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요");
-	}
 
 }

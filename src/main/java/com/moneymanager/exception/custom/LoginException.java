@@ -42,7 +42,7 @@ public class LoginException extends AuthenticationException {
 	private final ErrorDTO errorDTO;
 
 	public LoginException( ErrorDTO errorDTO ) {
-		super(errorDTO.getMessage());
+		super(errorDTO.getLogMessage());
 
 		this.errorDTO = errorDTO;
 	}
