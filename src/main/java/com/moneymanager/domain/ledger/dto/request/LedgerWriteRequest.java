@@ -39,20 +39,25 @@ import java.util.List;
  */
 @Builder
 @Getter
-public class LedgerWriteRequest {
+public class LedgerWriteRequest implements LedgerImageRequest {
 	private String date;									//날짜
-	private String category;							//카테고리 코드
+	private String categoryCode;					//카테고리 코드
 	private String memo;									//메모
 
 	private boolean fixed;								//고정여부(true: 반복, false: 일회성)
-	private String period;								//반복주기
+	private String fixCycle;								//반복주기
 
 	private Long amount;								//금액
-	private String paymentType;						//금액 유형
+	private String amountType;						//금액 유형
 
 	private List<MultipartFile> image;			//이미지 리스트
 
 	private String placeName;							//장소명
 	private String roadAddress;						//기본주소
 	private String detailAddress;					//상세주소
+
+	@Override
+	public boolean hasImage() {
+		return image != null && !image.isEmpty();
+	}
 }
