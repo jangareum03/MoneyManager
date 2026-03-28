@@ -7,7 +7,7 @@ import lombok.Getter;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
- * 파일이름       : FixedPeriod<br>
+ * 파일이름       : FixCycle<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 11. 24.<br>
  * 설명              : 가계부 고정주기를 정의한 클래스
@@ -32,7 +32,7 @@ import lombok.Getter;
  * </table>
  */
 @Getter
-public enum FixedPeriod {
+public enum FixCycle {
 	WEEKLY("일주일", "W"),
 	MONTHLY("한달", "M"),
 	YEARLY("일년", "Y");
@@ -40,13 +40,13 @@ public enum FixedPeriod {
 	private final String label;
 	private final String value;
 
-	FixedPeriod(String label, String dbValue) {
+	FixCycle(String label, String dbValue) {
 		this.label = label;
 		this.value = dbValue;
 	}
 
-	public static FixedPeriod of(String value) {
-		for( FixedPeriod type : values() ) {
+	public static FixCycle of(String value) {
+		for( FixCycle type : values() ) {
 			if(type.value.equalsIgnoreCase(value)) return type;
 		}
 

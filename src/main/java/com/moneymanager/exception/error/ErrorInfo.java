@@ -1,4 +1,4 @@
-package com.moneymanager.domain.global.dto;
+package com.moneymanager.exception.error;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import java.util.UUID;
 /**
  * <p>
  * * 패키지이름    : com.areum.moneymanager.dto.common<br>
- * * 파일이름       : ErrorDTO<br>
+ * * 파일이름       : Error<br>
  * * 작성자          : areum Jang<br>
  * * 생성날짜       : 25. 7. 28.<br>
  * * 설명              : 에러 정보의 요청/ 응답을 위한 데이터 클래스
@@ -40,16 +40,26 @@ import java.util.UUID;
  * 		</tbody>
  * </table>
  */
-@Builder
+@Builder(toBuilder = true)
 @Getter
-public class ErrorDTO {
+public class Error {
 	//식별번호
-	@Builder.Default
-	private String errorId = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + '-' + UUID.randomUUID().toString().substring(0, 8);
+	private String errorId;
 	//에러코드
-	private String errorCode;
+	private ErrorCode errorCode;
 	//발생 요청
-	private String serviceName;
+	private ServiceAction service;
 	//로그 메시지
 	private String logMessage;
+	//안내 메시지
+	private String userMessage;
+
+	private static final DateTimeFormatter ERROR_DATE_FORMAT =
+			DateTimeFormatter.ofPattern("yyyyMMdd");
+
+	public static String createErrorId() {
+		return LocalDateTime.now().format(ERROR_DATE_FORMAT)
+					+ "-"
+					+ UUID.randomUUID().toString().substring(0, 8);
+	}
 }

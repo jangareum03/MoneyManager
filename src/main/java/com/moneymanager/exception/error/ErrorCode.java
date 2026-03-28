@@ -42,37 +42,38 @@ import lombok.Getter;
  */
 @Getter
 public enum ErrorCode {
-	COMMON_AUTHENTICATION_NONE("C990104", "인증정보 없음"),
-	MEMBER_ID_MISMATCH("C010105", "회원 아이디 불일치"),
+	COMMON_AUTHENTICATION_NONE("", "인증정보 없음"),
 	/**
 	 * 가계부 에러 메시지
 	 */
-	LEDGER_THIS_MISSING("C030001","가계부 객체 누락"),
-	LEDGER_CODE_MISSING("C030101", "가계부 코드 누락"),
-	LEDGER_CODE_NONE("C030104", "가계부 코드 없음"),
-	LEDGER_TYPE_INVALID("C030206", "가계부 유형 범위"),
-	LEDGER_DATE_MISSING("C0303", "가계부 날짜 누락"),
-	LEDGER_DATE_LENGTH("C0303", "가계부 날짜 길이 오류 (8자 필수)"),
-	LEDGER_DATE_FORMAT("C030302", "가계부 날짜 형식 오류(형식: yyyyMMdd)"),
-	LEDGER_DATE_INVALID("C030306", "가계부 날짜 범위"),
-	LEDGER_FIX_MISSING("C030401", "가계부 고정 누락"),
-	LEDGER_FIX_FORMAT("C030402", "가계부 고정 형식"),
-	LEDGER_FIX_INVALID("C030406", "가계부 고정 범위"),
-	LEDGER_CATEGORY_MISSING("C030501", "가계부 카테고리 누락"),
-	LEDGER_CATEGORY_FORMAT("C030502", "가계부 카테고리 형식 오류(형식: 6자리 숫자)"),
-	LEDGER_CATEGORY_NONE("C030504", "가계부 카테고리 없음"),
-	LEDGER_CATEGORY_INVALID("C030506", "가계부 카테고리 범위 벗어남"),
-	LEDGER_PRICE_MISSING("C030701", "가계부 금액 누락"),
-	LEDGER_PRICE_FORMAT("C030702", "가계부 금액 형식"),
-	LEDGER_PRICE_INVALID("C030706", "가계부 금액 범위"),
-	LEDGER_PAYMENT_MISSING("C030801", "가계부 금액유형 누락"),
-	LEDGER_PAYMENT_FORMAT("C030802", "가계부 금액유형 형식"),
-	LEDGER_PHOTO_MISSING("C030901", "가계부 사진 누락"),
-	LEDGER_PHOTO_CORRUPTED("C030908", "가계부 사진 손상"),
-	LEDGER_PHOTO_SUPPORTED("C030909", "가계부 사진 미지원"),
-	LEDGER_PHOTO_SIZE_EXCEEDED("C030909", "가계부 사진 크기 초과"),
-	LEDGER_PLACE_MISSING("C031001", "가계부 주소 누락"),
-	LEDGER_PLACE_FORMAT("C031002", "가계부 주소 형식"),
+	LEDGER_THIS_MISSING("C03","가계부 객체 누락"),
+	LEDGER_CODE_MISSING("C03", "가계부 코드 누락"),
+	LEDGER_CODE_NONE("C03", "가계부 코드 없음"),
+	LEDGER_TYPE_INVALID("C03", "가계부 유형 범위"),
+	LEDGER_DATE_MISSING("C03", "가계부 날짜 누락"),
+	LEDGER_DATE_FORMAT("C03", "가계부 날짜 형식 오류"),
+	LEDGER_DATE_INVALID("C03", "가계부 날짜 유효하지 않음"),
+	LEDGER_FIX_MISSING("C03", "가계부 고정 누락"),
+	LEDGER_FIX_FORMAT("C03", "가계부 고정 형식"),
+	LEDGER_FIX_INVALID("C03", "가계부 고정 범위"),
+	LEDGER_CYCLE_MISSING("C03", "가계부 고정주기 누락"),
+	LEDGER_CYCLE_INVALID("C03", "고정주기를 확인해주세요."),
+	LEDGER_CATEGORY_MISSING("C03", "가계부 카테고리 누락"),
+	LEDGER_CATEGORY_FORMAT("C03", "가계부 카테고리 형식 오류"),
+	LEDGER_CATEGORY_NONE("C03", "가계부 카테고리 없음"),
+	LEDGER_CATEGORY_INVALID("C03", "가계부 카테고리 유효하지 않음"),
+	LEDGER_MEMO_SIZE_EXCEEDED("C03", "가계부 메모 입력 초과"),
+	LEDGER_PRICE_MISSING("C03", "가계부 금액 누락"),
+	LEDGER_PRICE_FORMAT("C03", "가계부 금액 형식"),
+	LEDGER_PRICE_INVALID("C03", "가계부 금액 범위 초과"),
+	LEDGER_PAYMENT_MISSING("C03", "가계부 금액유형 누락"),
+	LEDGER_PAYMENT_INVALID("C03", "금액유형을 확인해주세요."),
+	LEDGER_PHOTO_MISSING("C03", "가계부 사진 누락"),
+	LEDGER_PHOTO_CORRUPTED("C03", "가계부 사진 손상"),
+	LEDGER_PHOTO_SUPPORTED("C03", "가계부 사진 미지원"),
+	LEDGER_PHOTO_SIZE_EXCEEDED("C03", "가계부 사진 크기 초과"),
+	LEDGER_PLACE_MISSING("C03", "가계부 주소 누락"),
+	LEDGER_PLACE_FORMAT("C03", "가계부 주소 형식 오류"),
 	/**
 	 * 시스템 에러 메시지
 	 */
@@ -147,11 +148,11 @@ public enum ErrorCode {
 
 
 	private final String code;
-	private final String log;
+	private final String userMessage;
 
-	ErrorCode(String code, String log) {
+	ErrorCode(String code, String userMessage) {
 		this.code = code;
-		this.log = log;
+		this.userMessage = userMessage;
 	}
 
 
