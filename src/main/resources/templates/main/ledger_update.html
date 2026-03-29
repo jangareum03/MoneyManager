@@ -23,7 +23,7 @@
                             </label>
                         </section>
                         <section th:if="${ledger.fixed.isFix}" class="form__input-box form__input-box--option">
-                            <label class="form__label" th:each="period : ${fixedPeriod}">
+                            <label class="form__label" th:each="period : ${FixCycle}">
                                 <input class="form__input form__input--radio" name="cycle" type="radio" th:value="${period.value}" th:checked="${period.value == ledger.fixed.period}">[[${period.label}]]
                             </label>
                         </section>

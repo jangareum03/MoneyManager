@@ -3,10 +3,10 @@ package com.moneymanager.domain.ledger.dto.response;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.domain.ledger.enums.AmountType;
 import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.Place;
-import com.moneymanager.utils.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtils;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -52,7 +52,7 @@ public class LedgerDetailResponse {
 	private List<String> images;							//가계부 사진
 
 	private Long amount;									//금액
-	private PaymentType paymentType;				//금액 유형
+	private AmountType paymentType;				//금액 유형
 
 	private String placeName;								//장소명
 	private String roadAddress;							//기본주소
@@ -69,7 +69,7 @@ public class LedgerDetailResponse {
 						.category(CategoryResponse.from(category))
 						.memo(ledger.getMemo())
 						.amount(ledger.getAmount())
-						.paymentType(ledger.getPaymentType())
+						.paymentType(ledger.getAmountType())
 						.placeName(place.getName())
 						.roadAddress(place.getRoadAddress())
 						.detailAddress(place.getDetailAddress());

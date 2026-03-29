@@ -1,7 +1,7 @@
 package com.moneymanager.domain.ledger.dto.request;
 
-import com.moneymanager.domain.ledger.enums.FixedPeriod;
-import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.enums.FixCycle;
+import com.moneymanager.domain.ledger.enums.AmountType;
 import lombok.*;
 
 
@@ -44,10 +44,10 @@ public class LedgerUpdateRequest {
 	private String memo;									//메모
 
 	private boolean fixed;								//가계부 고정여부
-	private FixedPeriod period;						//가계부 고정주기
+	private FixCycle period;						//가계부 고정주기
 
 	private Long amount;								//가격
-	private PaymentType paymentType;			//결제유형
+	private AmountType paymentType;			//결제유형
 
 	private String placeName;							//장소명
 	private String roadAddress;						//기본주소

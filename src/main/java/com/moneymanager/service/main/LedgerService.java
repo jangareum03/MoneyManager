@@ -12,7 +12,7 @@ import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.ledger.vo.*;
-import com.moneymanager.utils.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -24,8 +24,8 @@ import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.utils.DateTimeUtils.parseDateFlexible;
-import static com.moneymanager.utils.ValidationUtils.isNullOrBlank;
+import static com.moneymanager.utils.date.DateTimeUtils.parseDateFlexible;
+import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
 
 
 /**
@@ -129,15 +129,15 @@ public class LedgerService {
 		//요청DTO → Entity 변환
 		Ledger ledger = Ledger.builder()
 				.date(request.getDate())
-				.category(request.getCategory())
+				.category(request.getCategoryCode())
 				.memo(request.getMemo())
 				.fix(FixedYN.of(request.isFixed()))
 				.amount(request.getAmount())
-				.paymentType(PaymentType.of(request.getPaymentType()))
+				.amountType(AmountType.of(request.getAmountType()))
 				.build();
 
 		if( request.isFixed() ) {
-			FixedStatus fixedStatus = new FixedStatus(true, FixedPeriod.of(request.getPeriod()));
+			FixedStatus fixedStatus = new FixedStatus(true, FixCycle.of(request.getFixCycle()));
 			//ledger.changeFixCycle( fixedStatus );
 		}
 

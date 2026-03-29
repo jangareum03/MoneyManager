@@ -1,6 +1,6 @@
 package com.moneymanager.domain.ledger.vo;
 
-import com.moneymanager.domain.ledger.enums.FixedPeriod;
+import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import lombok.Getter;
 import lombok.Value;
@@ -41,9 +41,9 @@ import lombok.Value;
 @Getter
 public class FixedStatus {
 	FixedYN fixed;				//고정 여부
-	FixedPeriod period;		//고정 주기
+	FixCycle period;		//고정 주기
 
-	public FixedStatus(boolean fixed, FixedPeriod period) {
+	public FixedStatus(boolean fixed, FixCycle period) {
 		this.fixed = fixed ? FixedYN.REPEAT : FixedYN.VARIABLE;
 		this.period = period;
 	}

@@ -2,9 +2,9 @@ package com.moneymanager.dao.main;
 
 import com.moneymanager.domain.ledger.dto.LedgerCategoryDto;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.FixedPeriod;
+import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.global.dto.GoogleChartResponse;
 import com.moneymanager.domain.ledger.entity.Category;
@@ -122,7 +122,7 @@ public class LedgerDao {
 								stmt.setString(6, ledger.getDate());
 								stmt.setString(7, ledger.getMemo());
 								stmt.setLong(8, ledger.getAmount());
-								stmt.setString(9, ledger.getPaymentType().getValue());
+								stmt.setString(9, ledger.getAmountType().getValue());
 
 								Place place = ledger.getPlace();
 								stmt.setString(10, place.getName());
@@ -163,9 +163,9 @@ public class LedgerDao {
 
 					FixedYN fixedYN = FixedYN.of(fixed);
 
-					FixedPeriod cycleType = null;
+					FixCycle cycleType = null;
 					if( fixedYN.isFixed() ) {
-						cycleType = FixedPeriod.of(fixCycle);
+						cycleType = FixCycle.of(fixCycle);
 					}
 
 					return Ledger.builder()
@@ -178,7 +178,7 @@ public class LedgerDao {
 							.date(rs.getString("transaction_date"))
 							.memo(rs.getString("memo"))
 							.amount(rs.getLong("amount"))
-							.paymentType(PaymentType.of(rs.getString("payment_type")))
+							.amountType(AmountType.of(rs.getString("payment_type")))
 							.place(
 									new Place(rs.getString("place_name"), rs.getString("road_address"), rs.getString("address"))
 							)
@@ -220,7 +220,7 @@ public class LedgerDao {
 							.date(rs.getString("transaction_date"))
 							.memo(rs.getString("memo"))
 							.amount(rs.getLong("amount"))
-							.paymentType(PaymentType.of(rs.getString("payment_type")));
+							.amountType(AmountType.of(rs.getString("payment_type")));
 
 					if( rs.getString("place_name") != null ) {
 						ledger.place(
@@ -265,10 +265,10 @@ public class LedgerDao {
 							.memberId(rs.getString("member_id"))
 							.date(rs.getString("transaction_date"))
 							.fix(FixedYN.of(rs.getString("fix")))
-							.fixCycle(FixedPeriod.of(rs.getString("fix_cycle")))
+							.fixCycle(FixCycle.of(rs.getString("fix_cycle")))
 							.memo(rs.getString("memo"))
 							.amount(rs.getLong("amount"))
-							.paymentType(PaymentType.of(rs.getString("payment_type")));
+							.amountType(AmountType.of(rs.getString("payment_type")));
 
 					if( rs.getString("place_name") != null ) {
 						ledger.place(
@@ -360,7 +360,7 @@ public class LedgerDao {
 							.date(rs.getString("transaction_date"))
 							.memo(rs.getString("memo"))
 							.amount(rs.getLong("amount"))
-							.paymentType(PaymentType.of(rs.getString("payment_type")))
+							.amountType(AmountType.of(rs.getString("payment_type")))
 							.build();
 
 					Category category = Category.builder()
@@ -499,7 +499,7 @@ public class LedgerDao {
 
 		return jdbcTemplate.update(
 						query,
-						ledger.getCategory(), ledger.getFix().getValue(), ledger.getFixCycle().getValue(), ledger.getMemo(), ledger.getAmount(), ledger.getPaymentType().getValue(), place.getName(), place.getRoadAddress(), place.getDetailAddress(), ledger.getUpdatedAt(),
+						ledger.getCategory(), ledger.getFix().getValue(), ledger.getFixCycle().getValue(), ledger.getMemo(), ledger.getAmount(), ledger.getAmountType().getValue(), place.getName(), place.getRoadAddress(), place.getDetailAddress(), ledger.getUpdatedAt(),
 						ledger.getMemberId(), ledger.getCode()
 		);
 	}

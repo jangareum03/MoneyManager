@@ -3,6 +3,9 @@ package com.moneymanager.domain.ledger.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 
 /**
  * <p>
@@ -45,11 +48,19 @@ public enum FixCycle {
 		this.value = dbValue;
 	}
 
-	public static FixCycle of(String value) {
+	public static FixCycle of(String cycle) {
 		for( FixCycle type : values() ) {
-			if(type.value.equalsIgnoreCase(value)) return type;
+			if(type.value.equalsIgnoreCase(cycle)) return type;
 		}
 
-		return null;
+		throw new IllegalArgumentException(
+				"reason=허용값아님   |   field=fixCycle   |   allowedValues=" + allowedFixCycle() + "   |   value=" + cycle
+		);
+	}
+
+	private static String allowedFixCycle() {
+		return Arrays.stream(FixCycle.values())
+				.map(Enum::name)
+				.collect(Collectors.joining(", "));
 	}
 }
