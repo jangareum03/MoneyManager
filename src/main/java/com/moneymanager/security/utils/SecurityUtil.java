@@ -1,7 +1,7 @@
 package com.moneymanager.security.utils;
 
-import com.moneymanager.domain.global.dto.ErrorDTO;
-import com.moneymanager.exception.ErrorCode;
+import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.error.ErrorCode;
 import com.moneymanager.security.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,20 +43,39 @@ public class SecurityUtil {
 	 * @return	현재 사용자의 회원번호
 	 */
 	public String getMemberId() {
-		return getCurrentUser().getId();
-	}
-
-	private CustomUserDetails getCurrentUser(){
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if( auth == null || !(auth.getPrincipal() instanceof CustomUserDetails) ) {
-			ErrorDTO errorDTO = ErrorDTO.builder()
-					.errorCode(ErrorCode.COMMON_AUTHENTICATION_NONE.getCode())
-					.serviceName(this.getClass().getSimpleName())
-					.logMessage("인증 정보가 존재하지 않습니다.")
-					.build();
+		String memberId = getCurrentUser().getId();
+		if(memberId == null) {
+			throw BusinessException.of(
+					ErrorCode.MEMBER_AUTHORITY_UNAUTHORIZED,
+					"인증 실패했습니다. 다시 로그인해주세요.",
+					"회원 인증 실패   |   reason=사용자 ID 없음   |   object=CustomUserDetails   |   field=id   |   value=null"
+			);
 		}
 
-		return (CustomUserDetails) auth.getPrincipal();
+		return memberId;
 	}
 
+	//현재 사용자 정보 조회
+	private CustomUserDetails getCurrentUser(){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		if(auth == null) {
+			throw BusinessException.of(
+					ErrorCode.MEMBER_AUTHORITY_FAILED,
+					"인증 실패했습니다. 다시 로그인해주세요.",
+					"회원 인증 실패   |   reason=인증 객체 없음   |   object=SecurityContent   |   field=authentication   |   value=null"
+			);
+		}
+
+		Object principal = auth.getPrincipal();
+		if(!(principal instanceof CustomUserDetails)) {
+			throw BusinessException.of(
+					ErrorCode.MEMBER_AUTHORITY_FAILED,
+					"인증 정보가 올바르지 않습니다. 다시 로그인해주세요.",
+					"회원 인증 실패   |   reason=principal 타입 불일치   |   object=authentication   |   field=principal   |   value=" + principal
+			);
+		}
+
+		return (CustomUserDetails) principal;
+	}
 }

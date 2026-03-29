@@ -1,4 +1,4 @@
-package com.moneymanager.exception;
+package com.moneymanager.exception.error;
 
 import lombok.Getter;
 
@@ -42,135 +42,62 @@ import lombok.Getter;
  */
 @Getter
 public enum ErrorCode {
-	COMMON_AUTHENTICATION_NONE("", "인증정보 없음"),
 	/**
-	 * 가계부 에러 메시지
+	 * 회원 관련 오류
 	 */
-	LEDGER_THIS_MISSING("C03","가계부 객체 누락"),
-	LEDGER_CODE_MISSING("C03", "가계부 코드 누락"),
-	LEDGER_CODE_NONE("C03", "가계부 코드 없음"),
-	LEDGER_TYPE_INVALID("C03", "가계부 유형 범위"),
-	LEDGER_DATE_MISSING("C03", "가계부 날짜 누락"),
-	LEDGER_DATE_FORMAT("C03", "가계부 날짜 형식 오류"),
-	LEDGER_DATE_INVALID("C03", "가계부 날짜 유효하지 않음"),
-	LEDGER_FIX_MISSING("C03", "가계부 고정 누락"),
-	LEDGER_FIX_FORMAT("C03", "가계부 고정 형식"),
-	LEDGER_FIX_INVALID("C03", "가계부 고정 범위"),
-	LEDGER_CYCLE_MISSING("C03", "가계부 고정주기 누락"),
-	LEDGER_CYCLE_INVALID("C03", "고정주기를 확인해주세요."),
-	LEDGER_CATEGORY_MISSING("C03", "가계부 카테고리 누락"),
-	LEDGER_CATEGORY_FORMAT("C03", "가계부 카테고리 형식 오류"),
-	LEDGER_CATEGORY_NONE("C03", "가계부 카테고리 없음"),
-	LEDGER_CATEGORY_INVALID("C03", "가계부 카테고리 유효하지 않음"),
-	LEDGER_MEMO_SIZE_EXCEEDED("C03", "가계부 메모 입력 초과"),
-	LEDGER_PRICE_MISSING("C03", "가계부 금액 누락"),
-	LEDGER_PRICE_FORMAT("C03", "가계부 금액 형식"),
-	LEDGER_PRICE_INVALID("C03", "가계부 금액 범위 초과"),
-	LEDGER_PAYMENT_MISSING("C03", "가계부 금액유형 누락"),
-	LEDGER_PAYMENT_INVALID("C03", "금액유형을 확인해주세요."),
-	LEDGER_PHOTO_MISSING("C03", "가계부 사진 누락"),
-	LEDGER_PHOTO_CORRUPTED("C03", "가계부 사진 손상"),
-	LEDGER_PHOTO_SUPPORTED("C03", "가계부 사진 미지원"),
-	LEDGER_PHOTO_SIZE_EXCEEDED("C03", "가계부 사진 크기 초과"),
-	LEDGER_PLACE_MISSING("C03", "가계부 주소 누락"),
-	LEDGER_PLACE_FORMAT("C03", "가계부 주소 형식 오류"),
-	/**
-	 * 시스템 에러 메시지
-	 */
-	SYSTEM_LOGIC_INTERNAL("S010101", "시스템 내부 오류"),
-	DATABASE_RESULT_INTERNAL("S020401", "DB 결과 오류"),
-	STORAGE_FILE_INTERNAL("S040101", "파일 오류"),
-
+	MEMBER_AUTHORITY_UNAUTHORIZED("C-10-06-03", "인증 정보가 없습니다."),
+	MEMBER_AUTHORITY_FAILED("C-10-06-02", "인증 정보가 올바르지 않습니다."),
 
 
 	/**
-	 * 공통 에러메시지
+	 * 가계부 관련 오류
 	 */
-	COMMON_DATE_MISSING("C991001", "날짜 없음"),
-	COMMON_DATE_FORMAT("C991002", "날짜 형식 불일치"),
-	COMMON_YEAR_MISSING("C991101","년도 없음"),
-	COMMON_YEAR_FORMAT("C991102", "년도 형식 불일치"),
-	COMMON_YEAR_INVALID("C991103", "년도 범위 벗어남"),
-	COMMON_MONTH_MISSING("C991201","월 없음"),
-	COMMON_MONTH_FORMAT("C991202", "월 형식 불일치"),
-	COMMON_MONTH_FUTURE("C991203", "미래 월 입력"),
-	COMMON_WEEK_MISSING("C991301", "주 없음"),
-	COMMON_WEEK_FORMAT("C991302", "주 형식 불일치"),
-	COMMON_WEEK_INVALID("C991303", "주 범위 벗어남"),
-	COMMON_DAY_MISSING("C001401","일 없음"),
-	COMMON_DAY_FORMAT("C001402", "일 형식 불일치"),
-	COMMON_DAY_INVALID("C001403", "일 범위 벗어남"),
+	LEDGER_TARGET_NOT_FOUND("S-20-01-01", "찾을 수 없는 가계부입니다."),
+	LEDGER_TARGET_MISSING("S-20-01-02", "필요한 값이 없습니다."),
+	LEDGER_TARGET_FORMAT("S-20-01-04", "형식이 올바르지 않습니다."),
+	LEDGER_TARGET_RANGE("S-20-01-06", "범위가 벗어났습니다."),
 
-	COMMON_AMOUNT_MISSING("C992001", "금액 없음"),
-	COMMON_AMOUNT_FORMAT("C992002", "금액 형식 불일치"),
-	COMMON_AMOUNT_INVALID("C992003", "금액 범위 벗어남"),
+	LEDGER_INPUT_MISSING("C-20-02-01", "요청하신 가계부가 없습니다."),
+	LEDGER_INPUT_INVALID("C-20-02-02", "가계부 입력값이 올바르지 않습니다."),
+	LEDGER_INPUT_FORMAT("C-20-02-03", "가계부 입력 형식이 올바르지 않습니다."),
+	LEDGER_INPUT_RANGE("C-20-02-05", "가계부 입력 범위를 벗어났습니다."),
+	LEDGER_INPUT_LENGTH("C-20-02-06", "가계부 입력 길이가 초과했습니다."),
+	LEDGER_INPUT_NULL("C-20-02-07", "가계부 필수값이 없습니다."),
 
-	COMMON_FILE_MISSING("C994001", "파일 없음"),
-	COMMON_NAME_MISSING("C994101", "파일이름 없음"),
-	COMMON_EXTENSION_MISSING("C994201", "확장자 없음"),
-	COMMON_PATH_MISSING("C994301", "경로 없음"),
-	COMMON_SIZE_ZERO("C994401", "파일 크기 0"),
+	LEDGER_COLLISION_UNIQUE_CONSTRAINT("S-20-05-03", "가계부 등록할 수 없습니다. 입력한 정보를 다시 확안해주세요."),
+
+	LEDGER_POLICY_NOT_ALLOWED("S-20-07-03", "처리할 수 없는 가계부 작업입니다."),
+
+	LEDGER_ETC_DB_ERROR("S-20-09-02", "데이터베이스 관련 문제가 발생했습니다."),
+
 
 	/**
-	 * 회원 에러메시지
+	 * 파일 관련 오류
 	 */
-	MEMBER_ID_MISSING("C010101","아이디 미입력"),
-	MEMBER_ID_FORMAT("C010102", "아이디 형식 불일치"),
-	MEMBER_ID_DUPLICATE("C010103", "중복된 아이디"),
-	MEMBER_ID_NONE("C010104", "미가입한 아이디"),
-	MEMBER_PASSWORD_MISSING("C010201", "비밀번호 미입력"),
-	MEMBER_PASSWORD_FORMAT("C010202", "비밀번호 형식 불일치"),
-	MEMBER_PASSWORD_MISMATCH("C010205", "비밀번호 불일치"),
-	MEMBER_NAME_MISSING("C010501", "이름 미입력"),
-	MEMBER_NAME_FORMAT("C010502", "이름 형식 불일치"),
-	MEMBER_BIRTH_MISSING("C010601", "생년월일 미입력"),
-	MEMBER_BIRTH_FORMAT("C010602", "생년월일 형식 불일치"),
-	MEMBER_NICKNAME_MISSING("C010701", "닉네임 미입력"),
-	MEMBER_NICKNAME_FORMAT("C010702", "닉네임 형식 불일치"),
-	MEMBER_NICKNAME_DUPLICATE("C010703", "중복된 닉네임"),
-	MEMBER_EMAIL_MISSING("C010801", "이메일 미입력"),
-	MEMBER_EMAIL_FORMAT("C010802", "이메일 형식 불일치"),
-	MEMBER_EMAIL_DUPLICATE("C010803", "중복된 이메일"),
-	MEMBER_CODE_FORMAT("C010902","인증코드 형식 불일치"),
-	MEMBER_CODE_MISMATCH("C010905","인증코드 불일치"),
-	MEMBER_CODE_TIMEOUT("C010907", "인증코드 시간초과"),
-	MEMBER_STATUS_UNAUTHORIZED("C011521", "아이디와 비밀번호 불일치"),
-	MEMBER_STATUS_WITHDRAW_RECOVERABLE("C011523", "복구 가능한 계정으로 로그인 시도"),
-	MEMBER_STATUS_WITHDRAW_NONRECOVERABLE("C011524", "복구 불가능한 계정으로 로그인 시도"),
-	MEMBER_STATUS_LOCKED("C011525", "잠긴 계정으로 로그인 시도"),
-	MEMBER_STATUS_UNKNOWN("C011508", "알 수 없는 상태"),
+	FILE_TARGET_MISSING("S-50-01-02", "사용할 수 없는 파일입니다."),
+	FILE_TARGET_INVALID("S-50-01-03", "문제가 있는 파일입니다."),
 
-	/**
-	 * 시스템 에러메시지
-	 */
-	SYSTEM_CODE_NULL("S010401", "없는 에러코드");
+	FILE_INPUT_FORMAT("C-50-02-03", "파일 형식이 올바르지 않습니다."),
+	FILE_INPUT_TYPE("C-50-02-04", "파일 타입이 올바르지 않습니다."),
+	FILE_INPUT_EMPTY("C-50-02-08", "파일이 비어있습니다."),
+	FILE_INPUT_ETC("C-50-02-10", "파일이 잘못되었습니다."),
 
+	FILE_STATE_INVALID("S-50-04-01", "파일 상태가 잘못되었습니다."),
+
+	FILE_COLLISION_ALREADY_EXISTS("S-50-05-02", "이미 존재하는 파일입니다."),
+
+	FILE_POLICY_LIMIT_EXCEEDED("S-50-07-02", "허용하는 범위를 벗어난 파일입니다."),
+	FILE_POLICY_NOT_ALLOWED("S-50-07-03", "지원하지 않은 파일입니다."),
+
+	FILE_ETC_UNKNOWN("S-50-09-04", "알 수 없는 파일 오류입니다."),
+	FILE_ETC_RESOURCE_ERROR("S-50-09-10", "파일과 관련된 자원이 부족합니다.");
 
 
 	private final String code;
-	private final String userMessage;
+	private final String defaultMessage;
 
-	ErrorCode(String code, String userMessage) {
+	ErrorCode(String code, String defaultMessage) {
 		this.code = code;
-		this.userMessage = userMessage;
+		this.defaultMessage = defaultMessage;
 	}
-
-
-	/**
-	 * 에러코드 시작이 C인지 확인합니다.
-	 *
-	 * @return C로 시작하면 true, 아니면 false
-	 */
-	public boolean isClientError() {
-		return code.startsWith("C");
 	}
-
-	/**
-	 * 에러코드 시작이 S인지 확인합니다.
-	 *
-	 * @return S로 시작하면 true, 아니면 false
-	 */
-	public boolean isServerError() {
-		return code.startsWith("S");
-	}
-}

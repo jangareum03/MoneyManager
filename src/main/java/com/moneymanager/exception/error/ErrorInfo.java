@@ -9,7 +9,7 @@ import java.util.UUID;
 /**
  * <p>
  * * 패키지이름    : com.areum.moneymanager.dto.common<br>
- * * 파일이름       : Error<br>
+ * * 파일이름       : ErrorInfo<br>
  * * 작성자          : areum Jang<br>
  * * 생성날짜       : 25. 7. 28.<br>
  * * 설명              : 에러 정보의 요청/ 응답을 위한 데이터 클래스
@@ -42,9 +42,9 @@ import java.util.UUID;
  */
 @Builder(toBuilder = true)
 @Getter
-public class Error {
+public class ErrorInfo {
 	//식별번호
-	private String errorId;
+	private String traceId;
 	//에러코드
 	private ErrorCode errorCode;
 	//발생 요청

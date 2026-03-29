@@ -1,10 +1,9 @@
 package com.moneymanager.service.validation;
 
 
-import com.moneymanager.domain.global.dto.ErrorDTO;
+import com.moneymanager.exception.error.ErrorInfo;
 import com.moneymanager.domain.global.enums.RegexPattern;
-import com.moneymanager.exception.ErrorCode;
-import com.moneymanager.exception.custom.LoginException;
+import com.moneymanager.exception.client.LoginException;
 
 
 /**
@@ -48,7 +47,7 @@ public class MemberValidator {
 	 * @throws LoginException	유효하지 않은 아이디/비밀번호 입력한 경우 발생
 	 */
 	public static void validateLogin( String id, String password ) {
-		ErrorDTO errorDTO = validateId(id);
+		ErrorInfo errorDTO = validateId(id);
 
 		//아이디 검증 실패한 상태
 		if( errorDTO != null ) {
@@ -69,17 +68,17 @@ public class MemberValidator {
 	 * </p>
 	 *
 	 * @param id		검증할 회원의 아이디
-	 * @return 검증에 통과하면 <code>null</code>, 실패하면  {@link ErrorDTO}
+	 * @return 검증에 통과하면 <code>null</code>, 실패하면  {@link ErrorInfo}
 	 */
-	private static ErrorDTO validateId( String id ) {
-		ErrorDTO errorDTO = null;
+	private static ErrorInfo validateId(String id ) {
+		ErrorInfo errorDTO = null;
 
 		if( id == null || id.isBlank() ) {	//아이디 미입력한 경우
-			errorDTO = ErrorDTO.builder()
+			errorDTO = ErrorInfo.builder()
 					.logMessage("아이디를 입력해주세요.")
 					.build();
 		}else if( !id.matches(RegexPattern.MEMBER_ID.getPattern()) ) {	//아이디 형식 불일치한 경우
-			errorDTO = ErrorDTO.builder()
+			errorDTO = ErrorInfo.builder()
 					.logMessage("아이디는 4~15자 사이의 영어와 숫자만 입력 가능합니다.")
 					.build();
 		}
@@ -95,17 +94,17 @@ public class MemberValidator {
 	 * </p>
 	 *
 	 * @param password		검증할 회원의 비밀번호
-	 * @return 검증에 통과하면 <code>null</code>, 실패하면  {@link ErrorDTO}
+	 * @return 검증에 통과하면 <code>null</code>, 실패하면  {@link ErrorInfo}
 	 */
-	private static ErrorDTO validatePassword( String password ) {
-		ErrorDTO errorDTO = null;
+	private static ErrorInfo validatePassword(String password ) {
+		ErrorInfo errorDTO = null;
 
 		if( password == null || password.isBlank() ) {	//비밀번호 미입력한 경우
-			errorDTO = ErrorDTO.builder()
+			errorDTO = ErrorInfo.builder()
 					.logMessage("비밀번호를 입력해주세요.")
 					.build();
 		}else if( !password.matches(RegexPattern.MEMBER_PWD.getPattern()) ) {	//비밀번호 형식 불일치한 경우
-			errorDTO = ErrorDTO.builder()
+			errorDTO = ErrorInfo.builder()
 					.logMessage("비밀번호는 8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다.")
 					.build();
 		}
