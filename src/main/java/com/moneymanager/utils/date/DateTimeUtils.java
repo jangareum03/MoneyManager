@@ -1,12 +1,17 @@
-package com.moneymanager.utils;
+package com.moneymanager.utils.date;
 
 
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
 
 
 /**
@@ -43,43 +48,46 @@ import java.util.Date;
  */
 public class DateTimeUtils {
 
+	private static final List<DateTimeFormatter> DATE_TIME_FORMATTER_LIST = List.of(
+			DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT),
+			DateTimeFormatter.ofPattern("uuuu/MM/dd").withResolverStyle(ResolverStyle.STRICT),
+			DateTimeFormatter.ofPattern("uuuuMMdd").withResolverStyle(ResolverStyle.STRICT),
+			DateTimeFormatter.ofPattern("uuuu년 MM월 dd일", Locale.KOREAN).withResolverStyle(ResolverStyle.STRICT),
+			DateTimeFormatter.ofPattern("uuuu년 MM월 dd일 E요일", Locale.KOREAN).withResolverStyle(ResolverStyle.STRICT)
+	);
+
+
 	/**
-	 *	입력된 날짜 문자열을 여러 형식으로 해석하여 {@link LocalDate} 객체로 변환합니다.
+	 *	다양한 날짜 형식을 지원하여 문자열을 {@link LocalDate}로 반환합니다.
 	 *<p>
-	 * 지원하는 형식 중 하나라도 성공하면 해당 날짜를 반환합니다. 모든 형식이 실패할 경우 예외가 발생합니다.
-	 *
-	 *<ul>
-	 *     <li>지원하는 형식:</li>
-	 *     <ul>
-	 *         <li>"yyyy-MM-dd"</li>
-	 *         <li>"yyyy/MM/dd"</li>
-	 *         <li>"yyyy년 MM월 dd일"</li>
-	 *     </ul>
-	 *</ul>
+	 * 입력된 문자열을 날짜 포맷 목록({@code DATE_TIME_FORMATTER_LIST})으로 하니씩 파싱하며, 반환에 성공한 결과를 반환합니다.
+	 * 입력값이 {@code null}, 공백, 모든 포맷으로 반환에 실패하면 null을 반환합니다.
 	 *
 	 * <p>
 	 *     예제 사용법:
 	 *     <pre>{@code
-	 *     	parseDateFlexible("2025-11-07");		//LocalDate(2025-11-07) 반환
-	 *     	parseDateFlexible("2025/11/07");		//LocalDate(2025-11-07) 반환
-	 *     	parseDateFlexible("2025년 11월 7일");		//LocalDate(2025-11-07) 반환
-	 *     	parseDateFlexible("11-07-2025");		//지원하지 않은 형식이므로 예외 발생
+	 *     	parseDateFlexible("2025-11-07");		//결과: LocalDate(2025-11-07)
+	 *     	parseDateFlexible("2025/11/07");		//결과: LocalDate(2025-11-07)
+	 *     	parseDateFlexible("2025년 11월 7일");	//결과: LocalDate(2025-11-07)
+	 *     	parseDateFlexible("11-07-2025");		//결과: null
 	 *     }</pre>
 	 * </p>
 	 *
-	 * @param dateStr		해석할 날짜 문자열
-	 * @return	문자열을 분석하여 생성된 LocalDate 객체
+	 * @param dateStr		변환할 날짜 문자열
+	 * @return	변환된 {@link LocalDate}, 변환 실패 시 {@code null}
 	 */
 	public static LocalDate parseDateFlexible(String dateStr) {
-		String[] patterns = {"yyyy-MM-dd", "yyyy/MM/dd", "yyyy년 MM월 dd일", "yyyyMMdd", "yyyy년 MM월 dd일 E요일"};
+		if(isNullOrBlank(dateStr)) {
+			return null;
+		}
 
-		for( String pattern : patterns ) {
+		String trimmedDate = dateStr.trim();
+
+		for(DateTimeFormatter formatter : DATE_TIME_FORMATTER_LIST) {
 			try {
-				DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-
-				return LocalDate.parse(dateStr, formatter);
+				return LocalDate.parse(trimmedDate, formatter);
 			}catch (Exception e) {
-				//실패로 다음 패턴 진행
+				//다음 패턴 진행
 			}
 		}
 
@@ -99,25 +107,32 @@ public class DateTimeUtils {
 
 
 	/**
-	 * 특정 날짜가 시작일과 종료일 사이에 포함되는지 확인합니다.
+	 * 주어진 날짜가 시작일과 종료일 사이에 포함되는지 확인합니다.
 	 * <p>
-	 * 시작일과 종료일 자체도 포함됩니다. date가 startDate보다 빠르거나 endDate보다 늦으면 false를 반환합니다.
+	 * 시작일과 종료일 자체도 포함됩니다.
+	 * date가 startDate보다 빠르거나 endDate보다 늦으면 false를 반환합니다.
 	 *
 	 * <p>
 	 *     예제 사용법:
 	 *     <pre>{@code
-	 *     	isDateInRange(	LocalDate.of(2025, 5, 10),	LocalDate.of(2025, 5, 1),	LocalDate.of(2025, 5, 31));			//true
-	 *     	isDateInRange(	LocalDate.of(2025, 5, 10),	LocalDate.of(2025, 5, 1),	LocalDate.of(2025, 5, 31));			//true
+	 *     	isDateInRange(2026-01-10, 2026-01-01, 2026-01-31);	//true
+	 *     	isDateInRange(2026-01-01, 2026-01-01, 2026-01-31);	//true
+	 *     	isDateInRange(2026-01-31, 2026-01-01, 2026-01-31);	//true
+	 *     	isDateInRange(2025-12-31, 2026-01-01, 2026-01-31);		//false
 	 *     }</pre>
 	 * </p>
 	 *
 	 * @param date				확인할 날짜
-	 * @param startDate		범위 시작날짜
-	 * @param endDate		범위 종료날짜
+	 * @param startDate		범위 시작날짜 (시작일 포함)
+	 * @param endDate		범위 종료날짜 (종료일 포함)
 	 * @return	date가 범위 안에 있으면 true, 아니면 false
 	 */
 	public static boolean isDateInRange(LocalDate date, LocalDate startDate, LocalDate endDate) {
-		return (date.isEqual(startDate) || date.isAfter(startDate)) && (date.isEqual(endDate) || date.isBefore(endDate));
+		if(date == null || startDate == null || endDate == null) {
+			return false;
+		}
+
+		return !date.isBefore(startDate) && !date.isAfter(endDate);
 	}
 
 
