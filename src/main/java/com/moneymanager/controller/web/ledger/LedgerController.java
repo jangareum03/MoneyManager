@@ -6,7 +6,7 @@ import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
-import com.moneymanager.utils.date.DateFormatUtils;
+import com.moneymanager.utils.date.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -65,7 +65,7 @@ public class LedgerController {
 
 		model.addAttribute("ledger", response);
 
-		return "/main/ledger_writeStep1";
+		return "/ledger/ledger_writeStep1";
 	}
 
 
@@ -91,7 +91,6 @@ public class LedgerController {
 	@GetMapping("/new/step2")
 	public String writeStep2View(@RequestParam String type, @RequestParam String date, Model model) {
 		LedgerType ledgerType;
-		LocalDate localDate;
 
 		try {
 			ledgerType = LedgerType.fromUrl(type);
@@ -99,17 +98,14 @@ public class LedgerController {
 			ledgerType = LedgerType.INCOME;
 		}
 
-		try {
-			localDate = DateFormatUtils.parse(date);
-		} catch (IllegalArgumentException e) {
-			localDate = LocalDate.now();
-		}
+		LocalDate localDate = DateTimeUtils.parseDateFlexible(date);
+		if( localDate == null ) localDate = LocalDate.now();
 
 		LedgerWriteStep2Response response = ledgerReadService.getWriteStep2Data(ledgerType, localDate);
 
 		model.addAttribute("ledger", response);
 
-		return "/main/ledger_writeStep2";
+		return "/ledger/ledger_writeStep2";
 	}
 
 

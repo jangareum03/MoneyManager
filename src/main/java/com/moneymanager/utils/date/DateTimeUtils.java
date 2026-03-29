@@ -56,6 +56,8 @@ public class DateTimeUtils {
 			DateTimeFormatter.ofPattern("uuuu년 MM월 dd일 E요일", Locale.KOREAN).withResolverStyle(ResolverStyle.STRICT)
 	);
 
+	private static final String DEFAULT_DATE_PATTERN = "yyyy";
+
 
 	/**
 	 *	다양한 날짜 형식을 지원하여 문자열을 {@link LocalDate}로 반환합니다.
@@ -181,8 +183,8 @@ public class DateTimeUtils {
 	 *     <pre>{@code
 	 *     	LocalDate date = LocalDate.of(2025, 11, 5);
 	 *
-	 *     	formatDateAsString(date, "yyyy-MM-dd");			//"2025-11-05"
-	 *     	formatDateAsString(date, "yyyy년 MM월 dd일");	//"2025년 11월 05일"
+	 *     	formatDate(date, "yyyy-MM-dd");			//"2025-11-05"
+	 *     	formatDate(date, "yyyy년 MM월 dd일");	//"2025년 11월 05일"
 	 *     }</pre>
 	 * </p>
 	 *
@@ -190,7 +192,7 @@ public class DateTimeUtils {
 	 * @param pattern	변환할 문자열 패턴
 	 * @return	지정한 패턴으로 변환된 날짜 문자열
 	 */
-	public static String formatDateAsString(LocalDate date, String pattern) {
+	public static String formatDate(LocalDate date, String pattern) {
 		return date.format(DateTimeFormatter.ofPattern(pattern));
 	}
 

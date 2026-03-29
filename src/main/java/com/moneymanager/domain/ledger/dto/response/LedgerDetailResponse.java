@@ -1,5 +1,6 @@
 package com.moneymanager.domain.ledger.dto.response;
 
+import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
@@ -64,7 +65,7 @@ public class LedgerDetailResponse {
 
 		LedgerDetailResponseBuilder builder =
 				LedgerDetailResponse.builder()
-						.date(DateTimeUtils.formatDateAsString(date, "yyyy. MM. dd (E)"))
+						.date(DateTimeUtils.formatDate(date, DatePatterns.DATE_DOT_WITH_DAY.getPattern()))
 						.type(LedgerType.fromCode(category.getCode()))
 						.category(CategoryResponse.from(category))
 						.memo(ledger.getMemo())

@@ -1,6 +1,7 @@
 package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.LedgerDao;
+import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.ledger.dto.request.*;
 import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Category;
@@ -192,12 +193,12 @@ public class LedgerService {
 
 		switch (type) {
 			case YEAR:
-				return DateTimeUtils.formatDateAsString(date, "yyyy년");
+				return DateTimeUtils.formatDate(date, DatePatterns.KOREAN_YEAR.getPattern());
 			case WEEK:
-				return String.format("%s %s주", DateTimeUtils.formatDateAsString(date, "yyyy년 MM월"), scope.getWeek() );
+				return String.format("%s %s주", DateTimeUtils.formatDate(date, DatePatterns.KOREAN_YEAR_MONTH_WEEK.getPattern()), scope.getWeek() );
 			case MONTH:
 			default:
-				return DateTimeUtils.formatDateAsString(date, "yyyy년 MM월");
+				return DateTimeUtils.formatDate(date, DatePatterns.KOREAN_YEAR_MONTH.getPattern());
 		}
 	}
 

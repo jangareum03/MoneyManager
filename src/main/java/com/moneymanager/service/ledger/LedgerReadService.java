@@ -1,5 +1,6 @@
 package com.moneymanager.service.ledger;
 
+import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerTypeResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
@@ -9,7 +10,7 @@ import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.vo.LedgerRuleVO;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.member.MemberReadService;
-import com.moneymanager.utils.date.DateFormatUtils;
+import com.moneymanager.utils.date.DateTimeUtils;
 import com.moneymanager.utils.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -88,7 +89,7 @@ public class LedgerReadService {
 		List<Integer> days = DateUtils.getDaysInRange( 1, today.getDayOfMonth() );
 
 		//날짜를 문자열로 변환
-		String title = DateFormatUtils.formatKoreanDate(today);
+		String title = DateTimeUtils.formatDate(today, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
 
 		return LedgerWriteStep1Response.builder()
 				.types(LedgerTypeResponse.fromEnum())
@@ -123,7 +124,7 @@ public class LedgerReadService {
 		List<CategoryResponse> categories = categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE);
 
 		//제목 포맷 변환
-		String title = DateFormatUtils.formatKoreanDateWithDay(date);
+		String title = DateTimeUtils.formatDate(date, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
 
 		//회원별로 이미지 슬롯 조회
 		List<Boolean> imageSlot = fetchBooleanList();

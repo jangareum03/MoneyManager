@@ -1,6 +1,7 @@
 package com.moneymanager.domain.ledger.entity;
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
@@ -8,7 +9,7 @@ import com.moneymanager.domain.ledger.enums.AmountType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.exception.BusinessException;
-import com.moneymanager.utils.date.DateFormatUtils;
+import com.moneymanager.utils.date.DateTimeUtils;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -136,7 +137,7 @@ public class Ledger {
 		int maxYear = 5;
 
 		try{
-			LocalDate transDate = DateFormatUtils.parse(date);		//가계부 거래날짜
+			LocalDate transDate = DateTimeUtils.parseDateFlexible(date);		//가계부 거래날짜
 			LocalDate today = LocalDate.now();	//오늘날짜
 
 			LocalDate fiveYearsAgo = today.minusYears(maxYear);	//오늘 기준 5년 전
@@ -144,7 +145,7 @@ public class Ledger {
 				throw BusinessException.of(
 						LEDGER_INPUT_RANGE,
 						String.format("최근 %d년 이내에 날짜만 가능합니다.", maxYear),
-						String.format("가계부 검증 실패   |   reason=범위오류   |   field=date   |   min=%s   |   max=%s   |   value=%s", DateFormatUtils.formatYYYYMMDD(fiveYearsAgo), DateFormatUtils.formatYYYYMMDD(today), date)
+						String.format("가계부 검증 실패   |   reason=범위오류   |   field=date   |   min=%s   |   max=%s   |   value=%s", DateTimeUtils.formatDate(fiveYearsAgo, DatePatterns.DATE.getPattern()), DateTimeUtils.formatDate(today, DatePatterns.DATE.getPattern()), date)
 				);
 			}
 		}catch (DateTimeParseException e) {

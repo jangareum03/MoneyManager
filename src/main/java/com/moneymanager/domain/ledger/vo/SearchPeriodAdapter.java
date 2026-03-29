@@ -1,7 +1,8 @@
 package com.moneymanager.domain.ledger.vo;
 
+import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.global.vo.DateGroupable;
-import static com.moneymanager.utils.date.DateTimeUtils.formatDateAsString;
+import static com.moneymanager.utils.date.DateTimeUtils.formatDate;
 
 /**
  * <p>
@@ -39,8 +40,8 @@ public class SearchPeriodAdapter {
 	}
 
 	public SearchPeriod toSearchPeriod() {
-		String start = formatDateAsString(dateScope.getStartDate(), "yyyyMMdd");
-		String end = formatDateAsString(dateScope.getEndDate(), "yyyyMMdd");
+		String start = formatDate(dateScope.getStartDate(), DatePatterns.DATE.getPattern());
+		String end = formatDate(dateScope.getEndDate(), DatePatterns.DATE.getPattern());
 
 		return new SearchPeriod(start, end);
 	}
