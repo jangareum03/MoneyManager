@@ -1,5 +1,6 @@
 package com.moneymanager.service.ledger;
 
+import com.moneymanager.domain.global.Policy;
 import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerTypeResponse;
@@ -7,7 +8,7 @@ import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.domain.ledger.vo.LedgerRuleVO;
+import com.moneymanager.domain.ledger.vo.DateRange;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.member.MemberReadService;
 import com.moneymanager.utils.date.DateTimeUtils;
@@ -81,10 +82,10 @@ public class LedgerReadService {
 	 */
 	public LedgerWriteStep1Response getWriteStep1Data() {
 		LocalDate today = LocalDate.now();
-		int pastYear = LedgerRuleVO.instance.MAX_YEAR_RANGE;
+		int pastYear = today.minusYears(Policy.LEDGER_MAX_YEAR).getYear();
 
 		//연도, 월, 일 리스트 구하기
-		List<Integer> years = DateUtils.getYearsInRange( today.minusYears(pastYear).getYear(), today.getYear() );
+		List<Integer> years = DateUtils.getYearsInRange( pastYear, today.getYear() );
 		List<Integer> months = DateUtils.getMonthsInRange(1, today.getMonthValue());
 		List<Integer> days = DateUtils.getDaysInRange( 1, today.getDayOfMonth() );
 
@@ -133,6 +134,16 @@ public class LedgerReadService {
 	}
 
 
+	public void getHistorySummaries(String from, String to) {
+		//날짜 검증
+		DateRange dateRange = new DateRange(from, to);
+		//검증한 날짜로 가계부 조회
+		//조회 내역의 금액을 총합/수입/지출로 구분하여 조회
+		//기간별로 제목 얻기
+		//조회 내역 기반으로 그래프 조회
+	}
+
+
 	/**
 	 * 회원이 사용할 수 있는 가계부 이미지 슬롯 상태를 반환합니다.
 	 * <p>
@@ -149,7 +160,7 @@ public class LedgerReadService {
 		String memberId = securityUtil.getMemberId();
 
 		int availableSlot = memberReadService.getImageLimit(memberId);
-		int maxSlot = LedgerRuleVO.instance.getMAX_IMAGE_COUNT();;
+		int maxSlot = Policy.LEDGER_MAX_IMAGE;
 		for( int i =0; i < maxSlot; i++ ) {
 			slotList.add( i < availableSlot );
 		}

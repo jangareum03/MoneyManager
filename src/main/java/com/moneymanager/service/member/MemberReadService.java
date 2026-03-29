@@ -1,6 +1,6 @@
 package com.moneymanager.service.member;
 
-import com.moneymanager.domain.ledger.vo.LedgerRuleVO;
+import com.moneymanager.domain.global.Policy;
 import com.moneymanager.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -52,7 +52,7 @@ public class MemberReadService {
 	public int getImageLimit(String memberId) {
 		try {
 			Integer hasImage = memberRepository.findImageLimitByMemberId(memberId);
-			int maxImage = LedgerRuleVO.instance.getMAX_IMAGE_COUNT();
+			int maxImage = Policy.LEDGER_MAX_IMAGE;
 
 			return Math.min(hasImage, maxImage);
 		}catch (EmptyResultDataAccessException e) {

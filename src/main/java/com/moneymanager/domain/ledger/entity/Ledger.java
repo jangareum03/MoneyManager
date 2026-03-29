@@ -2,6 +2,7 @@ package com.moneymanager.domain.ledger.entity;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.domain.global.enums.DatePatterns;
+import com.moneymanager.domain.global.Policy;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
@@ -134,17 +135,15 @@ public class Ledger {
 
 	//날짜 규칙검증
 	private static void validateDate(String date) {
-		int maxYear = 5;
-
 		try{
 			LocalDate transDate = DateTimeUtils.parseDateFlexible(date);		//가계부 거래날짜
 			LocalDate today = LocalDate.now();	//오늘날짜
 
-			LocalDate fiveYearsAgo = today.minusYears(maxYear);	//오늘 기준 5년 전
+			LocalDate fiveYearsAgo = today.minusYears(Policy.LEDGER_MAX_YEAR);	//오늘 기준 5년 전
 			if(!isDateInRange(transDate, fiveYearsAgo, today)) {
 				throw BusinessException.of(
 						LEDGER_INPUT_RANGE,
-						String.format("최근 %d년 이내에 날짜만 가능합니다.", maxYear),
+						String.format("최근 %d년 이내에 날짜만 가능합니다.", Policy.LEDGER_MAX_YEAR),
 						String.format("가계부 검증 실패   |   reason=범위오류   |   field=date   |   min=%s   |   max=%s   |   value=%s", DateTimeUtils.formatDate(fiveYearsAgo, DatePatterns.DATE.getPattern()), DateTimeUtils.formatDate(today, DatePatterns.DATE.getPattern()), date)
 				);
 			}
