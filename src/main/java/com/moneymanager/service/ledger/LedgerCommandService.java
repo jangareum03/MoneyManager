@@ -1,22 +1,34 @@
 package com.moneymanager.service.ledger;
 
-import com.github.f4b6a3.ulid.UlidCreator;
+import com.moneymanager.domain.global.dto.StoredFile;
+import com.moneymanager.domain.ledger.dto.request.LedgerImageRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.error.ServiceAction;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.file.FileCommandService;
+import com.moneymanager.service.file.LedgerImageNameStrategy;
+import com.moneymanager.service.validation.LedgerValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
 import java.io.File;
-import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.moneymanager.exception.error.ErrorCode.*;
 
 
 /**
@@ -48,99 +60,115 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LedgerCommandService {
 
 	private final SecurityUtil securityUtil;
+	private final LedgerValidator ledgerValidator;
 
 	private final FileCommandService fileService;
 	private final LedgerRepository ledgerRepository;
 	private final LedgerImageRepository imageRepository;
 
+	@Value("${image.member}")
+	private String rootPath;
+
 	@Transactional
 	public void registerLedger(LedgerWriteRequest request) {
-		String memberId = securityUtil.getMemberId();
+		String memberId = null;
+		ServiceAction action = ServiceAction.LEDGER_REGISTER;
 
-		//가계부 저장
-		Long ledgerId = saveLedger(memberId, request);
+		try{
+			memberId = securityUtil.getMemberId();
 
-		//이미지 저장
-		if(hasImage(request.getImage())) {
-			saveImage(ledgerId, request.getImage());
+			ledgerValidator.register(request);
+
+			Ledger ledger = createLedger(memberId, request);
+
+			Ledger savedLedger = saveLedger(ledger);
+
+			processImages(request, savedLedger);
+
+			log.info("{} 성공   |   memberId={}   |   result=success", action.getTitle(), memberId);
+		}catch (BusinessException e) {
+			log.error("[{}] {} 실패   |   memberId={}   |   result=failure   |   errorCode={}", e.getTraceId(), action.getTitle(), memberId, e.getErrorCode());
+
+			throw e.withService(action);
 		}
-	}
-
-	private Long saveLedger(String memberId, LedgerWriteRequest request){
-		Ledger ledger = createLedger(memberId, request);
-
-		//TODO: SQLException 처리
-		return ledgerRepository.insertLedger(ledger);
 	}
 
 	private Ledger createLedger(String memberId, LedgerWriteRequest request) {
-		//가계부 고유ID 생성
-		String ledgerCode = UlidCreator.getUlid().toString();
-
-		return null;
+		return Ledger.create(memberId, request);
 	}
 
+	private Ledger saveLedger(Ledger ledger) {
+		try{
+			Long id = ledgerRepository.save(ledger);
 
-	//작성시 필요한 규칙 검증
-	private void validateRegister(Ledger ledger) {
-		//카테고리 코드가 숫자로만 이루어짐
+			Ledger savedLedger = ledgerRepository.findById(id);
+			if(savedLedger == null) {
+				throw BusinessException.of(
+						LEDGER_TARGET_NOT_FOUND,
+						"가계부 정보를 불러오지 못 했습니다. 잠시 후 다시 시도해 주세요.",
+						"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   value=" + id
+				);
+			}
 
-		//고정여부 Y면 고정주기 있어야 함(반대로 N면 없어야 함)
-
-		//가계부 거래 날짜 형식은 'YYYYMMDD' 여야 함
-
-		//가격은 0 이하면 안됨
-
-		//장소명이 있으면 도로명 주소는 필수, 상세주소는 선택
+			return savedLedger;
+		}catch (DuplicateKeyException e) {
+			throw BusinessException.of(
+					LEDGER_COLLISION_UNIQUE_CONSTRAINT,
+					"가계부 등록 중 문제가 발생했습니다. 다시 시도해 주세요.",
+					"가계부 저장 실패   |   reason=DB저장실패   |   detail=중복키   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}",
+					e
+			);
+		}catch (DataIntegrityViolationException e) {
+			throw BusinessException.of(
+					LEDGER_COLLISION_UNIQUE_CONSTRAINT,
+					"가계부 등록 중 문제가 발생했습니다. 다시 시도해 주세요.",
+					"가계부 저장 실패   |   reason=DB저장실패   |   detail=데이터 무결성 위반   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}",
+					e
+			);
+		}
 	}
 
-	private boolean hasImage(List<MultipartFile> fileList) {
-		return fileList != null && !fileList.isEmpty();
+	private void processImages(LedgerImageRequest request, Ledger ledger) {
+		if(request.hasImage()) {
+			request.getImage().forEach(ledgerValidator::validateImage);
+
+			uploadImages(request.getImage(), ledger);
+		}
 	}
 
-	private void saveImage(Long ledgerId, List<MultipartFile> files) {
-		List<File> saveFileList = new ArrayList<>();
-		List<LedgerImage> images = new ArrayList<>();
-		int sortedOrder = 1;
+	private void uploadImages(List<MultipartFile> files, Ledger ledger) {
+		List<File> successSaved = new ArrayList<>();
+		List<LedgerImage> ledgerImages = new ArrayList<>();
 
 		try{
-			for(MultipartFile file : files) {
-				validateMultiFileForRegister(file);
+			Path path = Path.of(rootPath, ledger.getMemberId());
 
-				//서버에 파일 저장
-				File saveFile = fileService.storeFile(file);
-				saveFileList.add(saveFile);
+			for(int i=0; i<files.size(); i++) {
+				StoredFile savedFile = fileService.storeFile(path, files.get(i), new LedgerImageNameStrategy());
 
-				images.add(createLedgerImage(ledgerId, files, sortedOrder++));
+				successSaved.add(new File(savedFile.getFullPath()));
+				ledgerImages.add(LedgerImage.create(ledger.getId(), savedFile.getRelativePath(), i+1));
 			}
 
-			imageRepository.insertAllImage(images);
-		}catch (IOException e) {
-			//서버에 저장한파일들 삭제
-			for(File file : saveFileList) {
-				if(file.exists()) file.delete();
-			}
+			imageRepository.saveAll(ledgerImages);
+		}catch(BusinessException e) {
+			fileService.deleteFiles(successSaved);
+
+			throw e.withUserMessage("이미지 저장 중 문제가 발생했습니다. 다시 시도해주세요.");
+		}catch (DataAccessException e) {
+			fileService.deleteFiles(successSaved);
+
+			throw BusinessException.of(
+					LEDGER_ETC_DB_ERROR,
+					"이미지 저장 중 문제가 발생했습니다. 다시 시도해주세요.",
+					"이미지 저장 실패   |   reason=DB추가실패   |   object=LedgerImage   |   value={memberId: " + ledger.getMemberId() + ", ledgerId: " + ledger.getId() + "}",
+					e
+			);
 		}
-
 	}
 
-	private void validateMultiFileForRegister(MultipartFile file) {
-
-	}
-
-	private LedgerImage createLedgerImage(Long ledgerId, List<MultipartFile> files, int order) {
-		Ledger ledger = ledgerRepository.selectLedgerById(ledgerId);
-
-		//이미지 경로 생성
-		String imagePath = null;
-
-		return LedgerImage.builder()
-				.ledgerId(ledger.getId())
-				.imagePath(imagePath)
-				.sortOrder(order)
-				.build();
-	}
 }
