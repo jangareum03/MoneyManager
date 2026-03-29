@@ -2,6 +2,7 @@ package com.moneymanager.repository.ledger;
 
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -43,6 +44,17 @@ public class LedgerImageRepository {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
+	private final RowMapper<LedgerImage> ledgerImageRowMapper = (rs, rowNum) -> {
+		return LedgerImage.builder()
+				.id(rs.getLong("id"))
+				.ledgerId(rs.getLong("ledger_id"))
+				.imagePath(rs.getString("image_path"))
+				.sortOrder(rs.getInt("sort_order"))
+				.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+				.updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
+				.build();
+	};
+
 
 	/**
 	 * {@code ledger_image}테이블에 가계부와 연결된 이미지 정보를 저장합니다.
@@ -60,7 +72,7 @@ public class LedgerImageRepository {
 	 *
 	 * @param images	저장할 가계부 이미지 정보를 담은 {@link LedgerImage} 객체 리스트
 	 */
-	public void insertAllImage(List<LedgerImage> images) {
+	public void saveAll(List<LedgerImage> images) {
 		String sql = "INSERT INTO ledger_image(id, ledger_id, image_path, sort_order)" +
 							"VALUES(ledger_image_seq.NEXTVAL, ?, ?, ?)";
 
@@ -74,5 +86,23 @@ public class LedgerImageRepository {
 					ps.setInt(3, image.getSortOrder());
 				}
 		);
+	}
+
+	public List<LedgerImage> findAll() {
+		String sql = "SELECT * FROM ledger_image";
+
+		return jdbcTemplate.query(sql, ledgerImageRowMapper);
+	}
+
+	public Integer count() {
+		String sql = "SELECT COUNT(*) FROM ledger_image";
+
+		return jdbcTemplate.queryForObject(sql, Integer.class);
+	}
+
+	public void deleteAll() {
+		String sql = "DELETE FROM ledger_image";
+
+		jdbcTemplate.update(sql);
 	}
 }
