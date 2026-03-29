@@ -1,7 +1,6 @@
 package com.moneymanager.service.main;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.service.main.event.DeleteFileEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

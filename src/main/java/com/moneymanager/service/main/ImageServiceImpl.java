@@ -5,7 +5,6 @@ import com.moneymanager.dao.member.MemberInfoDaoImpl;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.vo.LedgerDate;
-import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.service.main.event.DeleteFileEvent;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

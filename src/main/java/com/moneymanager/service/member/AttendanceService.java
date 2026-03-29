@@ -1,19 +1,12 @@
 package com.moneymanager.service.member;
 
 import com.moneymanager.dao.member.AttendanceDao;
-import com.moneymanager.domain.member.dto.MemberAttendanceResponse;
-import com.moneymanager.domain.member.Attendance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoField;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 
 
@@ -178,7 +171,7 @@ public class AttendanceService {
 	private void validateToday( String id, LocalDate date ) {
 		LocalDate today = LocalDate.now();
 		if (!today.isEqual(date)) {
-			//ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.ATTEND_TODAY_INVALID).requestData(String.format("id=%s, date=%s", id, date)).build();
+			//ErrorInfo<String> errorDTO = ErrorInfo.<String>builder().errorCode(ErrorCode.ATTEND_TODAY_INVALID).requestData(String.format("id=%s, date=%s", id, date)).build();
 		}
 	}
 
@@ -194,7 +187,7 @@ public class AttendanceService {
 	 */
 	private void validateDuplication(String id, LocalDate date) {
 		if(attendanceDAO.hasCheckedInDate(id, date) ) {
-			//ErrorDTO<String> errorDTO = ErrorDTO.<String>builder().errorCode(ErrorCode.ATTEND_TODAY_DUPLICATE).requestData(String.format("id=%s, date=%s", id, date)).build();
+			//ErrorInfo<String> errorDTO = ErrorInfo.<String>builder().errorCode(ErrorCode.ATTEND_TODAY_DUPLICATE).requestData(String.format("id=%s, date=%s", id, date)).build();
 		}
 	}
 

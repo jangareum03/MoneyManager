@@ -1,7 +1,5 @@
 package com.moneymanager.domain.ledger.vo;
 
-import com.moneymanager.exception.ErrorCode;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
 
@@ -43,4 +41,10 @@ public class Place {
 	String name;					//장소명
 	String roadAddress;		//도로명 주소
 	String detailAddress;		//상세주소
+
+	public Place(String name, String road, String detail) {
+		this.name = name;
+		this.roadAddress = road;
+		this.detailAddress = detail;
+	}
 }

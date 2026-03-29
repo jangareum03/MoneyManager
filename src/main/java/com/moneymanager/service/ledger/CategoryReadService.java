@@ -1,13 +1,10 @@
 package com.moneymanager.service.ledger;
 
 import com.moneymanager.repository.ledger.CategoryRepository;
-import com.moneymanager.domain.global.dto.ErrorDTO;
-import com.moneymanager.domain.global.enums.SystemMessage;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -63,18 +60,8 @@ public class CategoryReadService {
 			unless = "#result == null"
 	)
 	public List<Category> getAllCategories() {
-		List<Category> categories = categoryRepository.findAllCategory();
 
-		if( categories.isEmpty() ) {
-			ErrorDTO errorDTO = ErrorDTO.builder()
-					.errorCode(ErrorCode.DATABASE_RESULT_INTERNAL.getCode())
-					.serviceName(this.getClass().getSimpleName())
-					.logMessage("DB에서 카테고리 데이터 없음")
-					.build();
-
-		}
-
-		return categories;
+		return categoryRepository.findAllCategory();
 	}
 
 
