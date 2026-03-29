@@ -6,7 +6,7 @@ import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
-import com.moneymanager.utils.DateFormatUtils;
+import com.moneymanager.utils.date.DateFormatUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -113,8 +113,17 @@ public class LedgerController {
 	}
 
 
+	/**
+	 * 가계부 등록 요청을 처리합니다.
+	 * <p>
+	 *    사용자로부터 전달받은 가계부 작성 데이터를 통해 가계부를 생성하고 목록 페이지로 리다이렉트합니다.
+	 * </p>
+	 *
+	 * @param request	가계부 작성 요청 데이터
+	 * @return	가계부 목록 페이지로의 리다이렉트 경로
+	 */
 	@PostMapping
-	public String writeLedger(@ModelAttribute("ledger")LedgerWriteRequest request) {
+	public String writeLedger(@ModelAttribute("ledger") LedgerWriteRequest request) {
 		ledgerCommandService.registerLedger(request);
 
 		return "redirect:/ledgers";
