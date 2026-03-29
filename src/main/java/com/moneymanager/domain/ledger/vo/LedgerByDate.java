@@ -1,7 +1,7 @@
 package com.moneymanager.domain.ledger.vo;
 
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.utils.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtils;
 import lombok.Getter;
 import lombok.Value;
 

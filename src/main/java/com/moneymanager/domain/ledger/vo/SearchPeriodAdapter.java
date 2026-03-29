@@ -1,7 +1,7 @@
 package com.moneymanager.domain.ledger.vo;
 
 import com.moneymanager.domain.global.vo.DateGroupable;
-import static com.moneymanager.utils.DateTimeUtils.formatDateAsString;
+import static com.moneymanager.utils.date.DateTimeUtils.formatDateAsString;
 
 /**
  * <p>

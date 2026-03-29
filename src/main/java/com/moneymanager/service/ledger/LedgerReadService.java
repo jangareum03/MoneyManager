@@ -1,7 +1,5 @@
 package com.moneymanager.service.ledger;
 
-import com.moneymanager.domain.global.dto.ErrorDTO;
-import com.moneymanager.domain.global.enums.SystemMessage;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerTypeResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
@@ -9,15 +7,13 @@ import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.vo.LedgerRuleVO;
-import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.member.MemberReadService;
-import com.moneymanager.utils.DateFormatUtils;
-import com.moneymanager.utils.DateUtils;
+import com.moneymanager.utils.date.DateFormatUtils;
+import com.moneymanager.utils.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +54,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LedgerReadService {
 
-	private final Clock clock;
 	private final SecurityUtil securityUtil;
 
 	private final CategoryReadService categoryReadService;
@@ -84,7 +79,7 @@ public class LedgerReadService {
 	 * @return	가계부 작성 1단계에 필요한 초기 데이터를 담은 {@link LedgerWriteStep1Response} 객체
 	 */
 	public LedgerWriteStep1Response getWriteStep1Data() {
-		LocalDate today = LocalDate.now(clock);
+		LocalDate today = LocalDate.now();
 		int pastYear = LedgerRuleVO.instance.MAX_YEAR_RANGE;
 
 		//연도, 월, 일 리스트 구하기

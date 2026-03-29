@@ -5,7 +5,7 @@ import com.moneymanager.dao.member.MemberTokenDao;
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.member.MemberToken;
 import com.moneymanager.security.jwt.JwtTokenProvider;
-import com.moneymanager.utils.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;

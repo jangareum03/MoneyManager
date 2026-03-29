@@ -17,7 +17,7 @@ import com.moneymanager.domain.member.dto.MemberMyPageResponse;
 import com.moneymanager.domain.member.dto.MemberRecoveryResponse;
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.member.MemberInfo;
-import com.moneymanager.utils.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;

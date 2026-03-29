@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Value;
 
 import java.time.LocalDate;
-import static com.moneymanager.utils.DateTimeUtils.*;
+import static com.moneymanager.utils.date.DateTimeUtils.*;
 
 /**
  * <p>

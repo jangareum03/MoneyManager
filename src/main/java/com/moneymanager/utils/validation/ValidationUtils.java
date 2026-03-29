@@ -1,4 +1,4 @@
-package com.moneymanager.utils;
+package com.moneymanager.utils.validation;
 
 /**
  * <p>

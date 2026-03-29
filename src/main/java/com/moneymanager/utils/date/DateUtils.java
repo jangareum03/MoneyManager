@@ -1,4 +1,4 @@
-package com.moneymanager.utils;
+package com.moneymanager.utils.date;
 
 import java.util.List;
 import java.util.stream.Collectors;
