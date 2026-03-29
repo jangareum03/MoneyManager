@@ -1,26 +1,35 @@
 package com.moneymanager.unit.service.ledger;
 
+
+import com.moneymanager.domain.global.dto.StoredFile;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.error.ErrorCode;
+import com.moneymanager.exception.error.ServiceAction;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.file.FileCommandService;
 import com.moneymanager.service.ledger.LedgerCommandService;
+import com.moneymanager.service.validation.LedgerValidator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.stream.Stream;
 
+import static com.moneymanager.exception.error.ErrorCode.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -54,152 +63,255 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class LedgerCommandServiceTest {
 
-	@InjectMocks 	private LedgerCommandService service;
+	@InjectMocks	private LedgerCommandService service;
 
-	@Mock	private FileCommandService	fileService;
 	@Mock	private SecurityUtil securityUtil;
-	@Mock	private LedgerRepository	repository;
+	@Mock	private LedgerValidator ledgerValidator;
+	@Mock	private LedgerRepository ledgerRepository;
 	@Mock	private LedgerImageRepository imageRepository;
+	@Mock	private FileCommandService fileService;
 
+	private final String memberId = "member";
+	private LedgerWriteRequest request;
+	private Ledger savedLedger;
 
-	//==================[ 📌registerLedger  ]==================
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("validSuccessWithoutImage")
-	@DisplayName("이미지 없는 요청 정보로 가계부가 저장된다.")
-	void 가계부_이미지없음_저장성공(String test, LedgerWriteRequest request) throws IOException {
+	@BeforeEach
+	void setUp() {
+		request = LedgerWriteRequest.builder()
+				.date("20260101")
+				.categoryCode("010101")
+				.amount(10000L)
+				.amountType("none")
+				.image(List.of(mock(MultipartFile.class)))
+				.build();
+
+		savedLedger = Ledger.builder()
+				.id(1L)
+				.memberId(memberId)
+				.build();
+	}
+
+	//==================[ TEST ]==================
+	@Test
+	@DisplayName("정상 요청이면 가계부 등록이 성공한다.")
+	void registerLedger_Success() {
 		//given
-		when(securityUtil.getMemberId()).thenReturn("member");
-		when(repository.insertLedger(any(Ledger.class))).thenReturn(1L);
+		when(securityUtil.getMemberId()).thenReturn(memberId);
+		when(ledgerRepository.save(any())).thenReturn(1L);
+		when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
+		when(fileService.storeFile(any(), any(), any())).thenReturn(new StoredFile("full/path/rel/image", "/rel/image"));
 
 		//when
 		service.registerLedger(request);
 
 		//then
-		verify(fileService, never()).storeFile(any());
+		verify(ledgerValidator).register(request);
+		verify(ledgerRepository).save(any());
+		verify(imageRepository).saveAll(anyList());
 	}
 
-	static Stream<Arguments> validSuccessWithoutImage(){
-		return Stream.of(
-				Arguments.of(
-						"선택정보X",
-						LedgerWriteRequest.builder()
-								.date("20251101")
-								.category("010101")
-								.fixed(false)
-								.amount(12000L)
-								.paymentType("none")
-								.build()
-				),
-				Arguments.of(
-						"선택정보O",
-						LedgerWriteRequest.builder()
-								.date("20251101")
-								.category("020101")
-								.fixed(true)
-								.period("M")
-								.amount(25000L)
-								.paymentType("cash")
-								.memo("안녕")
-								.placeName("장소")
-								.roadAddress("기본주소")
-								.detailAddress("상세주소")
-								.build()
-				)
-		);
-	}
-
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("validSuccessWithImages")
-	@DisplayName("이미지 있는 요청 정보로 가계부가 저장된다.")
-	void 이미지_있는_요청정보_저장(String test, LedgerWriteRequest request) throws IOException {
+	@Test
+	@DisplayName("예외가 발생하면 ServiceAction이 있다.")
+	void registerLedger_Failure_ServiceActionExists() {
 		//given
-		when(securityUtil.getMemberId()).thenReturn("member");
-		when(repository.insertLedger(any(Ledger.class))).thenReturn(1L);
-
-		Ledger mockLedger = Ledger.builder().id(1L).build();
-		when(repository.selectLedgerById(anyLong())).thenReturn(mockLedger);
+		when(securityUtil.getMemberId()).thenReturn(memberId);
+		doThrow(BusinessException.of(
+				LEDGER_INPUT_MISSING,
+				"예외 던짐"
+		)).when(ledgerValidator).register(request);
 
 		//when
-		service.registerLedger(request);
+		BusinessException result = assertThrows(BusinessException.class, () -> service.registerLedger(request));
 
 		//then
-		verify(fileService, atMost(2)).storeFile(any());
-		verify(imageRepository, atMost(2)).insertAllImage(anyList());
+		assertThat(result.getErrorInfo().getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
 	}
 
-	static Stream<Arguments> validSuccessWithImages(){
-		return Stream.of(
-				Arguments.of(
-						"선택정보X",
-						LedgerWriteRequest.builder()
-								.date("20251101")
-								.category("010101")
-								.fixed(false)
-								.amount(12000L)
-								.paymentType("none")
-								.image(List.of(
-										new MockMultipartFile(
-												"image",
-												"test.png",
-												"image/png",
-												"abcde".getBytes()
-										)
-								))
-								.build()
-				),
-				Arguments.of(
-						"선택정보O, 이미지O",
-						LedgerWriteRequest.builder()
-								.date("20251101")
-								.category("020101")
-								.fixed(true)
-								.period("W")
-								.amount(39500L)
-								.paymentType("bank")
-								.memo("안녕")
-								.placeName("장소")
-								.roadAddress("기본주소")
-								.detailAddress("상세주소")
-								.image(List.of(
-										new MockMultipartFile(
-												"image",
-												"test1.png",
-												"image/png",
-												"abcde".getBytes()
-										),
-										new MockMultipartFile(
-												"image",
-												"test2.png",
-												"image/png",
-												"hello, bye".getBytes()
-										)
-								))
-								.build()
-				)
+	@Test
+	@DisplayName("회원번호가 없으면 그 후 로직을 실행하지 않는다.")
+	void registerLedger_Failure_MemberIdIsNull() {
+		//given
+		BusinessException exception = BusinessException.of(
+				ErrorCode.MEMBER_AUTHORITY_UNAUTHORIZED,
+				"회원 인증 실패"
 		);
+
+		when(securityUtil.getMemberId()).thenThrow(exception);
+
+		//when
+		assertThrows(BusinessException.class, () -> service.registerLedger(request));
+
+		//then
+		verify(securityUtil).getMemberId();
+		verify(ledgerValidator, never()).register(any());
+		verify(ledgerRepository, never()).save(any());
+		verify(ledgerValidator, never()).validateImage(any());
+		verify(imageRepository, never()).saveAll(anyList());
 	}
 
-	@DisplayName("인증 성공한 회원이 없으면 ClientException이 발생한다.")
-	void 인증회원_없음(){}
+	@Test
+	@DisplayName("요청 정보 검증 실패하면 그 후 로직을 실행하지 않는다")
+	void registerLedger_Failure_Validate() {
+		//given
+		LedgerWriteRequest request = mock(LedgerWriteRequest.class);
 
-	@DisplayName("작성한 가계부에서 필수 정보가 없으면 ClientException이 발생한다.")
-	void 필수정보_누락(){}
+		when(securityUtil.getMemberId()).thenReturn("member");
+		doThrow(
+				BusinessException.of(
+						LEDGER_INPUT_MISSING,
+						"검증 실패"
+				)
+		).when(ledgerValidator).register(request);
 
-	@DisplayName("작성한 가계부에서 필수 정보가 유효하지 않으면 ClientException이 발생한다.")
-	void 필수정보_유효하지_않음() {}
+		//when
+		assertThrows(BusinessException.class, () -> service.registerLedger(request));
 
-	@DisplayName("작성한 가계부에서 선택 정보가 유효하지 않으면 ClientException이 발생한다.")
-	void 선택정보_유효하지_않음(){}
+		//then
+		verify(securityUtil).getMemberId();
+		verify(ledgerValidator).register(request);
+		verify(ledgerRepository, never()).save(any());
+		verify(ledgerValidator, never()).validateImage(any());
+		verify(imageRepository, never()).saveAll(anyList());
+	}
 
-	@DisplayName("작성한 가계부 정보가 비즈니스 규칙과 맞지 않으면 ClientException이 발생한다.")
-	void 가계부_작성규칙_위반(){}
+	@Test
+	@DisplayName("DB 저장 중 중복키가 발생하면 그 후 로직을 실행하지 않는다.")
+	void registerLedger_Failure_DuplicateKey() {
+		//given
+		when(securityUtil.getMemberId()).thenReturn(memberId);
+		when(ledgerRepository.save(any()))
+				.thenThrow(new DuplicateKeyException("중복키 발생"));
 
-	@DisplayName("데이터베이스의 제약조건 위반하면 저장할 수 없다.")
-	void 가계부_제약조건_위반(){}
+		//when
+		assertThrows(BusinessException.class, () -> service.registerLedger(request));
 
-	@DisplayName("이미지가 포함되지 않은 가계부는 saveImage 메서드를 호출하지 않는다.")
-	void 이미지_개수별로_이미지저장_호출(){}
+		//then
+		verify(securityUtil).getMemberId();
+		verify(ledgerValidator).register(request);
+		verify(ledgerRepository).save(any());
 
-	@DisplayName("이미지가 유효하지 않으면 서버에 저장된 파일들이 모두 삭제된다.")
-	void 이미지_유효하지_않음(){}
+		verify(ledgerRepository, never()).findById(anyLong());
+	}
+
+	@Test
+	@DisplayName("DB 저장 중 무결성 위반이 발생하면 그 후 로직을 실행하지 않는다.")
+	void registerLedger_Failure_Integrity() {
+		//given
+		when(securityUtil.getMemberId()).thenReturn(memberId);
+		when(ledgerRepository.save(any()))
+				.thenThrow(new DataIntegrityViolationException("무결성 위반"));
+
+		//when
+		assertThrows(BusinessException.class, () -> service.registerLedger(request));
+
+		//then
+		verify(securityUtil).getMemberId();
+		verify(ledgerValidator).register(request);
+		verify(ledgerRepository).save(any());
+
+		verify(ledgerRepository, never()).findById(anyLong());
+		verify(imageRepository, never()).saveAll(anyList());
+	}
+
+	@Test
+	@DisplayName("DB 저장 후 조회가 실패하면 그 후 로직을 실행하지 않는다.")
+	void registerLedger_Failure_NotFound() {
+		//given
+		when(securityUtil.getMemberId()).thenReturn(memberId);
+		when(ledgerRepository.save(any())).thenReturn(1L);
+		when(ledgerRepository.findById(1L)).thenReturn(null);
+
+		//when
+		assertThrows(BusinessException.class, () -> service.registerLedger(request));
+
+		//then
+		verify(securityUtil).getMemberId();
+		verify(ledgerValidator).register(request);
+		verify(ledgerRepository).save(any());
+		verify(ledgerRepository).findById(anyLong());
+
+		verify(ledgerValidator, never()).validateImage(any());
+		verify(fileService, never()).storeFile(any(), any(), any());
+	}
+
+	@Test
+	@DisplayName("이미지 검증에 실패하면 그 후 로직을 실행하지 않는다.")
+	void registerLedger_Failure_ImageValidate() {
+		//given
+		when(securityUtil.getMemberId()).thenReturn(memberId);
+		when(ledgerRepository.save(any())).thenReturn(1L);
+		when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
+
+		doThrow(BusinessException.of(
+				FILE_INPUT_EMPTY,
+				"이미지 검증 실패"
+		)).when(ledgerValidator).validateImage(request.getImage().get(0));
+
+		//when
+		assertThrows(BusinessException.class, () -> service.registerLedger(request));
+
+		//then
+		verify(securityUtil).getMemberId();
+		verify(ledgerValidator).register(request);
+		verify(ledgerRepository).save(any());
+		verify(ledgerRepository).findById(anyLong());
+		verify(ledgerValidator).validateImage(any());
+
+		verify(fileService, never()).storeFile(any(), any(), any());
+		verify(imageRepository, never()).saveAll(any());
+	}
+
+	@Test
+	@DisplayName("이미지 저장에 실패하면 그 후 로직을 실행하지 않는다")
+	void registerLedger_Failure_StoreFile() {
+		//given
+		when(securityUtil.getMemberId()).thenReturn(memberId);
+		when(ledgerRepository.save(any())).thenReturn(1L);
+		when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
+
+		doThrow(BusinessException.of(
+				FILE_ETC_UNKNOWN,
+				"이미지 저장 실패"
+		)).when(fileService).storeFile(any(), any(), any());
+
+		//when
+		assertThrows(BusinessException.class, () -> service.registerLedger(request));
+
+		//then
+		verify(securityUtil).getMemberId();
+		verify(ledgerValidator).register(request);
+		verify(ledgerRepository).save(any());
+		verify(ledgerRepository).findById(anyLong());
+		verify(ledgerValidator).validateImage(any());
+		verify(fileService).storeFile(any(), any(), any());
+		verify(fileService).deleteFiles(anyList());
+
+		verify(imageRepository, never()).saveAll(any());
+	}
+
+	@Test
+	@DisplayName("이미지 정보를 DB에 저장에 실패하면 그 후 로직을 실행하지 않는다.")
+	void registerLedger_Failure_ImageInfoNotSaved() {
+		//given
+		when(securityUtil.getMemberId()).thenReturn(memberId);
+		when(ledgerRepository.save(any())).thenReturn(1L);
+		when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
+		when(fileService.storeFile(any(), any(), any())).thenReturn(new StoredFile("full/path/rel/image", "/rel/image"));
+
+		doThrow(new DataAccessException("저장 실패") {})
+				.when(imageRepository).saveAll(anyList());
+
+		//when
+		assertThrows(BusinessException.class, () -> service.registerLedger(request));
+
+		//then
+		verify(securityUtil).getMemberId();
+		verify(ledgerValidator).register(request);
+		verify(ledgerRepository).save(any());
+		verify(ledgerRepository).findById(anyLong());
+		verify(ledgerValidator).validateImage(any());
+		verify(fileService).storeFile(any(), any(), any());
+		verify(fileService).deleteFiles(anyList());
+		verify(imageRepository).saveAll(any());
+	}
 }

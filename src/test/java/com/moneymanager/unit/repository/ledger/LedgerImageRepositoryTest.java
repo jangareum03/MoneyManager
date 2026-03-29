@@ -3,13 +3,13 @@ package com.moneymanager.unit.repository.ledger;
 import com.moneymanager.config.DatabaseConfig;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * <p>
@@ -59,11 +58,16 @@ public class LedgerImageRepositoryTest {
 
 	@Autowired	private JdbcTemplate jdbcTemplate;
 
+	@BeforeEach
+	void setUp() {
+		repository.deleteAll();
+	}
 
-	//==================[ 📌insertAllImage  ]==================
+
+	//==================[ TEST ]==================
 	@Test
 	@DisplayName("여러 건의 이미지 정보는 데이터베이스에 저장된다.")
-	void 모든_이미지정보_저장가능(){
+	void saveAll_Success(){
 		//given
 		List<LedgerImage> images = List.of(
 				LedgerImage.builder().ledgerId(1L).imagePath("/img/1.png").sortOrder(1).build(),
@@ -72,14 +76,11 @@ public class LedgerImageRepositoryTest {
 		);
 
 		//when
-		repository.insertAllImage(images);
+		repository.saveAll(images);
 
 		//then
-		Integer result = jdbcTemplate.queryForObject(
-				"SELECT COUNT(*) FROM ledger_image WHERE ledger_id = ?",
-				Integer.class,
-				1L
-		);
+		Integer result = repository.count();
+
 		assertThat(result).isEqualTo(3);
 	}
 
@@ -87,13 +88,11 @@ public class LedgerImageRepositoryTest {
 	@DisplayName("빈 이미지 리스트는 아무일도 일어나지 않는다.")
 	void 빈_리스트면_무반응() {
 		//when
-		repository.insertAllImage(Collections.emptyList());
+		repository.saveAll(Collections.emptyList());
 
 		//then
-		Integer result = jdbcTemplate.queryForObject(
-				"SELECT COUNT(*) FROM ledger_image WHERE created_at = SYSDATE",
-				Integer.class
-		);
+		Integer result = repository.count();
+
 		assertThat(result).isZero();
 	}
 
