@@ -1,10 +1,14 @@
 package com.moneymanager.service.validation;
 
+import com.moneymanager.domain.global.Policy;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
+import com.moneymanager.exception.error.ErrorCode;
+import com.moneymanager.utils.date.DateTimeUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static com.moneymanager.domain.global.enums.RegexPattern.*;
@@ -78,7 +82,12 @@ public class LedgerValidator extends BaseImageValidator {
 		validateFixCycle(request.getFixCycle());
 		validateMemo(request.getMemo());
 		validatePlace(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress());
+
+		if(request.hasImage()) {
+			request.getImage().forEach(this::validateImage);
+		}
 	}
+
 
 	//가계부 거래날짜 검증
 	private void validateDate(String date) {

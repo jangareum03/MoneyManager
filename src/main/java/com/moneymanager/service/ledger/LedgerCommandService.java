@@ -12,7 +12,6 @@ import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.file.FileCommandService;
 import com.moneymanager.service.file.LedgerImageNameStrategy;
-import com.moneymanager.service.validation.LedgerValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,7 +63,6 @@ import static com.moneymanager.exception.error.ErrorCode.*;
 public class LedgerCommandService {
 
 	private final SecurityUtil securityUtil;
-	private final LedgerValidator ledgerValidator;
 
 	private final FileCommandService fileService;
 	private final LedgerRepository ledgerRepository;
@@ -80,8 +78,6 @@ public class LedgerCommandService {
 
 		try{
 			memberId = securityUtil.getMemberId();
-
-			ledgerValidator.register(request);
 
 			Ledger ledger = createLedger(memberId, request);
 
@@ -134,8 +130,6 @@ public class LedgerCommandService {
 
 	private void processImages(LedgerImageRequest request, Ledger ledger) {
 		if(request.hasImage()) {
-			request.getImage().forEach(ledgerValidator::validateImage);
-
 			uploadImages(request.getImage(), ledger);
 		}
 	}

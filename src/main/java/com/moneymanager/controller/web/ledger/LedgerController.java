@@ -4,8 +4,10 @@ import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.domain.ledger.enums.LedgerType;
+import com.moneymanager.exception.BusinessException;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
+import com.moneymanager.service.validation.LedgerValidator;
 import com.moneymanager.utils.date.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -49,6 +51,8 @@ public class LedgerController {
 	private final LedgerReadService ledgerReadService;
 	private final LedgerCommandService ledgerCommandService;
 
+	private final LedgerValidator ledgerValidator;
+
 
 	/**
 	 * 가계부 초기 작성에 필요한 정보를 조회 후 가계부 작성 1단계 페이지를 반환합니다.
@@ -90,22 +94,29 @@ public class LedgerController {
 	 */
 	@GetMapping("/new/step2")
 	public String writeStep2View(@RequestParam String type, @RequestParam String date, Model model) {
-		LedgerType ledgerType;
-
-		try {
-			ledgerType = LedgerType.fromUrl(type);
-		} catch (IllegalArgumentException e) {
-			ledgerType = LedgerType.INCOME;
-		}
-
-		LocalDate localDate = DateTimeUtils.parseDateFlexible(date);
-		if( localDate == null ) localDate = LocalDate.now();
+		//입력값 확인
+		LedgerType ledgerType = parseLedgerTypeOrDefault(type);
+		LocalDate localDate = parseDateOrDefault(date);
 
 		LedgerWriteStep2Response response = ledgerReadService.getWriteStep2Data(ledgerType, localDate);
 
 		model.addAttribute("ledger", response);
 
 		return "/ledger/ledger_writeStep2";
+	}
+
+	private LedgerType parseLedgerTypeOrDefault(String type) {
+		try{
+			return LedgerType.fromUrlCode(type);
+		}catch (IllegalArgumentException e) {
+			return LedgerType.INCOME;
+		}
+	}
+
+	private LocalDate parseDateOrDefault(String date) {
+		LocalDate result = DateTimeUtils.parseDateFlexible(date);
+
+		return  (result == null) ? LocalDate.now() : result;
 	}
 
 
@@ -120,6 +131,8 @@ public class LedgerController {
 	 */
 	@PostMapping
 	public String writeLedger(@ModelAttribute("ledger") LedgerWriteRequest request) {
+		ledgerValidator.register(request);
+
 		ledgerCommandService.registerLedger(request);
 
 		return "redirect:/ledgers";
