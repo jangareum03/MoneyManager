@@ -121,7 +121,7 @@ public class LedgerControllerTest {
 		LedgerWriteStep2Response response = mock(LedgerWriteStep2Response.class);
 
 		when(ledgerReadService.getWriteStep2Data(
-				eq(LedgerType.fromUrl(type)),
+				eq(LedgerType.fromUrlCode(type)),
 				eq(LocalDate.of(2025, 7, 7)))
 		).thenReturn(response);
 

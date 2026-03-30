@@ -3,6 +3,11 @@ package com.moneymanager.domain.ledger.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
+import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
+
 
 /**
  * <p>
@@ -55,21 +60,30 @@ public enum LedgerType {
 	 *     만약 동일한 값이 없으면 {@link IllegalArgumentException} 예외가 발생합니다.
 	 * </p>
 	 *
-	 * @param urlCode		가계부 유형을 확인할 URL 값
+	 * @param value		가계부 유형을 확인할 값
 	 * @return	가계부 유형 정보를 담은 {@link LedgerType} 객체
 	 * @throws IllegalArgumentException 없는 가계부 유형인 경우
 	 */
-	public static LedgerType fromUrl(String urlCode) {
-		for( LedgerType type : values() ) {
-			if( urlCode.equalsIgnoreCase(type.getUrlCode()) ) {
-				return type;
-			}
+	public static LedgerType fromUrlCode(String value) {
+		if(isNullOrBlank(value)) {
+			throw new IllegalArgumentException(
+				"reason=필수값누락   |   enum=LedgerType   |   field=urlCode   |   value=" + value
+			);
 		}
 
+		for(LedgerType type : values()) {
+			if(type.urlCode.equalsIgnoreCase(value)) return type;
+		}
+
+		String allowedValues = Arrays.stream(values())
+				.map(LedgerType::getUrlCode)
+				.collect(Collectors.joining(", "));
+
 		throw new IllegalArgumentException(
-				String.format("지원하지 않은 가계부 유형 (urlCode=%s)",urlCode)
+				"reason=허용값 아님   |   enum=LedgerType   |   field=urlCode   |   allowedValues=" + allowedValues + "   |   value=" + value
 		);
 	}
+
 
 
 	/**

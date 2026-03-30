@@ -101,7 +101,7 @@ public class LedgerService {
 	@Deprecated
 	public LedgerWriteStep2Response getWriteByData(String id, String type, String date) {
 		//가계부 유형에 따른 카테고리 목록 조회
-		LedgerType ledgerType = LedgerType.fromUrl(type);
+		LedgerType ledgerType = LedgerType.fromUrlCode(type);
 		CategoryRequest categoryRequest = CategoryRequest.ofMiddleCategory(ledgerType.getDbCode());
 		List<CategoryResponse> categories = categoryService.getSubCategories(categoryRequest);
 
