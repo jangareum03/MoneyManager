@@ -1,14 +1,10 @@
 package com.moneymanager.service.validation;
 
-import com.moneymanager.domain.global.Policy;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
-import com.moneymanager.exception.error.ErrorCode;
-import com.moneymanager.utils.date.DateTimeUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static com.moneymanager.domain.global.enums.RegexPattern.*;
@@ -74,7 +70,7 @@ public class LedgerValidator extends BaseImageValidator {
 		}
 
 		//필수정보 검증
-		validateDate(request.getDate());
+		DateValidator.validateLedgerDate(request.getDate());
 		validateCategory(request.getCategoryCode());
 		validateAmount(request.getAmount(), request.getAmountType());
 
@@ -85,26 +81,6 @@ public class LedgerValidator extends BaseImageValidator {
 
 		if(request.hasImage()) {
 			request.getImage().forEach(this::validateImage);
-		}
-	}
-
-
-	//가계부 거래날짜 검증
-	private void validateDate(String date) {
-		if(isNullOrBlank(date)) {
-			throw BusinessException.of(
-					LEDGER_INPUT_NULL,
-					"날짜를 선택해주세요.",
-					FUNCTION_NAME + "   |   reason=필수값누락   |   field=date   |   value=" + date
-			);
-		}
-
-		if(!matchesPattern(date, "^\\d{8}$")) {
-			throw BusinessException.of(
-					LEDGER_INPUT_FORMAT,
-					"날짜는 yyyyMMdd 형식으로 입력해주세요.",
-					FUNCTION_NAME + "   |   reason=형식오류   |   field=date   |   expectedFormat=yyyyMMdd (예: 20260101)   |   value=" + date
-			);
 		}
 	}
 

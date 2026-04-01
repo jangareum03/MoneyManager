@@ -70,6 +70,12 @@ public enum ErrorCode {
 
 	LEDGER_ETC_DB_ERROR("S-20-09-02", "데이터베이스 관련 문제가 발생했습니다."),
 
+	/**
+	 * 거래내역 관련 오류
+	 */
+	LEDGER_HISTORY_INPUT_FORMAT("C-22-02-03", "가계부 내역조회 입력 형식이 올바르지 않습니다."),
+	LEDGER_HISTORY_INPUT_NULL("C-22-02-07", "가계부 내역조회 필수값이 없습니다."),
+	LEDGER_HISTORY_INPUT_CONFLICT("C-22-02-09", "가계부 내역조회 입력값이 안맞습니다."),
 
 	/**
 	 * 파일 관련 오류
