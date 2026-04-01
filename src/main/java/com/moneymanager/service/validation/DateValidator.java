@@ -46,7 +46,7 @@ public class DateValidator {
 		checkFormat(date, LEDGER_INPUT_FORMAT, "날짜는 yyyyMMdd 형식으로 입력해주세요.","가계부 검증 실패   |   reason=형식오류   |   field=date   |   expectedFormat=yyyyMMdd (예: 20260101)   |   value=" + date);
 	}
 
-	public static void validateHistoryPeriod(String startDate, String endDate) {
+	public static void validatePeriod(String startDate, String endDate) {
 		validateHistoryDate(startDate, "시작일");
 		validateHistoryDate(endDate, "종료일");
 
