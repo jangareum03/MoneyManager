@@ -47,11 +47,11 @@ public class SearchPeriod implements DateGroupable {
 
 	@Override
 	public LocalDate getStartDate() {
-		return DateTimeUtils.parseDateFlexible(start);
+		return DateTimeUtils.parseDateFromYyyyMMdd(start);
 	}
 
 	@Override
 	public LocalDate getEndDate() {
-		return DateTimeUtils.parseDateFlexible(end);
+		return DateTimeUtils.parseDateFromYyyyMMdd(end);
 	}
 }

@@ -136,7 +136,7 @@ public class Ledger {
 	//날짜 규칙검증
 	private static void validateDate(String date) {
 		try{
-			LocalDate transDate = DateTimeUtils.parseDateFlexible(date);		//가계부 거래날짜
+			LocalDate transDate = DateTimeUtils.parseDateFromYyyyMMdd(date);		//가계부 거래날짜
 			LocalDate today = LocalDate.now();	//오늘날짜
 
 			LocalDate fiveYearsAgo = today.minusYears(Policy.LEDGER_MAX_YEAR);	//오늘 기준 5년 전
@@ -147,13 +147,13 @@ public class Ledger {
 						String.format("가계부 검증 실패   |   reason=범위오류   |   field=date   |   min=%s   |   max=%s   |   value=%s", DateTimeUtils.formatDate(fiveYearsAgo, DatePatterns.DATE.getPattern()), DateTimeUtils.formatDate(today, DatePatterns.DATE.getPattern()), date)
 				);
 			}
-		}catch (DateTimeParseException e) {
+		}catch (IllegalArgumentException e) {
 			String format = "yyyyMMdd";
 
 			throw BusinessException.of(
 					LEDGER_INPUT_FORMAT,
 					String.format("날짜는 %s 형식으로 입력해주세요.", format),
-					String.format("가계부 검증 실패   |   reason=형식오류   |   field=date   |   expectedFormat=%s (예: 20260101)   |   value=%s", format, date),
+					String.format("가계부 검증 실패   |   %s", e.getMessage()),
 					e
 			);
 		}

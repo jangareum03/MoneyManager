@@ -60,7 +60,7 @@ public class LedgerDetailResponse {
 	private String detailAddress;						//상세주소
 
 	public static LedgerDetailResponse from(Ledger ledger, Category category, List<LedgerImage> images) {
-		LocalDate date = DateTimeUtils.parseDateFlexible(ledger.getDate());
+		LocalDate date = DateTimeUtils.parseDateFromYyyyMMdd(ledger.getDate());
 		Place place = ledger.getPlace();
 
 		LedgerDetailResponseBuilder builder =

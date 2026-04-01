@@ -25,7 +25,6 @@ import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.utils.date.DateTimeUtils.parseDateFlexible;
 import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
 
 
@@ -106,7 +105,7 @@ public class LedgerService {
 		List<CategoryResponse> categories = categoryService.getSubCategories(categoryRequest);
 
 		//날짜 문자열을 LocalDate로 변환
-		LocalDate localDate = parseDateFlexible(date);
+		LocalDate localDate = DateTimeUtils.parseDateFromYyyyMMdd(date);
 
 		//사용 가능한 이미지 슬롯 여부
 		List<Boolean> availableSlots = imageService.getImageSlots(id);

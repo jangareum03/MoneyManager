@@ -4,12 +4,10 @@ package com.moneymanager.utils.date;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.format.ResolverStyle;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
-import java.util.List;
-import java.util.Locale;
 
 import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
 
@@ -48,52 +46,59 @@ import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
  */
 public class DateTimeUtils {
 
-	private static final List<DateTimeFormatter> DATE_TIME_FORMATTER_LIST = List.of(
-			DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT),
-			DateTimeFormatter.ofPattern("uuuu/MM/dd").withResolverStyle(ResolverStyle.STRICT),
-			DateTimeFormatter.ofPattern("uuuuMMdd").withResolverStyle(ResolverStyle.STRICT),
-			DateTimeFormatter.ofPattern("uuuu년 MM월 dd일", Locale.KOREAN).withResolverStyle(ResolverStyle.STRICT),
-			DateTimeFormatter.ofPattern("uuuu년 MM월 dd일 E요일", Locale.KOREAN).withResolverStyle(ResolverStyle.STRICT)
-	);
+	/**
+	 * 문자열을 {@link LocalDate}로 변환합니다.
+	 * <p>
+	 *     문자열 형식이 {@code yyyyMMdd}이면 파싱에 성공한 결과를 반환합니다.
+	 *     입력값이 null, 공백, {@code yyyyMMdd} 형식이 아닌 문자열은 {@link IllegalArgumentException}가 발생합니다.
+	 * </p>
+	 *
+	 * @param date	변환할 날짜 문자열
+	 * @return	변환된 {@link LocalDate}
+	 * @throws IllegalArgumentException	문자열 형식이 {@code yyyyMMdd}가 아닌 경우 발생
+	 */
+	public static LocalDate parseDateFromYyyyMMdd(String date) {
+		if(isNullOrBlank(date)) {
+			throw new IllegalArgumentException("reason=필수값누락   |   field=date   |   value=" + date);
+		}
 
-	private static final String DEFAULT_DATE_PATTERN = "yyyy";
+		try{
+			return LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd"));
+		}catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("reason=형식오류   |   field=date   |   expectedFormat=yyyyMMdd (예: 20260101)   |   value=" + date);
+		}
+	}
 
 
 	/**
-	 *	다양한 날짜 형식을 지원하여 문자열을 {@link LocalDate}로 반환합니다.
-	 *<p>
-	 * 입력된 문자열을 날짜 포맷 목록({@code DATE_TIME_FORMATTER_LIST})으로 하니씩 파싱하며, 반환에 성공한 결과를 반환합니다.
-	 * 입력값이 {@code null}, 공백, 모든 포맷으로 반환에 실패하면 null을 반환합니다.
-	 *
+	 * 문자열을 {@link LocalDate}로 변환하고, 변환이 실패할 경우 기본값을 반환합니다.
 	 * <p>
-	 *     예제 사용법:
-	 *     <pre>{@code
-	 *     	parseDateFlexible("2025-11-07");		//결과: LocalDate(2025-11-07)
-	 *     	parseDateFlexible("2025/11/07");		//결과: LocalDate(2025-11-07)
-	 *     	parseDateFlexible("2025년 11월 7일");	//결과: LocalDate(2025-11-07)
-	 *     	parseDateFlexible("11-07-2025");		//결과: null
-	 *     }</pre>
+	 *     입력된 날짜 문자열은 {@code yyyyMMdd} 형식으로 파싱을 시도하여,
+	 *     파싱 과정에서 예외가 발생하면 지정된 기본날짜를 반환합니다.
+	 * </p>
+	 * <p>
+	 *     아래와 같은 경우에는 예외가 발생합니다.
+	 *     <ul>
+	 *         <li>defaultDate가 null인 경우</li>
+	 *     </ul>
 	 * </p>
 	 *
-	 * @param dateStr		변환할 날짜 문자열
-	 * @return	변환된 {@link LocalDate}, 변환 실패 시 {@code null}
+	 *
+	 * @param date	변환할 날짜 문자열 (yyyyMMdd 형식)
+	 * @param defaultDate	변환 실패 시 반환할 기본 날짜
+	 * @return	변환된 {@link LocalDate}, 실패하면 defaultDate
+	 * @throws IllegalArgumentException	필수값이 없거나 defaultDate가 null인 경우
 	 */
-	public static LocalDate parseDateFlexible(String dateStr) {
-		if(isNullOrBlank(dateStr)) {
-			return null;
+	public static LocalDate parseDateOrElse(String date, LocalDate defaultDate) {
+		if(defaultDate == null) {
+			throw new IllegalArgumentException("reason=객체없음   |   object=LocalDate   |   value=null");
 		}
 
-		String trimmedDate = dateStr.trim();
-
-		for(DateTimeFormatter formatter : DATE_TIME_FORMATTER_LIST) {
-			try {
-				return LocalDate.parse(trimmedDate, formatter);
-			}catch (Exception e) {
-				//다음 패턴 진행
-			}
+		try{
+			return parseDateFromYyyyMMdd(date);
+		}catch (IllegalArgumentException e) {
+			return defaultDate;
 		}
-
-		return null;
 	}
 
 

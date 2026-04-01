@@ -2,15 +2,15 @@ package com.moneymanager.unit.utils.date;
 
 import com.moneymanager.utils.date.DateTimeUtils;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.*;
 
 import java.time.LocalDate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * <p>
@@ -42,37 +42,85 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DateTimeUtilsTest {
 
 	//==================[ TEST ]==================
-	@ParameterizedTest(name = "[{index}] format={0}")
-	@MethodSource("validateParse")
-	@DisplayName("지원하는 날짜 형식이면 LocalDate를 반환한다.")
-	void parseDateFlexible_Success_ReturnLocalDate(String format, String date, int year, int month, int day) {
+	@Test
+	@DisplayName("문자열 형식이 yyyyMMdd면 LocalDate 반환한다.")
+	void parseDateFromYyyyMMdd_Success() {
+		//given
+		String date = "20260101";
+
 		//when
-		LocalDate result = DateTimeUtils.parseDateFlexible(date);
+		LocalDate result = DateTimeUtils.parseDateFromYyyyMMdd(date);
 
 		//then
-		assertThat(result).isEqualTo(LocalDate.of(year, month, day));
+		assertThat(result)
+				.isNotNull()
+				.isEqualTo(LocalDate.of(2026, 1, 1));
 	}
 
 	@ParameterizedTest(name = "[{index}] date={0}")
 	@NullAndEmptySource
-	@DisplayName("날짜가 Null 또는 공백이면 Null을 반환한다.")
-	void parseDateFlexible_Success_DateIsNull(String date) {
+	@DisplayName("날짜 문자열이 null이거나 빈 문자열이면 예외가 발생한다.")
+	void parseDateFromYyyyMMdd_Failure_NullAndEmpty(String date) {
+		//when & then
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> DateTimeUtils.parseDateFromYyyyMMdd(date))
+				.withMessageContainingAll("필수값누락", "date");
+	}
+
+	@ParameterizedTest(name = "[{index}] date={0}")
+	@ValueSource(strings = {"2025-12-31", "2026.01.01", "2026/10/12"})
+	@DisplayName("지원하지 않은 날짜 형식이면 예외가 발생한다.")
+	void parseDateFromYyyyMMdd_Failure_Format(String date) {
+		//when & then
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> DateTimeUtils.parseDateFromYyyyMMdd(date))
+				.withMessageContainingAll("형식오류", "yyyyMMdd", date);
+	}
+
+
+	@ParameterizedTest(name = "[{index}] date={0}")
+	@NullAndEmptySource
+	@DisplayName("날짜가 Null 또는 공백이면 기본 날짜를 반환한다.")
+	void parseDateOrDefault_Success_NullAndEmpty(String date) {
+		//given
+		LocalDate defaultDate = LocalDate.now();
+
 		//when
-		LocalDate result = DateTimeUtils.parseDateFlexible(date);
+		LocalDate result = DateTimeUtils.parseDateOrElse(date, defaultDate);
 
 		//then
-		assertThat(result).isNull();
+		assertThat(result)
+				.isNotNull()
+				.isEqualTo(defaultDate);
 	}
 
 	@ParameterizedTest(name = "[{index}] format={0}")
 	@MethodSource("invalidateParse")
-	@DisplayName("지원하지 않은 날짜 형식이면 Null을 반환한다.")
-	void parseDateFlexible_Success_DateIsUnpaid(String format, String date) {
+	@DisplayName("지원하지 않은 날짜 형식이면 기본날짜를 반환한다.")
+	void parseDateOrDefault_Success_DateIsUnpaid(String date) {
+		//given
+		LocalDate defaultDate = LocalDate.now();
+
 		//when
-		LocalDate result = DateTimeUtils.parseDateFlexible(date);
+		LocalDate result = DateTimeUtils.parseDateOrElse(date, defaultDate);
 
 		//then
-		assertThat(result).isNull();
+		assertThat(result)
+				.isNotNull()
+				.isEqualTo(defaultDate);
+	}
+
+	@ParameterizedTest
+	@NullSource
+	@DisplayName("기본 날짜가 Null이면 예외가 발생한다.")
+	void parseDateOrDefault_Failure_defaultDateNotExist(LocalDate localDate) {
+		//given
+		String date = "20260101";
+
+		//when & then
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> DateTimeUtils.parseDateOrElse(date, localDate))
+				.withMessageContainingAll("객체없음", "LocalDate", "null");
 	}
 
 	@ParameterizedTest(name = "[{index}] {0}")

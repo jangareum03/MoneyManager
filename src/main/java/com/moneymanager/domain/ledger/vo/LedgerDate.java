@@ -40,7 +40,7 @@ public class LedgerDate {
 	LocalDate transactionDate;
 
 	public LedgerDate(String date) {
-		this.transactionDate = parseDateFlexible(date);
+		this.transactionDate = parseDateFromYyyyMMdd(date);
 	}
 
 

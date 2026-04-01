@@ -61,7 +61,7 @@ public class LedgerEditResponse {
 	private String detailAddress;						//상세주소
 
 	public static LedgerEditResponse from(Ledger ledger, Category category, List<CategoryResponse> categories, List<LedgerImage> images) {
-		LocalDate date = DateTimeUtils.parseDateFlexible(ledger.getDate());
+		LocalDate date = DateTimeUtils.parseDateFromYyyyMMdd(ledger.getDate());
 		Place place = ledger.getPlace();
 
 		LedgerEditResponse.LedgerEditResponseBuilder builder =
