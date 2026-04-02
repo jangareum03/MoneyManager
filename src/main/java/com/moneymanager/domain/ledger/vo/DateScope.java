@@ -1,6 +1,5 @@
-package com.moneymanager.domain.ledger.vo;
+package com.moneymanager.domain.global.vo;
 
-import com.moneymanager.domain.global.vo.DateGroupable;
 import lombok.Getter;
 import lombok.Value;
 

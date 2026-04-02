@@ -131,7 +131,7 @@ public class DateValidatorTest {
 	@DisplayName("가계부 거래내역 기간이 정상이면 검증에 통과한다.")
 	void validateHistoryPeriod_Success(String description, String start, String end) {
 		//when & then
-		assertThatCode(() -> DateValidator.validateHistoryPeriod(start, end))
+		assertThatCode(() -> DateValidator.validatePeriod(start, end))
 				.doesNotThrowAnyException();
 	}
 
@@ -143,7 +143,7 @@ public class DateValidatorTest {
 	@DisplayName("가계부 거래내역 시작일이 종료일보다 미래면 예외가 발생한다.")
 	void validateHistoryPeriod_Failure(String start, String end) {
 		//when
-		Throwable throwable = catchThrowable(() -> DateValidator.validateHistoryPeriod(start, end));
+		Throwable throwable = catchThrowable(() -> DateValidator.validatePeriod(start, end));
 
 		//then
 		BusinessExceptionAssert.assertThatBusinessException(throwable)

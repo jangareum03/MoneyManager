@@ -1,15 +1,16 @@
-package com.moneymanager.domain.ledger.vo;
+package com.moneymanager.domain.global.vo;
 
 import com.moneymanager.service.validation.DateValidator;
 import lombok.Value;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 import static com.moneymanager.utils.date.DateTimeUtils.*;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.domain.ledger.vo<br>
+ * 패키지이름    : com.moneymanager.domain.global.vo<br>
  * 파일이름       : DateRange<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 3. 30<br>
@@ -45,5 +46,19 @@ public class DateRange {
 
 		this.from = parseDateFromYyyyMMdd(from);
 		this.to = parseDateFromYyyyMMdd(to);
+	}
+
+
+	/**
+	 * 시작일과 종료일 사이의 일자 차이를 반환합니다.
+	 * <p>
+	 *     {@link ChronoUnit#DAYS}를 사용하여 from과 to 사이의 날짜 차이를 계산합니다.
+	 *     시작일은 포함하지 않고, 종료일 기준으로 차이를 반환합니다.
+	 * </p>
+	 *
+	 * @return	시작일과 종료일 사이의 일수 차이
+	 */
+	public long daysBetween() {
+		return ChronoUnit.DAYS.between(from, to);
 	}
 }

@@ -1,6 +1,6 @@
 package com.moneymanager.unit.domain.ledger.vo;
 
-import com.moneymanager.domain.ledger.vo.DateRange;
+import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,6 +69,21 @@ public class DateRangeTest {
 	}
 
 
+	@ParameterizedTest(name = "[{index}] from={0}, end={1}")
+	@MethodSource("validBetweenCases")
+	@DisplayName("시작일과 종료일 사이의 일자를 계산할 수 있다.")
+	void daysBetween_Success(String from, String to, long expectedValue) {
+		//given
+		DateRange dateRange = new DateRange(from, to);
+
+		//when
+		long result = dateRange.daysBetween();
+
+		//then
+		assertThat(result).isEqualTo(expectedValue);
+	}
+
+
 	//==================[ Method Source ]==================
 	static Stream<Arguments> invalidCreateCases() {
 		return Stream.of(
@@ -86,6 +101,26 @@ public class DateRangeTest {
 						"시작일 > 종료일",
 						"20260101",
 						"20250101"
+				)
+		);
+	}
+
+	static Stream<Arguments> validBetweenCases() {
+		return Stream.of(
+				Arguments.of(
+						"20260101",
+						"20260131",
+						30
+				),
+				Arguments.of(
+						"20260301",
+						"20260308",
+						7
+				),
+				Arguments.of(
+						"20260101",
+						"20260101",
+						0
 				)
 		);
 	}
