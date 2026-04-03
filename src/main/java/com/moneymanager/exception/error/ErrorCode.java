@@ -77,6 +77,8 @@ public enum ErrorCode {
 	LEDGER_HISTORY_INPUT_NULL("C-22-02-07", "가계부 내역조회 필수값이 없습니다."),
 	LEDGER_HISTORY_INPUT_CONFLICT("C-22-02-09", "가계부 내역조회 입력값이 안맞습니다."),
 
+	LEDGER_HISTORY_POLICY_VIOLATION("S-22-07-01", "가계부 내역조회 규칙위반 관련 문제가 발생했습니다."),
+
 	/**
 	 * 파일 관련 오류
 	 */
