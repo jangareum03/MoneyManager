@@ -5,6 +5,7 @@ import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.exception.error.ErrorCode;
+import com.moneymanager.utils.date.DateTimeUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -82,5 +83,49 @@ public class LedgerHistoryPolicy {
 		if(days <= 31 || days > 365) return HistoryType.MONTH;
 
 		return HistoryType.YEAR;
+	}
+
+
+	/**
+	 *	조회 기준 날짜와 기간 유형에 맞는 제목 문자열을 반환합니다.
+	 *<p>
+	 *     기간 유형이 {@link HistoryType#WEEK}인 경우에는 해당 날짜의 연월 정보와 월 기준 주차를 조합하여 제목을 생서합니다.
+	 *     그 외 기간 유형은 각 유형에 정의된 날짜 포맷으로 제목을 생성합니다.
+	 *</p>
+	 *
+	 * @param localDate		기준 날짜
+	 * @param historyType	조회 기간 유형
+	 * @return 기간 유형에 맞는 제목 문자열
+	 */
+	public String getTitleByHistoryType(LocalDate localDate, HistoryType historyType) {
+		if(historyType == HistoryType.WEEK) {
+			String prefix = DateTimeUtils.formatDate(localDate, HistoryType.MONTH.getFormat());
+			int week = calculateWeekOfMonth(localDate);
+
+			return String.format("%s %d주", prefix, week);
+		}
+
+		return DateTimeUtils.formatDate(localDate, historyType.getFormat());
+	}
+
+
+	/**
+	 * 주어진 날짜가 해당 월의 몇 번째 주차인지 계산합니다.
+	 * <p>
+	 *     월의 1일과 {@link Policy#LEDGER_START_WEEK} 기준으로 첫 주의 시작 위치를 보정한 뒤 주차를 계산합니다.
+	 * </p>
+	 *
+	 * @param localDate	주차를 구할 날짜
+	 * @return	해당 월 기준 주차
+	 */
+	public int calculateWeekOfMonth(LocalDate localDate) {
+		LocalDate firstDayOfMonth = localDate.withDayOfMonth(1);	//해당 월 1일
+
+		int diffDay = firstDayOfMonth.getDayOfWeek().getValue() - Policy.LEDGER_START_WEEK.getValue();
+		if(diffDay < 0) {
+			diffDay += 7;
+		}
+
+		return ((localDate.getDayOfMonth() + diffDay - 1) / 7) + 1;
 	}
 }

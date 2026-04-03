@@ -171,4 +171,88 @@ public class LedgerHistoryPolicyTest {
 
 		return new DateRange(start.format(DATE_TIME_FORMATTER), end.format(DATE_TIME_FORMATTER));
 	}
+
+
+	//==================[ getTitleByHistoryType ]==================
+	@ParameterizedTest(name = "[{index}] {0}")
+	@MethodSource("validTitleCases")
+	@DisplayName("내역 범위에 따라 제목 형식이 다르게 반환된다.")
+	void getTitleByHistoryType_Success(String description, LocalDate date, HistoryType historyType, String expected) {
+		//when
+		String result = ledgerHistoryPolicy.getTitleByHistoryType(date, historyType);
+
+		//then
+		assertThat(result).isEqualTo(expected);
+	}
+
+	static Stream<Arguments> validTitleCases() {
+		return Stream.of(
+				Arguments.of(
+					"YEAR 타입 - 2026년 1월 1일",
+						LocalDate.of(2026, 1, 1),
+						HistoryType.YEAR,
+						"2026년"
+				),
+				Arguments.of(
+						"YEAR 타입 - 2026년 12월 31일",
+						LocalDate.of(2026, 12, 31),
+						HistoryType.YEAR,
+						"2026년"
+				),
+				Arguments.of(
+						"MONTH 타입 - 2026년 1월 1일",
+						LocalDate.of(2026, 1, 1),
+						HistoryType.MONTH,
+						"2026년 01월"
+				),
+				Arguments.of(
+						"MONTH 타입 - 2025년 12월 1일",
+						LocalDate.of(2025, 12, 1),
+						HistoryType.MONTH,
+						"2025년 12월"
+				),
+				Arguments.of(
+						"WEEK 타입 - 2026년 1월 1일",
+						LocalDate.of(2026, 1, 1),
+						HistoryType.WEEK,
+						"2026년 01월 1주"
+				),
+				Arguments.of(
+						"WEEK 타입 - 2026년 1월 4일",
+						LocalDate.of(2026, 1, 4),
+						HistoryType.WEEK,
+						"2026년 01월 1주"
+				),
+				Arguments.of(
+						"WEEK 타입 - 2026년 1월 5일",
+						LocalDate.of(2026, 1, 5),
+						HistoryType.WEEK,
+						"2026년 01월 2주"
+				)
+		);
+	}
+
+
+	//==================[ calculateWeekOfMonth ]==================
+	@ParameterizedTest(name = "[{index}] {0}")
+	@MethodSource("validWeekOfMonthCases")
+	@DisplayName("해당 월의 일 기준으로 주차를 반환한다.")
+	void calculateWeekOfMonth_Success(String description, LocalDate date, int expected) {
+		//when
+		int result = ledgerHistoryPolicy.calculateWeekOfMonth(date);
+
+		//then
+		assertThat(result).isEqualTo(expected);
+	}
+
+	static Stream<Arguments> validWeekOfMonthCases() {
+		return Stream.of(
+				Arguments.of("2026년 1월 1일 → 1주", LocalDate.of(2026, 1,1), 1),
+				Arguments.of("2026년 1월 4일 → 1주", LocalDate.of(2026, 1,1), 1),
+				Arguments.of("2026년 1월 5일 → 2주", LocalDate.of(2026, 1,1), 1),
+				Arguments.of("2026년 2월 19일 → 3주", LocalDate.of(2026, 1,1), 1),
+				Arguments.of("2026년 3월 29일 → 4주", LocalDate.of(2026, 1,1), 1),
+				Arguments.of("2026년 4월 30일 → 5주", LocalDate.of(2026, 1,1), 1)
+		);
+	}
 }

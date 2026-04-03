@@ -2,6 +2,8 @@ package com.moneymanager.domain.global;
 
 import lombok.Getter;
 
+import java.time.DayOfWeek;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.global<br>
@@ -34,6 +36,7 @@ public final class Policy {
 
 	public static final int LEDGER_MAX_YEAR = 5;
 	public static final int LEDGER_MAX_IMAGE = 3;
+	public static final DayOfWeek LEDGER_START_WEEK= DayOfWeek.MONDAY;
 
 	private Policy() {}
 

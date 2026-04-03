@@ -1,5 +1,7 @@
 package com.moneymanager.domain.ledger.enums;
 
+import lombok.Getter;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
@@ -27,6 +29,16 @@ package com.moneymanager.domain.ledger.enums;
  * 		</tbody>
  * </table>
  */
+@Getter
 public enum HistoryType {
-	WEEK, MONTH, YEAR;
+	WEEK("yyyy년 MM월 W주"),
+	MONTH("yyyy년 MM월"),
+	YEAR("yyyy년");
+
+	private final String format;
+
+	HistoryType(String format) {
+		this.format = format;
+	}
+
 }
