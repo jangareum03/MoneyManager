@@ -141,38 +141,6 @@ public class LedgerHistoryPolicyTest {
 	}
 
 
-	//==================[ resolveRangeType ]==================
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("validRangeTypeCases")
-	@DisplayName("날짜 범위에 따라 HistoryType이 올바르게 반환한다.")
-	void resolveRangeType_Success_returnWeek(String description, DateRange dateRange, HistoryType historyType) {
-		//when
-		HistoryType result = ledgerHistoryPolicy.resolveRangeType(dateRange);
-
-		//then
-		assertThat(result).isSameAs(historyType);
-	}
-
-	static Stream<Arguments> validRangeTypeCases() {
-		return Stream.of(
-				Arguments.of("0일 → WEEK", dateRange(0), HistoryType.WEEK),
-				Arguments.of("7일 → WEEK", dateRange(7), HistoryType.WEEK),
-				Arguments.of("8일 → MONTH", dateRange(8), HistoryType.MONTH),
-				Arguments.of("31일 → MONTH", dateRange(31), HistoryType.MONTH),
-				Arguments.of("32일 → YEAR", dateRange(32), HistoryType.YEAR),
-				Arguments.of("365일 → YEAR", dateRange(365), HistoryType.YEAR),
-				Arguments.of("366일 → MONTH", dateRange(366), HistoryType.MONTH)
-		);
-	}
-
-	private static DateRange dateRange(int addDay) {
-		LocalDate start = LocalDate.now().plusDays(0);
-		LocalDate end = start.plusDays(addDay);
-
-		return new DateRange(start.format(DATE_TIME_FORMATTER), end.format(DATE_TIME_FORMATTER));
-	}
-
-
 	//==================[ getTitleByHistoryType ]==================
 	@ParameterizedTest(name = "[{index}] {0}")
 	@MethodSource("validTitleCases")

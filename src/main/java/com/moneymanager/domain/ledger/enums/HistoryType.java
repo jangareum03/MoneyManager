@@ -2,6 +2,11 @@ package com.moneymanager.domain.ledger.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
+import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
@@ -41,4 +46,37 @@ public enum HistoryType {
 		this.format = format;
 	}
 
+
+	/**
+	 *	문자열을 {@link HistoryType}으로 변환합니다.
+	 *<p>
+	 *     입력값은 대소문자 구분없이 내부적으로 비교하여 처리합니다.
+	 *</p>
+	 * <p>
+	 *     아래와 같은 경우에는 예외가 발생합니다.
+	 *     <ul>
+	 *         <li>문자열({@code type})이 null 또는 공백인 경우</li>
+	 *         <li>정의되지 않은 enum 값인 경우</li>
+	 *     </ul>
+	 * </p>
+	 *
+	 * @param type	변환할 문자열
+	 * @return	변환된 {@link HistoryType}
+	 * @throws IllegalArgumentException	필수값이 없거나 허용되지 않은 값인 경우 발생
+	 */
+	public static HistoryType from(String type) {
+		if(isNullOrBlank(type)) {
+			throw new IllegalArgumentException("reason=필수값누락   |   enum=HistoryType   |   value=" + type);
+		}
+
+		try{
+			return HistoryType.valueOf(type.toUpperCase());
+		}catch (IllegalArgumentException e) {
+			String allowedValues = Arrays.stream(values())
+					.map(HistoryType::name)
+					.collect(Collectors.joining(", "));
+
+			throw new IllegalArgumentException("reason=허용값아님   |   enum=HistoryType   |   allowedValues=" + allowedValues + "   |   value=" + type);
+		}
+	}
 }

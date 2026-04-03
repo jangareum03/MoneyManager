@@ -3,8 +3,8 @@ package com.moneymanager.controller.web.ledger;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.exception.BusinessException;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.validation.LedgerValidator;
@@ -15,6 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+
 
 /**
  * <p>
@@ -52,6 +53,24 @@ public class LedgerController {
 	private final LedgerCommandService ledgerCommandService;
 
 	private final LedgerValidator ledgerValidator;
+
+
+	@GetMapping
+	public String getMyHistories(@RequestParam(required = false) String viewType, Model model) {
+		HistoryType type = parseHistoryTypeOrDefault(viewType);
+
+		ledgerReadService.getHistoryDashboard(type);
+
+		return "/ledger/ledger_history";
+	}
+
+	private HistoryType parseHistoryTypeOrDefault(String type) {
+		try{
+			return HistoryType.from(type);
+		}catch (IllegalArgumentException e) {
+			return HistoryType.MONTH;
+		}
+	}
 
 
 	/**
@@ -94,9 +113,11 @@ public class LedgerController {
 	 */
 	@GetMapping("/new/step2")
 	public String writeStep2View(@RequestParam String type, @RequestParam String date, Model model) {
+		LocalDate defaultDate = LocalDate.now();
+
 		//입력값 확인
 		LedgerType ledgerType = parseLedgerTypeOrDefault(type);
-		LocalDate localDate = parseDateOrDefault(date);
+		LocalDate localDate = DateTimeUtils.parseDateOrElse(date, defaultDate);
 
 		LedgerWriteStep2Response response = ledgerReadService.getWriteStep2Data(ledgerType, localDate);
 
@@ -112,13 +133,6 @@ public class LedgerController {
 			return LedgerType.INCOME;
 		}
 	}
-
-	private LocalDate parseDateOrDefault(String date) {
-		LocalDate result = DateTimeUtils.parseDateFlexible(date);
-
-		return  (result == null) ? LocalDate.now() : result;
-	}
-
 
 	/**
 	 * 가계부 등록 요청을 처리합니다.

@@ -66,30 +66,23 @@ public class LedgerHistoryPolicy {
 
 
 	/**
-	 *	기간 일수({@link DateRange#daysBetween()})를 기준으로 아래와 같이 분류합니다.
-	 *<ul>
-	 *     <li>7일 이하: {@link HistoryType#WEEK}</li>
-	 *     <li>31일 이하 또는 365일 초과: {@link HistoryType#MONTH}</li>
-	 *     <li>그 외: {@link HistoryType#YEAR}</li>
-	 *</ul>
+	 * 현재 날짜 기준으로 기간 유형에 맞는 제목 문자열을 반환합니다.
+	 * <p>
+	 *     내부적으로 {@link LedgerHistoryPolicy#getTitleByHistoryType(LocalDate, HistoryType)} 메서드를 호출합니다.
+	 * </p>
 	 *
-	 * @param dateRange	조회 기간을 담은 객체
-	 * @return	기간 일수에 따른 {@link HistoryType}
+	 * @param historyType	조회 기간 유형
+	 * @return	기간 유형에 맞는 제목 문자열
 	 */
-	public HistoryType resolveRangeType(DateRange dateRange) {
-		long days = dateRange.daysBetween();
-
-		if(days <= 7) return HistoryType.WEEK;
-		if(days <= 31 || days > 365) return HistoryType.MONTH;
-
-		return HistoryType.YEAR;
+	public String getTitleByHistoryType(HistoryType historyType) {
+		return getTitleByHistoryType(LocalDate.now(), historyType);
 	}
 
 
 	/**
 	 *	조회 기준 날짜와 기간 유형에 맞는 제목 문자열을 반환합니다.
 	 *<p>
-	 *     기간 유형이 {@link HistoryType#WEEK}인 경우에는 해당 날짜의 연월 정보와 월 기준 주차를 조합하여 제목을 생서합니다.
+	 *     기간 유형이 {@link HistoryType#WEEK}인 경우에는 해당 날짜의 연월 정보와 월 기준 주차를 조합하여 제목을 생성합니다.
 	 *     그 외 기간 유형은 각 유형에 정의된 날짜 포맷으로 제목을 생성합니다.
 	 *</p>
 	 *
