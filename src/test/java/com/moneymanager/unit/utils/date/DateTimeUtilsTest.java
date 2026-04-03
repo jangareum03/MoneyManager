@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class DateTimeUtilsTest {
 
-	//==================[ TEST ]==================
+	//==================[ parseDateFromYyyyMMdd ]==================
 	@Test
 	@DisplayName("문자열 형식이 yyyyMMdd면 LocalDate 반환한다.")
 	void parseDateFromYyyyMMdd_Success() {
@@ -78,6 +78,7 @@ public class DateTimeUtilsTest {
 	}
 
 
+	//==================[ parseDateOrDefault ]==================
 	@ParameterizedTest(name = "[{index}] date={0}")
 	@NullAndEmptySource
 	@DisplayName("날짜가 Null 또는 공백이면 기본 날짜를 반환한다.")
@@ -110,6 +111,16 @@ public class DateTimeUtilsTest {
 				.isEqualTo(defaultDate);
 	}
 
+	static Stream<Arguments> invalidateParse() {
+		return Stream.of(
+				Arguments.of("MM/dd/yyyy", "01/01/2026"),
+				Arguments.of("dd/MM/yyyy", "01/01/2026"),
+				Arguments.of("yyyy.MM.dd", "2026.01.01"),
+				Arguments.of("yyyy年MM月dd日", "2026年01月01日"),
+				Arguments.of("yyyy년 M월 d일", "2026년 1월 1일")
+		);
+	}
+
 	@ParameterizedTest
 	@NullSource
 	@DisplayName("기본 날짜가 Null이면 예외가 발생한다.")
@@ -123,6 +134,8 @@ public class DateTimeUtilsTest {
 				.withMessageContainingAll("객체없음", "LocalDate", "null");
 	}
 
+
+	//==================[ isDateInRange ]==================
 	@ParameterizedTest(name = "[{index}] {0}")
 	@MethodSource("validateRange")
 	@DisplayName("날짜가 시작일과 종료일 사이라면 true를 반환한다. ")
@@ -132,6 +145,18 @@ public class DateTimeUtilsTest {
 
 		//then
 		assertThat(result).isTrue();
+	}
+
+	static Stream<Arguments> validateRange() {
+		LocalDate date = LocalDate.now();
+		LocalDate start = date.minusMonths(1);
+		LocalDate end = date.plusMonths(1);
+
+		return Stream.of(
+				Arguments.of("기간 내에 포함된 날짜", date, start, end),
+				Arguments.of("시작일 동일", date, date, end),
+				Arguments.of("종료일 동일", date, start, date)
+		);
 	}
 
 	@ParameterizedTest(name = "[{index}] {0}")
@@ -145,52 +170,6 @@ public class DateTimeUtilsTest {
 		assertThat(result).isFalse();
 	}
 
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("invalidateRangeBoundary")
-	@DisplayName("날짜 범위가 이상하면 false을 반환한다.")
-	void isDateInRange_Failure_BoundaryValue(String title, LocalDate date, LocalDate start, LocalDate end) {
-		//when
-		boolean result = DateTimeUtils.isDateInRange(date, start, end);
-
-		//then
-		assertThat(result).isFalse();
-	}
-
-
-
-	//==================[ Method Sources ]==================
-	static Stream<Arguments> validateParse() {
-		return Stream.of(
-				Arguments.of("yyyy-MM-dd", "2026-01-01", 2026, 1, 1),
-				Arguments.of("yyyy/MM/dd", "2026/01/01", 2026, 1, 1),
-				Arguments.of("yyyyMMdd", "20260101", 2026, 1, 1),
-				Arguments.of("yyyy년 MM월 dd일", "2026년 01월 01일", 2026, 1, 1),
-				Arguments.of("yyyy년 MM월 dd일 E요일", "2026년 01월 01일 목요일", 2026, 1, 1)
-		);
-	}
-
-	static Stream<Arguments> invalidateParse() {
-		return Stream.of(
-				Arguments.of("MM/dd/yyyy", "01/01/2026"),
-				Arguments.of("dd/MM/yyyy", "01/01/2026"),
-				Arguments.of("yyyy.MM.dd", "2026.01.01"),
-				Arguments.of("yyyy年MM月dd日", "2026年01月01日"),
-				Arguments.of("yyyy년 M월 d일", "2026년 1월 1일")
-		);
-	}
-
-	static Stream<Arguments> validateRange() {
-		LocalDate date = LocalDate.now();
-		LocalDate start = date.minusMonths(1);
-		LocalDate end = date.plusMonths(1);
-
-		return Stream.of(
-			Arguments.of("기간 내에 포함된 날짜", date, start, end),
-			Arguments.of("시작일 동일", date, date, end),
-			Arguments.of("종료일 동일", date, start, date)
-		);
-	}
-
 	static Stream<Arguments> invalidateRangeNull() {
 		LocalDate date = LocalDate.now();
 
@@ -200,6 +179,17 @@ public class DateTimeUtilsTest {
 				Arguments.of("시작 날짜 null", date, null, date),
 				Arguments.of("종료 날짜 null", date, date, null)
 		);
+	}
+
+	@ParameterizedTest(name = "[{index}] {0}")
+	@MethodSource("invalidateRangeBoundary")
+	@DisplayName("날짜 범위가 이상하면 false을 반환한다.")
+	void isDateInRange_Failure_BoundaryValue(String title, LocalDate date, LocalDate start, LocalDate end) {
+		//when
+		boolean result = DateTimeUtils.isDateInRange(date, start, end);
+
+		//then
+		assertThat(result).isFalse();
 	}
 
 	static Stream<Arguments> invalidateRangeBoundary() {
@@ -218,6 +208,31 @@ public class DateTimeUtilsTest {
 						date.minusDays(5),
 						date.minusDays(5)
 				)
+		);
+	}
+
+
+	//==================[ formatDate ]==================
+	@ParameterizedTest(name = "[{index}] {0}")
+	@MethodSource("validFormatDateCases")
+	@DisplayName("지정한 패턴으로 문자열이 변환된다.")
+	void formatDate_Success(String description, LocalDate date, String pattern, String expected) {
+		//when
+		String result = DateTimeUtils.formatDate(date, pattern);
+
+		//then
+		assertThat(result).isEqualTo(expected);
+	}
+
+	static Stream<Arguments> validFormatDateCases() {
+		LocalDate date = LocalDate.of(2026, 1, 1);
+
+		return Stream.of(
+				Arguments.of("연도 표시", date, "yyyy", "2026"),
+				Arguments.of("연+월 표시", date, "yyyy-MM", "2026-01"),
+				Arguments.of("연+월+일 표시 (1월 1일)", date, "yyyy년 MM월 dd일", "2026년 01월 01일"),
+				Arguments.of("연+월+일 표시 (10월 11일)", date.withMonth(10).plusDays(10), "yyyy년 MM월 dd일", "2026년 10월 11일"),
+				Arguments.of("연+월+일+요일 표시", date, "yyyy년 MM월 dd일 E요일", "2026년 01월 01일 목요일")
 		);
 	}
 }
