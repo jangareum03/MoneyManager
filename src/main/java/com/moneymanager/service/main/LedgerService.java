@@ -100,8 +100,8 @@ public class LedgerService {
 	@Deprecated
 	public LedgerWriteStep2Response getWriteByData(String id, String type, String date) {
 		//가계부 유형에 따른 카테고리 목록 조회
-		LedgerType ledgerType = LedgerType.fromUrlCode(type);
-		CategoryRequest categoryRequest = CategoryRequest.ofMiddleCategory(ledgerType.getDbCode());
+		CategoryType ledgerType = CategoryType.fromApiCode(type);
+		CategoryRequest categoryRequest = CategoryRequest.ofMiddleCategory(ledgerType.getCategoryCode());
 		List<CategoryResponse> categories = categoryService.getSubCategories(categoryRequest);
 
 		//날짜 문자열을 LocalDate로 변환
@@ -227,17 +227,17 @@ public class LedgerService {
 
 	//조회된 금액별 통계 계산
 	private IncomeExpenseSummary calculateStats(LedgerByDate cards) {
-		long income = getTotalAmount(cards, LedgerType.INCOME);
-		long expense = getTotalAmount(cards, LedgerType.OUTLAY);
+		long income = getTotalAmount(cards, CategoryType.INCOME);
+		long expense = getTotalAmount(cards, CategoryType.OUTLAY);
 
 		return IncomeExpenseSummary.of(income, expense);
 	}
 
 	//금액 유형별 총합 구하기
-	private long getTotalAmount(LedgerByDate cards, LedgerType type) {
+	private long getTotalAmount(LedgerByDate cards, CategoryType type) {
 		return cards.getDateGroups().values().stream()
 				.flatMap(Collection::stream)
-				.filter(summary -> summary.getType().equals(type.getUrlCode()))
+				.filter(summary -> summary.getType().equals(type.getApiCode()))
 				.mapToLong(LedgerSummary::getAmount)
 				.sum();
 	}

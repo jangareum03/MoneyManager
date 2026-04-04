@@ -3,8 +3,8 @@ package com.moneymanager.controller.web.ledger;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
-import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.validation.LedgerValidator;
@@ -101,7 +101,7 @@ public class LedgerController {
 	 * <p>
 	 *     기본값은 아래와 같습니다.
 	 *     <ul>
-	 *         <li>가계부 유형({@code type}): {@link LedgerType#INCOME}</li>
+	 *         <li>가계부 유형({@code type}): {@link CategoryType#INCOME}</li>
 	 *         <li>가계부 거래날짜({@code date}): {@link LocalDate#now()}</li>
 	 *     </ul>
 	 * </p>
@@ -116,7 +116,7 @@ public class LedgerController {
 		LocalDate defaultDate = LocalDate.now();
 
 		//입력값 확인
-		LedgerType ledgerType = parseLedgerTypeOrDefault(type);
+		CategoryType ledgerType = parseCategoryTypeOrDefault(type);
 		LocalDate localDate = DateTimeUtils.parseDateOrElse(date, defaultDate);
 
 		LedgerWriteStep2Response response = ledgerReadService.getWriteStep2Data(ledgerType, localDate);
@@ -126,11 +126,11 @@ public class LedgerController {
 		return "/ledger/ledger_writeStep2";
 	}
 
-	private LedgerType parseLedgerTypeOrDefault(String type) {
+	private CategoryType parseCategoryTypeOrDefault(String type) {
 		try{
-			return LedgerType.fromUrlCode(type);
+			return CategoryType.fromApiCode(type);
 		}catch (IllegalArgumentException e) {
-			return LedgerType.INCOME;
+			return CategoryType.INCOME;
 		}
 	}
 

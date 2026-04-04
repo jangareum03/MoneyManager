@@ -4,7 +4,7 @@ import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
-import com.moneymanager.domain.ledger.enums.LedgerType;
+import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.AmountType;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.utils.date.DateTimeUtils;
@@ -50,7 +50,7 @@ public class LedgerEditResponse {
 	private final List<CategoryResponse> category;			//카테고리
 	private final List<String> images;									//가계부 사진
 
-	private final LedgerType type;										//가계부 유형
+	private final CategoryType type;										//가계부 유형
 	private final LedgerFixedResponse fixed;					//가계부 고정여부
 
 	private Long amount;													//금액
@@ -67,7 +67,7 @@ public class LedgerEditResponse {
 		LedgerEditResponse.LedgerEditResponseBuilder builder =
 				LedgerEditResponse.builder()
 						.date(DateTimeUtils.formatDate(date, DatePatterns.DATE_DOT_WITH_DAY.getPattern()))
-						.type(LedgerType.fromCode(category.getCode()))
+						.type(CategoryType.fromCategoryCode(category.getCode()))
 						.fixed(LedgerFixedResponse.from(ledger))
 						.category(categories)
 						.memo(ledger.getMemo())

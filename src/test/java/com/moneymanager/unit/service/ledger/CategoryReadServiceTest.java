@@ -1,10 +1,10 @@
 package com.moneymanager.unit.service.ledger;
 
+import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.repository.ledger.CategoryRepository;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
-import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.service.ledger.CategoryReadService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -88,9 +88,9 @@ public class CategoryReadServiceTest {
 
 	//==================[ 📌getCategoriesByTypeAndLevel  ]==================
 	@ParameterizedTest(name = "[{index}] type={0}")
-	@EnumSource(LedgerType.class)
+	@EnumSource(CategoryType.class)
 	@DisplayName("TOP 레벨 카테고리 정보가 리스트로 조회 가능하다.")
-	void 최상위_레벨_카테고리_목록_조회(LedgerType type){
+	void 최상위_레벨_카테고리_목록_조회(CategoryType type){
 		//given
 		CategoryLevel level = CategoryLevel.TOP;
 
@@ -118,12 +118,12 @@ public class CategoryReadServiceTest {
 	}
 
 	@ParameterizedTest(name = "[{index}] type={0}")
-	@EnumSource(LedgerType.class)
+	@EnumSource(CategoryType.class)
 	@DisplayName("MIDDLE 레벨 카테고리 정보가 리스트로 조회 가능하다.")
-	void 중간_레벨_카테고리_목록_조회(LedgerType type){
+	void 중간_레벨_카테고리_목록_조회(CategoryType type){
 		//given
 		CategoryLevel level = CategoryLevel.MIDDLE;
-		int expected = (type == LedgerType.INCOME) ? 2 : 3;
+		int expected = (type == CategoryType.INCOME) ? 2 : 3;
 
 		when(categoryRepository.findAllCategory())
 				.thenReturn(List.of(
@@ -153,12 +153,12 @@ public class CategoryReadServiceTest {
 	}
 
 	@ParameterizedTest(name = "[{index}] type={0}")
-	@EnumSource(LedgerType.class)
+	@EnumSource(CategoryType.class)
 	@DisplayName("LOW 레벨 카테고리 정보가 리스트로 조회 가능하다.")
-	void 하위_레벨_카테고리_목록_조회(LedgerType type){
+	void 하위_레벨_카테고리_목록_조회(CategoryType type){
 		//given
 		CategoryLevel level = CategoryLevel.LOW;
-		int expected = (type == LedgerType.INCOME) ? 3 : 4;
+		int expected = (type == CategoryType.INCOME) ? 3 : 4;
 
 		when(categoryRepository.findAllCategory())
 				.thenReturn(List.of(

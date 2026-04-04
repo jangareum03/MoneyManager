@@ -1,6 +1,6 @@
 package com.moneymanager.domain.ledger.dto.response;
 
-import com.moneymanager.domain.ledger.enums.LedgerType;
+import com.moneymanager.domain.ledger.enums.CategoryType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -43,8 +43,8 @@ public class LedgerTypeResponse {
 	private final String value;		//가계부 유형 코드
 
 	public static List<LedgerTypeResponse> fromEnum() {
-		return Arrays.stream(LedgerType.values())
-				.map(t -> new LedgerTypeResponse(t.getLabel(), t.getUrlCode()))
+		return Arrays.stream(CategoryType.values())
+				.map(t -> new LedgerTypeResponse(t.getLabel(), t.getApiCode()))
 				.collect(Collectors.toList());
 	}
 

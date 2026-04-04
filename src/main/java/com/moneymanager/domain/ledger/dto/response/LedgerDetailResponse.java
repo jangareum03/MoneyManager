@@ -5,7 +5,7 @@ import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.AmountType;
-import com.moneymanager.domain.ledger.enums.LedgerType;
+import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.utils.date.DateTimeUtils;
 import lombok.Builder;
@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 @Getter
 public class LedgerDetailResponse {
 	private String date;										//가계부 날짜
-	private LedgerType type;								//가계부 유형
+	private CategoryType type;								//가계부 유형
 	private CategoryResponse category;			//카테고리
 	private String memo;										//메모
 	private List<String> images;							//가계부 사진
@@ -66,7 +66,7 @@ public class LedgerDetailResponse {
 		LedgerDetailResponseBuilder builder =
 				LedgerDetailResponse.builder()
 						.date(DateTimeUtils.formatDate(date, DatePatterns.DATE_DOT_WITH_DAY.getPattern()))
-						.type(LedgerType.fromCode(category.getCode()))
+						.type(CategoryType.fromCategoryCode(category.getCode()))
 						.category(CategoryResponse.from(category))
 						.memo(ledger.getMemo())
 						.amount(ledger.getAmount())

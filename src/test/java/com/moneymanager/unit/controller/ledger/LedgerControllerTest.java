@@ -4,7 +4,7 @@ import com.moneymanager.controller.web.ledger.LedgerController;
 import com.moneymanager.domain.ledger.dto.response.LedgerTypeResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
-import com.moneymanager.domain.ledger.enums.LedgerType;
+import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.security.jwt.JwtAuthenticationFilter;
 import com.moneymanager.security.jwt.JwtTokenProvider;
 import com.moneymanager.service.ledger.LedgerReadService;
@@ -121,7 +121,7 @@ public class LedgerControllerTest {
 		LedgerWriteStep2Response response = mock(LedgerWriteStep2Response.class);
 
 		when(ledgerReadService.getWriteStep2Data(
-				eq(LedgerType.fromUrlCode(type)),
+				eq(CategoryType.fromApiCode(type)),
 				eq(LocalDate.of(2025, 7, 7)))
 		).thenReturn(response);
 
@@ -145,7 +145,7 @@ public class LedgerControllerTest {
 		LedgerWriteStep2Response response = mock(LedgerWriteStep2Response.class);
 
 		when(ledgerReadService.getWriteStep2Data(
-				any(LedgerType.class),
+				any(CategoryType.class),
 				eq(LocalDate.of(2025, 7, 7)))
 		).thenReturn(response);
 
@@ -161,7 +161,7 @@ public class LedgerControllerTest {
 				.andExpect(model().attribute("ledger", response));
 
 		verify(ledgerReadService).getWriteStep2Data(
-				eq(LedgerType.INCOME),
+				eq(CategoryType.INCOME),
 				eq(LocalDate.of(2025, 7, 7))
 		);
 	}
@@ -175,7 +175,7 @@ public class LedgerControllerTest {
 		LedgerWriteStep2Response response = mock(LedgerWriteStep2Response.class);
 
 		when(ledgerReadService.getWriteStep2Data(
-				eq(LedgerType.INCOME),
+				eq(CategoryType.INCOME),
 				any(LocalDate.class))
 		).thenReturn(response);
 
@@ -192,7 +192,7 @@ public class LedgerControllerTest {
 
 		ArgumentCaptor<LocalDate> dateCaptor = ArgumentCaptor.forClass(LocalDate.class);
 		verify(ledgerReadService).getWriteStep2Data(
-				eq(LedgerType.INCOME),
+				eq(CategoryType.INCOME),
 				dateCaptor.capture()
 		);
 
@@ -215,7 +215,7 @@ public class LedgerControllerTest {
 		LedgerWriteStep2Response response = mock(LedgerWriteStep2Response.class);
 
 		when(ledgerReadService.getWriteStep2Data(
-				eq(LedgerType.INCOME),
+				eq(CategoryType.INCOME),
 				any(LocalDate.class))
 		).thenReturn(response);
 
@@ -232,7 +232,7 @@ public class LedgerControllerTest {
 
 		ArgumentCaptor<LocalDate> dateCaptor = ArgumentCaptor.forClass(LocalDate.class);
 		verify(ledgerReadService).getWriteStep2Data(
-				eq(LedgerType.INCOME),
+				eq(CategoryType.INCOME),
 				dateCaptor.capture()
 		);
 

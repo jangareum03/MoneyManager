@@ -1,7 +1,7 @@
 package com.moneymanager.domain.ledger.dto.response;
 
+import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.ledger.enums.LedgerType;
 import com.moneymanager.domain.ledger.enums.AmountType;
 import lombok.Getter;
 
@@ -37,13 +37,13 @@ import java.util.List;
 @Getter
 public class LedgerWriteStep2Response {
 	private final String title;												//제목
-	private final LedgerType type;										//가계부 유형
+	private final CategoryType type;									//가계부 유형
 	private final List<FixedYN> fixed;								//고정여부
 	private final List<CategoryResponse> categories;		//카테고리 리스트
-	private final List<AmountType> paymentTypes;		//결제유형
+	private final List<AmountType> paymentTypes;			//결제유형
 	private final List<Boolean> imageSlot;							//이미지 사용여부
 
-	private LedgerWriteStep2Response(String title, LedgerType type, List<CategoryResponse> categories, List<Boolean> imageSlot) {
+	private LedgerWriteStep2Response(String title, CategoryType type, List<CategoryResponse> categories, List<Boolean> imageSlot) {
 		this.title = title;
 		this.categories = categories;
 		this.imageSlot =imageSlot;
@@ -65,7 +65,7 @@ public class LedgerWriteStep2Response {
 	 * @return	가계부 작성 2단계에 필요한 정보를 담은 객체
 	 */
 	public static LedgerWriteStep2Response ofDataByIncome(String title, List<CategoryResponse> categories, List<Boolean> imageSlot){
-		return new LedgerWriteStep2Response(title, LedgerType.INCOME, categories, imageSlot);
+		return new LedgerWriteStep2Response(title, CategoryType.INCOME, categories, imageSlot);
 	}
 
 
@@ -81,6 +81,6 @@ public class LedgerWriteStep2Response {
 	 * @return	가계부 작성 2단계에 필요한 정보를 담은 객체
 	 */
 	public static LedgerWriteStep2Response ofDataByOutlay(String title, List<CategoryResponse> categories, List<Boolean> imageSlot){
-		return new LedgerWriteStep2Response(title, LedgerType.OUTLAY, categories, imageSlot);
+		return new LedgerWriteStep2Response(title, CategoryType.OUTLAY, categories, imageSlot);
 	}
 }

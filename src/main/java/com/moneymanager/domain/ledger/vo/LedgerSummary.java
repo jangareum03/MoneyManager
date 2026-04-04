@@ -1,7 +1,7 @@
 package com.moneymanager.domain.ledger.vo;
 
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.LedgerType;
+import com.moneymanager.domain.ledger.enums.CategoryType;
 import lombok.Builder;
 import lombok.Value;
 
@@ -36,7 +36,7 @@ import lombok.Value;
 @Builder
 public class LedgerSummary {
 	String id;										//가계부 번호
-	LedgerType type;						//가계부 유형
+	CategoryType type;					//가계부 유형
 	String category;							//카테고리 이름
 	String memo;								//가계부 메모
 	Long amount;								//가계부 금액
@@ -45,7 +45,7 @@ public class LedgerSummary {
 	public static LedgerSummary from(Ledger ledger) {
 		return LedgerSummary.builder()
 				.id(ledger.getCode())
-				.type(LedgerType.fromCode(ledger.getCategory()))
+				.type(CategoryType.fromCategoryCode(ledger.getCategory()))
 				.memo(ledger.getMemo())
 				.amount(ledger.getAmount())
 				.build();
