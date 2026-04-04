@@ -1,6 +1,7 @@
 package com.moneymanager.controller.web.ledger;
 
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
+import com.moneymanager.domain.ledger.dto.response.HistoryDashboardResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.domain.ledger.enums.CategoryType;
@@ -59,7 +60,9 @@ public class LedgerController {
 	public String getMyHistories(@RequestParam(required = false) String viewType, Model model) {
 		HistoryType type = parseHistoryTypeOrDefault(viewType);
 
-		ledgerReadService.getHistoryDashboard(type);
+		HistoryDashboardResponse response = ledgerReadService.getHistoryDashboard(type);
+
+		model.addAttribute("history", response);
 
 		return "/ledger/ledger_history";
 	}

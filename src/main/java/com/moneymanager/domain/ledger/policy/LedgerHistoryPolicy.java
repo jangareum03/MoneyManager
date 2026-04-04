@@ -42,6 +42,11 @@ import static com.moneymanager.utils.date.DateTimeUtils.isDateInRange;
 @Component
 public class LedgerHistoryPolicy {
 
+	public DateRange createDateRange(HistoryType historyType) {
+
+	}
+
+
 	/**
 	 *	<p>
 	 *	   	조회기간(from, to)은 현재 날짜 기준 최대 {@code Policy.LEDGER_MAX_YEAR}년 이내여야 합니다.

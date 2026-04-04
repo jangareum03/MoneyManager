@@ -1,5 +1,6 @@
 package com.moneymanager.repository.ledger;
 
+import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.PreparedStatement;
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -148,11 +150,6 @@ public class LedgerRepository {
 
 	private void update(Ledger ledger) {}
 
-	public List<Ledger> findAll() {
-		String sql = "SELECT * FROM ledger";
-
-		return jdbcTemplate.query(sql, ledgerRowMapper);
-	}
 
 	/**
 	 * {@code ledger}테이블에 저장된 가계부 정보를 조회합니다.
@@ -167,19 +164,33 @@ public class LedgerRepository {
 	 */
 	public Ledger findById(Long id) {
 		String sql = "SELECT id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address, created_at, updated_at " +
-							"FROM ledger " +
-							"WHERE id = ?";
+				"FROM ledger " +
+				"WHERE id = ?";
 
 		return jdbcTemplate.queryForObject(
 				sql, ledgerRowMapper, id
 		);
 	}
 
+
+	public List<Ledger> findAll() {
+		String sql = "SELECT * FROM ledger";
+
+		return jdbcTemplate.query(sql, ledgerRowMapper);
+	}
+
+
+	public List<LedgerHistoryQuery> findHistoriesByMemberAndDateBetween(String memberId, LocalDate start, LocalDate end) {
+
+	}
+
+
 	public Integer count() {
 		String sql = "SELECT COUNT(*) FROM ledger";
 
 		return jdbcTemplate.queryForObject(sql, Integer.class);
 	}
+
 
 	public void deleteAll() {
 		String sql ="DELETE FROM ledger";

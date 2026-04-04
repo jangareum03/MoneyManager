@@ -2,13 +2,14 @@ package com.moneymanager.service.ledger;
 
 import com.moneymanager.domain.global.Policy;
 import com.moneymanager.domain.global.enums.DatePatterns;
-import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
-import com.moneymanager.domain.ledger.dto.response.LedgerTypeResponse;
-import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
-import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.domain.global.vo.DateRange;
+import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
+import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
-import com.moneymanager.domain.ledger.enums.LedgerType;
-import com.moneymanager.domain.ledger.vo.DateRange;
+import com.moneymanager.domain.ledger.enums.CategoryType;
+import com.moneymanager.domain.ledger.enums.HistoryType;
+import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
+import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.member.MemberReadService;
 import com.moneymanager.utils.date.DateTimeUtils;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -60,6 +62,9 @@ public class LedgerReadService {
 
 	private final CategoryReadService categoryReadService;
 	private final MemberReadService memberReadService;
+
+	private final LedgerRepository ledgerRepository;
+	private final LedgerHistoryPolicy ledgerHistoryPolicy;
 
 
 
@@ -120,7 +125,7 @@ public class LedgerReadService {
 	 * @param date	가계부 거래 날짜를 담은 {@link LocalDate}
 	 * @return	가계부 작성 2단계에 필요한 초기 데이터를 담은 {@link LedgerWriteStep2Response} 객체
 	 */
-	public LedgerWriteStep2Response getWriteStep2Data(LedgerType type, LocalDate date) {
+	public LedgerWriteStep2Response getWriteStep2Data(CategoryType type, LocalDate date) {
 		//카테고리 목록 조회
 		List<CategoryResponse> categories = categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE);
 
@@ -130,18 +135,54 @@ public class LedgerReadService {
 		//회원별로 이미지 슬롯 조회
 		List<Boolean> imageSlot = fetchBooleanList();
 
-		return (type == LedgerType.INCOME) ? LedgerWriteStep2Response.ofDataByIncome(title, categories, imageSlot) : LedgerWriteStep2Response.ofDataByOutlay(title, categories, imageSlot);
+		return (type == CategoryType.INCOME) ? LedgerWriteStep2Response.ofDataByIncome(title, categories, imageSlot) : LedgerWriteStep2Response.ofDataByOutlay(title, categories, imageSlot);
 	}
 
 
-	public void getHistorySummaries(String from, String to) {
-		//날짜 검증
-		DateRange dateRange = new DateRange(from, to);
-		//검증한 날짜로 가계부 조회
-		//조회 내역의 금액을 총합/수입/지출로 구분하여 조회
-		//기간별로 제목 얻기
-		//조회 내역 기반으로 그래프 조회
+	public HistoryDashboardResponse getHistoryDashboard(HistoryType historyType) {
+		// 1. 인증된 사용자 조회
+		String memberId = securityUtil.getMemberId();
+
+		// 2. 기간 생성 후 검증
+		DateRange dateRange = ledgerHistoryPolicy.createDateRange(historyType);
+		ledgerHistoryPolicy.validate(dateRange);
+
+		// 3. 내역 조회
+		List<LedgerHistoryQuery> histories = ledgerRepository.findHistoriesByMemberAndDateBetween(memberId, dateRange.getFrom(), dateRange.getTo());
+
+		// 4. 내역 그룹화 (날짜 기준)
+		List<HistoryItem> historyItems = createHistoryItem(histories);
+		Map<String, List<HistoryItem>> listGroups = groupByDate(historyItems);
+
+		// 5. 통계 생성
+		LedgerStatistics statistics = calculateStatistics(histories);
+
+		// 6. 제목 생성
+		String title = ledgerHistoryPolicy.getTitleByHistoryType(historyType);
+
+		// 7. 검색 메뉴 생성
+		HistoryMenu menu = createMenu();
+
+		// 8. 응답 생성
+		return HistoryDashboardResponse.builder()
+				.title(title)
+				.menu(menu)
+				.statistics(statistics)
+				.historyGroups(listGroups)
+				.build();
 	}
+
+
+	private List<HistoryItem> createHistoryItem(List<LedgerHistoryQuery> histories) {}
+
+
+	private Map<String, List<HistoryItem>> groupByDate(List<HistoryItem> historyItems) {}
+
+
+	private LedgerStatistics calculateStatistics(List<LedgerHistoryQuery> histories) {}
+
+
+	private HistoryMenu createMenu() {}
 
 
 	/**
