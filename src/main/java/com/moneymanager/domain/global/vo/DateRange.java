@@ -48,6 +48,11 @@ public class DateRange {
 		this.to = parseDateFromYyyyMMdd(to);
 	}
 
+	public DateRange(LocalDate from, LocalDate to) {
+		this.from = from;
+		this.to = to;
+	}
+
 
 	/**
 	 * 시작일과 종료일 사이의 일자 차이를 반환합니다.
