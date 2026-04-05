@@ -215,12 +215,12 @@ public class LedgerHistoryPolicyTest {
 
 	static Stream<Arguments> validWeekOfMonthCases() {
 		return Stream.of(
-				Arguments.of("2026년 1월 1일 → 1주", LocalDate.of(2026, 1,1), 1),
-				Arguments.of("2026년 1월 4일 → 1주", LocalDate.of(2026, 1,1), 1),
-				Arguments.of("2026년 1월 5일 → 2주", LocalDate.of(2026, 1,1), 1),
-				Arguments.of("2026년 2월 19일 → 3주", LocalDate.of(2026, 1,1), 1),
-				Arguments.of("2026년 3월 29일 → 4주", LocalDate.of(2026, 1,1), 1),
-				Arguments.of("2026년 4월 30일 → 5주", LocalDate.of(2026, 1,1), 1)
+				Arguments.of("2026년 1월 1일 → 1주", LocalDate.of(2026, 1,1), (Object) 1),
+				Arguments.of("2026년 1월 4일 → 1주", LocalDate.of(2026, 1,1), (Object) 1),
+				Arguments.of("2026년 1월 5일 → 2주", LocalDate.of(2026, 1,1), (Object) 1),
+				Arguments.of("2026년 2월 19일 → 3주", LocalDate.of(2026, 1,1), (Object) 1),
+				Arguments.of("2026년 3월 29일 → 4주", LocalDate.of(2026, 1,1), (Object) 1),
+				Arguments.of("2026년 4월 30일 → 5주", LocalDate.of(2026, 1,1), (Object) 1)
 		);
 	}
 }

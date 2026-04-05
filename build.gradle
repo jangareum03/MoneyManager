@@ -1,18 +1,26 @@
 plugins {
-	id 'org.springframework.boot' version '2.7.4'
-	id 'io.spring.dependency-management' version '1.0.14.RELEASE'
+	id 'org.springframework.boot' version '2.7.18'
+	id 'io.spring.dependency-management' version '1.1.6'
 	id 'java'
-    id 'org.jetbrains.kotlin.jvm'
 }
 
 group = 'com.areum'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+    configureEach {
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
 }
 
 repositories {
@@ -22,53 +30,36 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf' //Thymeleaf
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
+    implementation 'org.springframework.boot:spring-boot-starter-security'      //Security
+    implementation 'org.springframework.boot:spring-boot-starter-mail'          //SMTP
+    implementation 'org.springframework.boot:spring-boot-starter-validation'    //valid
+
 	runtimeOnly 'com.oracle.database.jdbc:ojdbc8'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	/* lombok */
-	compileOnly 'org.projectlombok:lombok:1.18.30'
-	annotationProcessor 'org.projectlombok:lombok:1.18.30'
-	/*Thymeleaf */
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
-	/* Security */
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	/* SMTP */
-	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '2.7.1'
-	/* file */
-	implementation 'commons-io:commons-io:2.11.0'
-    /* valid */
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-    /* mockito */
-    testImplementation 'org.mockito:mockito-inline:4.10.0'
-    /* ulid */
+
+    //lombok
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    implementation 'commons-io:commons-io:2.14.0'
     implementation 'com.github.f4b6a3:ulid-creator:5.0.0'
-//	/* jUnit */
-//	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
-//	testImplementation 'org.mockito:mockito-core:4.11.0'
-//	testImplementation 'org.mockito:mockito-junit-jupiter:4.11.0'
-//	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-	/* json */
-	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
-    /* jwt */
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-    /* log */
-	implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
-	implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.20.0'
-	implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
-	configurations {
-		all {
-			exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
-			exclude group: 'ch.qos.logback', module: 'logback-classic'
-		}
-	}
-	/* 정적파일 실시간 적용 */
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
+
+    implementation 'org.apache.logging.log4j:log4j-core:2.25.3'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.20.0'
+    implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.mockito:mockito-inline'
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
-	tasks.named('test') {
-		useJUnitPlatform()
-	}
-compileKotlin {
+tasks.named('test') {
+    useJUnitPlatform()
 }
