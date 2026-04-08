@@ -51,6 +51,65 @@ public class LedgerHistoryPolicyTest {
 	private final static DateTimeFormatter DATE_TIME_FORMATTER =
 			DateTimeFormatter.ofPattern("yyyyMMdd");
 
+	//==================[ calculateDateRange ]==================
+	@ParameterizedTest(name = "[{index}] {0}")
+	@MethodSource("provideValidHistoryTypeAndDate")
+	@DisplayName("내역유형에 따른 시작일/종료일을 반환한다.")
+	void calculateDateRange_success(String description, HistoryType type, LocalDate date, DateRange expectedValue) {
+		//when
+		DateRange result = ledgerHistoryPolicy.calculateDateRange(type, date);
+
+		//then
+		assertThat(result).isEqualTo(expectedValue);
+	}
+
+	static Stream<Arguments> provideValidHistoryTypeAndDate() {
+		LocalDate date = LocalDate.of(2026, 4, 4);
+
+		return Stream.of(
+				Arguments.of(
+						"연간 범위 계산",
+						HistoryType.YEAR, date,
+						new DateRange(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31))
+				),
+				Arguments.of(
+						"월간 범위 계산",
+						HistoryType.MONTH, date,
+						new DateRange(LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30))
+				),
+				Arguments.of(
+						"첫 주 범위 계산",
+						HistoryType.WEEK, date,
+						new DateRange(LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 5))
+				),
+				Arguments.of(
+						"마지막 주 범위 계산",
+						HistoryType.WEEK, LocalDate.of(2026, 4, 29 ),
+						new DateRange(LocalDate.of(2026, 4, 27), LocalDate.of(2026, 4, 30))
+				)
+		);
+	}
+
+
+	@ParameterizedTest(name = "[{index}] historyType={0}, date={1} ")
+	@MethodSource("provideInvalidHistoryTypeAndDate")
+	@DisplayName("내역유형 또는 날짜가 null이면 예외가 발생한다.")
+	void calculateDateRange_failure_dateIsNull(HistoryType type, LocalDate date) {
+		//when & then
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> ledgerHistoryPolicy.calculateDateRange(type, date))
+				.withMessageContainingAll("날짜기간 계산", "필수값누락");
+	}
+
+	static Stream<Arguments> provideInvalidHistoryTypeAndDate( ) {
+		return Stream.of(
+				Arguments.of(null, null),
+				Arguments.of(null, LocalDate.now()),
+				Arguments.of(HistoryType.MONTH, null)
+		);
+	}
+
+
 	//==================[ validate ]==================
 	@ParameterizedTest(name = "[{index}] {0}")
 	@MethodSource("provideValidDateRanges")

@@ -9,7 +9,10 @@ import com.moneymanager.utils.date.DateTimeUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 
+import static com.moneymanager.domain.global.Policy.LEDGER_END_WEEK;
+import static com.moneymanager.domain.global.Policy.LEDGER_START_WEEK;
 import static com.moneymanager.utils.date.DateTimeUtils.isDateInRange;
 
 /**
@@ -42,8 +45,56 @@ import static com.moneymanager.utils.date.DateTimeUtils.isDateInRange;
 @Component
 public class LedgerHistoryPolicy {
 
-	public DateRange createDateRange(HistoryType historyType) {
+	public DateRange calculateDateRange(HistoryType historyType, LocalDate date) {
+		if(historyType == null) {
+			throw new IllegalArgumentException("날짜기간 계산 실패   |   reason=필수값누락   |   enum=HistoryType   |   value=null");
+		}
 
+		if(date == null) {
+			throw new IllegalArgumentException("날짜기간 계산 실패   |   reason=필수값누락   |   object=LocalDate   |   value=null");
+		}
+
+		return switch (historyType) {
+			case YEAR -> calculateYearRange(date);
+			case MONTH -> calculateMonthRange(date);
+			case WEEK -> calculateWeekRange(date);
+		};
+	}
+
+
+	private DateRange calculateYearRange(LocalDate date) {
+		LocalDate from = date.with(TemporalAdjusters.firstDayOfYear());
+		LocalDate to = date.with(TemporalAdjusters.lastDayOfYear());
+
+		return new DateRange(from, to);
+	}
+
+
+	private DateRange calculateMonthRange(LocalDate date) {
+		LocalDate from = date.withDayOfMonth(1);
+		LocalDate to = date.with(TemporalAdjusters.lastDayOfMonth());
+
+		return new DateRange(from, to);
+	}
+
+
+	private DateRange calculateWeekRange(LocalDate date) {
+		LocalDate from = date.with(TemporalAdjusters.previousOrSame(LEDGER_START_WEEK));
+		LocalDate to = date.with(TemporalAdjusters.nextOrSame(LEDGER_END_WEEK));
+
+		//시작일이 전달이면 1일로 변경
+		LocalDate firstDay = date.with(TemporalAdjusters.firstDayOfMonth());
+		if(from.isBefore(firstDay)) {
+			from = firstDay;
+		}
+
+		//마지막일이 다음달이면 마지막일로 변경
+		LocalDate lastDay = date.with(TemporalAdjusters.lastDayOfMonth());
+		if(to.isAfter(lastDay)) {
+			to = lastDay;
+		}
+
+		return new DateRange(from, to);
 	}
 
 
@@ -100,7 +151,7 @@ public class LedgerHistoryPolicy {
 			String prefix = DateTimeUtils.formatDate(localDate, HistoryType.MONTH.getFormat());
 			int week = calculateWeekOfMonth(localDate);
 
-			return String.format("%s %d주", prefix, week);
+			return String.format("%s %d주", prefix, (Integer) week);
 		}
 
 		return DateTimeUtils.formatDate(localDate, historyType.getFormat());
@@ -119,7 +170,7 @@ public class LedgerHistoryPolicy {
 	public int calculateWeekOfMonth(LocalDate localDate) {
 		LocalDate firstDayOfMonth = localDate.withDayOfMonth(1);	//해당 월 1일
 
-		int diffDay = firstDayOfMonth.getDayOfWeek().getValue() - Policy.LEDGER_START_WEEK.getValue();
+		int diffDay = firstDayOfMonth.getDayOfWeek().getValue() - LEDGER_START_WEEK.getValue();
 		if(diffDay < 0) {
 			diffDay += 7;
 		}

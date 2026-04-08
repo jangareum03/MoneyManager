@@ -37,6 +37,7 @@ public final class Policy {
 	public static final int LEDGER_MAX_YEAR = 5;
 	public static final int LEDGER_MAX_IMAGE = 3;
 	public static final DayOfWeek LEDGER_START_WEEK= DayOfWeek.MONDAY;
+	public static final DayOfWeek LEDGER_END_WEEK = DayOfWeek.SUNDAY;
 
 	private Policy() {}
 
