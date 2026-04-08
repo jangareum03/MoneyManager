@@ -138,7 +138,7 @@ CREATE TABLE ledger (
     category_id                     VARCHAR2(6)         NOT NULL,
     fix                                    CHAR(1)                       DEFAULT 'N'                 NOT NULL,
     fix_cycle                         CHAR(1),
-    transaction_date           VARCHAR2(8)             NOT NULL,
+    transaction_date           DATE             NOT NULL,
     memo                               VARCHAR2(500),
     amount                             NUMBER                      NOT NULL,
     payment_type                CHAR(4)                      DEFAULT 'NONE'           NOT NULL,

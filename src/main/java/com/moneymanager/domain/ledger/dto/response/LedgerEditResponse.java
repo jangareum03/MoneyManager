@@ -61,12 +61,11 @@ public class LedgerEditResponse {
 	private String detailAddress;						//상세주소
 
 	public static LedgerEditResponse from(Ledger ledger, Category category, List<CategoryResponse> categories, List<LedgerImage> images) {
-		LocalDate date = DateTimeUtils.parseDateFromYyyyMMdd(ledger.getDate());
 		Place place = ledger.getPlace();
 
 		LedgerEditResponse.LedgerEditResponseBuilder builder =
 				LedgerEditResponse.builder()
-						.date(DateTimeUtils.formatDate(date, DatePatterns.DATE_DOT_WITH_DAY.getPattern()))
+						.date(DateTimeUtils.formatDate(ledger.getDate(), DatePatterns.DATE_DOT_WITH_DAY.getPattern()))
 						.type(CategoryType.fromCategoryCode(category.getCode()))
 						.fixed(LedgerFixedResponse.from(ledger))
 						.category(categories)

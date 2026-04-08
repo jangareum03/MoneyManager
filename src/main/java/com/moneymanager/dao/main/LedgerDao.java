@@ -118,7 +118,7 @@ public class LedgerDao {
 								stmt.setString(3, ledger.getCategory());
 								stmt.setString(4, fixed);
 								stmt.setString(5, cycleType);
-								stmt.setString(6, ledger.getDate());
+								stmt.setObject(6, ledger.getDate());
 								stmt.setString(7, ledger.getMemo());
 								stmt.setLong(8, ledger.getAmount());
 								stmt.setString(9, ledger.getAmountType().getValue());
@@ -174,7 +174,7 @@ public class LedgerDao {
 							.category(rs.getNString("category_id"))
 							.fix(fixedYN)
 							.fixCycle(cycleType)
-							.date(rs.getString("transaction_date"))
+							.date(rs.getDate("transaction_date").toLocalDate())
 							.memo(rs.getString("memo"))
 							.amount(rs.getLong("amount"))
 							.amountType(AmountType.of(rs.getString("payment_type")))
@@ -216,7 +216,7 @@ public class LedgerDao {
 					Ledger.LedgerBuilder ledger = Ledger.builder()
 							.id(rs.getLong("id"))
 							.memberId(rs.getString("member_id"))
-							.date(rs.getString("transaction_date"))
+							.date(rs.getDate("transaction_date").toLocalDate())
 							.memo(rs.getString("memo"))
 							.amount(rs.getLong("amount"))
 							.amountType(AmountType.of(rs.getString("payment_type")));
@@ -262,7 +262,7 @@ public class LedgerDao {
 				(ResultSet rs, int row) -> {
 					Ledger.LedgerBuilder ledger =	Ledger.builder()
 							.memberId(rs.getString("member_id"))
-							.date(rs.getString("transaction_date"))
+							.date(rs.getDate("transaction_date").toLocalDate())
 							.fix(FixedYN.of(rs.getString("fix")))
 							.fixCycle(FixCycle.of(rs.getString("fix_cycle")))
 							.memo(rs.getString("memo"))
@@ -356,7 +356,7 @@ public class LedgerDao {
 				while ( rs.next() ) {
 					Ledger ledger = Ledger.builder()
 							.code(rs.getString("id"))
-							.date(rs.getString("transaction_date"))
+							.date(rs.getDate("transaction_date").toLocalDate())
 							.memo(rs.getString("memo"))
 							.amount(rs.getLong("amount"))
 							.amountType(AmountType.of(rs.getString("payment_type")))

@@ -6,6 +6,8 @@ import com.moneymanager.domain.ledger.enums.AmountType;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.vo.Place;
 
+import java.time.LocalDate;
+
 
 public class LedgerFixture {
 
@@ -15,7 +17,7 @@ public class LedgerFixture {
 		return Ledger.builder()
 				.code(code)
 				.memberId("test")
-				.date("20260101")
+				.date(LocalDate.of(2026, 1, 1))
 				.category("010101")
 				.fix(FixedYN.VARIABLE)
 				.amount(10000L)

@@ -4,7 +4,6 @@ import com.moneymanager.dao.main.LedgerImageDao;
 import com.moneymanager.dao.member.MemberInfoDaoImpl;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
-import com.moneymanager.domain.ledger.vo.LedgerDate;
 import com.moneymanager.service.main.event.DeleteFileEvent;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -215,8 +213,7 @@ public class ImageServiceImpl {
 				String newName = fileService.buildFileName(multipartFile);
 
 				//이미지를 서버에 저장
-				LocalDate date = new LedgerDate(ledger.getDate()).getTransactionDate();
-				File folder = fileService.createFolder(ledger.getMemberId(), date);
+				File folder = fileService.createFolder(ledger.getMemberId(), ledger.getDate());
 				File newFile = fileService.createFile( folder, newName );
 				fileService.saveFile(multipartFile, newFile);
 				saveFiles.add(newFile);
@@ -224,7 +221,7 @@ public class ImageServiceImpl {
 				newImages.add(
 						LedgerImage.builder()
 								.ledgerId(ledger.getId())
-								.imagePath(fileService.buildFolderPath(ledger.getMemberId(), date))
+								.imagePath(fileService.buildFolderPath(ledger.getMemberId(), ledger.getDate()))
 								.sortOrder(orderNum++)
 								.build()
 				);
@@ -265,7 +262,7 @@ public class ImageServiceImpl {
 
 			if( result == 1 ) {
 				//절대경로
-				File folder = fileService.createFolder(ledger.getMemberId(), new LedgerDate(ledger.getDate()).getTransactionDate());
+				File folder = fileService.createFolder(ledger.getMemberId(), ledger.getDate());
 				String path = folder + image.getImagePath();
 				paths.add(path);
 			}

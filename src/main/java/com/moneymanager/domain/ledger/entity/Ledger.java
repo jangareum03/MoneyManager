@@ -16,7 +16,6 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 
 import static com.moneymanager.domain.global.enums.RegexPattern.ADDRESS_DETAIL_NAME;
 import static com.moneymanager.exception.error.ErrorCode.*;
@@ -63,7 +62,7 @@ public class Ledger {
     private Long id;											//가계부 번호(내부용)
 	private String code;									//가계부 코드(외부용)
     private String memberId;							//작성자(회원 고유번호)
-	private String date;									//거래 날짜
+	private LocalDate date;								//거래 날짜
     private String category;							//카테고리 코드
 	private String memo;									//메모
 
@@ -122,7 +121,7 @@ public class Ledger {
 		return Ledger.builder()
 				.code(code)
 				.memberId(memberId)
-				.date(request.getDate())
+				.date(DateTimeUtils.parseDateFromYyyyMMdd(request.getDate()))
 				.fix(FixedYN.of(request.isFixed()))
 				.fixCycle(request.getFixCycle() != null ? FixCycle.of(request.getFixCycle()) : null)
 				.category(request.getCategoryCode())

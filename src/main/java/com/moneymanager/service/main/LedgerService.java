@@ -128,7 +128,7 @@ public class LedgerService {
 	public void createLedger(String memberId, LedgerWriteRequest request) {
 		//요청DTO → Entity 변환
 		Ledger ledger = Ledger.builder()
-				.date(request.getDate())
+				.date(DateTimeUtils.parseDateFromYyyyMMdd(request.getDate()))
 				.category(request.getCategoryCode())
 				.memo(request.getMemo())
 				.fix(FixedYN.of(request.isFixed()))

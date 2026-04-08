@@ -73,7 +73,7 @@ public class LedgerRepository {
 				.category(rs.getNString("category_id"))
 				.fix(fixedYN)
 				.fixCycle(cycleType)
-				.date(rs.getString("transaction_date"))
+				.date(rs.getDate("transaction_date").toLocalDate())
 				.memo(rs.getString("memo"))
 				.amount(rs.getLong("amount"))
 				.amountType(AmountType.of(rs.getString("payment_type")))
@@ -134,7 +134,7 @@ public class LedgerRepository {
 					ps.setString(3, ledger.getCategory());
 					ps.setString(4, fix);
 					ps.setString(5, cycle);
-					ps.setString(6, ledger.getDate());
+					ps.setObject(6, ledger.getDate());
 					ps.setString(7, ledger.getMemo());
 					ps.setLong(8, ledger.getAmount());
 					ps.setString(9, paymentType);
@@ -184,12 +184,12 @@ public class LedgerRepository {
 
 	public List<LedgerHistoryQuery> findHistoriesByMemberAndDateBetween(String memberId, LocalDate startDate, LocalDate endDate) {
 		String sql = "SELECT l.code, transaction_date, c.code AS category_code, c.name AS category_name, amount, memo " +
-							"FROM ledger" +
+							"FROM ledger l " +
 							"JOIN ledger_category  c ON l.category_id = c.code " +
 							"WHERE l.member_id = ? " +
 							"AND l.transaction_date >= ? " +
 							"AND l.transaction_date < ? " +
-							"ORDER BY l.transaction_date DESC";
+							"ORDER BY l.transaction_date DESC, l.created_at DESC";
 
 		return jdbcTemplate.query(
 				sql,
@@ -197,7 +197,7 @@ public class LedgerRepository {
 				(rs, rowNum) -> {
 					Ledger ledger = Ledger.builder()
 							.code(rs.getString("code"))
-							.date(rs.getString("transaction_date"))
+							.date(rs.getDate("transaction_date").toLocalDate())
 							.amount(rs.getLong("amount"))
 							.memo(rs.getString("memo"))
 							.build();

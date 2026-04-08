@@ -6,7 +6,6 @@ import com.moneymanager.utils.date.DateTimeUtils;
 import lombok.Getter;
 import lombok.Value;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,7 +48,7 @@ public class LedgerByDate {
 		Map<String, List<LedgerSummary>> map = new LinkedHashMap<>();
 
 		for( Ledger ledger : ledgers ) {
-			String key = DateTimeUtils.formatDate(LocalDate.parse(ledger.getDate()), DatePatterns.DATE_DOT_WITH_DAY.getPattern());
+			String key = DateTimeUtils.formatDate(ledger.getDate(), DatePatterns.DATE_DOT_WITH_DAY.getPattern());
 
 			//키가 없으면 새로운 리스트 추가
 			map.putIfAbsent(key, new ArrayList<>());

@@ -11,7 +11,6 @@ import com.moneymanager.utils.date.DateTimeUtils;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,12 +59,11 @@ public class LedgerDetailResponse {
 	private String detailAddress;						//상세주소
 
 	public static LedgerDetailResponse from(Ledger ledger, Category category, List<LedgerImage> images) {
-		LocalDate date = DateTimeUtils.parseDateFromYyyyMMdd(ledger.getDate());
 		Place place = ledger.getPlace();
 
 		LedgerDetailResponseBuilder builder =
 				LedgerDetailResponse.builder()
-						.date(DateTimeUtils.formatDate(date, DatePatterns.DATE_DOT_WITH_DAY.getPattern()))
+						.date(DateTimeUtils.formatDate(ledger.getDate(), DatePatterns.DATE_DOT_WITH_DAY.getPattern()))
 						.type(CategoryType.fromCategoryCode(category.getCode()))
 						.category(CategoryResponse.from(category))
 						.memo(ledger.getMemo())
