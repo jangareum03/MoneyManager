@@ -1,6 +1,7 @@
 package com.moneymanager.repository.ledger;
 
 import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
+import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
@@ -13,6 +14,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.time.LocalDate;
 import java.util.*;
@@ -180,8 +182,38 @@ public class LedgerRepository {
 	}
 
 
-	public List<LedgerHistoryQuery> findHistoriesByMemberAndDateBetween(String memberId, LocalDate start, LocalDate end) {
+	public List<LedgerHistoryQuery> findHistoriesByMemberAndDateBetween(String memberId, LocalDate startDate, LocalDate endDate) {
+		String sql = "SELECT l.code, transaction_date, c.code AS category_code, c.name AS category_name, amount, memo " +
+							"FROM ledger" +
+							"JOIN ledger_category  c ON l.category_id = c.code " +
+							"WHERE l.member_id = ? " +
+							"AND l.transaction_date >= ? " +
+							"AND l.transaction_date < ? " +
+							"ORDER BY l.transaction_date DESC";
 
+		return jdbcTemplate.query(
+				sql,
+
+				(rs, rowNum) -> {
+					Ledger ledger = Ledger.builder()
+							.code(rs.getString("code"))
+							.date(rs.getString("transaction_date"))
+							.amount(rs.getLong("amount"))
+							.memo(rs.getString("memo"))
+							.build();
+
+					Category category = Category.builder()
+							.code(rs.getString("category_code"))
+							.name(rs.getString("category_name"))
+							.build();
+
+					return new LedgerHistoryQuery(ledger, category);
+				},
+
+				memberId,
+				Date.valueOf(startDate),
+				Date.valueOf(endDate.plusDays(1))
+		);
 	}
 
 

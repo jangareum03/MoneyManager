@@ -1,5 +1,7 @@
 package com.moneymanager.domain.ledger.dto.query;
 
+import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import lombok.Getter;
 
@@ -32,10 +34,20 @@ import lombok.Getter;
  */
 @Getter
 public class LedgerHistoryQuery {
-	private String code;												//가계부 코드
-	private String date;												//가계부 거래 날짜
-	private Long amount;											//가계부 금액
-	private String memo;												//가계부 메모
-	private CategoryType categoryType;					//카테고리 타입
-	private String categoryName;								//카테고리 이름
+	private final String code;												//가계부 코드
+	private final String date;												//가계부 거래 날짜
+	private final Long amount;											//가계부 금액
+	private final String memo;												//가계부 메모
+	private final CategoryType categoryType;					//카테고리 타입
+	private final String categoryName;								//카테고리 이름
+
+	public LedgerHistoryQuery(Ledger ledger, Category category) {
+		this.code = ledger.getCode();
+		this.date = ledger.getDate();
+		this.amount = ledger.getAmount();
+		this.memo = ledger.getMemo();
+
+		this.categoryType = CategoryType.fromCategoryCode(category.getCode());
+		this.categoryName = category.getName();
+	}
 }
