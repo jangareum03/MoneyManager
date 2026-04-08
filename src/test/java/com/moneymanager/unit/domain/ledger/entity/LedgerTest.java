@@ -55,9 +55,9 @@ public class LedgerTest {
 
 	//==================[ TEST ]==================
 	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("successCreate")
+	@MethodSource("provideValidLedgers")
 	@DisplayName("정상적으로 Ledger 객체가 생성된다.")
-	void createLedger_Success(String description, LedgerWriteRequest request, Consumer<Ledger> validator) {
+	void createLedger_success(String description, LedgerWriteRequest request, Consumer<Ledger> validator) {
 		//when
 		Ledger ledger = Ledger.create("member", request);
 
@@ -65,205 +65,7 @@ public class LedgerTest {
 		validator.accept(ledger);
 	}
 
-	@ParameterizedTest(name = "[{index}] date={0}")
-	@MethodSource("validateDates")
-	@DisplayName("거래날짜가 5년 이내라면 객체가 생성된다.")
-	void validateDate_Success_BoundaryValue(String date){
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.date(date)
-						.build();
-
-		//when
-		Ledger ledger = Ledger.create(anyString(), request);
-
-		//then
-		assertThat(ledger.getDate()).isEqualTo(date);
-	}
-
-	@ParameterizedTest(name = "[{index}] date={0}")
-	@MethodSource("invalidateDates")
-	@DisplayName("거래날짜가 5년전 보다 과거거나 미래면 예외가 발생한다.")
-	void validateDate_Failure_PastAndFuture(String date){
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-					.date(date)
-						.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-						.hasErrorCode(LEDGER_INPUT_RANGE)
-						.hasUserMessage("날짜만 가능")
-						.hasLogMessage("범위오류", "range=", date);
-	}
-
-	@ParameterizedTest(name = "[{index}] fix=false, cycle={0}")
-	@EnumSource(FixCycle.class)
-	@DisplayName("고정이 아닌데 주기가 있으면 예외가 발생한다.")
-	void validateFixCycle_Failure_Mismatch(FixCycle fixCycle) {
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.fixed(false)
-						.fixCycle(fixCycle.getValue())
-							.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_POLICY_NOT_ALLOWED)
-				.hasUserMessage("주기를 설정", "고정 여부")
-				.hasLogMessage("정책위반", "detail=", fixCycle.getValue());
-	}
-
-	@ParameterizedTest(name = "[{index}] cycle={0}")
-	@ValueSource(strings = {"Q", "r", "f"})
-	@DisplayName("고정주기가 유효하지 않으면 예외가 발생한다.")
-	void validateFixCycle_Failure_OutOfRange(String cycle){
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.fixed(true)
-						.fixCycle(cycle)
-							.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_INVALID)
-				.hasUserMessage("고정주기")
-				.hasLogMessage("허용값아님", "allowed=", cycle);
-	}
-
-	@ParameterizedTest(name = "[{index}] category={0}")
-	@ValueSource(strings = {"000000", "110101", "030101"})
-	@DisplayName("카테고리가 01, 02로 시작하지 않으면 예외가 발생한다.")
-	void validateDate_Failure_BoundaryValue(String category){
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.categoryCode(category)
-								.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_FORMAT)
-				.hasUserMessage("없는 카테고리")
-				.hasLogMessage("형식오류", "format=", category);
-	}
-
-	@ParameterizedTest(name = "[{index}] amount={0}")
-	@ValueSource(longs = {-1000, -1, 0})
-	@DisplayName("금액이 0이하면 예외가 발생한다.")
-	void validateAmount_Failure_BoundaryValue(long amount){
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.amount(amount)
-								.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_RANGE)
-				.hasUserMessage("1 이상")
-				.hasLogMessage("범위오류", "range=", String.valueOf(amount));
-	}
-
-	@ParameterizedTest(name = "[{index}] type={0}")
-	@ValueSource(strings = {"1","ca", "free", "bank#", "n0ne"})
-	@DisplayName("금액유형이 유효하지 않으면 예외가 발생한다.")
-	void validateAmountType_Failure_OutOfRange(String type){
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.amountType(type)
-							.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_INVALID)
-				.hasUserMessage("금액유형")
-				.hasLogMessage("허용값아님", "allowed=", type);
-	}
-
-	@ParameterizedTest(name = "[{index}] place={0}, address={1}")
-	@MethodSource("validatePlace")
-	@DisplayName("장소명과 기본주소 둘 다 없으면 통과한다.")
-	void validatePlace_Success_NullAndEmpty(String place, String address) {
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.placeName(place)
-						.roadAddress(address)
-							.build();
-
-		//when & then
-		assertThatCode(() -> Ledger.create(anyString(), request))
-				.doesNotThrowAnyException();
-	}
-
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("invalidatePlace")
-	@DisplayName("장소명과 기본주소 둘 중 하나라도 없으면 예외가 발생한다.")
-	void validatePlace_Failure_Mismatch(String description, String place, String address) {
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.placeName(place)
-						.roadAddress(address)
-							.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_POLICY_NOT_ALLOWED)
-				.hasUserMessage("장소명", "기본주소")
-				.hasLogMessage("정책위반", "detail=");
-	}
-
-	@ParameterizedTest(name = "[{index}] address={0}")
-	@ValueSource(strings = {"상세 주소!!@", "상세☆", "상세家"})
-	@DisplayName("상세 주소에 한글, 숫자, 공백, 영문, 일부 특수문자 제외한 문자가 포함되면 예외가 발생한다.")
-	void validateDetail_Failure_Format(String address){
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.detailAddress(address)
-							.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_FORMAT)
-				.hasUserMessage("상세 주소", "입력 가능")
-				.hasLogMessage("형식오류", "format=");
-	}
-
-
-	//==================[ Method Sources ]==================
-	static Stream<Arguments> successCreate() {
+	static Stream<Arguments> provideValidLedgers() {
 		return Stream.of(
 				Arguments.of(
 						"기본 Ledger",
@@ -325,7 +127,25 @@ public class LedgerTest {
 		);
 	}
 
-	static Stream<String> validateDates() {
+
+	@ParameterizedTest(name = "[{index}] date={0}")
+	@MethodSource("provideValidTransactionDates")
+	@DisplayName("거래날짜가 5년 이내라면 객체가 생성된다.")
+	void validateDate_success_boundaryValue(String date){
+		//given
+		LedgerWriteRequest request =
+				defaultLedgerWriteRequest()
+						.date(date)
+						.build();
+
+		//when
+		Ledger ledger = Ledger.create(anyString(), request);
+
+		//then
+		assertThat(ledger.getDate()).isEqualTo(date);
+	}
+
+	static Stream<String> provideValidTransactionDates() {
 		LocalDate today = LocalDate.now();
 
 		return Stream.of(
@@ -335,7 +155,28 @@ public class LedgerTest {
 		).map(d -> d.format(DateTimeFormatter.BASIC_ISO_DATE));
 	}
 
-	static Stream<String> invalidateDates() {
+
+	@ParameterizedTest(name = "[{index}] date={0}")
+	@MethodSource("provideInvalidTransactionDates")
+	@DisplayName("거래날짜가 5년전 보다 과거거나 미래면 예외가 발생한다.")
+	void validateDate_failure_pastAndFuture(String date){
+		//given
+		LedgerWriteRequest request =
+				defaultLedgerWriteRequest()
+					.date(date)
+						.build();
+
+		//when
+		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
+
+		//then
+		BusinessExceptionAssert.assertThatBusinessException(throwable)
+						.hasErrorCode(LEDGER_INPUT_RANGE)
+						.hasUserMessage("날짜만 가능")
+						.hasLogMessage("범위오류", "range=", date);
+	}
+
+	static Stream<String> provideInvalidTransactionDates() {
 		LocalDate today = LocalDate.now();
 
 		return Stream.of(
@@ -345,41 +186,208 @@ public class LedgerTest {
 		).map(d -> d.format(DateTimeFormatter.BASIC_ISO_DATE));
 	}
 
-	static Stream<Arguments> validatePlace() {
+
+	@ParameterizedTest(name = "[{index}] fix=false, cycle={0}")
+	@EnumSource(FixCycle.class)
+	@DisplayName("고정이 아닌데 주기가 있으면 예외가 발생한다.")
+	void validateFixCycle_failure_mismatch(FixCycle fixCycle) {
+		//given
+		LedgerWriteRequest request =
+				defaultLedgerWriteRequest()
+						.fixed(false)
+						.fixCycle(fixCycle.getValue())
+							.build();
+
+		//when
+		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
+
+		//then
+		BusinessExceptionAssert.assertThatBusinessException(throwable)
+				.hasErrorCode(LEDGER_POLICY_NOT_ALLOWED)
+				.hasUserMessage("주기를 설정", "고정 여부")
+				.hasLogMessage("정책위반", "detail=", fixCycle.getValue());
+	}
+
+
+	@ParameterizedTest(name = "[{index}] cycle={0}")
+	@ValueSource(strings = {"Q", "r", "f"})
+	@DisplayName("고정주기가 유효하지 않으면 예외가 발생한다.")
+	void validateFixCycle_failure_outOfRange(String cycle){
+		//given
+		LedgerWriteRequest request =
+				defaultLedgerWriteRequest()
+						.fixed(true)
+						.fixCycle(cycle)
+							.build();
+
+		//when
+		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
+
+		//then
+		BusinessExceptionAssert.assertThatBusinessException(throwable)
+				.hasErrorCode(LEDGER_INPUT_INVALID)
+				.hasUserMessage("고정주기")
+				.hasLogMessage("허용값아님", "allowed=", cycle);
+	}
+
+
+	@ParameterizedTest(name = "[{index}] category={0}")
+	@ValueSource(strings = {"000000", "110101", "030101"})
+	@DisplayName("카테고리가 01, 02로 시작하지 않으면 예외가 발생한다.")
+	void validateDate_failure_boundaryValue(String category){
+		//given
+		LedgerWriteRequest request =
+				defaultLedgerWriteRequest()
+						.categoryCode(category)
+								.build();
+
+		//when
+		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
+
+		//then
+		BusinessExceptionAssert.assertThatBusinessException(throwable)
+				.hasErrorCode(LEDGER_INPUT_FORMAT)
+				.hasUserMessage("없는 카테고리")
+				.hasLogMessage("형식오류", "format=", category);
+	}
+
+
+	@ParameterizedTest(name = "[{index}] amount={0}")
+	@ValueSource(longs = {-1000, -1, 0})
+	@DisplayName("금액이 0이하면 예외가 발생한다.")
+	void validateAmount_failure_boundaryValue(long amount){
+		//given
+		LedgerWriteRequest request =
+				defaultLedgerWriteRequest()
+						.amount(amount)
+								.build();
+
+		//when
+		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
+
+		//then
+		BusinessExceptionAssert.assertThatBusinessException(throwable)
+				.hasErrorCode(LEDGER_INPUT_RANGE)
+				.hasUserMessage("1 이상")
+				.hasLogMessage("범위오류", "range=", String.valueOf(amount));
+	}
+
+
+	@ParameterizedTest(name = "[{index}] type={0}")
+	@ValueSource(strings = {"1","ca", "free", "bank#", "n0ne"})
+	@DisplayName("금액유형이 유효하지 않으면 예외가 발생한다.")
+	void validateAmountType_failure_outOfRange(String type){
+		//given
+		LedgerWriteRequest request =
+				defaultLedgerWriteRequest()
+						.amountType(type)
+							.build();
+
+		//when
+		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
+
+		//then
+		BusinessExceptionAssert.assertThatBusinessException(throwable)
+				.hasErrorCode(LEDGER_INPUT_INVALID)
+				.hasUserMessage("금액유형")
+				.hasLogMessage("허용값아님", "allowed=", type);
+	}
+
+
+	@ParameterizedTest(name = "[{index}] place={0}, address={1}")
+	@MethodSource("provideValidPlaces")
+	@DisplayName("장소명과 기본주소 둘 다 없으면 통과한다.")
+	void validatePlace_success_nullAndEmpty(String place, String address) {
+		//given
+		LedgerWriteRequest request =
+				defaultLedgerWriteRequest()
+						.placeName(place)
+						.roadAddress(address)
+							.build();
+
+		//when & then
+		assertThatCode(() -> Ledger.create(anyString(), request))
+				.doesNotThrowAnyException();
+	}
+
+	static Stream<Arguments> provideValidPlaces() {
 		return Stream.of(
-			Arguments.of(
-					null, null
-			),
-			Arguments.of(
-					null, ""
-			),
-			Arguments.of(
-					"", null
-			),
-			Arguments.of(
-					"", ""
-			)
+				Arguments.of(
+						null, null
+				),
+				Arguments.of(
+						null, ""
+				),
+				Arguments.of(
+						"", null
+				),
+				Arguments.of(
+						"", ""
+				)
 		);
 	}
 
-	static Stream<Arguments> invalidatePlace() {
+
+	@ParameterizedTest(name = "[{index}] {0}")
+	@MethodSource("provideInvalidPlaces")
+	@DisplayName("장소명과 기본주소 둘 중 하나라도 없으면 예외가 발생한다.")
+	void validatePlace_failure_mismatch(String description, String place, String address) {
+		//given
+		LedgerWriteRequest request =
+				defaultLedgerWriteRequest()
+						.placeName(place)
+						.roadAddress(address)
+							.build();
+
+		//when
+		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
+
+		//then
+		BusinessExceptionAssert.assertThatBusinessException(throwable)
+				.hasErrorCode(LEDGER_POLICY_NOT_ALLOWED)
+				.hasUserMessage("장소명", "기본주소")
+				.hasLogMessage("정책위반", "detail=");
+	}
+
+	static Stream<Arguments> provideInvalidPlaces() {
 		return Stream.of(
-			Arguments.of(
-					"장소명 null",
-					null, "기본주소"
-			),
-			Arguments.of(
-					"장소명 공백",
-					"", "기본주소"
-			),
-			Arguments.of(
-					"기본주소 null",
-					"장소", null
-			),
-			Arguments.of(
-					"기본주소 공백",
-					"장소", ""
-			)
+				Arguments.of(
+						"장소명 null",
+						null, "기본주소"
+				),
+				Arguments.of(
+						"장소명 공백",
+						"", "기본주소"
+				),
+				Arguments.of(
+						"기본주소 null",
+						"장소", null
+				),
+				Arguments.of(
+						"기본주소 공백",
+						"장소", ""
+				)
 		);
+	}
+
+
+	@ParameterizedTest(name = "[{index}] address={0}")
+	@ValueSource(strings = {"상세 주소!!@", "상세☆", "상세家"})
+	@DisplayName("상세 주소에 한글, 숫자, 공백, 영문, 일부 특수문자 제외한 문자가 포함되면 예외가 발생한다.")
+	void validateDetail_failure_format(String address){
+		//given
+		LedgerWriteRequest request =
+				withPlace()
+						.detailAddress(address)
+							.build();
+
+		//when
+		Throwable throwable = catchThrowable(() -> Ledger.create(anyString(), request));
+
+		//then
+		BusinessExceptionAssert.assertThatBusinessException(throwable)
+				.hasErrorCode(LEDGER_INPUT_FORMAT)
+				.hasUserMessage("상세 주소", "입력 가능")
+				.hasLogMessage("형식오류", "format=");
 	}
 }

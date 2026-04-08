@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -73,10 +74,10 @@ public class FileCommandServiceTest {
 		service = new FileCommandService();
 	}
 
-	//==================[ TEST ]==================
+	//==================[ storeFile ]==================
 	@Test
 	@DisplayName("정상적인 파일이면 저장에 성공한다.")
-	void storeFile_Success() {
+	void storeFile_success() {
 		//given
 		when(strategy.getBasePath()).thenReturn("base");
 		when(strategy.generateRelativePath()).thenReturn("2026\\03");
@@ -93,9 +94,10 @@ public class FileCommandServiceTest {
 		assertThat(result.getFullPath()).contains("\\base\\2026\\03\\test.png");
 	}
 
+
 	@Test
 	@DisplayName("중복된 폴더면 생성이 불가능하고 예외가 발생한다.")
-	void storeFile_Failure_DirectoryCreation() throws IOException {
+	void storeFile_failure_duplicateDirectory() throws IOException {
 		//given
 		when(strategy.getBasePath()).thenReturn("base");
 		when(strategy.generateRelativePath()).thenReturn("2026\\01");
@@ -117,9 +119,10 @@ public class FileCommandServiceTest {
 				});
 	}
 
+
 	@Test
 	@DisplayName("파일을 저장할 수 없으면 예외가 발생한다.")
-	void storeFile_Failure_SpaceIsFull() throws IOException {
+	void storeFile_failure_spaceIsFull() throws IOException {
 		//given
 		when(strategy.getBasePath()).thenReturn("base");
 		when(strategy.generateRelativePath()).thenReturn("2026\\01");
@@ -139,5 +142,22 @@ public class FileCommandServiceTest {
 					assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.FILE_ETC_RESOURCE_ERROR);
 					assertThat(errorDTO.getLogMessage()).contains("파일저장불가");
 				});
+	}
+
+
+	//==================[ deleteFiles ]==================
+	@Test
+	@DisplayName("파일이 정상적으로 삭제된다.")
+	void deleteFiles_success() throws IOException {
+		//given
+		File tempFile = File.createTempFile("test", ".png");
+
+		assertThat(tempFile).exists();
+
+		//when
+		service.deleteFiles(List.of(tempFile));
+
+		//then
+		assertThat(tempFile.exists()).isFalse();
 	}
 }

@@ -52,23 +52,23 @@ public class MemberRepositoryTest {
 
 	@Autowired	private MemberRepository repository;
 
-	//==================[ 📌findImageLimitByMemberId  ]==================
+	//==================[ findImageLimitByMemberId ]==================
 	@Test
 	@DisplayName("회원이 등록 가능한 이미개 수를 조회한다.")
-	void 회원이_등록_가능한_이미지_개수_조회(){
+	void findImageLimitByMemberId_existingMemberId_returnImageLimit(){
 		//given
-		String memberId = "UNn12001";
+		String memberId = "test";
 
 		//when
 		Integer result = repository.findImageLimitByMemberId(memberId);
 
 		//then
-		assertThat(result).isEqualTo(3);
+		assertThat(result).isEqualTo(1);
 	}
 
 	@Test
 	@DisplayName("존재하지 않은 회원번호는 EmptyResultDataAccessException이 발생한다.")
-	void 없는_회원이면_예외발생(){
+	void findImageLimitByMemberId_nonExistingMemberId_throwException(){
 		//given
 		String memberId = "no";
 

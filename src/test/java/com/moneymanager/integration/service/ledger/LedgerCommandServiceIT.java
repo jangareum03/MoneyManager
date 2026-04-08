@@ -80,7 +80,7 @@ public class LedgerCommandServiceIT {
 		ledgerImageRepository.deleteAll();
 	}
 
-	//==================[ TEST ]==================
+	//==================[ registerLedger ]==================
 	@Test
 	@DisplayName("정상 요청이면 DB에 가계부 정보가 저장된다.")
 	void registerLedger_Success(){

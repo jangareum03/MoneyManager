@@ -64,10 +64,10 @@ public class LedgerImageRepositoryTest {
 	}
 
 
-	//==================[ TEST ]==================
+	//==================[ save ]==================
 	@Test
 	@DisplayName("여러 건의 이미지 정보는 데이터베이스에 저장된다.")
-	void saveAll_Success(){
+	void save_validEntity_success(){
 		//given
 		List<LedgerImage> images = List.of(
 				LedgerImage.builder().ledgerId(1L).imagePath("/img/1.png").sortOrder(1).build(),
@@ -86,7 +86,7 @@ public class LedgerImageRepositoryTest {
 
 	@Test
 	@DisplayName("빈 이미지 리스트는 아무일도 일어나지 않는다.")
-	void 빈_리스트면_무반응() {
+	void save_noData_notWorking() {
 		//when
 		repository.saveAll(Collections.emptyList());
 
@@ -95,5 +95,4 @@ public class LedgerImageRepositoryTest {
 
 		assertThat(result).isZero();
 	}
-
 }

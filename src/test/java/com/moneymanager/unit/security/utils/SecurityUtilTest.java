@@ -68,10 +68,10 @@ public class SecurityUtilTest {
 		SecurityContextHolder.setContext(securityContext);
 	}
 
-	//==================[ TEST ]==================
+	//==================[ getMemberId ]==================
 	@Test
 	@DisplayName("로그인 된 사용자의 회원번호를 가져올 수 있다.")
-	void getMemberId_Success() {
+	void getMemberId_success() {
 		//given
 		when(userDetails.getId()).thenReturn("member123");
 
@@ -84,7 +84,7 @@ public class SecurityUtilTest {
 
 	@Test
 	@DisplayName("로그인 된 사용자의 회원번호가 null이면 예외가 발생한다.")
-	void getMemberId_Failure_MemberIsNull() {
+	void getMemberId_failure_memberIsNull() {
 		//given
 		when(userDetails.getId()).thenReturn(null);
 
@@ -100,7 +100,7 @@ public class SecurityUtilTest {
 
 	@Test
 	@DisplayName("비로그인은 인증된 주체가 null이여서 예외가 발생한다.")
-	void getMemberId_Failure_CustomUserDetailsIsNull() {
+	void getMemberId_failure_customUserDetailsIsNull() {
 		//given
 		when(authentication.getPrincipal()).thenReturn(null);
 

@@ -43,10 +43,10 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class DateRangeTest {
 
-	//==================[ TEST ]==================
+	//==================[ create ]==================
 	@Test
 	@DisplayName("정상적인 시작일과 종료일이면 DateRange 생성된다.")
-	void create_Success() {
+	void create_success() {
 		//given
 		String from = "20260101";
 		String to = "20260131";
@@ -59,39 +59,23 @@ public class DateRangeTest {
 		assertThat(result.getTo()).isEqualTo(LocalDate.of(2026,1,31));
 	}
 
+
 	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("invalidCreateCases")
+	@MethodSource("provideInvalidDates")
 	@DisplayName("비정상적인 날짜면 예외가 발생한다.")
-	void create_Failure_Exception(String description, String from, String to){
+	void create_failure_exception(String description, String from, String to){
 		//when & then
 		assertThatExceptionOfType(BusinessException.class)
 				.isThrownBy(() -> new DateRange(from, to));
 	}
 
-
-	@ParameterizedTest(name = "[{index}] from={0}, end={1}")
-	@MethodSource("validBetweenCases")
-	@DisplayName("시작일과 종료일 사이의 일자를 계산할 수 있다.")
-	void daysBetween_Success(String from, String to, long expectedValue) {
-		//given
-		DateRange dateRange = new DateRange(from, to);
-
-		//when
-		long result = dateRange.daysBetween();
-
-		//then
-		assertThat(result).isEqualTo(expectedValue);
-	}
-
-
-	//==================[ Method Source ]==================
-	static Stream<Arguments> invalidCreateCases() {
+	static Stream<Arguments> provideInvalidDates() {
 		return Stream.of(
-			Arguments.of(
-					"시작일이 없는 경우",
-					null,
-					"20260101"
-			),
+				Arguments.of(
+						"시작일이 없는 경우",
+						null,
+						"20260101"
+				),
 				Arguments.of(
 						"종료일이 없는 경우",
 						"20260101",
@@ -105,7 +89,22 @@ public class DateRangeTest {
 		);
 	}
 
-	static Stream<Arguments> validBetweenCases() {
+
+	@ParameterizedTest(name = "[{index}] from={0}, end={1}")
+	@MethodSource("provideValidBetweenDays")
+	@DisplayName("시작일과 종료일 사이의 일자를 계산할 수 있다.")
+	void daysBetween_success(String from, String to, long expectedValue) {
+		//given
+		DateRange dateRange = new DateRange(from, to);
+
+		//when
+		long result = dateRange.daysBetween();
+
+		//then
+		assertThat(result).isEqualTo(expectedValue);
+	}
+
+	static Stream<Arguments> provideValidBetweenDays() {
 		return Stream.of(
 				Arguments.of(
 						"20260101",
@@ -124,4 +123,5 @@ public class DateRangeTest {
 				)
 		);
 	}
+
 }

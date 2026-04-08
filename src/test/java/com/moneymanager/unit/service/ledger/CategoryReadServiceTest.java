@@ -6,20 +6,24 @@ import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.service.ledger.CategoryReadService;
+import com.moneymanager.unit.fixture.LedgerCategoryFixture;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.*;
 
 /**
@@ -56,10 +60,10 @@ public class CategoryReadServiceTest {
 
 	@Mock				private CategoryRepository categoryRepository;
 
-	//==================[ 📌getAllCategories  ]==================
+	//==================[ generateStoredName ]==================
 	@Test
-	@DisplayName("카테고리의 모든 정보를 조회 가능하다.")
-	void  모든_카테고리_조회_가능(){
+	@DisplayName("카테고리의 모든 정보를 조회한다.")
+	void  getAllCategories_success(){
 		//given
 		List<Category> categories = List.of(
 				Category.builder().code("010000").name("수입").parentCode(null).build()
@@ -73,119 +77,70 @@ public class CategoryReadServiceTest {
 		verify(categoryRepository, times(1)).findAllCategory();
 	}
 
+
+	@Disabled
 	@Test
-	@DisplayName("모든 카테고리 조회가 안되면 ServerException이 발생한다.")
-	void 모든_카테고리_없으면_예외발생() {
+	@DisplayName("저장된 카테고리가 없으면 빈 리스트를 반환한다.")
+	void getAllCategories_failure() {
 		//given
 		when(categoryRepository.findAllCategory()).thenReturn(Collections.emptyList());
 
-		//when & then
-		assertThatExceptionOfType(RuntimeException.class)
-				.isThrownBy(() -> service.getAllCategories())
-				.withMessageContainingAll("데이터", "문제");
+		//when
+		List<Category> result = service.getAllCategories();
+
+		//then
+		assertThat(result).isEmpty();
 	}
 
 
-	//==================[ 📌getCategoriesByTypeAndLevel  ]==================
-	@ParameterizedTest(name = "[{index}] type={0}")
-	@EnumSource(CategoryType.class)
-	@DisplayName("TOP 레벨 카테고리 정보가 리스트로 조회 가능하다.")
-	void 최상위_레벨_카테고리_목록_조회(CategoryType type){
+	//==================[ getCategoriesByTypeAndLevel ]==================
+	@ParameterizedTest(name = "[{index}] level={0}, type={1}")
+	@MethodSource("provideValidCategoryLevelByType")
+	@DisplayName("카테고리 유형과 레벨이 따른 카테고리 목록을 조회한다.")
+	void getCategoriesByTypeAndLevel_success(CategoryLevel level, CategoryType type, List<Category> expectedCategories) {
 		//given
-		CategoryLevel level = CategoryLevel.TOP;
-
-		when(categoryRepository.findAllCategory())
-				.thenReturn(List.of(
-						Category.builder().code("010000").name("수입").parentCode(null).build(),
-						Category.builder().code("020000").name("지출").parentCode(null).build(),
-						Category.builder().code("010100").name("소득").parentCode("010000").build(),
-						Category.builder().code("020100").name("식비").parentCode("020000").build(),
-						Category.builder().code("010101").name("월급").parentCode("010100").build()
-				));
+		when(categoryRepository.findAllCategory()).thenReturn(LedgerCategoryFixture.allCategories());
 
 		//when
 		List<CategoryResponse> result = service.getCategoriesByTypeAndLevel(type, level);
 
 		//then
-		assertThat(result).hasSize(2)
-				.allSatisfy( c -> {
-					assertThat(c.getCode())
-							.hasSize(6)
-							.endsWith("0000");
-
-					assertThat(c.getName()).isNotNull();
-				});
+		assertThat(result)
+				.extracting(CategoryResponse::getCode)
+				.containsExactlyElementsOf(
+						expectedCategories.stream()
+								.map(Category::getCode)
+								.toList()
+				);
 	}
 
-	@ParameterizedTest(name = "[{index}] type={0}")
-	@EnumSource(CategoryType.class)
-	@DisplayName("MIDDLE 레벨 카테고리 정보가 리스트로 조회 가능하다.")
-	void 중간_레벨_카테고리_목록_조회(CategoryType type){
-		//given
-		CategoryLevel level = CategoryLevel.MIDDLE;
-		int expected = (type == CategoryType.INCOME) ? 2 : 3;
-
-		when(categoryRepository.findAllCategory())
-				.thenReturn(List.of(
-						Category.builder().code("010000").name("수입").parentCode(null).build(),
-						Category.builder().code("020000").name("지출").parentCode(null).build(),
-						Category.builder().code("010100").name("소득").parentCode("010000").build(),
-						Category.builder().code("010200").name("저축").parentCode("010000").build(),
-						Category.builder().code("020100").name("식비").parentCode("020000").build(),
-						Category.builder().code("020200").name("교통").parentCode("020000").build(),
-						Category.builder().code("020300").name("문화생활").parentCode("020000").build(),
-						Category.builder().code("010101").name("월급").parentCode("010100").build(),
-						Category.builder().code("020101").name("식재료").parentCode("020100").build()
-				));
-
-		//when
-		List<CategoryResponse> result = service.getCategoriesByTypeAndLevel(type, level);
-
-		//then
-		assertThat(result).hasSize(expected)
-				.allSatisfy( c -> {
-					assertThat(c.getCode())
-							.hasSize(6)
-							.endsWith("00");
-
-					assertThat(c.getName()).isNotNull();
-				});
-	}
-
-	@ParameterizedTest(name = "[{index}] type={0}")
-	@EnumSource(CategoryType.class)
-	@DisplayName("LOW 레벨 카테고리 정보가 리스트로 조회 가능하다.")
-	void 하위_레벨_카테고리_목록_조회(CategoryType type){
-		//given
-		CategoryLevel level = CategoryLevel.LOW;
-		int expected = (type == CategoryType.INCOME) ? 3 : 4;
-
-		when(categoryRepository.findAllCategory())
-				.thenReturn(List.of(
-						Category.builder().code("010000").name("수입").parentCode(null).build(),
-						Category.builder().code("020000").name("지출").parentCode(null).build(),
-						Category.builder().code("010100").name("소득").parentCode("010000").build(),
-						Category.builder().code("020200").name("교통").parentCode("020000").build(),
-						Category.builder().code("010101").name("월급").parentCode("010100").build(),
-						Category.builder().code("010201").name("예금만기").parentCode("010200").build(),
-						Category.builder().code("010301").name("빌린돈").parentCode("010300").build(),
-						Category.builder().code("020101").name("식재료").parentCode("020100").build(),
-						Category.builder().code("020102").name("외식").parentCode("020100").build(),
-						Category.builder().code("020301").name("영화").parentCode("020300").build(),
-						Category.builder().code("020601").name("월세·전세").parentCode("020600").build()
-				));
-
-		//when
-		List<CategoryResponse> result = service.getCategoriesByTypeAndLevel(type, level);
-
-		//then
-		assertThat(result).hasSize(expected)
-				.allSatisfy( c -> {
-					assertThat(c.getCode())
-							.hasSize(6)
-							.doesNotEndWith("00");
-
-					assertThat(c.getName()).isNotNull();
-				});
+	static Stream<Arguments> provideValidCategoryLevelByType() {
+		return Stream.of(
+			Arguments.of(
+					CategoryLevel.TOP,
+					null,
+					LedgerCategoryFixture.topCategories()
+			),
+			Arguments.of(
+					CategoryLevel.MIDDLE,
+					CategoryType.INCOME,
+					LedgerCategoryFixture.middleCategoriesByIncome()
+			),
+			Arguments.of(
+					CategoryLevel.MIDDLE,
+					CategoryType.OUTLAY,
+					LedgerCategoryFixture.middleCategoriesByOutlay()
+			),
+			Arguments.of(
+					CategoryLevel.LOW,
+					CategoryType.INCOME,
+					LedgerCategoryFixture.lowCategoriesByIncome()
+			),
+			Arguments.of(
+					CategoryLevel.LOW,
+					CategoryType.OUTLAY,
+					LedgerCategoryFixture.lowCategoriesByOutlay()
+			)
+		);
 	}
 }

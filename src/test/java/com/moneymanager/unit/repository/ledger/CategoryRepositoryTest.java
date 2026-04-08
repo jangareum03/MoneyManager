@@ -54,10 +54,10 @@ public class CategoryRepositoryTest {
 
 	@Autowired	private CategoryRepository repository;
 
-	//==================[ 📌findAllCategory  ]==================
+	//==================[ findAllCategory ]==================
 	@Test
-	@DisplayName("가계부 카테고리에서 모든 레벨의 카테고리를 조회한다.")
-	void 모든_카테고리_조회(){
+	@DisplayName("모든 가계부 카테고리를 조회한다.")
+	void findAllCategory_success(){
 		//when
 		List<Category> result = repository.findAllCategory();
 

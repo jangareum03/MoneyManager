@@ -53,15 +53,15 @@ public class LedgerHistoryPolicyTest {
 
 	//==================[ validate ]==================
 	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("validDateRangeCases")
+	@MethodSource("provideValidDateRanges")
 	@DisplayName("정상범위 날짜면 검증에 통과한다.")
-	void validate_Success(String description, DateRange dateRange) {
+	void validate_success(String description, DateRange dateRange) {
 		//when & then
 		assertThatCode(() -> ledgerHistoryPolicy.validate(dateRange))
 				.doesNotThrowAnyException();
 	}
 
-	static Stream<Arguments> validDateRangeCases() {
+	static Stream<Arguments> provideValidDateRanges() {
 		LocalDate now = LocalDate.now();
 
 		return Stream.of(
@@ -96,10 +96,11 @@ public class LedgerHistoryPolicyTest {
 		);
 	}
 
+
 	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("invalidDateRangeCases")
+	@MethodSource("provideInvalidDateRanges")
 	@DisplayName("비정상 범위 날짜면 예외가 발생한다")
-	void  validate_Failure_NotRange(String description, DateRange dateRange) {
+	void  validate_failure_notRange(String description, DateRange dateRange) {
 		//when
 		Throwable throwable = catchThrowable(() -> ledgerHistoryPolicy.validate(dateRange));
 
@@ -110,7 +111,7 @@ public class LedgerHistoryPolicyTest {
 				.hasLogMessage("조건불만족", "DateRange");
 	}
 
-	static Stream<Arguments> invalidDateRangeCases() {
+	static Stream<Arguments> provideInvalidDateRanges() {
 		LocalDate now = LocalDate.now();
 
 		LocalDate min = now.minusYears(Policy.LEDGER_MAX_YEAR);
@@ -143,9 +144,9 @@ public class LedgerHistoryPolicyTest {
 
 	//==================[ getTitleByHistoryType ]==================
 	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("validTitleCases")
+	@MethodSource("provideValidTitles")
 	@DisplayName("내역 범위에 따라 제목 형식이 다르게 반환된다.")
-	void getTitleByHistoryType_Success(String description, LocalDate date, HistoryType historyType, String expected) {
+	void getTitleByHistoryType_success(String description, LocalDate date, HistoryType historyType, String expected) {
 		//when
 		String result = ledgerHistoryPolicy.getTitleByHistoryType(date, historyType);
 
@@ -153,7 +154,7 @@ public class LedgerHistoryPolicyTest {
 		assertThat(result).isEqualTo(expected);
 	}
 
-	static Stream<Arguments> validTitleCases() {
+	static Stream<Arguments> provideValidTitles() {
 		return Stream.of(
 				Arguments.of(
 					"YEAR 타입 - 2026년 1월 1일",
@@ -203,9 +204,9 @@ public class LedgerHistoryPolicyTest {
 
 	//==================[ calculateWeekOfMonth ]==================
 	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("validWeekOfMonthCases")
+	@MethodSource("provideValidWeekOfMonths")
 	@DisplayName("해당 월의 일 기준으로 주차를 반환한다.")
-	void calculateWeekOfMonth_Success(String description, LocalDate date, int expected) {
+	void calculateWeekOfMonth_success(String description, LocalDate date, int expected) {
 		//when
 		int result = ledgerHistoryPolicy.calculateWeekOfMonth(date);
 
@@ -213,7 +214,7 @@ public class LedgerHistoryPolicyTest {
 		assertThat(result).isEqualTo(expected);
 	}
 
-	static Stream<Arguments> validWeekOfMonthCases() {
+	static Stream<Arguments> provideValidWeekOfMonths() {
 		return Stream.of(
 				Arguments.of("2026년 1월 1일 → 1주", LocalDate.of(2026, 1,1), (Object) 1),
 				Arguments.of("2026년 1월 4일 → 1주", LocalDate.of(2026, 1,1), (Object) 1),

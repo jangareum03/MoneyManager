@@ -50,12 +50,11 @@ public class MemberReadServiceTest {
 
 	@Mock	private MemberRepository memberRepository;
 
-
-	//==================[ 📌getImageLimit  ]==================
+	//==================[ getImageLimit ]==================
 	@ParameterizedTest(name = "[{index}] limit={0}")
 	@ValueSource(ints = {0, 1, 2, 3})
 	@DisplayName("회원이 등록 가능한 이미지 개수를 반환한다.")
-	void 등록_가능한_이미지개수_정상범위(int expected){
+	void getImageLimit_success(int expected){
 		//given
 		String memberId = "UNn12001";
 
@@ -70,7 +69,7 @@ public class MemberReadServiceTest {
 
 	@Test
 	@DisplayName("등록 가능한 이미지 개수가 서비스 허용범위보다 크면 허용범위를 반환한다.")
-	void 회원_이미지_개수와_서비스_허용범위_비교(){
+	void getImageLimit_success_outOfLimit(){
 		//given
 		String memberId = "UNn12001";
 
@@ -85,7 +84,7 @@ public class MemberReadServiceTest {
 
 	@Test
 	@DisplayName("없는 회원이면 기본값인 0을 반환한다.")
-	void 조회결과_없으면_예외발생(){
+	void getImageLimit_success_noMember(){
 		//given
 		String memberId = "UNn12001";
 

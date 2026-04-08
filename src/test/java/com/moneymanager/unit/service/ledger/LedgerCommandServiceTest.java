@@ -91,10 +91,10 @@ public class LedgerCommandServiceTest {
 				.build();
 	}
 
-	//==================[ TEST ]==================
+	//==================[ registerLedger ]==================
 	@Test
 	@DisplayName("정상 요청이면 가계부 등록이 성공한다.")
-	void registerLedger_Success() {
+	void registerLedger_success() {
 		//given
 		when(securityUtil.getMemberId()).thenReturn(memberId);
 		when(ledgerRepository.save(any())).thenReturn(1L);
@@ -109,6 +109,7 @@ public class LedgerCommandServiceTest {
 		verify(ledgerRepository).save(any());
 		verify(imageRepository).saveAll(anyList());
 	}
+
 
 	@Test
 	@DisplayName("예외가 발생하면 ServiceAction이 있다.")
@@ -127,9 +128,10 @@ public class LedgerCommandServiceTest {
 		assertThat(result.getErrorInfo().getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
 	}
 
+
 	@Test
 	@DisplayName("회원번호가 없으면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_Failure_MemberIdIsNull() {
+	void registerLedger_failure_memberIdIsNull() {
 		//given
 		BusinessException exception = BusinessException.of(
 				ErrorCode.MEMBER_AUTHORITY_UNAUTHORIZED,
@@ -149,9 +151,10 @@ public class LedgerCommandServiceTest {
 		verify(imageRepository, never()).saveAll(anyList());
 	}
 
+
 	@Test
 	@DisplayName("요청 정보 검증 실패하면 그 후 로직을 실행하지 않는다")
-	void registerLedger_Failure_Validate() {
+	void registerLedger_failure_validate() {
 		//given
 		LedgerWriteRequest request = mock(LedgerWriteRequest.class);
 
@@ -174,9 +177,10 @@ public class LedgerCommandServiceTest {
 		verify(imageRepository, never()).saveAll(anyList());
 	}
 
+
 	@Test
 	@DisplayName("DB 저장 중 중복키가 발생하면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_Failure_DuplicateKey() {
+	void registerLedger_failure_duplicateKey() {
 		//given
 		when(securityUtil.getMemberId()).thenReturn(memberId);
 		when(ledgerRepository.save(any()))
@@ -193,9 +197,10 @@ public class LedgerCommandServiceTest {
 		verify(ledgerRepository, never()).findById(anyLong());
 	}
 
+
 	@Test
 	@DisplayName("DB 저장 중 무결성 위반이 발생하면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_Failure_Integrity() {
+	void registerLedger_failure_integrity() {
 		//given
 		when(securityUtil.getMemberId()).thenReturn(memberId);
 		when(ledgerRepository.save(any()))
@@ -213,9 +218,10 @@ public class LedgerCommandServiceTest {
 		verify(imageRepository, never()).saveAll(anyList());
 	}
 
+
 	@Test
 	@DisplayName("DB 저장 후 조회가 실패하면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_Failure_NotFound() {
+	void registerLedger_failure_notFound() {
 		//given
 		when(securityUtil.getMemberId()).thenReturn(memberId);
 		when(ledgerRepository.save(any())).thenReturn(1L);
@@ -234,9 +240,10 @@ public class LedgerCommandServiceTest {
 		verify(fileService, never()).storeFile(any(), any(), any());
 	}
 
+
 	@Test
 	@DisplayName("이미지 검증에 실패하면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_Failure_ImageValidate() {
+	void registerLedger_failure_imageValidate() {
 		//given
 		when(securityUtil.getMemberId()).thenReturn(memberId);
 		when(ledgerRepository.save(any())).thenReturn(1L);
@@ -261,9 +268,10 @@ public class LedgerCommandServiceTest {
 		verify(imageRepository, never()).saveAll(any());
 	}
 
+
 	@Test
 	@DisplayName("이미지 저장에 실패하면 그 후 로직을 실행하지 않는다")
-	void registerLedger_Failure_StoreFile() {
+	void registerLedger_failure_storeFile() {
 		//given
 		when(securityUtil.getMemberId()).thenReturn(memberId);
 		when(ledgerRepository.save(any())).thenReturn(1L);
@@ -289,9 +297,10 @@ public class LedgerCommandServiceTest {
 		verify(imageRepository, never()).saveAll(any());
 	}
 
+
 	@Test
 	@DisplayName("이미지 정보를 DB에 저장에 실패하면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_Failure_ImageInfoNotSaved() {
+	void registerLedger_failure_imageInfoNotSaved() {
 		//given
 		when(securityUtil.getMemberId()).thenReturn(memberId);
 		when(ledgerRepository.save(any())).thenReturn(1L);

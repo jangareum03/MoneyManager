@@ -65,7 +65,7 @@ public class LedgerValidator extends BaseImageValidator {
 			throw BusinessException.of(
 					LEDGER_INPUT_MISSING,
 					"가계부를 등록할 수 없습니다.",
-					FUNCTION_NAME + "   |   reason=객체 없음   |   object=LedgerWriteRequest   |   value=null"
+					FUNCTION_NAME + "   |   reason=객체없음   |   object=LedgerWriteRequest   |   value=null"
 			);
 		}
 

@@ -33,12 +33,7 @@ public class LedgerRequestFixture {
 						"장소가 작성된 가계부",
 						withPlace()
 								.build()
-				)
-		);
-	}
-
-	public static Stream<Arguments> successWriteRequestWithImage() throws IOException {
-		return Stream.of(
+				),
 				Arguments.of(
 						"이미지가 첨부된 가계부",
 						withImage()

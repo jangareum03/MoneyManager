@@ -77,7 +77,7 @@ public abstract class BaseImageValidator implements ImageValidator {
 			if(read < 4) {
 				throw BusinessException.of(
 						FILE_INPUT_ETC,
-						"손상된 파일입니다. 다시 파일로 진행해주세요.",
+						"손상된 파일입니다. 다른 파일로 진행해주세요.",
 						"이미지 검증 실패   |   reason=길이오류   |   object=imageFile   |   field=header   |   expectedLength=4   |   value=" + read
 				);
 			}

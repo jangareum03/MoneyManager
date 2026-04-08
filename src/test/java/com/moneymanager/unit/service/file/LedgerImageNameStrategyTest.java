@@ -49,10 +49,10 @@ public class LedgerImageNameStrategyTest {
 
 	private final LedgerImageNameStrategy strategy = new LedgerImageNameStrategy();
 
-	//==================[ TEST ]==================
+	//==================[ generateStoredName ]==================
 	@Test
 	@DisplayName("파일명이 정상적이면 ULID로 이름이 변경 가능하다.")
-	void generateStoredName_Success() {
+	void generateStoredName_success() {
 		//given
 		String originalFileName = "image.png";
 
@@ -71,7 +71,7 @@ public class LedgerImageNameStrategyTest {
 	@ParameterizedTest(name = "[{index}] fileName={0}")
 	@NullAndEmptySource
 	@DisplayName("파일명이 null, 공백이면 예외가 발생한다.")
-	void generateStoredName_Failure_NameIsNullAndEmpty(String name) {
+	void generateStoredName_failure_nameIsNullAndEmpty(String name) {
 		//when & then
 		assertThatExceptionOfType(BusinessException.class)
 				.isThrownBy(() -> strategy.generateStoredName(name))
@@ -86,7 +86,7 @@ public class LedgerImageNameStrategyTest {
 	@ParameterizedTest(name = "[{index}] name={0}")
 	@ValueSource(strings = {"test", "test."})
 	@DisplayName("파일명에 확장자가 없으면 예외가 발생한다.")
-	void generateStoredName_Failure_ExtensionIsNone(String name) {
+	void generateStoredName_failure_extensionIsNone(String name) {
 		//when & then
 		assertThatExceptionOfType(BusinessException.class)
 				.isThrownBy(() -> strategy.generateStoredName(name))
@@ -99,9 +99,9 @@ public class LedgerImageNameStrategyTest {
 	}
 
 	@ParameterizedTest(name = "[{index}] date=오늘 날짜")
-	@MethodSource("validateRelativePath")
+	@MethodSource("provideValidRelativePath")
 	@DisplayName("오늘 날짜 기준으로 상대경로를 생성한다.")
-	void generateRelativePath_Success(String expected) {
+	void generateRelativePath_success(String expected) {
 		//when
 		String result = strategy.generateRelativePath();
 
@@ -109,9 +109,7 @@ public class LedgerImageNameStrategyTest {
 		assertThat(result).isEqualTo(expected);
 	}
 
-
-	//==================[ Method Source ]==================
-	static Stream<String> validateRelativePath() {
+	static Stream<String> provideValidRelativePath() {
 		LocalDate today = LocalDate.now();
 
 		String expected = String.join(

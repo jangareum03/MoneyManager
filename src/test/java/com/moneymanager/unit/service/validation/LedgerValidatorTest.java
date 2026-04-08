@@ -2,6 +2,7 @@ package com.moneymanager.unit.service.validation;
 
 import com.moneymanager.BusinessExceptionAssert;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
+import com.moneymanager.exception.error.ErrorCode;
 import com.moneymanager.service.validation.LedgerValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,20 +54,17 @@ public class LedgerValidatorTest {
 
 	private final LedgerValidator ledgerValidator = new LedgerValidator();
 
-	//==================[ TEST ]==================
+	static final int PLACE_MAX_LENGTH = 100;
+	static final int ROAD_MAX_LENGTH = 300;
+	static final int DETAIL_MAX_LENGTH = 500;
+
+	static final int MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+	//==================[ register ]==================
 	@ParameterizedTest(name = "[{index}] {0}")
 	@MethodSource("com.moneymanager.unit.fixture.LedgerRequestFixture#successWriteRequest")
 	@DisplayName("이미지 없는 가계부 등록 정보가 검증 통과한다.")
-	void validateLedger_Success_WithoutImage(String title, LedgerWriteRequest request){
-		//when & then
-		assertThatCode(() -> ledgerValidator.register(request))
-				.doesNotThrowAnyException();
-	}
-
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("com.moneymanager.unit.fixture.LedgerRequestFixture#successWriteRequestWithImage")
-	@DisplayName("이미지 있는 가계부 등록 정보가 검증 통과한다.")
-	void validateLedger_Success_WithImage(String description, LedgerWriteRequest request) {
+	void register_success_withoutImage(String title, LedgerWriteRequest request){
 		//when & then
 		assertThatCode(() -> ledgerValidator.register(request))
 				.doesNotThrowAnyException();
@@ -75,8 +73,8 @@ public class LedgerValidatorTest {
 
 	@ParameterizedTest
 	@NullSource
-	@DisplayName("가계부 등록 요청이 없으면 예외가 발생한다.")
-	void validateLedger_Failure_Null(LedgerWriteRequest request){
+	@DisplayName("가계부 등록 요청 객체 자체가 없으면 예외가 발생한다.")
+	void register_failure_requestIsNull(LedgerWriteRequest request){
 		//when
 		Throwable throwable = catchThrowable(()-> ledgerValidator.register(request));
 
@@ -87,14 +85,15 @@ public class LedgerValidatorTest {
 						.hasLogMessage("객체없음", "value=null");
 	}
 
-	@ParameterizedTest(name = "[{index}] date={0}")
-	@NullAndEmptySource
-	@DisplayName("거래날짜가 없으면 예외가 발생한다.")
-	void validateDate_Failure_NullAndEmpty(String date) {
+
+	@ParameterizedTest(name = "[{index}] {0}   |   value={1}")
+	@MethodSource("provideInvalidDates")
+	@DisplayName("날짜 입력값이 잘못된 경우에 예외가 발생한다.")
+	void register_failure_dateIsInvalid(String description, String value, ErrorCode errorCode, String[] userMsg, String[] logMsg) {
 		//given
 		LedgerWriteRequest request =
 				defaultLedgerWriteRequest()
-						.date(date)
+						.date(value)
 							.build();
 
 		//when
@@ -102,120 +101,88 @@ public class LedgerValidatorTest {
 
 		//then
 		BusinessExceptionAssert.assertThatBusinessException(throwable)
-						.hasErrorCode(LEDGER_INPUT_NULL)
-						.hasUserMessage("날짜")
-						.hasLogMessage("필수값누락");
+						.hasErrorCode(errorCode)
+						.hasUserMessage(userMsg)
+						.hasLogMessage(logMsg);
 	}
 
-	@ParameterizedTest(name="[{index}] date={0}")
-	@ValueSource(strings = {"2025년 1월 1일", "2026년 12월", "2026년 05월 1일"})
-	@DisplayName("거래날짜가 숫자가 아닌 문자가 포함되면 예외가 발생한다.")
-	void validateDate_Failure_NotNumber(String date) {
+	private static Stream<Arguments> provideInvalidDates() {
+		return Stream.of(
+			Arguments.of("date가 없는 경우", null,
+					LEDGER_INPUT_NULL, new String[] {"날짜", "선택"}, new String[] {"필수값누락", "date"}
+			),
+			Arguments.of("date가 빈 문자열인 경우", "   ",
+					LEDGER_INPUT_NULL, new String[] {"날짜", "선택"}, new String[] {"필수값누락", "date"}
+			),
+			Arguments.of("date에 한글 형식이 포함된 경우", "2025년 1월 1일",
+					LEDGER_INPUT_FORMAT, new String[] {"날짜", "yyyyMMdd"}, new String[] {"형식오류", "date"}
+			),
+			Arguments.of("date에 한자가 포함된 경우", "2025年 1月 1日",
+					LEDGER_INPUT_FORMAT, new String[] {"날짜", "yyyyMMdd"}, new String[] {"형식오류", "date"}
+			),
+			Arguments.of("date에 구분자가 포함된 경우 ", "2026. 01. 01",
+					LEDGER_INPUT_FORMAT, new String[] {"날짜", "yyyyMMdd"}, new String[] {"형식오류", "date"}
+			),
+			Arguments.of("date 길이가 8이 아닌 경우 ", "2025",
+					LEDGER_INPUT_FORMAT, new String[] {"날짜", "yyyyMMdd"}, new String[] {"형식오류", "date"}
+			),
+			Arguments.of("date 길이가 8이 아닌 경우 ", "2026051",
+					LEDGER_INPUT_FORMAT, new String[] {"날짜", "yyyyMMdd"}, new String[] {"형식오류", "date"}
+			)
+		);
+	}
+
+
+	@ParameterizedTest(name = "[{index}] {0}   |   value={1}")
+	@MethodSource("provideInvalidCategories")
+	@DisplayName("카테고리 입력값이 잘못된 경우에 예외가 발생한다.")
+	void register_failure_categoryIsInvalid(String description, String value, ErrorCode errorCode, String[] userMsg, String[] logMsg) {
 		//given
 		LedgerWriteRequest request =
 				defaultLedgerWriteRequest()
-						.date(date)
-							.build();
+						.categoryCode(value)
+								.build();
 
 		//when
 		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
 
 		//then
 		BusinessExceptionAssert.assertThatBusinessException(throwable)
-						.hasErrorCode(LEDGER_INPUT_FORMAT)
-						.hasUserMessage("날짜", "yyyyMMdd")
-						.hasLogMessage("형식오류", date);
+						.hasErrorCode(errorCode)
+						.hasUserMessage(userMsg)
+						.hasLogMessage(logMsg);
 	}
 
-	@ParameterizedTest(name="[{index}] date={0}")
-	@ValueSource(strings = {"2025", "202612", "20264", "2026051"})
-	@DisplayName("거래날짜가 8자리가 아니면 예외가 발생한다.")
-	void validateDate_Failure_Length(String date) {
+	private static Stream<Arguments> provideInvalidCategories() {
+		return Stream.of(
+				Arguments.of("category가 없는 경우", null,
+						LEDGER_INPUT_NULL, new String[] {"카테고리", "선택"}, new String[] {"필수값누락", "category"}
+				),
+				Arguments.of("category가 빈 문자열인 경우", "   ",
+						LEDGER_INPUT_NULL, new String[] {"카테고리", "선택"}, new String[] {"필수값누락", "category"}
+				),
+				Arguments.of("category에 특수문자가 포함된 경우", "010101@",
+						LEDGER_INPUT_INVALID, new String[] {"카테고리"}, new String[] {"형식오류", "6자리 숫자"}
+				),
+				Arguments.of("category 길이가 6자리가 아닌 경우", "02010",
+						LEDGER_INPUT_INVALID, new String[] {"카테고리"}, new String[] {"형식오류", "6자리 숫자"}
+				),
+				Arguments.of("category 길이가 6자리가 아닌 경우", "0101011",
+						LEDGER_INPUT_INVALID, new String[] {"카테고리"}, new String[] {"형식오류", "6자리 숫자"}
+				)
+		);
+	}
+
+
+	@ParameterizedTest(name = "[{index}] value={0}")
+	@NullSource
+	@DisplayName("금액 입력값이 null이면 예외가 발생한다.")
+	void register_failure_amountIsNull(Long value) {
 		//given
 		LedgerWriteRequest request =
 				defaultLedgerWriteRequest()
-						.date(date)
+						.amount(value)
 						.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_FORMAT)
-				.hasUserMessage("날짜", "yyyyMMdd")
-				.hasLogMessage("형식오류", date);
-	}
-
-	@ParameterizedTest
-	@NullAndEmptySource
-	@DisplayName("카테고리가 없으면 예외가 발생한다.")
-	void validateCategory_Failure_NullAndEmpty(String category){
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.categoryCode(category)
-								.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-						.hasErrorCode(LEDGER_INPUT_NULL)
-						.hasUserMessage("카테고리")
-						.hasLogMessage("필수값누락");
-	}
-
-	@ParameterizedTest(name = "[{index}] category={0}")
-	@ValueSource(strings = {"apple!!@", "you123", "12345#"})
-	@DisplayName("카테고리가 숫자가 아닌 문자가 포함되면 예외가 발생한다.")
-	void validateCategory_Failure_Format(String category){
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.categoryCode(category)
-								.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_INVALID)
-				.hasUserMessage("카테고리")
-				.hasLogMessage("형식오류", "6자리 숫자", category);
-	}
-
-	@ParameterizedTest(name = "[{index}] category={0}")
-	@ValueSource(strings = {"01", "0201", "02011", "0101011"})
-	@DisplayName("카테고리 길이가 6자리가 아니면 예외가 발생한다.")
-	void validateCategory_Failure_Length(String category) {
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.categoryCode(category)
-						.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_INVALID)
-				.hasUserMessage("카테고리")
-				.hasLogMessage("형식오류", "6자리 숫자", category);
-	}
-
-	@ParameterizedTest
-	@NullAndEmptySource
-	@DisplayName("금액유형이 없으면 예외가 발생한다.")
-	void validateAmountType_Failure_NullAndEmpty(String type){
-		//given
-		LedgerWriteRequest request =
-				defaultLedgerWriteRequest()
-						.amountType(type)
-								.build();
 
 		//when
 		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
@@ -223,14 +190,47 @@ public class LedgerValidatorTest {
 		//then
 		BusinessExceptionAssert.assertThatBusinessException(throwable)
 				.hasErrorCode(LEDGER_INPUT_NULL)
-				.hasUserMessage("금액 유형")
-				.hasLogMessage("필수값누락");
+				.hasUserMessage("금액", "입력")
+				.hasLogMessage("필수값누락", "amount");
 	}
 
+
+	@ParameterizedTest(name = "[{index}] {0}   |   value={1}")
+	@MethodSource("provideInvalidAmountTypes")
+	@DisplayName("금액유형이 잘못된 경우에 예외가 발생한다.")
+	void register_failure_amountTypeIsInvalid(String description, String value, ErrorCode errorCode, String[] userMsg, String[] logMsg) {
+		//given
+		LedgerWriteRequest request =
+				defaultLedgerWriteRequest()
+						.amountType(value)
+								.build();
+
+		//when
+		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
+
+		//then
+		BusinessExceptionAssert.assertThatBusinessException(throwable)
+				.hasErrorCode(errorCode)
+				.hasUserMessage(userMsg)
+				.hasLogMessage(logMsg);
+	}
+
+	private static Stream<Arguments> provideInvalidAmountTypes() {
+		return Stream.of(
+			Arguments.of("amountType이 없는 경우", null,
+					LEDGER_INPUT_NULL, new String[] {"금액 유형", "선택"}, new String[] {"필수값누락", "amountType"}
+			),
+			Arguments.of("amountType이 빈 문자열인 경우", "   ",
+					LEDGER_INPUT_NULL, new String[] {"금액 유형", "선택"}, new String[] {"필수값누락", "amountType"}
+			)
+		);
+	}
+
+
 	@ParameterizedTest(name = "[{index}] type={0}")
-	@ValueSource(strings = {"1", "mM", "month", "w1"})
+	@ValueSource(strings = {"mM", "month", "w1", "주"})
 	@DisplayName("고정주기가 영문자 1글자가 아니면 예외가 발생한다.")
-	void validateAmountType_Failure_Format(String cycle){
+	void register_failure_amountFixCycleIsInvalid(String cycle){
 		//given
 		LedgerWriteRequest request =
 				defaultLedgerWriteRequest()
@@ -248,10 +248,11 @@ public class LedgerValidatorTest {
 				.hasLogMessage("형식오류", "1자리 영어", cycle);
 	}
 
+
 	@ParameterizedTest(name = "[{index}] memo={0}")
-	@MethodSource("validateMemo")
+	@MethodSource("provideValidMemos")
 	@DisplayName("메모가 150글자 이하면 통과한다.")
-	void validateMemo_Success_Length(String memo){
+	void register_success_memo(String memo){
 		//given
 		LedgerWriteRequest request =
 				defaultLedgerWriteRequest()
@@ -263,10 +264,20 @@ public class LedgerValidatorTest {
 				.doesNotThrowAnyException();
 	}
 
+	static Stream<String> provideValidMemos() {
+		return Stream.of(
+				"안녕하세요. 메모 적습니다.",
+				"ㅎㅎ",
+				"!",
+				"가나다123 @!★".repeat(15)	//경계값
+		);
+	}
+
+
 	@ParameterizedTest(name = "[{index}] memo={0}")
-	@MethodSource("invalidateMemo")
+	@MethodSource("provideInvalidMemos")
 	@DisplayName("메모가 150글자 초과하면 예외가 발생한다.")
-	void validateMemo_Failure_Length(String memo){
+	void register_failure_memoIsValid(String memo){
 		//given
 		LedgerWriteRequest request =
 				defaultLedgerWriteRequest()
@@ -280,316 +291,154 @@ public class LedgerValidatorTest {
 		BusinessExceptionAssert.assertThatBusinessException(throwable)
 				.hasErrorCode(LEDGER_INPUT_LENGTH)
 				.hasUserMessage("메모", "최대")
-				.hasLogMessage("길이오류", "length", String.valueOf(memo.length()));
+				.hasLogMessage("길이오류", "maxLength", String.valueOf(memo.length()));
 	}
 
-	@ParameterizedTest(name = "[{index}] place={0}")
-	@NullAndEmptySource
-	@DisplayName("장소만 없어도 통과한다.")
-	void validatePlace_Success_NullAndEmpty(String place) {
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.placeName(place)
-						.build();
+	static Stream<String> provideInvalidMemos() {
+		return Stream.of(
+				"가나다123 @!★".repeat(15) + "a",	//경계값
+				"가나다라마12345 @#%^ ☆♥ 家羅".repeat(10)
+		);
+	}
 
+
+	@ParameterizedTest(name = "[{index}] {0}")
+	@MethodSource("provideValidPlace")
+	@DisplayName("주소가 입력값이 정상인 경우 검증에 통과한다.")
+	void register_success_place(String description, LedgerWriteRequest request) {
 		//when & then
 		assertThatCode(() -> ledgerValidator.register(request))
 				.doesNotThrowAnyException();
 	}
 
-	@ParameterizedTest(name = "[{index} place={0}]")
-	@MethodSource("validatePlace")
-	@DisplayName("장소명 길이가 100글자 이하면 통과한다.")
-	void validatePlace_Success_Length(String placeName){
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.placeName(placeName)
-								.build();
-
-		//when & then
-		assertThatCode(() -> ledgerValidator.register(request))
-				.doesNotThrowAnyException();
+	static Stream<Arguments> provideValidPlace() {
+		return Stream.of(
+			Arguments.of("장소명만 null인 경우", withPlace().placeName(null).build()),
+			Arguments.of("장소명만 빈 문자열인 경우", withPlace().placeName("   ").build()),
+			Arguments.of("장소명 길이가 100글자 이하인 경우", withPlace().placeName("서울둘레길 8코스 자연생태가 복원된 도시하천길").build()),
+			Arguments.of("장소명 길이가 최대 길이인 경우", withPlace().placeName("가".repeat(PLACE_MAX_LENGTH)).build()),
+			Arguments.of("도로명 주소만 null인 경우", withPlace().roadAddress(null).build()),
+			Arguments.of("도로명 주소만 빈 문자열인 경우", withPlace().roadAddress("   ").build()),
+			Arguments.of("도로명 주소 길이가 300글자 이하인 경우", withPlace().roadAddress("경기 성남시 분당구 대왕판교로 606번길 58").build()),
+			Arguments.of("도로명 주소 길이가 최대 길이인 경우", withPlace().roadAddress("도".repeat(ROAD_MAX_LENGTH)).build()),
+			Arguments.of("상세 주소만 null인 경우", withPlace().detailAddress(null).build()),
+			Arguments.of("상세 주소만만 빈 문자열인 경우", withPlace().detailAddress("   ").build()),
+			Arguments.of("상세 주소 길이가 500글자 이하인 경우", withPlace().detailAddress("101동 2단지 11F 1012호").build()),
+			Arguments.of("상세 주소 길이가 최대 길이인 경우", withPlace().detailAddress("상".repeat(DETAIL_MAX_LENGTH)).build())
+		);
 	}
 
-	@ParameterizedTest(name = "[{index} place={0}]")
-	@MethodSource("invalidatePlace")
-	@DisplayName("장소명 길이가 100글자를 초과하면 예외가 발생한다.")
-	void validatePlace_Failure_Length(String place){
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.placeName(place)
-								.build();
 
+	@ParameterizedTest(name = "[{index} {0}]")
+	@MethodSource("provideInvalidPlace")
+	@DisplayName("주소 입력값이 잘못된 경우 예외가 발생한다.")
+	void register_failure_place(String description, LedgerWriteRequest request, ErrorCode errorCode, String[] userMsg, String[] logMsg){
 		//when
 		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
 
 		//then
 		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_LENGTH)
-				.hasUserMessage("장소 정보")
-				.hasLogMessage("길이초과", "length", String.valueOf(place.length()));
+				.hasErrorCode(errorCode)
+				.hasUserMessage(userMsg)
+				.hasLogMessage(logMsg);
 	}
 
-	@ParameterizedTest(name = "[{index}] place={0}")
-	@ValueSource(strings = {"특수문자@#", "김家", "이마트 a동 11-2", "사랑♥"})
-	@DisplayName("장소명에 한글, 숫자, 영문자, 공백 제외한 문자가 포함되면 예외가 발생한다.")
-	void validatePlace_Failure_Format(String place) {
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.placeName(place)
-								.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_INVALID)
-				.hasUserMessage("장소 정보")
-				.hasLogMessage("형식오류", "format", place);
+	static Stream<Arguments> provideInvalidPlace() {
+		return Stream.of(
+				Arguments.of(
+						"장소명 길이가 최대 길이를 초과한 경우", withPlace().placeName("가".repeat(PLACE_MAX_LENGTH + 1)).build(),
+						LEDGER_INPUT_LENGTH, new String[] {"장소 정보", "선택"}, new String[] {"길이오류", "placeName", "maxLength", String.valueOf(PLACE_MAX_LENGTH)}
+				),
+				Arguments.of(
+						"장소명에 특수문자가 포함된 경우", withPlace().placeName("이디야#").build(),
+						LEDGER_INPUT_INVALID, new String[] {"장소 정보", "선택"}, new String[] {"형식오류", "placeName", "expectedFormat"}
+				),
+				Arguments.of(
+						"장소명에 한자가 포함된 경우", withPlace().placeName("김家네").build(),
+						LEDGER_INPUT_INVALID, new String[] {"장소 정보", "선택"}, new String[] {"형식오류", "placeName", "expectedFormat"}
+				),
+				Arguments.of(
+						"도로명 주소 길이가 최대 길이를 초과한 경우", withPlace().roadAddress("도".repeat(ROAD_MAX_LENGTH + 1)).build(),
+						LEDGER_INPUT_LENGTH, new String[] {"장소 정보", "선택"}, new String[] {"길이오류", "roadAddress", "maxLength"}
+				),
+				Arguments.of(
+						"도로명 주소에 영어가 포함된 경우", withPlace().roadAddress("도로명 aA").build(),
+						LEDGER_INPUT_INVALID, new String[] {"장소 정보", "선택"}, new String[] {"형식오류", "roadAddress", "expectedFormat"}
+				),
+				Arguments.of(
+						"도로명 주소에 한자가 포함된 경우", withPlace().roadAddress("도로家").build(),
+						LEDGER_INPUT_INVALID, new String[] {"장소 정보", "선택"}, new String[] {"형식오류", "roadAddress", "expectedFormat"}
+				),
+				Arguments.of(
+						"도로명 주소에 허용 불가한 특수문자가 포함된 경우", withPlace().roadAddress("도로명!!@").build(),
+						LEDGER_INPUT_INVALID, new String[] {"장소 정보", "선택"}, new String[] {"형식오류", "roadAddress", "expectedFormat"}
+				),
+				Arguments.of(
+						"상세 주소 길이가 최대 길이를 초과한 경우", withPlace().detailAddress("상".repeat(DETAIL_MAX_LENGTH + 1)).build(),
+						LEDGER_INPUT_LENGTH, new String[] {"상세 주소", "입력"}, new String[] {"길이오류", "detailAddress", "maxLength"}
+				)
+		);
 	}
 
-	@ParameterizedTest(name = "[index] road={0}")
-	@NullAndEmptySource
-	@DisplayName("도로명 주소가 없어도 검증에 통과한다.")
-	void validateRoadAddress_Success_NullAndEmpty(String address){
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.roadAddress(address)
-						.build();
 
-		//when & then
-		assertThatCode(() -> ledgerValidator.register(request))
-				.doesNotThrowAnyException();
-	}
-
-	@ParameterizedTest(name = "[{index}] address={0}")
-	@MethodSource("validateRoad")
-	@DisplayName("도로명 주소가 300글자 이하면 통과한다.")
-	void validateRoad_Success_Length(String address) {
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.roadAddress(address)
-								.build();
-
-		//when & then
-		assertThatCode(() -> ledgerValidator.register(request))
-				.doesNotThrowAnyException();
-	}
-
-	@ParameterizedTest(name = "[{index}] address={0}")
-	@MethodSource("invalidateRoad")
-	@DisplayName("기본 주소가 300글자 초과하면 예외가 발생한다.")
-	void validateRoad_Failure_Length(String address) {
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.roadAddress(address)
-						.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_LENGTH)
-				.hasUserMessage("장소 정보")
-				.hasLogMessage("길이오류", "length", String.valueOf(address.length()));
-	}
-
-	@ParameterizedTest(name = "[{index}] address={0}")
-	@ValueSource(strings = {"도로명 a", "도로명!!@", "도로☆", "도로家"})
-	@DisplayName("도로명 주소에 한글, 숫자, 공백, 일부 특수문자 제외한 문자가 포함되면 예외가 발생한다.")
-	void validateRoad_Failure_Format(String address){
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.roadAddress(address)
-						.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_INVALID)
-				.hasUserMessage("장소 정보")
-				.hasLogMessage("형식오류", "format")
-				.hasLogMessageNotContaining(address);
-	}
-
-	@ParameterizedTest(name = "[index] road={0}")
-	@NullAndEmptySource
-	@DisplayName("상세 주소가 없어도 검증에 통과한다.")
-	void validateDetailAddress_Success_NullAndEmpty(String address){
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.detailAddress(address)
-						.build();
-
-		//when & then
-		assertThatCode(() -> ledgerValidator.register(request))
-				.doesNotThrowAnyException();
-	}
-
-	@ParameterizedTest(name = "[{index}] address={0}")
-	@MethodSource("validateDetail")
-	@DisplayName("상세 주소가 500글자 이하면 통과한다.")
-	void validateDetail_Success_Length(String address) {
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.detailAddress(address)
-						.build();
-
-		//when & then
-		assertThatCode(() -> ledgerValidator.register(request))
-				.doesNotThrowAnyException();
-	}
-
-	@ParameterizedTest(name = "[{index}] address={0}")
-	@MethodSource("invalidateDetail")
-	@DisplayName("상세 주소가 500글자 초과하면 예외가 발생한다.")
-	void validateDetail_Failure_Length(String address) {
-		//given
-		LedgerWriteRequest request =
-				withPlace()
-						.detailAddress(address)
-						.build();
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.register(request));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_INPUT_LENGTH)
-				.hasUserMessage("상세 주소")
-				.hasLogMessage("길이오류", "length", String.valueOf(address.length()));
-	}
-
-	@Test
-	@DisplayName("이미지 크기가 0이면 예외가 발생한다.")
-	void validateImage_Failure_SizeIsZero() {
-		//given
-		byte[] content = new byte[0];
-
-		MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.jpg", "image/jpeg", content);
-
+	@ParameterizedTest(name = "[{index}] {0}")
+	@MethodSource("provideInvalidImage")
+	@DisplayName("이미지가 잘못된 경우 예외가 발생한다.")
+	void register_failure_image(String description, MockMultipartFile mockMultipartFile, ErrorCode errorCode, String[] userMsg, String[] logMsg) {
 		//when
 		Throwable throwable = catchThrowable(() -> ledgerValidator.validateImage(mockMultipartFile));
 
 		//then
 		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(FILE_INPUT_EMPTY)
-				.hasUserMessage("빈 파일")
-				.hasLogMessage("범위오류", "range");
+				.hasErrorCode(errorCode)
+				.hasUserMessage(userMsg)
+				.hasLogMessage(logMsg);
 	}
 
-	@Test
-	@DisplayName("이미지 크기가 최대 크기보다 크면 예외가 발생한다.")
-	void validateImage_Failure_Size() {
-		//given
-		byte[] content = new byte[6 * 1024 * 1024];
+	static Stream<Arguments> provideInvalidImage() {
+		return Stream.of(
+				Arguments.of(
+						"크기가 0인 경우", new MockMultipartFile("file", "test.jpg", "image/jpeg", new byte[0]),
+						FILE_INPUT_EMPTY, new String[] {"빈 파일", "업로드"}, new String[] {"크기오류", "imageFile", "size", "maxSize"}
+				),
+				Arguments.of(
+						"크기가 최대 허용치보다 큰 경우", new MockMultipartFile("file", "test.jpg", "image/jpeg", createImage(MAX_IMAGE_SIZE + 1)),
+						FILE_POLICY_LIMIT_EXCEEDED, new String[] {"최대", "업로드", "확인"}, new String[] {"파일크기오류", "imageFile", "size", "maxSize"}
+				),
+				Arguments.of(
+						"이름에 확장자가 없는 경우", new MockMultipartFile("file", "test", "image/jpeg", "test".getBytes()),
+						FILE_INPUT_FORMAT, new String[] {"파일 이름", "다른 파일"}, new String[] {"형식오류", "imageFile", "fileName"}
+				),
+				Arguments.of(
+						"이미지 파일이 아닌 경우", new MockMultipartFile("file", "test.png", "application/zip", createImage(2* 1024 * 1024)),
+						FILE_POLICY_NOT_ALLOWED, new String[] {"이미지 파일"}, new String[] {"정책위반", "file", "contentType", "policy"}
+				),
+				Arguments.of(
+						"파일헤더 길이가 부족한 경우", new MockMultipartFile("file", "test.png", "image/png", new byte[] {1, 2, 3}),
+						FILE_INPUT_ETC, new String[] {"손상된 파일", "다른 파일"}, new String[] {"길이오류", "imageFile", "header", "expectedLength"}
+				),
+				Arguments.of(
+						"파일헤더가 지원하지 않은 형식인 경우", new MockMultipartFile("file", "test.png", "image/png", new byte[] {0x11, 0x22, 0x33, 0x44}),
+						FILE_POLICY_NOT_ALLOWED, new String[] {"지원하지", "다른 파일"}, new String[] {"허용값아님", "imageFile", "headerHex", "allowedValues"}
+				)
+		);
+	}
+
+	private static byte[] createImage(int size) {
+		byte[] content = new byte[size];
+
 		content[0] = (byte)0xFF;
 		content[1] = (byte)0xD8;
 		content[2] = (byte)0xFF;
 		content[3] = (byte)0x02;
 
-		MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.jpg", "image/jpg", content);
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.validateImage(mockMultipartFile));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(FILE_POLICY_LIMIT_EXCEEDED)
-				.hasUserMessage("파일", "최대", "업로드 가능")
-				.hasLogMessage("범위오류", "range", String.valueOf(mockMultipartFile.getSize()));
+		return content;
 	}
 
-	@ParameterizedTest(name = "[{index}] fileName={0}")
-	@ValueSource(strings = {"test", "testjpg"})
-	@DisplayName("파일 이름에 확장자가 없으면 예외가 발생한다.")
-	void validateImage_Failure_ExtIsNone(String fileName) {
-		//given
-		MockMultipartFile mockMultipartFile = new MockMultipartFile("file", fileName, "image/png", "test".getBytes());
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.validateImage(mockMultipartFile));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(FILE_INPUT_FORMAT)
-				.hasUserMessage("잘못된 파일 이름")
-				.hasLogMessage("형식오류", String.valueOf(fileName));
-	}
-
-	@ParameterizedTest(name = "[{index}] name={0}, type={1}")
-	@CsvSource({
-			"text..txt, text/plan",
-			"1월.pdf, application/pdf",
-			"압축.zip, application/zip"
-	})
-	@DisplayName("이미지 타입이 범위 내면 예외가 발생한다.")
-	void validateImage_Failure_Type(String name, String type){
-		//given
-		byte[] content = new byte[2 * 1024 * 1024];
-		MockMultipartFile mockMultipartFile = new MockMultipartFile("file", name, type, content);
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.validateImage(mockMultipartFile));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(FILE_INPUT_FORMAT)
-				.hasUserMessage("지원하지", "확장자")
-				.hasLogMessage("허용값아님", "allowed");
-	}
-
-	@Test
-	@DisplayName("파일 헤더 길이가 부족하면 예외가 발생한다.")
-	void validateImage_Failure_HeaderSizeIsSmall() {
-		//given
-		byte[] content = new byte[] {1, 2, 3};
-		MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.png", "image/png", content);
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.validateImage(mockMultipartFile));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(FILE_INPUT_ETC)
-				.hasUserMessage("손상된 파일")
-				.hasLogMessage("길이오류", String.valueOf(mockMultipartFile.getSize()));
-	}
-
-	@Test
-	@DisplayName("파일 헤더가 jpg, png가 아니면 예외가 발생한다.")
-	void validateImage_Failure_OutOfRange_Header(){
-		//given
-		byte[] header = new byte[] {0x11, 0x22, 0x33, 0x44};
-		MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.png", "image/png", header);
-
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerValidator.validateImage(mockMultipartFile));
-
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-						.hasErrorCode(FILE_POLICY_NOT_ALLOWED)
-						.hasUserMessage("지원하지 않은 파일")
-						.hasLogMessage("허용값아님");
-	}
 
 	@Test
 	@DisplayName("손상된 파일이면 예외가 발생한다.")
-	void validateImage_Failure_CorruptedFile() throws IOException {
+	void register_failure_corruptedFile() throws IOException {
 		//given
 		byte[] header = new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x02};
 
@@ -610,83 +459,7 @@ public class LedgerValidatorTest {
 		BusinessExceptionAssert.assertThatBusinessException(throwable)
 				.hasErrorCode(FILE_INPUT_ETC)
 				.hasUserMessage("손상된 파일")
-				.hasLogMessage("읽기실패");
-	}
-
-
-	//==================[ Method Sources ]==================
-	static Stream<String> validateMemo() {
-		return Stream.of(
-				"안녕하세요. 메모 적습니다.",
-				"ㅎㅎ",
-				"!",
-				"가나다123 @!★".repeat(15)	//경계값
-		);
-	}
-
-	static Stream<String> invalidateMemo() {
-		return Stream.of(
-				"가나다123 @!★".repeat(15) + "a",	//경계값
-				"가나다라마12345 @#%^ ☆♥ 家羅".repeat(10)
-		);
-	}
-
-	static Stream<String> validatePlace() {
-		String boundaryValue = "가".repeat(100);	//경계값
-
-		return Stream.of(
-			"강남 CGV",
-			"서울둘레길 8코스 자연생태가 복원된 도시하천길",
-			new StringBuilder(boundaryValue).deleteCharAt(50).toString(),
-			boundaryValue
-		);
-	}
-
-	static Stream<String> invalidatePlace() {
-		return Stream.of(
-				"가".repeat(100) + "a",
-				"a".repeat(100) +"강아지"
-		);
-	}
-
-	static Stream<String> validateRoad() {
-		String boundaryValue = "서".repeat(300);	//경계값
-
-		return Stream.of(
-				"도로명 12",
-				"경기 성남시 분당구 대왕판교로 606번길 58",
-				new StringBuilder(boundaryValue).deleteCharAt(1).toString(),
-				boundaryValue
-		);
-	}
-
-	static Stream<String> invalidateRoad() {
-		String boundaryValue = "서".repeat(300);	//경계값
-
-		return Stream.of(
-				boundaryValue + "1",
-				boundaryValue + "--"
-		);
-	}
-
-	static Stream<String> validateDetail() {
-		String boundaryValue = "상".repeat(500);	//경계값
-
-		return Stream.of(
-				"2층",
-				"101동 2단지 11F 1012호",
-				new StringBuilder(boundaryValue).deleteCharAt(1).toString(),
-				boundaryValue
-		);
-	}
-
-	static Stream<String> invalidateDetail() {
-		String boundaryValue = "자".repeat(500);	//경계값
-
-		return Stream.of(
-				boundaryValue + "1",
-				boundaryValue + "()"
-		);
+				.hasLogMessage("파일읽기실패", "imageFile");
 	}
 
 }
