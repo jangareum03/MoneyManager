@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -81,8 +82,7 @@ public class LedgerRepositoryTest {
 
 		assertThat(result)
 				.allMatch(r -> {
-					LocalDate date = LocalDate.parse(r.getDate());
-					return !date.isBefore(start) && !date.isAfter(end);
+					return !r.getDate().isBefore(start) && !r.getDate().isAfter(end);
 				});
 
 		assertThat(result)
@@ -91,8 +91,7 @@ public class LedgerRepositoryTest {
 
 		assertThat(result)
 				.filteredOn(r -> {
-					LocalDate date = LocalDate.parse(r.getDate());
-					return date.equals(LocalDate.of(2026, 1, 5));
+					return r.getDate().equals(LocalDate.of(2026, 1, 5));
 				})
 				.hasSize(2);
 
@@ -103,11 +102,11 @@ public class LedgerRepositoryTest {
 
 
 	@Test
-	@DisplayName("시작일과 종료일에 해당하는 내역이 내림차순으로 조회한다.")
+	@DisplayName("시작일과 종료일에 해당하는 내역이 거래일 내림차순으로 조회한다.")
 	void findHistoriesByMemberAndDateBetween_includeBoundaryDates_returnHistories() {
 		//given
 		saveLedger("test", LocalDate.of(2026,1,5), 10000L);
-		saveLedger("test", LocalDate.of(2026,1,7), 20000L);
+		saveLedger("test", LocalDate.of(2026,1,7), 30000L);
 		saveLedger("test", LocalDate.of(2026,1,8), 20000L);
 
 		LocalDate start = LocalDate.of(2026, 1, 5);
@@ -119,8 +118,29 @@ public class LedgerRepositoryTest {
 		//then
 		assertThat(result).hasSize(2);
 		assertThat(result)
-				.extracting(LedgerHistoryQuery::getDate)
-				.containsExactly("2026-01-07", "2026-01-05");
+				.extracting(LedgerHistoryQuery::getAmount)
+				.containsExactly(30000L, 10000L);
+	}
+
+
+	@Test
+	@DisplayName("같은 거래일이면 등록일이 내림순으로 조회된다.")
+	void findHistoriesByMemberAndDateBetween_sameDate_returnOrderedHistories() {
+		//given
+		String memberId = "UCa12001";
+
+		LocalDate start = LocalDate.of(2025, 11, 8);
+		LocalDate end = LocalDate.of(2025, 11, 10);
+
+		//when
+		List<LedgerHistoryQuery> result = repository.findHistoriesByMemberAndDateBetween("UCa12001", start, end);
+
+		//then
+		assertThat(result).hasSize(2);
+		assertThat(result)
+				.allMatch(query -> query.getDate().equals(start))
+				.extracting(LedgerHistoryQuery::getCategoryCode)
+				.containsExactly("020301", "020102");
 	}
 
 
@@ -154,11 +174,16 @@ public class LedgerRepositoryTest {
 	}
 
 	private void saveLedger(String memberId, LocalDate  date, Long amount) {
+		saveLedger(memberId, date, amount, LocalDateTime.now());
+	}
+
+	private void saveLedger(String memberId, LocalDate date, Long amount, LocalDateTime created) {
 		Ledger ledger = LedgerFixture.defaultLedger()
-						.memberId(memberId)
-						.date(date)
-						.amount(amount)
-						.build();
+				.memberId(memberId)
+				.date(date)
+				.amount(amount)
+				.createdAt(created)
+				.build();
 
 		repository.save(ledger);
 	}
