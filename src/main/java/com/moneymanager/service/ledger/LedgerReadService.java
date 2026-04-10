@@ -18,9 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -144,15 +143,16 @@ public class LedgerReadService {
 		String memberId = securityUtil.getMemberId();
 
 		// 2. 기간 생성 후 검증
-		DateRange dateRange = ledgerHistoryPolicy.createDateRange(historyType);
+		LocalDate today = LocalDate.now();
+		DateRange dateRange = ledgerHistoryPolicy.calculateDateRange(historyType, today);
+
 		ledgerHistoryPolicy.validate(dateRange);
 
 		// 3. 내역 조회
 		List<LedgerHistoryQuery> histories = ledgerRepository.findHistoriesByMemberAndDateBetween(memberId, dateRange.getFrom(), dateRange.getTo());
 
 		// 4. 내역 그룹화 (날짜 기준)
-		List<HistoryItem> historyItems = createHistoryItem(histories);
-		Map<String, List<HistoryItem>> listGroups = groupByDate(historyItems);
+		Map<LocalDate, List<HistoryItem>> listGroups = groupByDate(histories);
 
 		// 5. 통계 생성
 		LedgerStatistics statistics = calculateStatistics(histories);
@@ -164,25 +164,35 @@ public class LedgerReadService {
 		HistoryMenu menu = createMenu();
 
 		// 8. 응답 생성
-		return HistoryDashboardResponse.builder()
-				.title(title)
-				.menu(menu)
-				.statistics(statistics)
-				.historyGroups(listGroups)
-				.build();
+		return HistoryDashboardResponse.of(title, menu, statistics, listGroups);
 	}
 
 
-	private List<HistoryItem> createHistoryItem(List<LedgerHistoryQuery> histories) {}
+	//날짜 기준으로 내림차순 정렬
+	private Map<LocalDate, List<HistoryItem>> groupByDate(List<LedgerHistoryQuery> histories) {
+		return histories.stream()
+				.filter(history -> history.getDate() != null)
+				.collect(Collectors.groupingBy(
+						LedgerHistoryQuery::getDate,
+						() -> new TreeMap<>(Comparator.reverseOrder()),
+						Collectors.mapping(
+								HistoryItem::from,
+								Collectors.toList()
+						)
+				));
+	}
 
 
-	private Map<String, List<HistoryItem>> groupByDate(List<HistoryItem> historyItems) {}
+	private LedgerStatistics calculateStatistics(List<LedgerHistoryQuery> histories) {
+		//TODO: 구현 예정
+		return null;
+	}
 
 
-	private LedgerStatistics calculateStatistics(List<LedgerHistoryQuery> histories) {}
-
-
-	private HistoryMenu createMenu() {}
+	private HistoryMenu createMenu() {
+		//TODO: 구현 예정
+		return null;
+	}
 
 
 	/**

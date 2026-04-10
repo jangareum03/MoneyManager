@@ -1,9 +1,14 @@
 package com.moneymanager.domain.ledger.dto.response;
 
-import lombok.Builder;
+import com.moneymanager.domain.global.enums.DatePatterns;
+import com.moneymanager.utils.date.DateTimeUtils;
+import lombok.Getter;
 
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -32,10 +37,29 @@ import java.util.Map;
  * 		</tbody>
  * </table>
  */
-@Builder
+@Getter
 public class HistoryDashboardResponse {
 	private final String title;
 	private final HistoryMenu menu;
 	private final LedgerStatistics statistics;
 	private final Map<String, List<HistoryItem>> historyGroups;
+
+	private HistoryDashboardResponse(String title, HistoryMenu menu, LedgerStatistics statistics, Map<String, List<HistoryItem>> historyGroups) {
+		this.title = title;
+		this.menu = menu;
+		this.statistics = statistics;
+		this.historyGroups = historyGroups;
+	}
+
+	public static HistoryDashboardResponse of(String title, HistoryMenu menu, LedgerStatistics statistics, Map<LocalDate, List<HistoryItem>> historyGroups) {
+		Map<String, List<HistoryItem>> formattedGroups = historyGroups.entrySet().stream()
+				.collect(Collectors.toMap(
+						entry -> DateTimeUtils.formatDate(entry.getKey(), DatePatterns.DATE_DOT_WITH_DAY.getPattern()),
+						Map.Entry::getValue,
+						(a, b) -> a,
+						LinkedHashMap::new
+				));
+
+		return new HistoryDashboardResponse(title, menu, statistics, formattedGroups);
+	}
 }

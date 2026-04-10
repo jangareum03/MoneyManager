@@ -1,10 +1,10 @@
 package com.moneymanager.domain.ledger.dto.query;
 
-import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.utils.date.DateTimeUtils;
 import lombok.Getter;
+
+import java.time.LocalDate;
 
 /**
  * <p>
@@ -36,7 +36,7 @@ import lombok.Getter;
 @Getter
 public class LedgerHistoryQuery {
 	private final String code;												//가계부 코드
-	private final String date;												//가계부 거래 날짜
+	private final LocalDate date;										//가계부 거래 날짜
 	private final Long amount;											//가계부 금액
 	private final String memo;												//가계부 메모
 	private final String categoryName;								//카테고리 이름
@@ -44,7 +44,7 @@ public class LedgerHistoryQuery {
 
 	public LedgerHistoryQuery(Ledger ledger, Category category) {
 		this.code = ledger.getCode();
-		this.date = DateTimeUtils.formatDate(ledger.getDate(), DatePatterns.DATE_DOT_WITH_DAY.getPattern());
+		this.date = ledger.getDate();
 		this.amount = ledger.getAmount();
 		this.memo = ledger.getMemo();
 
