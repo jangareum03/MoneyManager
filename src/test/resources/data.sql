@@ -116,10 +116,10 @@ INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction
                         VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D2', 'UCa12001', '020601', 'Y', 'M', '20251105', 500000, 'BANK', '서울 아파트', '서울시 송파구 잠실동 456-78', '2025-11-05 09:21:24', '2025-11-05 09:32:29' );
 
 INSERT INTO ledger(id, code, member_id, category_id, transaction_date, memo, amount, place_name, road_address, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1E1','UCa12001', '020102', '20251108', '맛있는 팝콘세트!!', 12000, 'CGV 강남', '서울시 강남구 테헤란로 321', '2025-11-08 19:20:04' );
+                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1E1','UCa12001', '020102', '20251108', '첫번째', 12000, 'CGV 강남', '서울시 강남구 테헤란로 321', '2025-11-08 19:20:04' );
 
 INSERT INTO ledger(id, code, member_id, category_id, transaction_date, memo, amount, place_name, road_address, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D3','UCa12001', '020301', '20251108', '주토피아2', 15000, 'CGV 강남', '서울시 강남구 테헤란로 321', '2025-11-08 19:24:37' );
+                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D3','UCa12001', '020301', '20251108', '두번째', 15000, 'CGV 강남', '서울시 강남구 테헤란로 321', '2025-11-08 19:24:37' );
 
 INSERT INTO ledger(id, code, member_id, category_id, transaction_date, memo, amount, place_name, road_address, created_at)
                         VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D4','UCa12001', '020103', '20251117', '핫 초코', 8000, '스타벅스', '서울시 마포구 상암동 12-34', '2025-11-17 14:45:02' );
