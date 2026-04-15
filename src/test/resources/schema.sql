@@ -1,4 +1,3 @@
--------------------------[ ▼ 테이블 삭제 ]----------------------
 DROP TABLE tb_prefix;
 DROP TABLE inquiry_answer;
 DROP TABLE inquiry_question;
@@ -18,7 +17,6 @@ DROP TABLE member_info;
 DROP TABLE member;
 
 
--------------------------[ ▼ 테이블 ]-------------------------
 -- 회원 기본정보
 CREATE TABLE member (
     id                          VARCHAR2(8)             PRIMARY KEY,

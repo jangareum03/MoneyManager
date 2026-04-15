@@ -1,32 +1,14 @@
----- 회원
-INSERT INTO member(id, type, status, role, username, password, name, birthdate, nickname, email)
-VALUES('test', 'C', 'A', 'ROLE_USER', 'hong123', 'gil12hong@@', '홍길동', '19800302', '홍길동전', 'hong12@test.com');
+-- 수입 카테고리
 
-INSERT INTO member(id, type, status, role, username, password, name, birthdate, nickname, email, created_at)
-VALUES('UCa12001', 'C', 'A', 'ROLE_USER', 'alice', 'pass123!', '김아리', '19920115', '앨리', 'alice@example.com', '2025-12-02 10:07:00');
-
-INSERT INTO member(id, type, status, role, username, password, name, birthdate, nickname, email, created_at)
-VALUES('UKb11001', 'K', 'A', 'ROLE_USER', 'bobkakao', 'kakaoPass!', '백반', '19930520', '맛있는 백반집', 'bobkakao@example.com', '2022-11-12 13:21:34');
-
-INSERT INTO member(id, type, status, role, username, password, name, birthdate, nickname, email, created_at)
-VALUES('UNn12001', 'N', 'L', 'ROLE_USER', 'nancynaver', 'naver4453@', '리쌍', '19900830', '개리', 'gary@example.com', '2025-12-01 09:43:21');
-
-INSERT INTO member(id, type, status, role, username, password, name, birthdate, nickname, email, created_at)
-VALUES('UCc06001', 'C', 'D', 'ROLE_USER', 'cherry', 'cherry123!', '한체리', '19970722', '카드캡터 체리', 'cherry@example.com', '2024-06-05 14:02:04');
-
--- 회원상세
-INSERT INTO member_info(id) VALUES('test');
-INSERT INTO member_info(id, gender, point, consecutive_days, image_limit, login_at) VALUES('UCa12001', 'F', 10, 1, 2, '2025-11-30 19:12:54');
-INSERT INTO member_info(id, gender, point, consecutive_days, login_at) VALUES('UKb11001', 'M', 62000, 120, '2025-12-01 02:32:45');
-INSERT INTO member_info(id, consecutive_days, image_limit, login_at) VALUES('UNn12001', 2, 3, '2025-12-02 08:12:24');
-
--- 카테고리
+-- 1단계
 INSERT INTO ledger_category VALUES('010000', NULL, '수입');
 
+-- 2단계
 INSERT INTO ledger_category VALUES('010100', '010000', '소득');
 INSERT INTO ledger_category VALUES('010200', '010000', '저축');
 INSERT INTO ledger_category VALUES('010300', '010000', '차입');
 
+-- 3단계
 INSERT INTO ledger_category VALUES('010101', '010100', '월급');
 INSERT INTO ledger_category VALUES('010102', '010100', '용돈');
 INSERT INTO ledger_category VALUES('010103', '010100', '알바');
@@ -34,8 +16,13 @@ INSERT INTO ledger_category VALUES('010201', '010200', '예금만기');
 INSERT INTO ledger_category VALUES('010202', '010200', '적금만기');
 INSERT INTO ledger_category VALUES('010301', '010300', '빌린돈');
 
+
+-- 지출 카테고리
+
+-- 1단계
 INSERT INTO ledger_category VALUES('020000', NULL, '지출');
 
+-- 2단계
 INSERT INTO ledger_category VALUES('020100', '020000', '식비');
 INSERT INTO ledger_category VALUES('020200', '020000', '교통');
 INSERT INTO ledger_category VALUES('020300', '020000', '문화생활');
@@ -46,6 +33,7 @@ INSERT INTO ledger_category VALUES('020700', '020000', '통신');
 INSERT INTO ledger_category VALUES('020800', '020000', '의료');
 INSERT INTO ledger_category VALUES('020900', '020000', '저축');
 
+-- 3단계
 INSERT INTO ledger_category VALUES('020101', '020100', '식재료');
 INSERT INTO ledger_category VALUES('020102', '020100', '외식');
 INSERT INTO ledger_category VALUES('020103', '020100', '간식');
@@ -98,54 +86,3 @@ INSERT INTO ledger_category VALUES('020901', '020900', '예금');
 INSERT INTO ledger_category VALUES('020902', '020900', '적금');
 INSERT INTO ledger_category VALUES('020903', '020900', '보험');
 INSERT INTO ledger_category VALUES('020904', '020900', '기타');
-
--- 가계부 테이블
-INSERT INTO ledger(id, code, member_id, category_id, transaction_date, amount)
-                        VALUES(ledger_seq.NEXTVAL, 'code','test', '010101', '20260101', 10000);
-
-INSERT INTO ledger
-                        VALUES(ledger_seq.NEXTVAL, '01H5HZ8X9E7EY2XKZCW2FQX16B','test', '020101', 'Y', 'W',  '20251130', '내용 없음', 2500000, 'CASH', '동물병원', '서울시 송파구 잠실동 456-78', '201동 13층', '2025-11-30 09:21:24', '2025-11-30 17:23:45');
-
-INSERT INTO ledger(id, code, member_id, category_id, transaction_date, amount, payment_type, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01HJF8V8W3KDRJDW86XQRZPD96','UCa12001', '020902', '20251001', 20000000, 'BANK', '2025-10-15 13:12:29' );
-
-INSERT INTO ledger(id, code, member_id, category_id, transaction_date, memo, amount, payment_type, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D1','UCa12001', '020102', '20251020', '점심으로 오랜만에 초밥을~', 12000, 'CASH', '2025-10-20 11:49:11' );
-
-INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, amount, payment_type, place_name, road_address, created_at, updated_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D2', 'UCa12001', '020601', 'Y', 'M', '20251105', 500000, 'BANK', '서울 아파트', '서울시 송파구 잠실동 456-78', '2025-11-05 09:21:24', '2025-11-05 09:32:29' );
-
-INSERT INTO ledger(id, code, member_id, category_id, transaction_date, memo, amount, place_name, road_address, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1E1','UCa12001', '020102', '20251108', '첫번째', 12000, 'CGV 강남', '서울시 강남구 테헤란로 321', '2025-11-08 19:20:04' );
-
-INSERT INTO ledger(id, code, member_id, category_id, transaction_date, memo, amount, place_name, road_address, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D3','UCa12001', '020301', '20251108', '두번째', 15000, 'CGV 강남', '서울시 강남구 테헤란로 321', '2025-11-08 19:24:37' );
-
-INSERT INTO ledger(id, code, member_id, category_id, transaction_date, memo, amount, place_name, road_address, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D4','UCa12001', '020103', '20251117', '핫 초코', 8000, '스타벅스', '서울시 마포구 상암동 12-34', '2025-11-17 14:45:02' );
-
-INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D5','UKb11001', '020903', 'Y', 'Y', '20251105', '실손 보험', 120000, '2025-11-05 07:22:16' );
-
-INSERT INTO ledger(id, code, member_id, category_id, transaction_date, memo, amount, place_name, road_address, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D6', 'UKb11001', '020105', '20251123', '도시락', 9500, '한솥', '경기도 성남시 분당구 돌마로 79 썬프라자 1층', '2025-11-23 22:17:54' );
-
-INSERT INTO ledger(id, code, member_id, category_id, transaction_date, memo, amount, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D7','UKb11001', '010101', '20251202', '12월 월급', 2500000, '2025-12-02 07:20:38' );
-
-INSERT INTO ledger(id, code, member_id, category_id, transaction_date, memo, amount, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1E0','UNn12001', '020103', '20251011', 'CU 신상 간식 get!!!', 5500, '2025-10-11 15:39:21' );
-
-INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, created_at)
-                        VALUES(ledger_seq.NEXTVAL, '01F8Z6YQJ3G5Z7K1V2A9B0C1D8','UNn12001', '020704', 'Y', 'M', '20251201', '넷플릭스', 9900, 'CARD', '2025-12-01 13:56:20' );
-
--- 가계부 이미지 테이블
-INSERT INTO ledger_image(id, ledger_id, image_path, sort_order)
-        VALUES( ledger_image_seq.NEXTVAL, 2, '/2025/11/30/8a1d7f4e-2f9a-4c2d-9b1e-5a0b3c4f6d8e.png', 1);
-
-INSERT INTO ledger_image(id, ledger_id, image_path, sort_order, created_at)
-        VALUES( ledger_image_seq.NEXTVAL, 3, '/2025/10/15/f47ac10b-58cc-4372-a567-0e02b2c3d479.png', 1, '2025-10-15 15:46:32');
-
-INSERT INTO ledger_image(id, ledger_id, image_path, sort_order, created_at, updated_at)
-        VALUES( ledger_image_seq.NEXTVAL, 3, '/2025/10/22/3c2a8f0e-7d6b-4e1c-9f5a-0d4b3c2e1f0d.png', 2,  '2025-10-15 15:46:32', '2025-10-22 12:34:21');
-
