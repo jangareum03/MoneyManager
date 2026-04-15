@@ -1,12 +1,10 @@
 package com.moneymanager.service.ledger;
 
 import com.moneymanager.domain.ledger.enums.CategoryType;
-import com.moneymanager.repository.ledger.CategoryRepository;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,26 +41,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CategoryReadService {
 
-	private final CategoryRepository categoryRepository;
-
-
-	/**
-	 * 모든 카테고리 정보를 조회합니다.
-	 * <p>
-	 *     최초 호출 시 데이터베이스에서 카테고리 정보를 모두 조회하고,
-	 *     이후 호출부터는 캐시에 저장된 데이터를 반환합니다.
-	 *     데이터베이스 조회 결과가 비어있는 경우에는 예외가 발생합니다.
-	 * </p>
-	 * @return	전체 카테고리 정보를 담은 {@link Category} 리스트
-	 */
-	@Cacheable(
-			value = "category", key = "'ALL'",
-			unless = "#result == null"
-	)
-	public List<Category> getAllCategories() {
-
-		return categoryRepository.findAllCategory();
-	}
+	private final CategoryCacheService categoryCacheService;
 
 
 	/**
@@ -77,23 +56,11 @@ public class CategoryReadService {
 	 * @throws IllegalArgumentException	지원하지 않은 카테고리 단계인 경우
 	 */
 	public List<CategoryResponse> getCategoriesByTypeAndLevel(CategoryType type, CategoryLevel level){
-		List<Category> categories;
-
-		switch (level) {
-			case TOP:
-				categories = getRootCategories();
-				break;
-			case MIDDLE:
-				categories = getMiddleCategories(type);
-				break;
-			case LOW:
-				categories = getLowCategories(type);
-				break;
-			default:
-				throw new IllegalArgumentException(
-						String.format("잘못된 카테고리 단계 (level=%s)", level)
-				);
-		}
+		List<Category> categories = switch (level) {
+			case TOP -> getRootCategories();
+			case MIDDLE -> getMiddleCategories(type);
+			case LOW -> getLowCategories(type);
+		};
 
 		return categories.stream()
 				.map(CategoryResponse::from)
@@ -102,25 +69,25 @@ public class CategoryReadService {
 
 	//최상위 카테고리 목록 조회
 	private List<Category> getRootCategories() {
-		return getAllCategories().stream()
+		return categoryCacheService.getAllCategories().stream()
 				.filter( c -> c.getParentCode() == null )
 				.collect(Collectors.toList());
 	}
 
 	//중간 단계 카테고리 목록 조회
 	private List<Category> getMiddleCategories(CategoryType type) {
-		return getAllCategories().stream()
+		return categoryCacheService.getAllCategories().stream()
 				.filter(c -> c.getParentCode() != null)
 				.filter(c -> c.getParentCode().endsWith("0000"))
 				.filter( c -> type == CategoryType.INCOME
-							? c.getCode().startsWith("01")
-							: c.getCode().startsWith("02"))
+						? c.getCode().startsWith("01")
+						: c.getCode().startsWith("02"))
 				.collect(Collectors.toList());
 	}
 
 	//하위 단계 카테고리 목록 조회
 	private List<Category> getLowCategories(CategoryType type) {
-		return getAllCategories().stream()
+		return categoryCacheService.getAllCategories().stream()
 				.filter(c -> c.getParentCode() != null)
 				.filter(c -> !c.getCode().endsWith("00"))
 				.filter( c -> type == CategoryType.INCOME
