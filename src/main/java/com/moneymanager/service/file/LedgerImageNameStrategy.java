@@ -3,9 +3,11 @@ package com.moneymanager.service.file;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.exception.BusinessException;
+import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Clock;
 import java.time.LocalDate;
 
 import static com.moneymanager.exception.error.ErrorCode.*;
@@ -39,7 +41,10 @@ import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
  * 		</tbody>
  * </table>
  */
+@RequiredArgsConstructor
 public class LedgerImageNameStrategy implements FileNamingStrategy {
+
+	private final Clock clock;
 
 	@Override
 	public String generateStoredName(String originalFileName) {
@@ -74,10 +79,10 @@ public class LedgerImageNameStrategy implements FileNamingStrategy {
 
 	@Override
 	public String generateRelativePath() {
-		LocalDate today = LocalDate.now();
+		LocalDate date = LocalDate.now(clock);
 
-		String year = String.valueOf(today.getYear());
-		String month = String.format("%02d", today.getMonthValue());
+		String year = String.valueOf(date.getYear());
+		String month = String.format("%02d", date.getMonthValue());
 
 		return Path.of(year, month).toString();
 	}

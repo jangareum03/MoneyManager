@@ -24,6 +24,7 @@ import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +68,8 @@ public class LedgerCommandService {
 	private final FileCommandService fileService;
 	private final LedgerRepository ledgerRepository;
 	private final LedgerImageRepository imageRepository;
+
+	private final Clock clock;
 
 	@Value("${image.member}")
 	private String rootPath;
@@ -142,7 +145,7 @@ public class LedgerCommandService {
 			Path path = Path.of(rootPath, ledger.getMemberId());
 
 			for(int i=0; i<files.size(); i++) {
-				StoredFile savedFile = fileService.storeFile(path, files.get(i), new LedgerImageNameStrategy());
+				StoredFile savedFile = fileService.storeFile(path, files.get(i), new LedgerImageNameStrategy(clock));
 
 				successSaved.add(new File(savedFile.getFullPath()));
 				ledgerImages.add(LedgerImage.create(ledger.getId(), savedFile.getRelativePath(), i+1));
