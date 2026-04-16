@@ -202,7 +202,7 @@ public class MemberServiceImpl {
 						.nickName(member.getNickName()).profile(profileImage).lastLoginDate(String.format("마지막 접속일은 %s 입니다.", formattedLastLoginDate))
 						.build()
 				)
-				.name(member.getName()).gender(member.getDetail().getGender()).email(member.getEmail()).joinDate(formattedJoinDate).attendCount(memberInfo.getConsecutiveDays())
+				.name(member.getName()).gender(member.getMemberInfo().getGender()).email(member.getEmail()).joinDate(formattedJoinDate).attendCount(memberInfo.getConsecutiveDays())
 				.build();
 	}
 
@@ -266,7 +266,7 @@ public class MemberServiceImpl {
 
 			//성별 수정할 경우
 			if (Objects.nonNull(update.getGender())) {
-				Member member = Member.builder().id(memberId).detail(MemberInfo.builder().gender(MemberGender.match(update.getGender().charAt(0))).build()).build();
+				Member member = Member.builder().id(memberId).memberInfo(MemberInfo.builder().gender(MemberGender.match(update.getGender().charAt(0))).build()).build();
 				if (memberInfoDao.updateGender(member) ) {
 					value = getMemberInfo(memberId).getGender().getText();
 				}
@@ -309,12 +309,12 @@ public class MemberServiceImpl {
 			Member member;
 
 			if (profile.isReset()) {
-				member = Member.builder().id(memberId).detail(MemberInfo.builder().profile(null).build()).build();
+				member = Member.builder().id(memberId).memberInfo(MemberInfo.builder().profile(null).build()).build();
 				if (memberInfoDao.updateProfile(member)) {
 					imageService.deleteProfile(currentProfile);
 				}
 			} else {
-				member = Member.builder().id(memberId).detail(MemberInfo.builder().profile(changeProfile.getAfterImage().getFileName()).build()).build();
+				member = Member.builder().id(memberId).memberInfo(MemberInfo.builder().profile(changeProfile.getAfterImage().getFileName()).build()).build();
 				if (memberInfoDao.updateProfile(member)) {
 					imageService.changeProfile(memberId, changeProfile);
 				}

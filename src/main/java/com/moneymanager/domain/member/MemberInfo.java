@@ -42,14 +42,21 @@ import java.time.LocalDateTime;
  *		</tbody>
  * </table>
  */
-@Builder
+@Builder(toBuilder = true)
 @Getter
 public class MemberInfo {
+	private String memberId;					//회원번호(식별자)
     private MemberGender gender;		//성별(N, M, F)
     private String profile;						//프로필
     private Long point;							//포인트
     private Long consecutiveDays;			//연속 출석일자
-    private int imageLimit;						//등록 가능한 이미지 수
+    private Integer imageLimit;				//등록 가능한 이미지 수
     private LocalDateTime loginAt;			//마지막 접속일
-    private int failureCount;					//실패횟수
+    private Integer failureCount;			//실패횟수
+
+	public MemberInfo withMemberId(String memberId) {
+		return this.toBuilder()
+				.memberId(memberId)
+				.build();
+	}
 }

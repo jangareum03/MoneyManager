@@ -112,7 +112,7 @@ public class ImageServiceImpl {
 
 		if( isDelete ) {
 			//프로필 삭제 성공 후 데이터베이스 변경 완료
-			Member member = Member.builder().id(memberId).detail(MemberInfo.builder().profile(profile.getAfterImage().getFileName()).build()).build();
+			Member member = Member.builder().id(memberId).memberInfo(MemberInfo.builder().profile(profile.getAfterImage().getFileName()).build()).build();
 			if( memberInfoDao.updateProfile( member ) ) {
 				saveProfile( profile.getAfterImage() );
 			}

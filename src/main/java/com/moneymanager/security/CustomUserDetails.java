@@ -104,7 +104,7 @@ public class CustomUserDetails implements UserDetails {
 	 * @return	프로필 이미지
 	 */
 	public String getProfile() {
-		return member.getDetail().getProfile();
+		return member.getMemberInfo().getProfile();
 	}
 
 
@@ -168,7 +168,7 @@ public class CustomUserDetails implements UserDetails {
 	 * @return	로그인 실패 횟수
 	 */
 	public int getFailureCount() {
-		return member.getDetail().getFailureCount();
+		return member.getMemberInfo().getFailureCount();
 	}
 
 }

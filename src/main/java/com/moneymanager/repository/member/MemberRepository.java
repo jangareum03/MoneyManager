@@ -1,9 +1,17 @@
 package com.moneymanager.repository.member;
 
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.MemberInfo;
+import com.moneymanager.domain.member.enums.MemberGender;
+import com.moneymanager.exception.BusinessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
+import java.sql.PreparedStatement;
+
+import static com.moneymanager.exception.error.ErrorCode.*;
 
 /**
  * <p>
@@ -37,9 +45,105 @@ public class MemberRepository {
 
 	private final JdbcTemplate jdbcTemplate;
 
+
 	public MemberRepository(DataSource dataSource) {
 		 jdbcTemplate = new JdbcTemplate(dataSource);
 	}
+
+
+	@Transactional
+	public String save(Member member) {
+		if(member.getCreatedAt() == null) {
+			return insert(member);
+		}else {
+			update(member);
+
+			return member.getId();
+		}
+	}
+
+	private String insert(Member member) {
+		insertMember(member);
+
+		if(member.getMemberInfo() == null) {
+			throw BusinessException.of(
+					MEMBER_TARGET_MISSING,
+					"회원 저장 실패   |   reason=필수값누락   |   field=memberInfo   |   value=null"
+			);
+		}
+
+		MemberInfo memberInfo = member.getMemberInfo().withMemberId(member.getId());
+
+		insertMemberInfo(memberInfo);
+
+		return member.getId();
+	}
+
+	private void insertMember(Member member) {
+		String query = """
+				INSERT INTO member(id, type, username, password, name, birthdate, nickname, email)
+				VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+				""";
+
+		String type = String.valueOf(member.getType().getValue());
+
+		int insertedRow = jdbcTemplate.update(
+				con -> {
+					PreparedStatement ps = con.prepareStatement(query, new String[] {"id"});
+
+					ps.setString(1, member.getId());
+					ps.setString(2, type);
+					ps.setString(3, member.getUserName());
+					ps.setString(4, member.getPassword());
+					ps.setString(5, member.getName());
+					ps.setString(6, member.getBirthDate());
+					ps.setString(7, member.getNickName());
+					ps.setString(8, member.getEmail());
+
+					return ps;
+				}
+		);
+
+		if(insertedRow != 1) {
+			throw BusinessException.of(
+					MEMBER_ETC_DB_ERROR,
+					"회원 저장 실패   |   reason=DB저장실패   |   detail=저장건수 불일치(기대=1, 실제=0)   |   object=Member"
+			);
+		}
+	}
+
+	private void insertMemberInfo(MemberInfo memberInfo) {
+		String query = """
+				INSERT INTO member_info(id, gender)
+				VALUES(?, ?)
+				""";
+
+		String gender = String.valueOf(memberInfo.getGender().getType());
+
+		int insertedRow = jdbcTemplate.update(
+				con -> {
+					PreparedStatement ps = con.prepareStatement(query);
+
+					ps.setString(1, memberInfo.getMemberId());
+					ps.setString(2, gender);
+
+					return ps;
+				}
+		);
+
+		if(insertedRow != 1) {
+			throw BusinessException.of(
+					MEMBER_ETC_DB_ERROR,
+					"회원 저장 실패   |   reason=DB저장실패   |   detail=저장건수 불일치(기대=1, 실제=0)   |   object=MemberInfo"
+			);
+		}
+	}
+
+
+	private void update(Member member) {
+		//TODO: 회원 수정 기능 구현
+	}
+
 
 	/**
 	 * 회원의 등록 가능한 이미지 개수를 조회합니다.

@@ -67,7 +67,7 @@ public class PointService {
 		}
 
 		//포인트 및 내역 추가
-		Member member = Member.builder().id(memberId).detail( MemberInfo.builder().point(point).build() ).build();
+		Member member = Member.builder().id(memberId).memberInfo( MemberInfo.builder().point(point).build() ).build();
 		Long memberPoint = memberInfoDao.updatePointAndReturn( member );
 		if( memberPoint >= 0) {
 			PointHistory entity = PointHistory.builder().member(Member.builder().id(memberId).build())

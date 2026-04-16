@@ -71,7 +71,7 @@ public class MemberSignUpRequest {
 				.birthDate(birth)
 				.nickName(nickName)
 				.email(email)
-				.detail(memberInfo)
+				.memberInfo(memberInfo)
 				.build();
 	}
 }

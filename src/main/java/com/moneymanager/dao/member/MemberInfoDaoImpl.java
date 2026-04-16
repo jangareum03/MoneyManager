@@ -62,7 +62,7 @@ public class MemberInfoDaoImpl {
 	public boolean saveMemberInfo( Member member ) {
 		String query = String.format("INSERT INTO %s (id, gender) VALUES(?, ?)", TABLE);
 
-		return jdbcTemplate.update(query, member.getId(), member.getDetail().getGender()) == 1;
+		return jdbcTemplate.update(query, member.getId(), member.getMemberInfo().getGender()) == 1;
 	}
 
 
@@ -186,7 +186,7 @@ public class MemberInfoDaoImpl {
 	public boolean updateGender( Member member ) {
 		String query = String.format("UPDATE %s SET gender = ? WHERE id = ? AND gender != ?", TABLE);
 
-		return jdbcTemplate.update( query, member.getDetail().getGender(), member.getId(), member.getDetail().getGender() ) == 1;
+		return jdbcTemplate.update( query, member.getMemberInfo().getGender(), member.getId(), member.getMemberInfo().getGender() ) == 1;
 	}
 
 
@@ -203,7 +203,7 @@ public class MemberInfoDaoImpl {
 	public boolean updateProfile( Member member ) {
 		String query = String.format("UPDATE %s SET profile = ? WHERE id = ?", TABLE);
 
-		return jdbcTemplate.update( query, member.getDetail().getProfile(), member.getId() ) == 1;
+		return jdbcTemplate.update( query, member.getMemberInfo().getProfile(), member.getId() ) == 1;
 	}
 
 
@@ -219,7 +219,7 @@ public class MemberInfoDaoImpl {
 	public Long updatePointAndReturn( Member member ) {
 		String query = String.format("UPDATE %s SET point = point + ? WHERE id = ?", TABLE);
 
-		int updateRow = jdbcTemplate.update(query, member.getDetail().getPoint(), member.getId());
+		int updateRow = jdbcTemplate.update(query, member.getMemberInfo().getPoint(), member.getId());
 		if( updateRow == 1 ) {
 			query = String.format("SELECT point FROM %s WHERE id = ?", TABLE);
 
@@ -242,7 +242,7 @@ public class MemberInfoDaoImpl {
 	public boolean updateLoginDate( Member member ) {
 		String query = String.format("UPDATE %s SET login_at = ? WHERE id = ?", TABLE);
 
-		return jdbcTemplate.update(query, member.getDetail().getLoginAt(), member.getId()) == 1;
+		return jdbcTemplate.update(query, member.getMemberInfo().getLoginAt(), member.getId()) == 1;
 	}
 
 }

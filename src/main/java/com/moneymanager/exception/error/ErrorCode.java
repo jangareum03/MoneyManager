@@ -45,9 +45,10 @@ public enum ErrorCode {
 	/**
 	 * 회원 관련 오류
 	 */
+	MEMBER_TARGET_MISSING("C-10-01-02", "필수값이 없습니다."),
 	MEMBER_AUTHORITY_UNAUTHORIZED("C-10-06-03", "인증 정보가 없습니다."),
 	MEMBER_AUTHORITY_FAILED("C-10-06-02", "인증 정보가 올바르지 않습니다."),
-
+	MEMBER_ETC_DB_ERROR("S-10-09-02", "요청 처리 중에 문제가 발생했습니다. 잠시 후 다시 시도해주세요."),
 
 	/**
 	 * 가계부 관련 오류

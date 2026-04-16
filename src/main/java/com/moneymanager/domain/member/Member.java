@@ -4,7 +4,6 @@ import com.moneymanager.domain.member.enums.MemberStatus;
 import com.moneymanager.domain.member.enums.MemberType;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -43,7 +42,6 @@ import java.time.LocalDateTime;
  */
 @Builder
 @Getter
-@ToString
 public class Member implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -59,7 +57,5 @@ public class Member implements Serializable {
     private String email;									//이메일
     private LocalDateTime createdAt;			//가입일
     private LocalDateTime deletedAt;			//탈퇴일
-	private MemberInfo detail;						//회원 부가정보
-
-
+	private MemberInfo memberInfo;				//회원 부가정보
 }
