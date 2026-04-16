@@ -2,11 +2,13 @@ package com.moneymanager.service.file;
 
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.LocalDate;
 
@@ -41,10 +43,19 @@ import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
  * 		</tbody>
  * </table>
  */
+@Component
 @RequiredArgsConstructor
-public class LedgerImageNameStrategy implements FileNamingStrategy {
+public class LedgerImageNameStrategy implements FileNamingStrategy<Ledger> {
 
 	private final Clock clock;
+
+	@Value("${file.image.ledger}")
+	private String rootPath;
+
+	@Override
+	public String getRootPath() {
+		return rootPath;
+	}
 
 	@Override
 	public String generateStoredName(String originalFileName) {
@@ -78,17 +89,23 @@ public class LedgerImageNameStrategy implements FileNamingStrategy {
 	}
 
 	@Override
-	public String generateRelativePath() {
+	public String generateDirectoryPath(Ledger ledger) {
 		LocalDate date = LocalDate.now(clock);
 
 		String year = String.valueOf(date.getYear());
 		String month = String.format("%02d", date.getMonthValue());
 
-		return Path.of(year, month).toString();
+		return ledger.getMemberId() + "/" + year + "/" + month;
 	}
 
 	@Override
-	public String getBasePath() {
-		return Paths.get("ledgers", "image").toString();
+	public String generateDbPath(Ledger ledger, String storedName) {
+		LocalDate date = LocalDate.now(clock);
+
+		String year = String.valueOf(date.getYear());
+		String month = String.format("%02d", date.getMonthValue());
+
+		return "/" + year + "/" + month + "/" + storedName;
 	}
+
 }

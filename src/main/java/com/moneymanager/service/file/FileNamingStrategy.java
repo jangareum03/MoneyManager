@@ -1,8 +1,6 @@
 package com.moneymanager.service.file;
 
 
-import java.nio.file.Path;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.service.file<br>
@@ -30,8 +28,10 @@ import java.nio.file.Path;
  * 		</tbody>
  * </table>
  */
-public interface FileNamingStrategy {
+public interface FileNamingStrategy<T> {
+	String getRootPath();
 	String generateStoredName(String originalFilename);	//파일명 반경
-	String generateRelativePath();
-	String getBasePath();
+	String generateDirectoryPath(T t);
+	String generateDbPath(T t, String storedName);
 }
+

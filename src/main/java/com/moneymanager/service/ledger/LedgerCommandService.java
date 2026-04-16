@@ -14,7 +14,6 @@ import com.moneymanager.service.file.FileCommandService;
 import com.moneymanager.service.file.LedgerImageNameStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -23,8 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,13 +63,11 @@ public class LedgerCommandService {
 	private final SecurityUtil securityUtil;
 
 	private final FileCommandService fileService;
+
 	private final LedgerRepository ledgerRepository;
 	private final LedgerImageRepository imageRepository;
 
-	private final Clock clock;
-
-	@Value("${image.member}")
-	private String rootPath;
+	private final LedgerImageNameStrategy ledgerImageNameStrategy;
 
 	@Transactional
 	public void registerLedger(LedgerWriteRequest request) {
@@ -142,10 +137,8 @@ public class LedgerCommandService {
 		List<LedgerImage> ledgerImages = new ArrayList<>();
 
 		try{
-			Path path = Path.of(rootPath, ledger.getMemberId());
-
 			for(int i=0; i<files.size(); i++) {
-				StoredFile savedFile = fileService.storeFile(path, files.get(i), new LedgerImageNameStrategy(clock));
+				StoredFile savedFile = fileService.storeFile(files.get(i), ledger, ledgerImageNameStrategy);
 
 				successSaved.add(new File(savedFile.getFullPath()));
 				ledgerImages.add(LedgerImage.create(ledger.getId(), savedFile.getRelativePath(), i+1));

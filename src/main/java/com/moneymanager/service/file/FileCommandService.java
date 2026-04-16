@@ -44,23 +44,22 @@ import static com.moneymanager.exception.error.ErrorCode.*;
 @Slf4j
 public class FileCommandService {
 
-	public StoredFile storeFile(Path rootPath, MultipartFile file, FileNamingStrategy strategy) {
-		String basePath = strategy.getBasePath();
-		String relativeDir = strategy.generateRelativePath();
+	public <T> StoredFile storeFile(MultipartFile file, T target, FileNamingStrategy<T> strategy) {
+		String rootPath = strategy.getRootPath();
 		String storedName = strategy.generateStoredName(file.getOriginalFilename());
+		String directoryPath = strategy.generateDirectoryPath(target);
+		String dbPath = strategy.generateDbPath(target, storedName);
 
-		String fullDirPath = Path.of(basePath, relativeDir).toString();
+		String fullDirPath = Path.of(rootPath, directoryPath).toString();
 
-		File directory = new File(rootPath.toFile(), fullDirPath);
+		File directory = new File(fullDirPath);
 		createDirectory(directory);
 
 		File savedFile = new File(directory, storedName);
 
 		upload(file, savedFile);
 
-		String relativePath = Path.of(relativeDir, storedName).toString();
-
-		return new StoredFile(savedFile.getAbsolutePath(), relativePath);
+		return new StoredFile(savedFile.getAbsolutePath(), dbPath);
 	}
 
 	//폴더 생성
