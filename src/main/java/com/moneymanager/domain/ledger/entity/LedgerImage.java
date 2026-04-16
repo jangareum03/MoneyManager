@@ -69,6 +69,10 @@ public class LedgerImage {
 	public static LedgerImage create(Long ledgerId, String path, int order) {
 		String dbPath = path.replace("\\", "/");
 
+		if(!dbPath.startsWith("/")) {
+			dbPath = "/" + dbPath;
+		}
+
 		validateLedgerId(ledgerId);
 		validateOrder(order);
 		validatePath(dbPath);
