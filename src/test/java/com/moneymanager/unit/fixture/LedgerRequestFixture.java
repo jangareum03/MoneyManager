@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class LedgerRequestFixture {
+
 	public static Stream<Arguments> successWriteRequest() throws IOException {
 		return Stream.of(
 				Arguments.of(
@@ -67,14 +68,30 @@ public class LedgerRequestFixture {
 										"test.jpg",
 										"image/jpg",
 										LedgerValidatorTest.class.getResourceAsStream("/files/test.jpg")
-								),
-								new MockMultipartFile(
-										"files",
-										"test.png",
-										"image/png",
-										LedgerValidatorTest.class.getResourceAsStream("/files/test.png")
 								)
 						)
 				);
 	}
+
+	public static LedgerWriteRequest.LedgerWriteRequestBuilder withImages() throws IOException {
+		return defaultLedgerWriteRequest()
+			.image(
+				List.of(
+					new MockMultipartFile(
+						"files",
+						"test.jpg",
+						"image/jpg",
+						LedgerValidatorTest.class.getResourceAsStream("/files/test.jpg")
+					),
+
+					new MockMultipartFile(
+						"files",
+						"test.png",
+						"image/png",
+					LedgerValidatorTest.class.getResourceAsStream("/files/test.png")
+					)
+				)
+			);
+	}
+
 }

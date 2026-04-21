@@ -2,10 +2,12 @@ package com.moneymanager.unit.domain.ledger.policy;
 
 import com.moneymanager.BusinessExceptionAssert;
 import com.moneymanager.domain.global.Policy;
+import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -48,239 +50,258 @@ public class LedgerHistoryPolicyTest {
 
 	private final LedgerHistoryPolicy ledgerHistoryPolicy = new LedgerHistoryPolicy();
 
-	private final static DateTimeFormatter DATE_TIME_FORMATTER =
-			DateTimeFormatter.ofPattern("yyyyMMdd");
-
-	//==================[ calculateDateRange ]==================
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("provideValidHistoryTypeAndDate")
-	@DisplayName("내역유형에 따른 시작일/종료일을 반환한다.")
-	void calculateDateRange_success(String description, HistoryType type, LocalDate date, DateRange expectedValue) {
-		//when
-		DateRange result = ledgerHistoryPolicy.calculateDateRange(type, date);
-
-		//then
-		assertThat(result).isEqualTo(expectedValue);
-	}
-
-	static Stream<Arguments> provideValidHistoryTypeAndDate() {
-		LocalDate date = LocalDate.of(2026, 4, 4);
-
-		return Stream.of(
-				Arguments.of(
-						"연간 범위 계산",
-						HistoryType.YEAR, date,
-						new DateRange(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31))
-				),
-				Arguments.of(
-						"월간 범위 계산",
-						HistoryType.MONTH, date,
-						new DateRange(LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30))
-				),
-				Arguments.of(
-						"첫 주 범위 계산",
-						HistoryType.WEEK, date,
-						new DateRange(LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 5))
-				),
-				Arguments.of(
-						"마지막 주 범위 계산",
-						HistoryType.WEEK, LocalDate.of(2026, 4, 29 ),
-						new DateRange(LocalDate.of(2026, 4, 27), LocalDate.of(2026, 4, 30))
-				)
-		);
-	}
+	private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DatePatterns.DATE.getPattern());
 
 
-	@ParameterizedTest(name = "[{index}] historyType={0}, date={1} ")
-	@MethodSource("provideInvalidHistoryTypeAndDate")
-	@DisplayName("내역유형 또는 날짜가 null이면 예외가 발생한다.")
-	void calculateDateRange_failure_dateIsNull(HistoryType type, LocalDate date) {
-		//when & then
-		assertThatExceptionOfType(IllegalArgumentException.class)
-				.isThrownBy(() -> ledgerHistoryPolicy.calculateDateRange(type, date))
-				.withMessageContainingAll("날짜기간 계산", "필수값누락");
-	}
+	@Nested
+	@DisplayName("날짜범위 계산")
+	class CalculateDateRangeTest {
 
-	static Stream<Arguments> provideInvalidHistoryTypeAndDate( ) {
-		return Stream.of(
-				Arguments.of(null, null),
-				Arguments.of(null, LocalDate.now()),
-				Arguments.of(HistoryType.MONTH, null)
-		);
-	}
+		@ParameterizedTest(name = "[{index}] {0}")
+		@MethodSource("provideValidHistoryTypeAndDate")
+		@DisplayName("내역유형에 따른 시작일/종료일을 반환한다.")
+		void returnsDateRange_whenHistoryTypeIsGiven(String description, HistoryType type, LocalDate date, DateRange expectedValue) {
+			//when
+			DateRange result = ledgerHistoryPolicy.calculateDateRange(type, date);
 
+			//then
+			assertThat(result).isEqualTo(expectedValue);
+		}
 
-	//==================[ validate ]==================
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("provideValidDateRanges")
-	@DisplayName("정상범위 날짜면 검증에 통과한다.")
-	void validate_success(String description, DateRange dateRange) {
-		//when & then
-		assertThatCode(() -> ledgerHistoryPolicy.validate(dateRange))
-				.doesNotThrowAnyException();
-	}
+		static Stream<Arguments> provideValidHistoryTypeAndDate() {
+			LocalDate date = LocalDate.of(2026, 4, 4);
 
-	static Stream<Arguments> provideValidDateRanges() {
-		LocalDate now = LocalDate.now();
+			return Stream.of(
+					Arguments.of(
+							"연간 범위 계산",
+							HistoryType.YEAR, date,
+							new DateRange(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31))
+					),
+					Arguments.of(
+							"월간 범위 계산",
+							HistoryType.MONTH, date,
+							new DateRange(LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30))
+					),
+					Arguments.of(
+							"첫 주 범위 계산",
+							HistoryType.WEEK, date,
+							new DateRange(LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 5))
+					),
+					Arguments.of(
+							"마지막 주 범위 계산",
+							HistoryType.WEEK, LocalDate.of(2026, 4, 29 ),
+							new DateRange(LocalDate.of(2026, 4, 27), LocalDate.of(2026, 4, 30))
+					)
+			);
+		}
 
-		return Stream.of(
-				Arguments.of(
-						"시작일, 종료일 모두 5년 전 날짜",
-						new DateRange(
-								now.minusYears(5).format(DATE_TIME_FORMATTER),
-								now.minusYears(5).format(DATE_TIME_FORMATTER)
-						)
-				),
-				Arguments.of(
-						"시작일 5년 전 날짜, 종료일은 현재날짜",
-						new DateRange(
-								now.minusYears(5).format(DATE_TIME_FORMATTER),
-								now.format(DATE_TIME_FORMATTER)
-						)
-				),
-				Arguments.of(
-						"시작일, 종료일 정책 허용하는 날짜",
-						new DateRange(
-								now.minusYears(3).minusMonths(2).format(DATE_TIME_FORMATTER),
-								now.minusYears(3).format(DATE_TIME_FORMATTER)
-						)
-				),
-				Arguments.of(
-						"시작일, 종료일 모두 현재날짜",
-						new DateRange(
-								now.format(DATE_TIME_FORMATTER),
-								now.format(DATE_TIME_FORMATTER)
-						)
-				)
-		);
+		@ParameterizedTest(name = "[{index}] historyType={0}, date={1} ")
+		@MethodSource("provideInvalidHistoryTypeAndDate")
+		@DisplayName("내역유형 또는 날짜가 null이면 예외가 발생한다.")
+		void throwsException_whenHistoryTypeAndDateIsNull(HistoryType type, LocalDate date) {
+			//when & then
+			assertThatExceptionOfType(IllegalArgumentException.class)
+					.isThrownBy(() -> ledgerHistoryPolicy.calculateDateRange(type, date))
+					.withMessageContainingAll("날짜기간 계산", "필수값누락");
+		}
+
+		static Stream<Arguments> provideInvalidHistoryTypeAndDate( ) {
+			return Stream.of(
+					Arguments.of(null, null),
+					Arguments.of(null, LocalDate.now()),
+					Arguments.of(HistoryType.MONTH, null)
+			);
+		}
+
 	}
 
 
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("provideInvalidDateRanges")
-	@DisplayName("비정상 범위 날짜면 예외가 발생한다")
-	void  validate_failure_notRange(String description, DateRange dateRange) {
-		//when
-		Throwable throwable = catchThrowable(() -> ledgerHistoryPolicy.validate(dateRange));
+	@Nested
+	@DisplayName("날짜 기간 검증")
+	class ValidateTest {
 
-		//then
-		BusinessExceptionAssert.assertThatBusinessException(throwable)
-				.hasErrorCode(LEDGER_HISTORY_POLICY_VIOLATION)
-				.hasUserMessage("최근 5년")
-				.hasLogMessage("조건불만족", "DateRange");
-	}
+		@ParameterizedTest(name = "[{index}] {0}")
+		@MethodSource("provideValidDateRanges")
+		@DisplayName("정상범위 날짜면 검증에 통과한다.")
+		void validatesDateRange_whenDateWithinPeriod(String description, DateRange dateRange) {
+			//when & then
+			assertThatCode(() -> ledgerHistoryPolicy.validate(dateRange))
+					.doesNotThrowAnyException();
+		}
 
-	static Stream<Arguments> provideInvalidDateRanges() {
-		LocalDate now = LocalDate.now();
+		static Stream<Arguments> provideValidDateRanges() {
+			LocalDate now = LocalDate.now();
 
-		LocalDate min = now.minusYears(Policy.LEDGER_MAX_YEAR);
+			return Stream.of(
+					Arguments.of(
+							"시작일, 종료일 모두 5년 전 날짜",
+							new DateRange(
+									now.minusYears(5).format(DATE_TIME_FORMATTER),
+									now.minusYears(5).format(DATE_TIME_FORMATTER)
+							)
+					),
+					Arguments.of(
+							"시작일 5년 전 날짜, 종료일은 현재날짜",
+							new DateRange(
+									now.minusYears(5).format(DATE_TIME_FORMATTER),
+									now.format(DATE_TIME_FORMATTER)
+							)
+					),
+					Arguments.of(
+							"시작일, 종료일 정책 허용하는 날짜",
+							new DateRange(
+									now.minusYears(3).minusMonths(2).format(DATE_TIME_FORMATTER),
+									now.minusYears(3).format(DATE_TIME_FORMATTER)
+							)
+					),
+					Arguments.of(
+							"시작일, 종료일 모두 현재날짜",
+							new DateRange(
+									now.format(DATE_TIME_FORMATTER),
+									now.format(DATE_TIME_FORMATTER)
+							)
+					)
+			);
+		}
 
-		return Stream.of(
-				Arguments.of(
-						"시작일이 5년전보다 이전날짜",
-						new DateRange(
-								min.minusDays(1).format(DATE_TIME_FORMATTER),
-								now.format(DATE_TIME_FORMATTER)
-						)
-				),
-				Arguments.of(
-						"종료일이 현재보다 이후날짜",
-						new DateRange(
-								min.format(DATE_TIME_FORMATTER),
-								now.plusDays(1).format(DATE_TIME_FORMATTER)
-						)
-				),
-				Arguments.of(
-						"시작일은 5년전 이전날짜, 종료일은 미래날짜",
-						new DateRange(
-								min.minusDays(1).format(DATE_TIME_FORMATTER),
-								now.plusDays(1).format(DATE_TIME_FORMATTER)
-						)
-				)
-		);
-	}
+		@ParameterizedTest(name = "[{index}] {0}")
+		@MethodSource("provideInvalidDateRanges")
+		@DisplayName("비정상 범위 날짜면 예외가 발생한다")
+		void  throwsException_whenDateOutsidePeriod(String description, DateRange dateRange) {
+			//when
+			Throwable throwable = catchThrowable(() -> ledgerHistoryPolicy.validate(dateRange));
 
+			//then
+			BusinessExceptionAssert.assertThatBusinessException(throwable)
+					.hasErrorCode(LEDGER_HISTORY_POLICY_VIOLATION)
+					.hasUserMessage("최근 5년")
+					.hasLogMessage("조건불만족", "DateRange");
+		}
 
-	//==================[ getTitleByHistoryType ]==================
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("provideValidTitles")
-	@DisplayName("내역 범위에 따라 제목 형식이 다르게 반환된다.")
-	void getTitleByHistoryType_success(String description, LocalDate date, HistoryType historyType, String expected) {
-		//when
-		String result = ledgerHistoryPolicy.getTitleByHistoryType(date, historyType);
+		static Stream<Arguments> provideInvalidDateRanges() {
+			LocalDate now = LocalDate.now();
 
-		//then
-		assertThat(result).isEqualTo(expected);
-	}
+			LocalDate min = now.minusYears(Policy.LEDGER_MAX_YEAR);
 
-	static Stream<Arguments> provideValidTitles() {
-		return Stream.of(
-				Arguments.of(
-					"YEAR 타입 - 2026년 1월 1일",
-						LocalDate.of(2026, 1, 1),
-						HistoryType.YEAR,
-						"2026년"
-				),
-				Arguments.of(
-						"YEAR 타입 - 2026년 12월 31일",
-						LocalDate.of(2026, 12, 31),
-						HistoryType.YEAR,
-						"2026년"
-				),
-				Arguments.of(
-						"MONTH 타입 - 2026년 1월 1일",
-						LocalDate.of(2026, 1, 1),
-						HistoryType.MONTH,
-						"2026년 01월"
-				),
-				Arguments.of(
-						"MONTH 타입 - 2025년 12월 1일",
-						LocalDate.of(2025, 12, 1),
-						HistoryType.MONTH,
-						"2025년 12월"
-				),
-				Arguments.of(
-						"WEEK 타입 - 2026년 1월 1일",
-						LocalDate.of(2026, 1, 1),
-						HistoryType.WEEK,
-						"2026년 01월 1주"
-				),
-				Arguments.of(
-						"WEEK 타입 - 2026년 1월 4일",
-						LocalDate.of(2026, 1, 4),
-						HistoryType.WEEK,
-						"2026년 01월 1주"
-				),
-				Arguments.of(
-						"WEEK 타입 - 2026년 1월 5일",
-						LocalDate.of(2026, 1, 5),
-						HistoryType.WEEK,
-						"2026년 01월 2주"
-				)
-		);
+			return Stream.of(
+					Arguments.of(
+							"시작일이 5년전보다 이전날짜",
+							new DateRange(
+									min.minusDays(1).format(DATE_TIME_FORMATTER),
+									now.format(DATE_TIME_FORMATTER)
+							)
+					),
+					Arguments.of(
+							"종료일이 현재보다 이후날짜",
+							new DateRange(
+									min.format(DATE_TIME_FORMATTER),
+									now.plusDays(1).format(DATE_TIME_FORMATTER)
+							)
+					),
+					Arguments.of(
+							"시작일은 5년전 이전날짜, 종료일은 미래날짜",
+							new DateRange(
+									min.minusDays(1).format(DATE_TIME_FORMATTER),
+									now.plusDays(1).format(DATE_TIME_FORMATTER)
+							)
+					)
+			);
+		}
+
 	}
 
 
-	//==================[ calculateWeekOfMonth ]==================
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("provideValidWeekOfMonths")
-	@DisplayName("해당 월의 일 기준으로 주차를 반환한다.")
-	void calculateWeekOfMonth_success(String description, LocalDate date, int expected) {
-		//when
-		int result = ledgerHistoryPolicy.calculateWeekOfMonth(date);
+	@Nested
+	@DisplayName("제목 생성")
+	class CreateTitleTest {
 
-		//then
-		assertThat(result).isEqualTo(expected);
+		@ParameterizedTest(name = "[{index}] {0}")
+		@MethodSource("provideValidTitles")
+		@DisplayName("내역 범위에 따라 제목 형식이 다르게 반환된다.")
+		void returnsTitle_whenHistoryTypeIsGiven(String description, LocalDate date, HistoryType historyType, String expected) {
+			//when
+			String result = ledgerHistoryPolicy.getTitleByHistoryType(date, historyType);
+
+			//then
+			assertThat(result).isEqualTo(expected);
+		}
+
+		static Stream<Arguments> provideValidTitles() {
+			return Stream.of(
+					Arguments.of(
+							"YEAR 타입 - 2026년 1월 1일",
+							LocalDate.of(2026, 1, 1),
+							HistoryType.YEAR,
+							"2026년"
+					),
+					Arguments.of(
+							"YEAR 타입 - 2026년 12월 31일",
+							LocalDate.of(2026, 12, 31),
+							HistoryType.YEAR,
+							"2026년"
+					),
+					Arguments.of(
+							"MONTH 타입 - 2026년 1월 1일",
+							LocalDate.of(2026, 1, 1),
+							HistoryType.MONTH,
+							"2026년 01월"
+					),
+					Arguments.of(
+							"MONTH 타입 - 2025년 12월 1일",
+							LocalDate.of(2025, 12, 1),
+							HistoryType.MONTH,
+							"2025년 12월"
+					),
+					Arguments.of(
+							"WEEK 타입 - 2026년 1월 1일",
+							LocalDate.of(2026, 1, 1),
+							HistoryType.WEEK,
+							"2026년 01월 1주"
+					),
+					Arguments.of(
+							"WEEK 타입 - 2026년 1월 4일",
+							LocalDate.of(2026, 1, 4),
+							HistoryType.WEEK,
+							"2026년 01월 1주"
+					),
+					Arguments.of(
+							"WEEK 타입 - 2026년 1월 5일",
+							LocalDate.of(2026, 1, 5),
+							HistoryType.WEEK,
+							"2026년 01월 2주"
+					)
+			);
+		}
+
 	}
 
-	static Stream<Arguments> provideValidWeekOfMonths() {
-		return Stream.of(
-				Arguments.of("2026년 1월 1일 → 1주", LocalDate.of(2026, 1,1), (Object) 1),
-				Arguments.of("2026년 1월 4일 → 1주", LocalDate.of(2026, 1,1), (Object) 1),
-				Arguments.of("2026년 1월 5일 → 2주", LocalDate.of(2026, 1,1), (Object) 1),
-				Arguments.of("2026년 2월 19일 → 3주", LocalDate.of(2026, 1,1), (Object) 1),
-				Arguments.of("2026년 3월 29일 → 4주", LocalDate.of(2026, 1,1), (Object) 1),
-				Arguments.of("2026년 4월 30일 → 5주", LocalDate.of(2026, 1,1), (Object) 1)
-		);
+
+	@Nested
+	@DisplayName("주차 계산")
+	class CalculateWeekTest {
+
+		@ParameterizedTest(name = "[{index}] {0}")
+		@MethodSource("provideValidWeekOfMonths")
+		@DisplayName("해당 월의 일 기준으로 주차를 반환한다.")
+		void returnsWeek_whenDayOfMonthIsGiven(String description, LocalDate date, int expected) {
+			//when
+			int result = ledgerHistoryPolicy.calculateWeekOfMonth(date);
+
+			//then
+			assertThat(result).isEqualTo(expected);
+		}
+
+		static Stream<Arguments> provideValidWeekOfMonths() {
+			return Stream.of(
+					Arguments.of("2026년 1월 1일 → 1주", LocalDate.of(2026, 1,1), (Object) 1),
+					Arguments.of("2026년 1월 4일 → 1주", LocalDate.of(2026, 1,1), (Object) 1),
+					Arguments.of("2026년 1월 5일 → 2주", LocalDate.of(2026, 1,1), (Object) 1),
+					Arguments.of("2026년 2월 19일 → 3주", LocalDate.of(2026, 1,1), (Object) 1),
+					Arguments.of("2026년 3월 29일 → 4주", LocalDate.of(2026, 1,1), (Object) 1),
+					Arguments.of("2026년 4월 30일 → 5주", LocalDate.of(2026, 1,1), (Object) 1)
+			);
+		}
+
 	}
+
 }

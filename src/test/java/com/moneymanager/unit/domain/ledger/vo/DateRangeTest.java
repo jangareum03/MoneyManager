@@ -2,7 +2,9 @@ package com.moneymanager.unit.domain.ledger.vo;
 
 import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.exception.BusinessException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -43,51 +45,89 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class DateRangeTest {
 
-	//==================[ create ]==================
-	@Test
-	@DisplayName("정상적인 시작일과 종료일이면 DateRange 생성된다.")
-	void create_success() {
-		//given
-		String from = "20260101";
-		String to = "20260131";
 
-		//when
-		DateRange result = new DateRange(from, to);
+	@Nested
+	@DisplayName("객체 생성")
+	class CreateTest {
 
-		//then
-		assertThat(result.getFrom()).isEqualTo(LocalDate.of(2026,1,1));
-		assertThat(result.getTo()).isEqualTo(LocalDate.of(2026,1,31));
+		@Test
+		@DisplayName("유효한 날짜 형식의 시작일과 종료일 문자열이면 DateRange 생성된다.")
+		void returnsDateRange_whenFromAndToAreValidDateStrings() {
+			//given
+			String from = "20260101";
+			String to = "20260131";
+
+			//when
+			DateRange result = new DateRange(from, to);
+
+			//then
+			assertThat(result.getFrom()).isEqualTo(LocalDate.of(2026,1,1));
+			assertThat(result.getTo()).isEqualTo(LocalDate.of(2026,1,31));
+		}
+
+		@Test
+		@DisplayName("유효한 날짜 형식의 시작일과 종료일 LocalDate면 DateRange 생성된다.")
+		void returnsDateRange_whenFromAndToAreValidLocalDates() {
+			//given
+			LocalDate from = LocalDate.of(2026, 1, 1);
+			LocalDate to = LocalDate.of(2026, 1, 31);
+
+			//when
+			DateRange result = new DateRange(from, to);
+
+			//then
+			assertThat(result.getFrom()).isEqualTo(LocalDate.of(2026,1,1));
+			assertThat(result.getTo()).isEqualTo(LocalDate.of(2026,1,31));
+		}
+
+		@ParameterizedTest(name = "[{index}] {0}")
+		@MethodSource("provideInvalidDates")
+		@DisplayName("유효하지 않은 날짜 형식의 시작일과 종료일이 문자열이면 예외가 발생한다.")
+		void throwsException_whenFromAndToAreValidDateStrings(String description, String from, String to){
+			//when & then
+			assertThatExceptionOfType(BusinessException.class)
+					.isThrownBy(() -> new DateRange(from, to));
+		}
+
+		static Stream<Arguments> provideInvalidDates() {
+			return Stream.of(
+					Arguments.of(
+							"시작일이 없는 경우",
+							null,
+							"20260101"
+					),
+					Arguments.of(
+							"종료일이 없는 경우",
+							"20260101",
+							null
+					),
+					Arguments.of(
+							"시작일 > 종료일",
+							"20260101",
+							"20250101"
+					)
+			);
+		}
+
+		@Disabled("TODO: 로직 추가 후 진행 예정")
+		@Test
+		@DisplayName("유효하지 않은 날짜 형식의 시작일과 종료일 LocalDate면 DateRange 생성된다.")
+		void throwsException_whenFromAndToAreValidLocalDates() {
+			//given
+			LocalDate from = null;
+			LocalDate to = null;
+
+			//when & then
+			assertThatExceptionOfType(BusinessException.class)
+					.isThrownBy(() -> new DateRange(from, to));
+		}
+
 	}
 
 
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("provideInvalidDates")
-	@DisplayName("비정상적인 날짜면 예외가 발생한다.")
-	void create_failure_exception(String description, String from, String to){
-		//when & then
-		assertThatExceptionOfType(BusinessException.class)
-				.isThrownBy(() -> new DateRange(from, to));
-	}
 
-	static Stream<Arguments> provideInvalidDates() {
-		return Stream.of(
-				Arguments.of(
-						"시작일이 없는 경우",
-						null,
-						"20260101"
-				),
-				Arguments.of(
-						"종료일이 없는 경우",
-						"20260101",
-						null
-				),
-				Arguments.of(
-						"시작일 > 종료일",
-						"20260101",
-						"20250101"
-				)
-		);
-	}
+
+
 
 
 	@ParameterizedTest(name = "[{index}] from={0}, end={1}")

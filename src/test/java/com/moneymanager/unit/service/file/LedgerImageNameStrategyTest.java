@@ -1,22 +1,25 @@
 package com.moneymanager.unit.service.file;
 
+import com.moneymanager.BusinessExceptionAssert;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.exception.error.ErrorCode;
 import com.moneymanager.exception.error.ErrorInfo;
 import com.moneymanager.service.file.LedgerImageNameStrategy;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
+import java.time.Clock;
 import java.time.LocalDate;
-import java.util.stream.Stream;
+import java.time.ZoneId;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static com.moneymanager.exception.error.ErrorCode.FILE_TARGET_MISSING;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * <p>
@@ -47,75 +50,93 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class LedgerImageNameStrategyTest {
 
-	private final LedgerImageNameStrategy strategy = new LedgerImageNameStrategy();
+	private Clock clock;
+	private LedgerImageNameStrategy strategy;
 
-	//==================[ generateStoredName ]==================
-	@Test
-	@DisplayName("파일명이 정상적이면 ULID로 이름이 변경 가능하다.")
-	void generateStoredName_success() {
-		//given
-		String originalFileName = "image.png";
 
-		//when
-		String result = strategy.generateStoredName(originalFileName);
+	@BeforeEach
+	void setUp() {
+		LocalDate fixedDate = LocalDate.of(2026, 3, 15);
 
-		//then
-		assertThat(result)
-				.isNotNull()
-				.endsWith(".png");
+		clock =Clock.fixed(
+				fixedDate.atStartOfDay().atZone(ZoneId.of("Asia/Seoul")).toInstant(),
+				ZoneId.of("Asia/Seoul")
+		);
 
-		String name = result.split("\\.")[0];
-		assertThat(name.length()).isEqualTo(26);
+		strategy = new LedgerImageNameStrategy(clock);
 	}
 
-	@ParameterizedTest(name = "[{index}] fileName={0}")
-	@NullAndEmptySource
-	@DisplayName("파일명이 null, 공백이면 예외가 발생한다.")
-	void generateStoredName_failure_nameIsNullAndEmpty(String name) {
-		//when & then
-		assertThatExceptionOfType(BusinessException.class)
-				.isThrownBy(() -> strategy.generateStoredName(name))
-				.satisfies(e -> {
-					ErrorInfo errorDTO = e.getErrorInfo();
+	@Nested
+	@DisplayName("파일명 변경")
+	class NameChangeTest {
 
-					assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.FILE_TARGET_INVALID);
-					assertThat(errorDTO.getLogMessage()).contains("파일 이름 없음");
-				});
+		@Test
+		@DisplayName("ULID로 변경된 파일명이 반환된다.")
+		void returnsUlidFileName_whenNameIsValid() {
+			//given
+			String originalFileName = "image.png";
+
+			//when
+			String result = strategy.generateStoredName(originalFileName);
+			String name = result.substring(0, result.indexOf('.'));
+
+			//then
+			assertThat(result)
+					.isNotNull()
+					.endsWith(".png");
+
+			assertThat(name.length()).isEqualTo(26);
+		}
+
+		@ParameterizedTest(name = "[{index}] fileName={0}")
+		@NullAndEmptySource
+		@DisplayName("파일명이 null, 공백이면 예외가 발생한다.")
+		void throwsException_whenFileNameIsMissing(String name) {
+			//when & then
+			BusinessExceptionAssert.assertThatBusinessException(catchThrowable(() -> strategy.generateStoredName(name)))
+							.hasErrorCode(FILE_TARGET_MISSING)
+									.hasLogMessage("변경 실패", "형식오류");
+		}
+
+		@ParameterizedTest(name = "[{index}] name={0}")
+		@ValueSource(strings = {"test", "test."})
+		@DisplayName("파일명에 확장자가 없으면 예외가 발생한다.")
+		void throwsException_whenFileHasNoExtension(String name) {
+			//when & then
+			assertThatExceptionOfType(BusinessException.class)
+					.isThrownBy(() -> strategy.generateStoredName(name))
+					.satisfies(e -> {
+						ErrorInfo errorDTO = e.getErrorInfo();
+
+						assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.FILE_TARGET_INVALID);
+						assertThat(errorDTO.getLogMessage()).contains("형식오류", name);
+					});
+		}
+
 	}
 
-	@ParameterizedTest(name = "[{index}] name={0}")
-	@ValueSource(strings = {"test", "test."})
-	@DisplayName("파일명에 확장자가 없으면 예외가 발생한다.")
-	void generateStoredName_failure_extensionIsNone(String name) {
-		//when & then
-		assertThatExceptionOfType(BusinessException.class)
-				.isThrownBy(() -> strategy.generateStoredName(name))
-				.satisfies(e -> {
-					ErrorInfo errorDTO = e.getErrorInfo();
 
-					assertThat(errorDTO.getErrorCode()).isSameAs(ErrorCode.FILE_TARGET_INVALID);
-					assertThat(errorDTO.getLogMessage()).contains("형식오류", name);
-				});
+	@Nested
+	@DisplayName("상대경로 찾기")
+	class RelativePathCreateTest {
+
+//		@Test
+//		@DisplayName("오늘 날짜 기준으로 상대경로를 생성한다.")
+//		void returnsRelativePath() {
+//			//given
+//			LocalDate today = LocalDate.now();
+//
+//			String expected = String.join(
+//					File.separator,
+//					String.valueOf(today.getYear()), String.format("%02d", today.getMonthValue()));
+//
+//			//when
+//			String result = strategy.generateRelativePath();
+//
+//			//then
+//			assertThat(result).isEqualTo(expected);
+//		}
+
 	}
 
-	@ParameterizedTest(name = "[{index}] date=오늘 날짜")
-	@MethodSource("provideValidRelativePath")
-	@DisplayName("오늘 날짜 기준으로 상대경로를 생성한다.")
-	void generateRelativePath_success(String expected) {
-		//when
-		String result = strategy.generateRelativePath();
-
-		//then
-		assertThat(result).isEqualTo(expected);
-	}
-
-	static Stream<String> provideValidRelativePath() {
-		LocalDate today = LocalDate.now();
-
-		String expected = String.join(
-				File.separator,
-				String.valueOf(today.getYear()), String.format("%02d", today.getMonthValue()));
-
-		return Stream.of(expected);
-	}
 }

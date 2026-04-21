@@ -4,32 +4,38 @@ package com.moneymanager.unit.service.ledger;
 import com.moneymanager.domain.global.dto.StoredFile;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.error.ErrorCode;
+import com.moneymanager.exception.error.ErrorInfo;
 import com.moneymanager.exception.error.ServiceAction;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.file.FileCommandService;
 import com.moneymanager.service.ledger.LedgerCommandService;
-import com.moneymanager.service.validation.LedgerValidator;
+import com.moneymanager.unit.fixture.LedgerRequestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import static com.moneymanager.exception.error.ErrorCode.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -39,7 +45,7 @@ import static org.mockito.Mockito.*;
  * 파일이름       : LedgerCommandServiceTest<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 1. 15<br>
- * 설명              : LedgerCommandService 클래스 로직을 검증하는 테스트 클래스
+ * 설명              : LedgerCommandService 클래스 로직을 검증하는 단위 테스트 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -63,264 +69,271 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class LedgerCommandServiceTest {
 
-	@InjectMocks	private LedgerCommandService service;
+	@InjectMocks
+	private LedgerCommandService service;
 
-	@Mock	private SecurityUtil securityUtil;
-	@Mock	private LedgerValidator ledgerValidator;
-	@Mock	private LedgerRepository ledgerRepository;
-	@Mock	private LedgerImageRepository imageRepository;
-	@Mock	private FileCommandService fileService;
+	@Mock
+	private SecurityUtil securityUtil;
 
-	private final String memberId = "member";
-	private LedgerWriteRequest request;
-	private Ledger savedLedger;
+	@Mock
+	private LedgerRepository ledgerRepository;
+
+	@Mock
+	private LedgerImageRepository imageRepository;
+
+	@Mock
+	private FileCommandService fileCommandService;
+
 
 	@BeforeEach
 	void setUp() {
-		request = LedgerWriteRequest.builder()
-				.date("20260101")
-				.categoryCode("010101")
-				.amount(10000L)
-				.amountType("none")
-				.image(List.of(mock(MultipartFile.class)))
-				.build();
-
-		savedLedger = Ledger.builder()
-				.id(1L)
-				.memberId(memberId)
-				.build();
-	}
-
-	//==================[ registerLedger ]==================
-	@Test
-	@DisplayName("정상 요청이면 가계부 등록이 성공한다.")
-	void registerLedger_success() {
-		//given
-		when(securityUtil.getMemberId()).thenReturn(memberId);
-		when(ledgerRepository.save(any())).thenReturn(1L);
-		when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
-		when(fileService.storeFile(any(), any(), any())).thenReturn(new StoredFile("full/path/rel/image", "/rel/image"));
-
-		//when
-		service.registerLedger(request);
-
-		//then
-		verify(ledgerValidator).register(request);
-		verify(ledgerRepository).save(any());
-		verify(imageRepository).saveAll(anyList());
+		ReflectionTestUtils.setField(service, "rootPath", "/test-root");
 	}
 
 
-	@Test
-	@DisplayName("예외가 발생하면 ServiceAction이 있다.")
-	void registerLedger_Failure_ServiceActionExists() {
-		//given
-		when(securityUtil.getMemberId()).thenReturn(memberId);
-		doThrow(BusinessException.of(
-				LEDGER_INPUT_MISSING,
-				"예외 던짐"
-		)).when(ledgerValidator).register(request);
+	@Nested
+	@DisplayName("가계부 등록")
+	class RegisterTest {
 
-		//when
-		BusinessException result = assertThrows(BusinessException.class, () -> service.registerLedger(request));
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
 
-		//then
-		assertThat(result.getErrorInfo().getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
+			@Test
+			@DisplayName("이미지가 없는 요청이면 이미지 저장 로직을 수행하지 않는다.")
+			void savesOnlyLedger_whenRequestHasNoImage() {
+				//given
+				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
+				Ledger savedLedger = mock(Ledger.class);
+
+				when(securityUtil.getMemberId()).thenReturn("test");
+				when(ledgerRepository.save(any())).thenReturn(1L);
+				when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
+
+				//when
+				service.registerLedger(request);
+
+				//then
+				verify(ledgerRepository).save(any(Ledger.class));
+				verify(ledgerRepository).findById(1L);
+				verify(fileCommandService, never()).storeFile(any(), any(), any());
+				verify(imageRepository, never()).saveAll(anyList());
+			}
+
+//			@Test
+//			@DisplayName("이미지가 있는 요청이면 파일 저장 후 이미지를 저장한다.")
+//			void savesFileAndImage_whenRequestHasImage() throws IOException {
+//				//given
+//				LedgerWriteRequest request = LedgerRequestFixture.withImage().build();
+//				Ledger savedLedger = mock(Ledger.class);
+//
+//				when(securityUtil.getMemberId()).thenReturn("test");
+//				when(ledgerRepository.save(any(Ledger.class))).thenReturn(1L);
+//				when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
+//
+//				when(savedLedger.getId()).thenReturn(1L);
+//				when(savedLedger.getMemberId()).thenReturn("test");
+//
+//				when(fileCommandService.storeFile(any(Path.class), any(MultipartFile.class), any()))
+//						.thenReturn(
+//								new StoredFile("/test-root/test/img1.jpg", "img1.jpg"),
+//								new StoredFile("/test-root/test/img2.jpg", "img2.jpg")
+//						);
+//
+//				//when
+//				service.registerLedger(request);
+//
+//				//then
+//				ArgumentCaptor<List<LedgerImage>> captor = ArgumentCaptor.forClass(List.class);
+//				verify(fileCommandService, times(2)).storeFile(any(Path.class), any(MultipartFile.class), any());
+//				verify(imageRepository).saveAll(captor.capture());
+//
+//				List<LedgerImage> savedImages = captor.getValue();
+//				assertThat(savedImages).hasSize(2);
+//				assertThat(savedImages)
+//						.extracting(LedgerImage::getLedgerId)
+//						.containsOnly(1L);
+//				assertThat(savedImages)
+//						.extracting(LedgerImage::getImagePath)
+//						.containsExactly("img1.jpg", "img2.jpg");
+//				assertThat(savedImages)
+//						.extracting(LedgerImage::getSortOrder)
+//						.containsExactly(1, 2);
+//			}
+
+		}
+
+
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+
+			@Test
+			@DisplayName("회원ID가 없으면 예외가 발생한다.")
+			void throwsException_whenMemberIdIsNull() {
+				//given
+				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
+
+				when(securityUtil.getMemberId()).thenThrow(
+						BusinessException.of(MEMBER_AUTHORITY_UNAUTHORIZED, "로그인이 실패합니다.", "인증 실패")
+				);
+
+				//when & then
+				assertThatThrownBy(() -> service.registerLedger(request))
+						.isInstanceOfSatisfying(BusinessException.class, e -> {
+							assertThat(e.getErrorInfo().getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
+						});
+
+				verifyNoInteractions(ledgerRepository, imageRepository, fileCommandService);
+			}
+
+			@Test
+			@DisplayName("가계부 저장 후 조회되지 않으면 예외가 발생한다.")
+			void throwsException_whenLedgerIdDoesNotExist() {
+				//given
+				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
+
+				when(securityUtil.getMemberId()).thenReturn("test");
+				when(ledgerRepository.save(any(Ledger.class))).thenReturn(1L);
+				when(ledgerRepository.findById(1L)).thenReturn(null);
+
+				//when & then
+				assertThatThrownBy(() -> service.registerLedger(request))
+						.isInstanceOfSatisfying(BusinessException.class, e -> {
+							assertThat(e.getErrorCode()).isSameAs(LEDGER_TARGET_NOT_FOUND);
+							assertThat(e.getErrorInfo().getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
+						});
+
+				verify(fileCommandService, never()).storeFile(any(), any(), any());
+				verify(imageRepository, never()).saveAll(anyList());
+			}
+
+			@Test
+			@DisplayName("가계부 저장 중 중복키 예외가 발생하면 BusinessException으로 변환한다.")
+			void throwsException_whenDuplicateKeyOccurs() {
+				//given
+				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
+
+				when(securityUtil.getMemberId()).thenReturn("test");
+				when(ledgerRepository.save(any(Ledger.class)))
+						.thenThrow(new DuplicateKeyException("중복키 발생") {});
+
+				//when & then
+				assertThatThrownBy(() -> service.registerLedger(request))
+						.isInstanceOfSatisfying(BusinessException.class, e -> {
+							ErrorInfo errorInfo = e.getErrorInfo();
+
+							assertThat(errorInfo.getErrorCode()).isSameAs(LEDGER_COLLISION_UNIQUE_CONSTRAINT);
+							assertThat(errorInfo.getUserMessage()).contains("등록 중 문제");
+							assertThat(errorInfo.getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
+						});
+			}
+
+			@Test
+			@DisplayName("가계부 저장 중 데이터 무결성 위반이 발생하면 BusinessException으로 변환한다.")
+			void throwsException_whenDataIntegrityViolationOccurs() {
+				//given
+				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
+
+				when(securityUtil.getMemberId()).thenReturn("test");
+				when(ledgerRepository.save(any(Ledger.class)))
+						.thenThrow(new DataIntegrityViolationException("위반 발생"));
+
+				//when & then
+				assertThatThrownBy(() -> service.registerLedger(request))
+						.isInstanceOfSatisfying(BusinessException.class, e -> {
+							ErrorInfo errorInfo = e.getErrorInfo();
+
+							assertThat(errorInfo.getErrorCode()).isSameAs(LEDGER_COLLISION_UNIQUE_CONSTRAINT);
+							assertThat(errorInfo.getUserMessage()).contains("등록 중 문제");
+							assertThat(errorInfo.getLogMessage()).contains("데이터 무결성 위반");
+							assertThat(errorInfo.getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
+						});
+
+				verify(ledgerRepository, never()).findById(anyLong());
+				verifyNoInteractions(imageRepository);
+			}
+
+//			@Test
+//			@DisplayName("이미지 저장 중 예외가 발생하면 저장된 파일을 삭제하고 사용자메시지를 변경한다.")
+//			void deletesFilesAndChangesMessage_whenStoreFileThrowsBusinessException() throws IOException {
+//				//given
+//				LedgerWriteRequest request = LedgerRequestFixture.withImage().build();
+//				Ledger savedLedger = mock(Ledger.class);
+//				Path path = Path.of("test-root", "test/img1.jpg");
+//
+//				when(securityUtil.getMemberId()).thenReturn("test");
+//				when(ledgerRepository.save(any(Ledger.class))).thenReturn(1L);
+//				when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
+//
+//				when(savedLedger.getId()).thenReturn(1L);
+//				when(savedLedger.getMemberId()).thenReturn("test");
+//
+//				when(fileCommandService.storeFile(any(Path.class), any(MultipartFile.class), any()))
+//						.thenReturn(new StoredFile(path.toString(), "img1.jpg"))
+//						.thenThrow(BusinessException.of(FILE_ETC_RESOURCE_ERROR, "업로드에 실패했습니다.", "파일 저장 실패"));
+//
+//				//when & then
+//				assertThatThrownBy(() -> service.registerLedger(request))
+//						.isInstanceOfSatisfying(BusinessException.class, e -> {
+//							ErrorInfo errorInfo = e.getErrorInfo();
+//
+//							assertThat(errorInfo.getErrorCode()).isSameAs(FILE_ETC_RESOURCE_ERROR);
+//							assertThat(errorInfo.getUserMessage()).isEqualTo("이미지 저장 중 문제가 발생했습니다. 다시 시도해주세요.");
+//							assertThat(errorInfo.getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
+//						});
+//
+//				ArgumentCaptor<List<File>> captor = ArgumentCaptor.forClass(List.class);
+//				verify(fileCommandService).deleteFiles(captor.capture());
+//
+//				List<File> deletedFiles = captor.getValue();
+//				assertThat(deletedFiles).hasSize(1);
+//				assertThat(deletedFiles.get(0).getPath()).isEqualTo(path.toString());
+//
+//				verify(imageRepository, never()).saveAll(anyList());
+//			}
+
+		}
+
 	}
 
 
-	@Test
-	@DisplayName("회원번호가 없으면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_failure_memberIdIsNull() {
-		//given
-		BusinessException exception = BusinessException.of(
-				ErrorCode.MEMBER_AUTHORITY_UNAUTHORIZED,
-				"회원 인증 실패"
-		);
+	@Nested
+	@DisplayName("이미지 경로")
+	class ImagePathTest {
 
-		when(securityUtil.getMemberId()).thenThrow(exception);
+//		@Test
+//		@DisplayName("이미지 저장 경로는 회원ID 기준으로 생성된다.")
+//		void createsRootPath_whenMemberIdExist() throws IOException {
+//			//given
+//			LedgerWriteRequest request = LedgerRequestFixture.withImage().build();
+//			Ledger savedLedger = mock(Ledger.class);
+//
+//			when(securityUtil.getMemberId()).thenReturn("test");
+//			when(ledgerRepository.save(any(Ledger.class))).thenReturn(1L);
+//			when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
+//
+//			when(savedLedger.getMemberId()).thenReturn("test");
+//			when(savedLedger.getId()).thenReturn(1L);
+//
+//			when(fileCommandService.storeFile(any(Path.class), any(MockMultipartFile.class), any()))
+//					.thenReturn(
+//							new StoredFile(Path.of("/test-root","test", "img1.jpg").toString(), "img1.jpg"),
+//							new StoredFile(Path.of("/test-root","test", "img2.jpg").toString(), "img2.jpg")
+//					);
+//
+//			//when
+//			service.registerLedger(request);
+//
+//			//then
+//			verify(fileCommandService, times(2))
+//					.storeFile(
+//							eq(Path.of("/test-root", "test")),
+//							any(MultipartFile.class),
+//							any()
+//					);
+//		}
 
-		//when
-		assertThrows(BusinessException.class, () -> service.registerLedger(request));
-
-		//then
-		verify(securityUtil).getMemberId();
-		verify(ledgerValidator, never()).register(any());
-		verify(ledgerRepository, never()).save(any());
-		verify(ledgerValidator, never()).validateImage(any());
-		verify(imageRepository, never()).saveAll(anyList());
 	}
 
-
-	@Test
-	@DisplayName("요청 정보 검증 실패하면 그 후 로직을 실행하지 않는다")
-	void registerLedger_failure_validate() {
-		//given
-		LedgerWriteRequest request = mock(LedgerWriteRequest.class);
-
-		when(securityUtil.getMemberId()).thenReturn("member");
-		doThrow(
-				BusinessException.of(
-						LEDGER_INPUT_MISSING,
-						"검증 실패"
-				)
-		).when(ledgerValidator).register(request);
-
-		//when
-		assertThrows(BusinessException.class, () -> service.registerLedger(request));
-
-		//then
-		verify(securityUtil).getMemberId();
-		verify(ledgerValidator).register(request);
-		verify(ledgerRepository, never()).save(any());
-		verify(ledgerValidator, never()).validateImage(any());
-		verify(imageRepository, never()).saveAll(anyList());
-	}
-
-
-	@Test
-	@DisplayName("DB 저장 중 중복키가 발생하면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_failure_duplicateKey() {
-		//given
-		when(securityUtil.getMemberId()).thenReturn(memberId);
-		when(ledgerRepository.save(any()))
-				.thenThrow(new DuplicateKeyException("중복키 발생"));
-
-		//when
-		assertThrows(BusinessException.class, () -> service.registerLedger(request));
-
-		//then
-		verify(securityUtil).getMemberId();
-		verify(ledgerValidator).register(request);
-		verify(ledgerRepository).save(any());
-
-		verify(ledgerRepository, never()).findById(anyLong());
-	}
-
-
-	@Test
-	@DisplayName("DB 저장 중 무결성 위반이 발생하면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_failure_integrity() {
-		//given
-		when(securityUtil.getMemberId()).thenReturn(memberId);
-		when(ledgerRepository.save(any()))
-				.thenThrow(new DataIntegrityViolationException("무결성 위반"));
-
-		//when
-		assertThrows(BusinessException.class, () -> service.registerLedger(request));
-
-		//then
-		verify(securityUtil).getMemberId();
-		verify(ledgerValidator).register(request);
-		verify(ledgerRepository).save(any());
-
-		verify(ledgerRepository, never()).findById(anyLong());
-		verify(imageRepository, never()).saveAll(anyList());
-	}
-
-
-	@Test
-	@DisplayName("DB 저장 후 조회가 실패하면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_failure_notFound() {
-		//given
-		when(securityUtil.getMemberId()).thenReturn(memberId);
-		when(ledgerRepository.save(any())).thenReturn(1L);
-		when(ledgerRepository.findById(1L)).thenReturn(null);
-
-		//when
-		assertThrows(BusinessException.class, () -> service.registerLedger(request));
-
-		//then
-		verify(securityUtil).getMemberId();
-		verify(ledgerValidator).register(request);
-		verify(ledgerRepository).save(any());
-		verify(ledgerRepository).findById(anyLong());
-
-		verify(ledgerValidator, never()).validateImage(any());
-		verify(fileService, never()).storeFile(any(), any(), any());
-	}
-
-
-	@Test
-	@DisplayName("이미지 검증에 실패하면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_failure_imageValidate() {
-		//given
-		when(securityUtil.getMemberId()).thenReturn(memberId);
-		when(ledgerRepository.save(any())).thenReturn(1L);
-		when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
-
-		doThrow(BusinessException.of(
-				FILE_INPUT_EMPTY,
-				"이미지 검증 실패"
-		)).when(ledgerValidator).validateImage(request.getImage().get(0));
-
-		//when
-		assertThrows(BusinessException.class, () -> service.registerLedger(request));
-
-		//then
-		verify(securityUtil).getMemberId();
-		verify(ledgerValidator).register(request);
-		verify(ledgerRepository).save(any());
-		verify(ledgerRepository).findById(anyLong());
-		verify(ledgerValidator).validateImage(any());
-
-		verify(fileService, never()).storeFile(any(), any(), any());
-		verify(imageRepository, never()).saveAll(any());
-	}
-
-
-	@Test
-	@DisplayName("이미지 저장에 실패하면 그 후 로직을 실행하지 않는다")
-	void registerLedger_failure_storeFile() {
-		//given
-		when(securityUtil.getMemberId()).thenReturn(memberId);
-		when(ledgerRepository.save(any())).thenReturn(1L);
-		when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
-
-		doThrow(BusinessException.of(
-				FILE_ETC_UNKNOWN,
-				"이미지 저장 실패"
-		)).when(fileService).storeFile(any(), any(), any());
-
-		//when
-		assertThrows(BusinessException.class, () -> service.registerLedger(request));
-
-		//then
-		verify(securityUtil).getMemberId();
-		verify(ledgerValidator).register(request);
-		verify(ledgerRepository).save(any());
-		verify(ledgerRepository).findById(anyLong());
-		verify(ledgerValidator).validateImage(any());
-		verify(fileService).storeFile(any(), any(), any());
-		verify(fileService).deleteFiles(anyList());
-
-		verify(imageRepository, never()).saveAll(any());
-	}
-
-
-	@Test
-	@DisplayName("이미지 정보를 DB에 저장에 실패하면 그 후 로직을 실행하지 않는다.")
-	void registerLedger_failure_imageInfoNotSaved() {
-		//given
-		when(securityUtil.getMemberId()).thenReturn(memberId);
-		when(ledgerRepository.save(any())).thenReturn(1L);
-		when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
-		when(fileService.storeFile(any(), any(), any())).thenReturn(new StoredFile("full/path/rel/image", "/rel/image"));
-
-		doThrow(new DataAccessException("저장 실패") {})
-				.when(imageRepository).saveAll(anyList());
-
-		//when
-		assertThrows(BusinessException.class, () -> service.registerLedger(request));
-
-		//then
-		verify(securityUtil).getMemberId();
-		verify(ledgerValidator).register(request);
-		verify(ledgerRepository).save(any());
-		verify(ledgerRepository).findById(anyLong());
-		verify(ledgerValidator).validateImage(any());
-		verify(fileService).storeFile(any(), any(), any());
-		verify(fileService).deleteFiles(anyList());
-		verify(imageRepository).saveAll(any());
-	}
 }

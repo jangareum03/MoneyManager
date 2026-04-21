@@ -6,7 +6,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -46,15 +45,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class MemberReadServiceTest {
 
-	@InjectMocks	private MemberReadService service;
 
-	@Mock	private MemberRepository memberRepository;
+	@InjectMocks
+	private MemberReadService service;
 
-	//==================[ getImageLimit ]==================
+	@Mock
+	private MemberRepository memberRepository;
+
+
 	@ParameterizedTest(name = "[{index}] limit={0}")
 	@ValueSource(ints = {0, 1, 2, 3})
 	@DisplayName("회원이 등록 가능한 이미지 개수를 반환한다.")
-	void getImageLimit_success(int expected){
+	void returnsAvailableImageCount(int expected){
 		//given
 		String memberId = "UNn12001";
 
@@ -69,7 +71,7 @@ public class MemberReadServiceTest {
 
 	@Test
 	@DisplayName("등록 가능한 이미지 개수가 서비스 허용범위보다 크면 허용범위를 반환한다.")
-	void getImageLimit_success_outOfLimit(){
+	void returnsMaxLimit_whenImageCountExceedsLimit(){
 		//given
 		String memberId = "UNn12001";
 
@@ -84,7 +86,7 @@ public class MemberReadServiceTest {
 
 	@Test
 	@DisplayName("없는 회원이면 기본값인 0을 반환한다.")
-	void getImageLimit_success_noMember(){
+	void returnsZero_whenMemberDoesNotExist(){
 		//given
 		String memberId = "UNn12001";
 

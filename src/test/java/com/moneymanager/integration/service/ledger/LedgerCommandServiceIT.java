@@ -1,35 +1,38 @@
 package com.moneymanager.integration.service.ledger;
 
-import com.moneymanager.domain.global.dto.StoredFile;
+
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.domain.member.enums.MemberType;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.repository.ledger.LedgerRepository;
-import com.moneymanager.security.utils.SecurityUtil;
+import com.moneymanager.repository.member.MemberRepository;
+import com.moneymanager.security.support.WithMockCustomUser;
 import com.moneymanager.service.file.FileCommandService;
 import com.moneymanager.service.ledger.LedgerCommandService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import com.moneymanager.unit.fixture.LedgerRequestFixture;
+import com.moneymanager.unit.fixture.MemberFixture;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
-import static com.moneymanager.exception.error.ErrorCode.FILE_ETC_UNKNOWN;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 
 /**
  * <p>
@@ -59,185 +62,188 @@ import static org.mockito.Mockito.when;
  * </table>
  */
 @SpringBootTest
+@Transactional
 @ActiveProfiles("test")
+@Import(LedgerCommandServiceIT.TestClockConfig.class)
 public class LedgerCommandServiceIT {
 
-	@Autowired	private LedgerCommandService service;
+	@Autowired
+	private LedgerCommandService service;
 
-	@Autowired	private LedgerRepository ledgerRepository;
-	@Autowired	private LedgerImageRepository ledgerImageRepository;
+	@Autowired
+	private LedgerRepository ledgerRepository;
 
-	@MockBean	private SecurityUtil securityUtil;
-	@MockBean	private FileCommandService fileCommandService;
+	@Autowired
+	private LedgerImageRepository ledgerImageRepository;
+
+	@Autowired
+	private MemberRepository memberRepository;
+
+	@Autowired
+	private FileCommandService	fileCommandService;
+
+
+	@TestConfiguration
+	static class TestClockConfig {
+		@Bean
+		public Clock clock() {
+			LocalDate fixedDate = LocalDate.of(2026, 3, 20);
+
+			return Clock.fixed(
+					fixedDate.atStartOfDay().atZone(ZoneId.of("Asia/Seoul")).toInstant(),
+					ZoneId.of("Asia/Seoul")
+			);
+		}
+	}
+
 
 	@BeforeEach
 	void setUp() {
-		clearData();
-	}
+		memberRepository.deleteAll();
 
-	private void clearData() {
-		ledgerRepository.deleteAll();
-		ledgerImageRepository.deleteAll();
-	}
-
-	//==================[ registerLedger ]==================
-	@Test
-	@DisplayName("정상 요청이면 DB에 가계부 정보가 저장된다.")
-	void registerLedger_Success(){
-		//given
-		LedgerWriteRequest request = LedgerWriteRequest.builder()
-				.date("20260101")
-				.categoryCode("010101")
-				.amount(10000L)
-				.amountType("none")
+		Member member = MemberFixture.defaultMember()
+				.id("UCt01001")
+				.type(MemberType.NORMAL)
+				.name("김철수")
+				.birthDate("20001010")
+				.nickName("철수")
+				.email("cheolsu@test.com")
+				.memberInfo(MemberFixture.defaultMemberInfo())
 				.build();
 
-		when(securityUtil.getMemberId()).thenReturn("test");
-
-		//when
-		service.registerLedger(request);
-
-		//then
-		List<Ledger> ledgers = ledgerRepository.findAll();
-		Ledger ledger = ledgers.get(0);
-
-		assertThat("test").isEqualTo(ledger.getMemberId());
-		assertThat("20260101").isEqualTo(ledger.getDate());
-		assertThat("010101").isEqualTo(ledger.getCategory());
-		assertThat(10000L).isEqualTo(ledger.getAmount());
-		assertThat(AmountType.NONE).isSameAs(ledger.getAmountType());
+		memberRepository.save(member);
 	}
 
-	//이미지 포함 요청 시 Ledger + 이미지 저장
-	@Test
-	@DisplayName("이미지를 포함한 정상 요청이면 DB에 가계부 정보가 저장된다.")
-	void registerLedger_Success_withImageFile() throws IOException {
-		//given
-		ClassPathResource jpgResource = new ClassPathResource("files/test.jpg");
-		ClassPathResource pngResource = new ClassPathResource("files/test.png");
 
-		MockMultipartFile file1 = new MockMultipartFile(
-				"images",
-				"test.jpg",
-				"image/jpeg",
-				jpgResource.getInputStream()
-		);
+	@Nested
+	@DisplayName("가계부 등록")
+	class RegisterTest {
 
-		MockMultipartFile file2 = new MockMultipartFile(
-				"images",
-				"test.png",
-				"image/png",
-				pngResource.getInputStream()
-		);
+		@WithMockCustomUser
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
 
-		LedgerWriteRequest request = LedgerWriteRequest.builder()
-				.date("20260101")
-				.categoryCode("010101")
-				.amount(10000L)
-				.amountType("none")
-				.image(List.of(file1, file2))
-				.build();
+			@Test
+			@DisplayName("이미지가 없는 요청이면 가계부만 저장된다.")
+			void savesLedger_whenRequestHasNoImage() {
+				//given
+				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
 
-		when(securityUtil.getMemberId()).thenReturn("test");
-		when(fileCommandService.storeFile(any(), any(), any()))
-				.thenReturn(new StoredFile("D:\\project\\moneymanager\\src\\test\\resources", "\\2026\\03"));
+				//when
+				service.registerLedger(request);
 
-		//when
-		service.registerLedger(request);
+				//then
+				List<Ledger> ledgers = ledgerRepository.findAll();
+				assertThat(ledgers).hasSize(1);
 
-		//then
-		List<Ledger> ledgers = ledgerRepository.findAll();
-		List<LedgerImage> ledgerImages = ledgerImageRepository.findAll();
+				Ledger ledger = ledgers.get(0);
+				assertThat(ledger.getMemberId()).isEqualTo("UCt01001");
+				assertThat(ledger.getDate()).isEqualTo(LocalDate.of(2026,1,1));
+				assertThat(ledger.getCategory()).isEqualTo("010101");
+				assertThat(ledger.getAmount()).isEqualTo(10000L);
+			}
 
-		assertThat(1).isEqualTo(ledgers.size());
-		assertThat(2).isEqualTo(ledgerImages.size());
-	}
+			@Test
+			@DisplayName("이미지가 1개 있는 요청이면 가계부와 이미지 정보가 저장된다.")
+			void savesLedgerAndImage_whenRequestHasImage() throws IOException {
+				//given
+				LedgerWriteRequest request = LedgerRequestFixture.withImage().build();
 
-	@Test
-	@DisplayName("인증 사용자 memberId가 Ledger객체 내부 필드에 저장된다.")
-	void registerLedger_Success_MemberIdExits() {
-		//given
-		LedgerWriteRequest request = LedgerWriteRequest.builder()
-				.date("20260101")
-				.categoryCode("010101")
-				.amount(10000L)
-				.amountType("none")
-				.build();
+				//when
+				service.registerLedger(request);
 
-		when(securityUtil.getMemberId()).thenReturn("test");
+				//then
+				List<Ledger> ledgers = ledgerRepository.findAll();
+				assertThat(ledgers).hasSize(1);
+				Ledger ledger = ledgers.get(0);
 
-		//when
-		service.registerLedger(request);
+				List<LedgerImage> images = ledgerImageRepository.findAll();
+				assertThat(images).hasSize(1);
 
-		//then
-		Ledger saved = ledgerRepository.findAll().get(0);
-		assertThat("test").isEqualTo(saved.getMemberId());
-	}
+				LedgerImage image = images.get(0);
+				assertThat(image.getLedgerId()).isEqualTo(ledger.getId());
+				assertThat(image.getImagePath()).startsWith("/2026/03").endsWith(".jpg");
+				assertThat(image.getImagePath()).doesNotContain("test");
+				assertThat(image.getSortOrder()).isEqualTo(1);
+			}
 
-	@Test
-	@DisplayName("잘못된 요청으로 예외가 발생하면 가계부 정보가 저장되지 않는다.")
-	void registerLedger_Failure_Exception() {
-		//given
-		LedgerWriteRequest request = LedgerWriteRequest.builder()
-				.date("20260101")
-				.categoryCode("010101")
-				.amount(-1L)
-				.amountType("none")
-				.build();
+			@Test
+			@DisplayName("이미지가 여러개 있는 요청이면 가계부와 이미지 정보가 저장된다.")
+			void savesLedgerAndImage_whenRequestHasImages() throws IOException {
+				//given
+				LedgerWriteRequest request = LedgerRequestFixture.withImages().build();
 
-		when(securityUtil.getMemberId()).thenReturn("test");
+				//when
+				service.registerLedger(request);
 
-		//when
-		assertThrows(
-				BusinessException.class,
-				() -> service.registerLedger(request)
-		);
+				//then
+				//가계부 검증
+				List<Ledger> ledgers = ledgerRepository.findAll();
+				assertThat(ledgers).hasSize(1);
+				Ledger ledger = ledgers.get(0);
 
-		//then
-		assertThat(ledgerRepository.count()).isZero();
-		assertThat(ledgerImageRepository.count()).isZero();
-	}
+				//가계부 이미지 검증
+				List<LedgerImage> images = ledgerImageRepository.findAll();
+				assertThat(images).hasSize(2);
+				assertThat(images).allSatisfy(image -> {
+					assertThat(image.getLedgerId()).isEqualTo(ledger.getId());
+					assertThat(image.getImagePath()).startsWith("/2026/03");
+					assertThat(image.getImagePath()).doesNotContain("test");
+				});
 
-	@Test
-	@DisplayName("이미지 처리 실패하면 전체 롤백된다.")
-	void registerLedger_Failure_Rollback() throws IOException {
-		//given
-		ClassPathResource jpgResource = new ClassPathResource("files/test.jpg");
-		ClassPathResource pngResource = new ClassPathResource("files/test.png");
+				//이미지 순서 검증
+				LedgerImage firstImage = images.get(0);
+				assertThat(firstImage.getImagePath()).endsWith(".jpg");
+				assertThat(firstImage.getSortOrder()).isEqualTo(1);
 
-		MockMultipartFile file1 = new MockMultipartFile(
-				"images",
-				"test.jpg",
-				"image/jpeg",
-				jpgResource.getInputStream()
-		);
+				LedgerImage secondImage = images.get(1);
+				assertThat(secondImage.getImagePath()).endsWith(".png");
+				assertThat(secondImage.getSortOrder()).isEqualTo(2);
+			}
 
-		MockMultipartFile file2 = new MockMultipartFile(
-				"images",
-				"test.png",
-				"image/png",
-				pngResource.getInputStream()
-		);
+		}
 
-		LedgerWriteRequest request = LedgerWriteRequest.builder()
-				.date("20260101")
-				.categoryCode("010101")
-				.amount(10000L)
-				.amountType("none")
-				.image(List.of(file1, file2))
-				.build();
 
-		when(securityUtil.getMemberId()).thenReturn("test");
-		doThrow(
-				BusinessException.of(FILE_ETC_UNKNOWN, "이미지 저장 실패")
-		).when(fileCommandService).storeFile(any(), any(), any());
+		@WithMockCustomUser
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
 
-		//when
-		assertThrows(BusinessException.class, () -> service.registerLedger(request));
+			@WithMockCustomUser(memberId = "noMember")
+			@Test
+			@DisplayName("존재하지 않는 회원이면 예외가 발생한다.")
+			void throwsException_whenMemberDoesNotExist() {
+				//given
+				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
 
-		//then
-		assertThat(ledgerRepository.count()).isZero();
-		assertThat(ledgerImageRepository.count()).isZero();
+				//when & then
+				assertThatThrownBy(() -> service.registerLedger(request))
+						.isInstanceOf(BusinessException.class);
+
+				assertThat(ledgerRepository.findAll()).isEmpty();
+				assertThat(ledgerImageRepository.findAll()).isEmpty();
+			}
+
+			@Test
+			@DisplayName("잘못된 요청이면 예외가 발생한다..")
+			void throwsException_whenRequestIsInvalid() {
+				//given
+				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest()
+						.date("202601011")
+						.build();
+
+				//when & then
+				assertThatThrownBy(() -> service.registerLedger(request))
+						.isInstanceOf(BusinessException.class);
+
+				//then
+				assertThat(ledgerRepository.findAll()).isEmpty();
+				assertThat(ledgerImageRepository.findAll()).isEmpty();
+			}
+
+		}
+
 	}
 
 }

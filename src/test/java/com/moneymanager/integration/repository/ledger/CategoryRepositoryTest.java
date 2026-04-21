@@ -1,4 +1,4 @@
-package com.moneymanager.unit.repository.ledger;
+package com.moneymanager.integration.repository.ledger;
 
 import com.moneymanager.config.DatabaseConfig;
 import com.moneymanager.repository.ledger.CategoryRepository;
@@ -52,12 +52,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 public class CategoryRepositoryTest {
 
-	@Autowired	private CategoryRepository repository;
+	@Autowired
+	private CategoryRepository repository;
 
-	//==================[ findAllCategory ]==================
+
 	@Test
-	@DisplayName("모든 가계부 카테고리를 조회한다.")
-	void findAllCategory_success(){
+	@DisplayName("가계부 카테고리 목록을 조회한다.")
+	void returnsCategoryList(){
 		//when
 		List<Category> result = repository.findAllCategory();
 
@@ -83,4 +84,5 @@ public class CategoryRepositoryTest {
 		assertThat(result)
 				.anyMatch(c -> c.getParentCode() == null);
 	}
+
 }

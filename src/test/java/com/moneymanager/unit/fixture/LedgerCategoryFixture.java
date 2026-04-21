@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LedgerCategoryFixture {
+
 	public static List<Category> allCategories() {
 		List<Category> result = new ArrayList<>(topCategories());
 

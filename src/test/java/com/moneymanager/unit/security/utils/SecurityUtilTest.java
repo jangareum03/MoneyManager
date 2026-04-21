@@ -58,6 +58,7 @@ public class SecurityUtilTest {
 
 	private SecurityUtil securityUtil;
 
+
 	@BeforeEach
 	void setUp() {
 		securityUtil = new SecurityUtil();
@@ -68,23 +69,25 @@ public class SecurityUtilTest {
 		SecurityContextHolder.setContext(securityContext);
 	}
 
-	//==================[ getMemberId ]==================
+
 	@Test
 	@DisplayName("로그인 된 사용자의 회원번호를 가져올 수 있다.")
-	void getMemberId_success() {
+	void returnsMemberId_whenLoginSuccess() {
 		//given
-		when(userDetails.getId()).thenReturn("member123");
+		String memberId = "member123";
+
+		when(userDetails.getId()).thenReturn(memberId);
 
 		//when
 		String actual = securityUtil.getMemberId();
 
 		//then
-		assertThat(actual).isEqualTo("member123");
+		assertThat(actual).isEqualTo(memberId);
 	}
 
 	@Test
 	@DisplayName("로그인 된 사용자의 회원번호가 null이면 예외가 발생한다.")
-	void getMemberId_failure_memberIsNull() {
+	void throwsException_whenMemberIdIsNull() {
 		//given
 		when(userDetails.getId()).thenReturn(null);
 
@@ -99,8 +102,8 @@ public class SecurityUtilTest {
 	}
 
 	@Test
-	@DisplayName("비로그인은 인증된 주체가 null이여서 예외가 발생한다.")
-	void getMemberId_failure_customUserDetailsIsNull() {
+	@DisplayName("비로그인은 인증된 주체가 null이면 예외가 발생한다.")
+	void throwsException_whenCustomUserDetailsIsNull() {
 		//given
 		when(authentication.getPrincipal()).thenReturn(null);
 
@@ -113,4 +116,5 @@ public class SecurityUtilTest {
 				.hasUserMessage("다시 로그인")
 				.hasLogMessage("인증 실패", "principal");
 	}
+
 }

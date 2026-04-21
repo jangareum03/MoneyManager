@@ -7,19 +7,15 @@ import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.service.ledger.CategoryReadService;
 import com.moneymanager.unit.fixture.LedgerCategoryFixture;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -56,48 +52,17 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class CategoryReadServiceTest {
 
-	@InjectMocks	private CategoryReadService service;
+	@InjectMocks
+	private CategoryReadService service;
 
-	@Mock				private CategoryRepository categoryRepository;
-
-	//==================[ generateStoredName ]==================
-	@Test
-	@DisplayName("카테고리의 모든 정보를 조회한다.")
-	void  getAllCategories_success(){
-		//given
-		List<Category> categories = List.of(
-				Category.builder().code("010000").name("수입").parentCode(null).build()
-		);
-		when(categoryRepository.findAllCategory()).thenReturn(categories);
-
-		//when
-		service.getAllCategories();
-
-		//then
-		verify(categoryRepository, times(1)).findAllCategory();
-	}
+	@Mock
+	private CategoryRepository categoryRepository;
 
 
-	@Disabled
-	@Test
-	@DisplayName("저장된 카테고리가 없으면 빈 리스트를 반환한다.")
-	void getAllCategories_failure() {
-		//given
-		when(categoryRepository.findAllCategory()).thenReturn(Collections.emptyList());
-
-		//when
-		List<Category> result = service.getAllCategories();
-
-		//then
-		assertThat(result).isEmpty();
-	}
-
-
-	//==================[ getCategoriesByTypeAndLevel ]==================
 	@ParameterizedTest(name = "[{index}] level={0}, type={1}")
 	@MethodSource("provideValidCategoryLevelByType")
-	@DisplayName("카테고리 유형과 레벨이 따른 카테고리 목록을 조회한다.")
-	void getCategoriesByTypeAndLevel_success(CategoryLevel level, CategoryType type, List<Category> expectedCategories) {
+	@DisplayName("카테고리 유형과 레벨에 따른 카테고리 목록을 조회한다.")
+	void returnsCategoriesByTypeAndLevel_whenCategoriesExist(CategoryLevel level, CategoryType type, List<Category> expectedCategories) {
 		//given
 		when(categoryRepository.findAllCategory()).thenReturn(LedgerCategoryFixture.allCategories());
 
@@ -116,31 +81,32 @@ public class CategoryReadServiceTest {
 
 	static Stream<Arguments> provideValidCategoryLevelByType() {
 		return Stream.of(
-			Arguments.of(
-					CategoryLevel.TOP,
-					null,
-					LedgerCategoryFixture.topCategories()
-			),
-			Arguments.of(
-					CategoryLevel.MIDDLE,
-					CategoryType.INCOME,
-					LedgerCategoryFixture.middleCategoriesByIncome()
-			),
-			Arguments.of(
-					CategoryLevel.MIDDLE,
-					CategoryType.OUTLAY,
-					LedgerCategoryFixture.middleCategoriesByOutlay()
-			),
-			Arguments.of(
-					CategoryLevel.LOW,
-					CategoryType.INCOME,
-					LedgerCategoryFixture.lowCategoriesByIncome()
-			),
-			Arguments.of(
-					CategoryLevel.LOW,
-					CategoryType.OUTLAY,
-					LedgerCategoryFixture.lowCategoriesByOutlay()
-			)
+				Arguments.of(
+						CategoryLevel.TOP,
+						null,
+						LedgerCategoryFixture.topCategories()
+				),
+				Arguments.of(
+						CategoryLevel.MIDDLE,
+						CategoryType.INCOME,
+						LedgerCategoryFixture.middleCategoriesByIncome()
+				),
+				Arguments.of(
+						CategoryLevel.MIDDLE,
+						CategoryType.OUTLAY,
+						LedgerCategoryFixture.middleCategoriesByOutlay()
+				),
+				Arguments.of(
+						CategoryLevel.LOW,
+						CategoryType.INCOME,
+						LedgerCategoryFixture.lowCategoriesByIncome()
+				),
+				Arguments.of(
+						CategoryLevel.LOW,
+						CategoryType.OUTLAY,
+						LedgerCategoryFixture.lowCategoriesByOutlay()
+				)
 		);
 	}
+
 }

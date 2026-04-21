@@ -1,4 +1,4 @@
-package com.moneymanager.unit.repository.member;
+package com.moneymanager.integration.repository.member;
 
 import com.moneymanager.config.DatabaseConfig;
 import com.moneymanager.repository.member.MemberRepository;
@@ -50,12 +50,13 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 })
 public class MemberRepositoryTest {
 
-	@Autowired	private MemberRepository repository;
+	@Autowired
+	private MemberRepository repository;
 
-	//==================[ findImageLimitByMemberId ]==================
+
 	@Test
-	@DisplayName("회원이 등록 가능한 이미개 수를 조회한다.")
-	void findImageLimitByMemberId_existingMemberId_returnImageLimit(){
+	@DisplayName("회원ID가 존재하면 회원별 이미지 등록 가능한 개수가 반환된다.")
+	void returnsImageCount_whenMemberId(){
 		//given
 		String memberId = "test";
 
@@ -67,13 +68,14 @@ public class MemberRepositoryTest {
 	}
 
 	@Test
-	@DisplayName("존재하지 않은 회원번호는 EmptyResultDataAccessException이 발생한다.")
-	void findImageLimitByMemberId_nonExistingMemberId_throwException(){
+	@DisplayName("회원ID가 존재하지 않으면 예외가 발생한다.")
+	void throwsException_whenMemberIdDoesNotExist(){
 		//given
-		String memberId = "no";
+		String memberId = "noMember";
 
 		//when & then
 		assertThatExceptionOfType(EmptyResultDataAccessException.class)
 				.isThrownBy(() -> repository.findImageLimitByMemberId(memberId));
 	}
+
 }
