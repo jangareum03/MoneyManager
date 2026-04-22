@@ -217,10 +217,10 @@ public class LedgerRepository {
 	}
 
 
-	public Integer count() {
+	public Long count() {
 		String sql = "SELECT COUNT(*) FROM ledger";
 
-		return jdbcTemplate.queryForObject(sql, Integer.class);
+		return jdbcTemplate.queryForObject(sql, Long.class);
 	}
 
 

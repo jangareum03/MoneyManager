@@ -17,6 +17,7 @@ import com.moneymanager.utils.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -65,6 +66,8 @@ public class LedgerReadService {
 	private final LedgerRepository ledgerRepository;
 	private final LedgerHistoryPolicy ledgerHistoryPolicy;
 
+	private final Clock clock;
+
 
 
 	/**
@@ -85,7 +88,7 @@ public class LedgerReadService {
 	 * @return	가계부 작성 1단계에 필요한 초기 데이터를 담은 {@link LedgerWriteStep1Response} 객체
 	 */
 	public LedgerWriteStep1Response getWriteStep1Data() {
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.now(clock);
 		int pastYear = today.minusYears(Policy.LEDGER_MAX_YEAR).getYear();
 
 		//연도, 월, 일 리스트 구하기
@@ -182,10 +185,19 @@ public class LedgerReadService {
 				));
 	}
 
-
+	//내역에서 카테고리별 금액 합계 구하기
 	private LedgerStatistics calculateStatistics(List<LedgerHistoryQuery> histories) {
-		//TODO: 구현 예정
-		return null;
+		Map<CategoryType, Long> sumByCategory = histories.stream()
+				.filter(h -> h.getCategoryCode() != null)
+				.collect(Collectors.groupingBy(
+						h -> CategoryType.fromCategoryCode(h.getCategoryCode()),
+						Collectors.summingLong(LedgerHistoryQuery::getAmount)
+				));
+
+		Long income = sumByCategory.getOrDefault(CategoryType.INCOME, 0L);
+		Long outlay = sumByCategory.getOrDefault(CategoryType.OUTLAY, 0L);
+
+		return LedgerStatistics.of(income, outlay);
 	}
 
 

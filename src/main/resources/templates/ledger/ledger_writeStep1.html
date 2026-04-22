@@ -35,7 +35,7 @@
                     <label class="write__date-label">
                         <select class="write__select" name="month">
                             <option disabled>월</option>
-                            <option th:each="month : ${ledger.month}" th:value="${month}" th:selected="${month} == ${ledger.currentMonth}">
+                            <option th:each="month : ${ledger.months}" th:value="${month}" th:selected="${month} == ${ledger.currentMonth}">
                                 [[${month}]]월
                             </option>
                         </select>

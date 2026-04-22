@@ -1,5 +1,7 @@
 package com.moneymanager.domain.ledger.dto.response;
 
+import lombok.Getter;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.dto.response<br>
@@ -27,5 +29,19 @@ package com.moneymanager.domain.ledger.dto.response;
  * 		</tbody>
  * </table>
  */
+@Getter
 public class LedgerStatistics {
+	private final Long total;			//수입+지출 합계
+	private final Long income;		//수입 합계
+	private final Long outlay;			//지출 합계
+
+	private LedgerStatistics(Long income, Long outlay) {
+		this.income = income;
+		this.outlay = outlay;
+		this.total = income + outlay;
+	}
+
+	public static LedgerStatistics of(Long income, Long outlay) {
+		return new LedgerStatistics(income, outlay);
+	}
 }

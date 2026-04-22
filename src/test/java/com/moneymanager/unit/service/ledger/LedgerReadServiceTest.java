@@ -5,6 +5,8 @@ import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
 import com.moneymanager.domain.ledger.dto.response.*;
+import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
@@ -14,6 +16,8 @@ import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.ledger.CategoryReadService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.member.MemberReadService;
+import com.moneymanager.unit.fixture.LedgerCategoryFixture;
+import com.moneymanager.unit.fixture.LedgerFixture;
 import com.moneymanager.utils.date.DateTimeUtils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,11 +27,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
 
+import static com.moneymanager.domain.ledger.enums.CategoryType.INCOME;
+import static com.moneymanager.domain.ledger.enums.CategoryType.OUTLAY;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -194,7 +198,7 @@ public class LedgerReadServiceTest {
 		@DisplayName("수입 유형이면 수입용 작성 2단계 응답을 반환한다.")
 		void createsIncomeResponse_whenCategoryTypeIsIncome() {
 			//given
-			CategoryType type = CategoryType.INCOME;
+			CategoryType type = INCOME;
 			LocalDate date = LocalDate.of(2026, 3, 7);
 
 			List<CategoryResponse> categories = List.of(
@@ -259,7 +263,7 @@ public class LedgerReadServiceTest {
 		@DisplayName("카테고리 목록이 없어도 응답을 반환한다.")
 		void createsResponse_whenCategoriesDoesNotExist() {
 			//given
-			CategoryType type = CategoryType.INCOME;
+			CategoryType type = INCOME;
 			LocalDate date = LocalDate.of(2026, 3, 7);
 
 			List<CategoryResponse> categories = Collections.emptyList();
@@ -281,7 +285,7 @@ public class LedgerReadServiceTest {
 		@DisplayName("중간 레벨 카테고리를 조회한다.")
 		void getsMiddleLevelCategories() {
 			//given
-			CategoryType type = CategoryType.INCOME;
+			CategoryType type = INCOME;
 			LocalDate date = LocalDate.of(2026, 1, 1);
 
 			//when
@@ -295,7 +299,6 @@ public class LedgerReadServiceTest {
 		@DisplayName("화면 표시용 제목은 지정된 포맷으로 날짜를 변환한다.")
 		void createsTitle_whenDateIsGiven() {
 			//given
-			CategoryType type = CategoryType.INCOME;
 			LocalDate date = LocalDate.of(2026,1, 1);
 
 			List<CategoryResponse> categories = List.of(
@@ -303,7 +306,7 @@ public class LedgerReadServiceTest {
 			);
 
 			//when
-			LedgerWriteStep2Response result = service.getWriteStep2Data(type, date);
+			LedgerWriteStep2Response result = service.getWriteStep2Data(INCOME, date);
 
 			//then
 			String expectedTitle = DateTimeUtils.formatDate(date, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
@@ -331,15 +334,19 @@ public class LedgerReadServiceTest {
 			void groupsHistoriesExcludingNullDate_whenDateIsNull() {
 				//given
 				HistoryType type = HistoryType.YEAR;
-				DateRange dateRange = range(2026, 1, 1, 2026, 1, 31);
-
-				LedgerHistoryQuery h1 = mock(LedgerHistoryQuery.class);
-				when(h1.getDate()).thenReturn(null);
 
 				LocalDate date = LocalDate.of(2026, 1, 1);
-				LedgerHistoryQuery h2 = history(date);
+				DateRange dateRange = new DateRange(date, date.with(TemporalAdjusters.lastDayOfMonth()));
 
-				stubHistoryDashboard(type, dateRange, List.of(h1, h2));
+				List<LedgerHistoryQuery> histories = List.of(
+						createHistory(null, INCOME, 1000),
+						createHistory(date, OUTLAY, 2000)
+				);
+
+				when(securityUtil.getMemberId()).thenReturn("member");
+				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년 01월");
 
 				//when
 				HistoryDashboardResponse result = service.getHistoryDashboard(type);
@@ -355,57 +362,70 @@ public class LedgerReadServiceTest {
 				verifyHistoryDashboard(type, dateRange);
 			}
 
-
 			@Test
 			@DisplayName("같은 날짜의 내역은 하나의 그룹으로 묶인다.")
 			void groupsHistories_whenDatesAreSame() {
 				//given
 				HistoryType type = HistoryType.WEEK;
-				DateRange dateRange = range(2026, 1, 1, 2026, 1, 7);
 
-				LocalDate today = LocalDate.of(2026, 1, 2);
-				LocalDate yesterday = today.minusDays(1);
+				LocalDate date = LocalDate.of(2026, 1, 1);
+				DateRange dateRange = new DateRange(date, date.plusDays(7));
 
-				LedgerHistoryQuery h1 = history(today);
-				LedgerHistoryQuery h2 = history(yesterday);
-				LedgerHistoryQuery h3 = history(yesterday);
+				List<LedgerHistoryQuery> histories = List.of(
+						createHistory(date, INCOME, 1000),
+						createHistory(date, OUTLAY, 2000),
+						createHistory(date.plusDays(1), OUTLAY, 2500)
+				);
 
-				stubHistoryDashboard(type, dateRange, List.of(h1, h2, h3));
+				when(securityUtil.getMemberId()).thenReturn("member");
+				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년 01월 1주");
 
 				//when
 				Map<String, List<HistoryItem>> result = service.getHistoryDashboard(type).getHistoryGroups();
 
 				//then
+				String dateKey = DateTimeUtils.formatDate(date, DATE_FORMAT);
+				String nextDateKey = DateTimeUtils.formatDate(date.plusDays(1), DATE_FORMAT);
+
 				assertThat(result).hasSize(2);
 
-				assertThat(result.get(DateTimeUtils.formatDate(yesterday, DATE_FORMAT))).hasSize(2);
-				assertThat(result.get(DateTimeUtils.formatDate(today, DATE_FORMAT))).hasSize(1);
+				assertThat(result.get(dateKey)).hasSize(2);
+				assertThat(result.get(nextDateKey)).hasSize(1);
 
 				verifyHistoryDashboard(type, dateRange);
 			}
-
 
 			@Test
 			@DisplayName("내역은 거래일자 최신순부터 정렬된다.")
 			void ordersHistoriesByByDateDesc() {
 				//given
 				HistoryType type = HistoryType.YEAR;
-				DateRange dateRange = range(2026, 1, 1, 2026, 12, 31);
 
-				LocalDate today = LocalDate.of(2026, 1, 2);
-				LocalDate yesterday = today.minusDays(1);
+				LocalDate date = LocalDate.of(2026, 1, 1);
+				DateRange dateRange = new DateRange(date, date.with(TemporalAdjusters.lastDayOfYear()));
 
-				LedgerHistoryQuery h1 = history(yesterday);
-				LedgerHistoryQuery h2 = history(today);
+				List<LedgerHistoryQuery> histories = List.of(
+						createHistory(date, INCOME, 1000),
+						createHistory(date, OUTLAY, 2000),
+						createHistory(date.plusDays(1), OUTLAY, 2500)
+				);
 
-				stubHistoryDashboard(type, dateRange, List.of(h1, h2));
+				when(securityUtil.getMemberId()).thenReturn("member");
+				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
 
 				//when
 				Map<String, List<HistoryItem>> groups = service.getHistoryDashboard(type).getHistoryGroups();
 				List<String> result = new LinkedList<>(groups.keySet());
 
 				//then
-				assertThat(result).containsExactly(DateTimeUtils.formatDate(today, DATE_FORMAT), DateTimeUtils.formatDate(yesterday, DATE_FORMAT));
+				assertThat(result).containsExactly(
+						DateTimeUtils.formatDate(date.plusDays(1), DATE_FORMAT),
+						DateTimeUtils.formatDate(date, DATE_FORMAT)
+				);
 
 				verifyHistoryDashboard(type, dateRange);
 			}
@@ -416,33 +436,95 @@ public class LedgerReadServiceTest {
 				verify(ledgerHistoryPolicy).validate(dateRange);
 				verify(ledgerRepository).findHistoriesByMemberAndDateBetween(MEMBER_ID, dateRange.getFrom(), dateRange.getTo());
 			}
+
 		}
 
-		private DateRange range(int fromYear, int fromMonth, int fromDay, int toYear, int toMonth, int toDay) {
-			return new DateRange(
-					LocalDate.of(fromYear, fromMonth, fromDay),
-					LocalDate.of(toYear, toMonth, toDay)
-			);
+
+		@Nested
+		@DisplayName("카테고리별 금액 계산")
+		class AmountCalculateTest {
+
+			@Test
+			@DisplayName("수입과 지출별 금액 합계를 계산한다.")
+			void calculatesTotal_whenDatesExist() {
+				//given
+				HistoryType type = HistoryType.YEAR;
+
+				LocalDate date = LocalDate.of(2026, 1, 1);
+				DateRange dateRange = new DateRange(date, date.with(TemporalAdjusters.lastDayOfYear()));
+
+				List<LedgerHistoryQuery> histories = List.of(
+						createHistory(date, INCOME, 1000),
+						createHistory(date, OUTLAY, 2000),
+						createHistory(date.plusDays(1), OUTLAY, 2500)
+				);
+
+				when(securityUtil.getMemberId()).thenReturn("member");
+				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
+
+				//when
+				LedgerStatistics result = service.getHistoryDashboard(type).getStatistics();
+
+				//then
+				assertThat(result).isNotNull();
+
+				assertThat(result.getTotal()).isEqualTo(5500);
+				assertThat(result.getIncome()).isEqualTo(1000);
+				assertThat(result.getOutlay()).isEqualTo(4500);
+			}
+
+			@Test
+			@DisplayName("수입 또는 지출이 내역에 없으면 합계는 0으로 계산된다.")
+			void calculatesTotal_whenIncomeOrOutlayDoesNotExist() {
+				//given
+				HistoryType type = HistoryType.YEAR;
+
+				LocalDate date = LocalDate.of(2026, 1, 1);
+				DateRange dateRange = new DateRange(date, date.with(TemporalAdjusters.lastDayOfYear()));
+
+				List<LedgerHistoryQuery> histories = List.of(
+						createHistory(date, OUTLAY, 2000),
+						createHistory(date.plusDays(1), OUTLAY, 2500)
+				);
+
+				when(securityUtil.getMemberId()).thenReturn("member");
+				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
+
+				//when
+				LedgerStatistics result = service.getHistoryDashboard(type).getStatistics();
+
+				//then
+				assertThat(result).isNotNull();
+
+				assertThat(result.getTotal()).isEqualTo(4500);
+				assertThat(result.getIncome()).isEqualTo(0);
+				assertThat(result.getOutlay()).isEqualTo(4500);
+			}
+
 		}
 
-		private LedgerHistoryQuery history(LocalDate localDate) {
-			LedgerHistoryQuery history = mock(LedgerHistoryQuery.class);
+		private LedgerHistoryQuery createHistory(LocalDate date, CategoryType type, int amount) {
+			Ledger ledger = createLedger(date, amount);
+			Category category = createCategory(type);
 
-			when(history.getDate()).thenReturn(localDate);
-			when(history.getCategoryCode()).thenReturn(CATEGORY);
-
-			return history;
+			return new LedgerHistoryQuery(ledger, category);
 		}
 
-		private void stubHistoryDashboard(HistoryType type, DateRange dateRange, List<LedgerHistoryQuery> historyQueries) {
-			when(securityUtil.getMemberId()).thenReturn(MEMBER_ID);
+		private Ledger createLedger(LocalDate date, int amount) {
+			return LedgerFixture.defaultLedger()
+					.date(date)
+					.amount((long) amount)
+					.build();
+		}
 
-			when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
-			doNothing().when(ledgerHistoryPolicy).validate(dateRange);
-			when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn(TITLE);
-
-			when(ledgerRepository.findHistoriesByMemberAndDateBetween(MEMBER_ID, dateRange.getFrom(), dateRange.getTo()))
-					.thenReturn(historyQueries);
+		private Category createCategory(CategoryType type) {
+			return (type == INCOME)
+					? LedgerCategoryFixture.lowCategoriesByIncome().get(0)
+					: LedgerCategoryFixture.lowCategoriesByOutlay().get(0);
 		}
 
 	}
