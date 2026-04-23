@@ -40,18 +40,18 @@ import java.util.stream.Collectors;
 @Getter
 public class HistoryDashboardResponse {
 	private final String title;
-	private final HistoryMenu menu;
+	private final List<MenuItem> menu;
 	private final LedgerStatistics statistics;
 	private final Map<String, List<HistoryItem>> historyGroups;
 
-	private HistoryDashboardResponse(String title, HistoryMenu menu, LedgerStatistics statistics, Map<String, List<HistoryItem>> historyGroups) {
+	private HistoryDashboardResponse(String title, List<MenuItem> menus, LedgerStatistics statistics, Map<String, List<HistoryItem>> historyGroups) {
 		this.title = title;
-		this.menu = menu;
+		this.menu = menus;
 		this.statistics = statistics;
 		this.historyGroups = historyGroups;
 	}
 
-	public static HistoryDashboardResponse of(String title, HistoryMenu menu, LedgerStatistics statistics, Map<LocalDate, List<HistoryItem>> historyGroups) {
+	public static HistoryDashboardResponse of(String title, List<MenuItem> menus, LedgerStatistics statistics, Map<LocalDate, List<HistoryItem>> historyGroups) {
 		Map<String, List<HistoryItem>> formattedGroups = historyGroups.entrySet().stream()
 				.collect(Collectors.toMap(
 						entry -> DateTimeUtils.formatDate(entry.getKey(), DatePatterns.DATE_DOT_WITH_DAY.getPattern()),
@@ -60,6 +60,6 @@ public class HistoryDashboardResponse {
 						LinkedHashMap::new
 				));
 
-		return new HistoryDashboardResponse(title, menu, statistics, formattedGroups);
+		return new HistoryDashboardResponse(title, menus, statistics, formattedGroups);
 	}
 }

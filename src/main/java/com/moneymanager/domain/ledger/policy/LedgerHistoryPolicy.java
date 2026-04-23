@@ -6,8 +6,10 @@ import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.exception.error.ErrorCode;
 import com.moneymanager.utils.date.DateTimeUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 
@@ -43,7 +45,10 @@ import static com.moneymanager.utils.date.DateTimeUtils.isDateInRange;
  * </table>
  */
 @Component
+@RequiredArgsConstructor
 public class LedgerHistoryPolicy {
+
+	private final Clock clock;
 
 	public DateRange calculateDateRange(HistoryType historyType, LocalDate date) {
 		if(historyType == null) {
@@ -108,10 +113,17 @@ public class LedgerHistoryPolicy {
 	 * @throws BusinessException	조회 기간이 허용 범위를 초과한 경우 발생
 	 */
 	public void validate(DateRange dateRange) {
-		LocalDate now = LocalDate.now();
+		LocalDate now = LocalDate.now(clock);
 		LocalDate fiveYearsAgo = now.minusYears(Policy.LEDGER_MAX_YEAR);
 
-		if( !(isDateInRange(dateRange.getFrom(), fiveYearsAgo, now) && isDateInRange(dateRange.getTo(), fiveYearsAgo, now)) ) {
+		LocalDate from = dateRange.getFrom();
+		LocalDate to = dateRange.getTo();
+
+		if(to.isAfter(now)) {
+			to = now;
+		}
+
+		if( !(isDateInRange(from, fiveYearsAgo, now) && isDateInRange(to, fiveYearsAgo, now)) ) {
 			throw BusinessException.of(
 					ErrorCode.LEDGER_HISTORY_POLICY_VIOLATION,
 					"가계부 내역은 최근 5년 이내만 가능합니다.",
@@ -131,7 +143,7 @@ public class LedgerHistoryPolicy {
 	 * @return	기간 유형에 맞는 제목 문자열
 	 */
 	public String getTitleByHistoryType(HistoryType historyType) {
-		return getTitleByHistoryType(LocalDate.now(), historyType);
+		return getTitleByHistoryType(LocalDate.now(clock), historyType);
 	}
 
 

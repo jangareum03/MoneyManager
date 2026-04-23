@@ -442,7 +442,7 @@ public class LedgerReadServiceTest {
 
 		@Nested
 		@DisplayName("카테고리별 금액 계산")
-		class AmountCalculateTest {
+		class AmountCalculate {
 
 			@Test
 			@DisplayName("수입과 지출별 금액 합계를 계산한다.")
@@ -507,6 +507,44 @@ public class LedgerReadServiceTest {
 
 		}
 
+		@Nested
+		@DisplayName("메뉴 생성")
+		class MenuCreate {
+
+			@Test
+			@DisplayName("가계부 내역을 조회할 수 있는 메뉴를 생성한다.")
+			void returnsMenu_whenLedgerHistories() {
+				//given
+				HistoryType type = HistoryType.YEAR;
+
+				LocalDate date = LocalDate.of(2026, 1, 1);
+				DateRange dateRange = new DateRange(date, date.with(TemporalAdjusters.lastDayOfYear()));
+
+				List<LedgerHistoryQuery> histories = List.of(
+						createHistory(date, OUTLAY, 2000),
+						createHistory(date.plusDays(1), OUTLAY, 2500)
+				);
+
+				when(securityUtil.getMemberId()).thenReturn("member");
+				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
+
+				//when
+				List<MenuItem> result = service.getHistoryDashboard(type).getMenu();
+
+				//then
+				assertThat(result).hasSize(5);
+
+				assertThat(result.get(0).getLabel()).isEqualTo("전체");
+				assertThat(result.get(1).getLabel()).isEqualTo("수입/지출");
+				assertThat(result.get(2).getLabel()).isEqualTo("카테고리");
+				assertThat(result.get(3).getLabel()).isEqualTo("메모");
+				assertThat(result.get(4).getLabel()).isEqualTo("기간");
+			}
+
+		}
+
 		private LedgerHistoryQuery createHistory(LocalDate date, CategoryType type, int amount) {
 			Ledger ledger = createLedger(date, amount);
 			Category category = createCategory(type);
@@ -532,7 +570,7 @@ public class LedgerReadServiceTest {
 
 	@Nested
 	@DisplayName("이미지 슬롯 생성")
-	class ImageSlotCreate {
+	class ImageSlotCreateTest {
 
 		@Test
 		@DisplayName("기본적으로 1개의 슬롯만 true다.")

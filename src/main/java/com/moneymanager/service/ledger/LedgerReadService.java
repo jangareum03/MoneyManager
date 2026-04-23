@@ -7,6 +7,7 @@ import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
 import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.CategoryType;
+import com.moneymanager.domain.ledger.enums.HistoryMenuType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
 import com.moneymanager.repository.ledger.LedgerRepository;
@@ -146,7 +147,7 @@ public class LedgerReadService {
 		String memberId = securityUtil.getMemberId();
 
 		// 2. 기간 생성 후 검증
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.now(clock);
 		DateRange dateRange = ledgerHistoryPolicy.calculateDateRange(historyType, today);
 
 		ledgerHistoryPolicy.validate(dateRange);
@@ -164,7 +165,7 @@ public class LedgerReadService {
 		String title = ledgerHistoryPolicy.getTitleByHistoryType(historyType);
 
 		// 7. 검색 메뉴 생성
-		HistoryMenu menu = createMenu();
+		List<MenuItem> menu = createMenu();
 
 		// 8. 응답 생성
 		return HistoryDashboardResponse.of(title, menu, statistics, listGroups);
@@ -200,10 +201,15 @@ public class LedgerReadService {
 		return LedgerStatistics.of(income, outlay);
 	}
 
-
-	private HistoryMenu createMenu() {
-		//TODO: 구현 예정
-		return null;
+	//내역 메뉴 생성
+	private List<MenuItem> createMenu() {
+		return List.of(
+			new MenuItem("전체", HistoryMenuType.ALL.name()),
+			new MenuItem("수입/지출", HistoryMenuType.CATEGORY.name()),
+			new MenuItem("카테고리", HistoryMenuType.SUB_CATEGORY.name()),
+			new MenuItem("메모", HistoryMenuType.MEMO.name()),
+			new MenuItem("기간", HistoryMenuType.DATE.name())
+		);
 	}
 
 

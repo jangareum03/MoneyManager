@@ -6,13 +6,16 @@ import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
@@ -48,9 +51,23 @@ import static org.assertj.core.api.Assertions.*;
  */
 public class LedgerHistoryPolicyTest {
 
-	private final LedgerHistoryPolicy ledgerHistoryPolicy = new LedgerHistoryPolicy();
+	private LedgerHistoryPolicy ledgerHistoryPolicy;
 
 	private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DatePatterns.DATE.getPattern());
+
+
+	@BeforeEach
+	void setUp() {
+		Clock clock = Clock.fixed(
+				LocalDate.of(2026, 3, 10)
+						.atStartOfDay()
+						.atZone(ZoneId.of("Asia/Seoul"))
+						.toInstant(),
+				ZoneId.of("Asia/Seoul")
+		);
+
+		ledgerHistoryPolicy = new LedgerHistoryPolicy(clock);
+	}
 
 
 	@Nested

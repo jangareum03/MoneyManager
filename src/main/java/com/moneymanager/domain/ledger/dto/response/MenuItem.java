@@ -1,12 +1,14 @@
 package com.moneymanager.domain.ledger.dto.response;
 
+import lombok.Getter;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.dto.response<br>
- * 파일이름       : HistoryMenu<br>
+ * 파일이름       : MenuItem<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 4. 5<br>
- * 설명              : 가계부 내역에서 조건부 검색하기 위핸 검색 메뉴 정보를 담은 객체
+ * 설명              : 가계부 내역에서 조건부 검색하기 위한 검색 메뉴 정보를 담은 객체
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -27,5 +29,13 @@ package com.moneymanager.domain.ledger.dto.response;
  * 		</tbody>
  * </table>
  */
-public class HistoryMenu {
+@Getter
+public class MenuItem {
+	private final String label;
+	private final String value;
+
+	public MenuItem(String label, String value) {
+		this.label = label;
+		this.value = value;
+	}
 }

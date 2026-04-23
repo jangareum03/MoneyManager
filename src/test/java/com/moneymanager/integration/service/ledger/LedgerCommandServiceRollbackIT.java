@@ -22,17 +22,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.ZoneId;
 
 import static com.moneymanager.exception.error.ErrorCode.FILE_ETC_RESOURCE_ERROR;
 import static com.moneymanager.exception.error.ErrorCode.LEDGER_ETC_DB_ERROR;
@@ -87,20 +82,6 @@ public class LedgerCommandServiceRollbackIT {
 
 	@MockBean
 	private FileCommandService fileCommandService;
-
-
-	@TestConfiguration
-	static class TestClockConfig {
-		@Bean
-		public Clock clock() {
-			LocalDate fixedDate = LocalDate.of(2026, 3, 20);
-
-			return Clock.fixed(
-					fixedDate.atStartOfDay().atZone(ZoneId.of("Asia/Seoul")).toInstant(),
-					ZoneId.of("Asia/Seoul")
-			);
-		}
-	}
 
 
 	@BeforeEach

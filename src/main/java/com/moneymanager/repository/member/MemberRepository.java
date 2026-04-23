@@ -2,7 +2,6 @@ package com.moneymanager.repository.member;
 
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.member.MemberInfo;
-import com.moneymanager.domain.member.enums.MemberGender;
 import com.moneymanager.exception.BusinessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -45,7 +44,6 @@ public class MemberRepository {
 
 	private final JdbcTemplate jdbcTemplate;
 
-
 	public MemberRepository(DataSource dataSource) {
 		 jdbcTemplate = new JdbcTemplate(dataSource);
 	}
@@ -53,7 +51,9 @@ public class MemberRepository {
 
 	@Transactional
 	public String save(Member member) {
-		if(member.getCreatedAt() == null) {
+		boolean isExists = existsId(member.getId());
+
+		if(!isExists) {
 			return insert(member);
 		}else {
 			update(member);
@@ -145,6 +145,17 @@ public class MemberRepository {
 	}
 
 
+	private boolean existsId(String memberId) {
+		String query = """
+				SELECT COUNT(*) FROM member WHERE id = ?
+				""";
+
+		Integer count = jdbcTemplate.queryForObject(query, Integer.class,	memberId);
+
+		return count > 0;
+	}
+
+
 	/**
 	 * 회원의 등록 가능한 이미지 개수를 조회합니다.
 	 * <p>
@@ -166,4 +177,11 @@ public class MemberRepository {
 		);
 	}
 
+	public void deleteAll() {
+		String query = """
+				DELETE FROM member
+				""";
+
+		jdbcTemplate.update(query);
+	}
 }
