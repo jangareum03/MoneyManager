@@ -1,7 +1,6 @@
 package com.moneymanager.repository.ledger;
 
 import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
-import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
@@ -84,6 +83,15 @@ public class LedgerRepository {
 				.updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
 				.build();
 	};
+
+	private final RowMapper<LedgerHistoryQuery> ledgerHistoryQueryRowMapper = (rs, rowNum) -> new LedgerHistoryQuery(
+			rs.getString("code"),
+			rs.getDate("transaction_date").toLocalDate(),
+			rs.getLong("amount"),
+			rs.getString("memo"),
+			rs.getString("category_code"),
+			rs.getString("category_name")
+	);
 
 
 	/**
@@ -193,23 +201,7 @@ public class LedgerRepository {
 
 		return jdbcTemplate.query(
 				sql,
-
-				(rs, rowNum) -> {
-					Ledger ledger = Ledger.builder()
-							.code(rs.getString("code"))
-							.date(rs.getDate("transaction_date").toLocalDate())
-							.amount(rs.getLong("amount"))
-							.memo(rs.getString("memo"))
-							.build();
-
-					Category category = Category.builder()
-							.code(rs.getString("category_code"))
-							.name(rs.getString("category_name"))
-							.build();
-
-					return new LedgerHistoryQuery(ledger, category);
-				},
-
+				ledgerHistoryQueryRowMapper,
 				memberId,
 				Date.valueOf(startDate),
 				Date.valueOf(endDate.plusDays(1))

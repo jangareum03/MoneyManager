@@ -549,7 +549,7 @@ public class LedgerReadServiceTest {
 			Ledger ledger = createLedger(date, amount);
 			Category category = createCategory(type);
 
-			return new LedgerHistoryQuery(ledger, category);
+			return new LedgerHistoryQuery(ledger.getCode(), ledger.getDate(), ledger.getAmount(), ledger.getMemo(), category.getName(), category.getCode());
 		}
 
 		private Ledger createLedger(LocalDate date, int amount) {

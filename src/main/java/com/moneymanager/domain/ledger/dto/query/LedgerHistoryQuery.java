@@ -1,7 +1,6 @@
 package com.moneymanager.domain.ledger.dto.query;
 
-import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.domain.ledger.entity.Ledger;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -34,6 +33,7 @@ import java.time.LocalDate;
  * </table>
  */
 @Getter
+@AllArgsConstructor
 public class LedgerHistoryQuery {
 	private final String code;												//가계부 코드
 	private final LocalDate date;										//가계부 거래 날짜
@@ -41,14 +41,4 @@ public class LedgerHistoryQuery {
 	private final String memo;												//가계부 메모
 	private final String categoryName;								//카테고리 이름
 	private final String categoryCode;								//카테고리 코드
-
-	public LedgerHistoryQuery(Ledger ledger, Category category) {
-		this.code = ledger.getCode();
-		this.date = ledger.getDate();
-		this.amount = ledger.getAmount();
-		this.memo = ledger.getMemo();
-
-		this.categoryName = category.getName();
-		this.categoryCode = category.getCode();
-	}
 }
