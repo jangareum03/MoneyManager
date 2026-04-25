@@ -3,20 +3,24 @@ package com.moneymanager.integration.controller.ledger;
 import com.moneymanager.controller.web.GlobalWebControllerAdvice;
 import com.moneymanager.controller.web.ledger.LedgerController;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
-import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
-import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.enums.CategoryType;
+import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.exception.BusinessException;
+import com.moneymanager.unit.fixture.ledger.HistoryDashboardResponseFixture;
 import com.moneymanager.security.jwt.JwtAuthenticationFilter;
 import com.moneymanager.security.jwt.JwtTokenProvider;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.validation.LedgerValidator;
 import com.moneymanager.unit.fixture.LedgerResponseFixture;
+import com.moneymanager.unit.fixture.ledger.HistoryItemFixture;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -28,10 +32,13 @@ import org.springframework.util.MultiValueMap;
 
 import javax.servlet.http.Cookie;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
@@ -85,6 +92,13 @@ public class LedgerControllerWebMvcTest {
 	@MockBean
 	private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+	@BeforeEach
+	void setUp() {
+		when(jwtTokenProvider.validateToken("test-token")).thenReturn(true);
+		when(jwtTokenProvider.getNickName("test-token")).thenReturn("테스트 닉네임");
+		when(jwtTokenProvider.getProfile("test-token")).thenReturn(null);
+	}
+
 	@Nested
 	@DisplayName("step1 화면 조회")
 	class Step1Test {
@@ -96,10 +110,6 @@ public class LedgerControllerWebMvcTest {
 			LedgerWriteStep1Response response = LedgerResponseFixture.step1();
 
 			when(ledgerReadService.getWriteStep1Data()).thenReturn(response);
-
-			when(jwtTokenProvider.validateToken("test-token")).thenReturn(true);
-			when(jwtTokenProvider.getNickName("test-token")).thenReturn("테스트 닉네임");
-			when(jwtTokenProvider.getProfile("test-token")).thenReturn(null);
 
 			//when & then
 			mockMvc.perform(
@@ -127,10 +137,6 @@ public class LedgerControllerWebMvcTest {
 			LedgerWriteStep2Response response = LedgerResponseFixture.step2(type);
 			when(ledgerReadService.getWriteStep2Data(any(CategoryType.class), any(LocalDate.class)))
 					.thenReturn(response);
-
-			when(jwtTokenProvider.validateToken("test-token")).thenReturn(true);
-			when(jwtTokenProvider.getNickName("test-token")).thenReturn("테스트 닉네임");
-			when(jwtTokenProvider.getProfile("test-token")).thenReturn(null);
 
 			//when
 			mockMvc.perform(
@@ -161,10 +167,6 @@ public class LedgerControllerWebMvcTest {
 			LedgerWriteStep2Response response = LedgerResponseFixture.step2Income();	//기본값은 수입
 			when(ledgerReadService.getWriteStep2Data(any(CategoryType.class), any(LocalDate.class)))
 					.thenReturn(response);
-
-			when(jwtTokenProvider.validateToken("test-token")).thenReturn(true);
-			when(jwtTokenProvider.getNickName("test-token")).thenReturn("테스트 닉네임");
-			when(jwtTokenProvider.getProfile("test-token")).thenReturn(null);
 
 			//when & then
 			mockMvc.perform(get("/ledgers/new/step2")
@@ -277,6 +279,132 @@ public class LedgerControllerWebMvcTest {
 
 			params.add(name, stringValue);
 		}
+
+	}
+
+
+	@Nested
+	@DisplayName("가계부 내역 조회")
+	class LedgerHistoryTest {
+
+		private final String viewName = "/ledger/ledger_history";
+
+		@Test
+		@DisplayName("viewType 없으면 기본값 MONTH로 내역을 조회한다.")
+		void returnsHistoryView_whenViewTypeIsMissing() throws Exception {
+			//given
+			HistoryDashboardResponse response = HistoryDashboardResponseFixture.defaultFixture().toResponse();
+
+			when(ledgerReadService.getHistoryDashboard(HistoryType.MONTH))
+					.thenReturn(response);
+
+			//when
+			mockMvc.perform(
+					get("/ledgers")
+							.cookie(new Cookie("ACCESS_TOKEN", "test-token"))
+			)
+					.andExpect(status().isOk())
+					.andExpect(view().name(viewName))
+					.andExpect(model().attributeExists("history"))
+					.andDo(print());
+
+			//then
+			verify(ledgerReadService).getHistoryDashboard(HistoryType.MONTH);
+		}
+
+		@ParameterizedTest(name = "[{index}] type={0}")
+		@EnumSource(HistoryType.class)
+		@DisplayName("유효한 viewType이 있으면 해당 타입으로 내역을 조회한다.")
+		void returnsHistoryView_whenViewTypeIsValid(HistoryType type) throws Exception {
+			//given
+			HistoryDashboardResponse response = HistoryDashboardResponseFixture.defaultFixture().toResponse();
+
+			when(ledgerReadService.getHistoryDashboard(type)).thenReturn(response);
+
+			//when
+			mockMvc.perform(
+					get("/ledgers")
+							.cookie(new Cookie("ACCESS_TOKEN", "test-token"))
+							.param("viewType", type.name())
+			)
+					.andExpect(status().isOk())
+					.andExpect(view().name(viewName))
+					.andExpect(model().attribute("history", response))
+					.andExpect(model().attributeExists("type"))
+					.andExpect(model().attributeExists("activeMenu")) 
+					.andDo(print());
+
+			verify(ledgerReadService).getHistoryDashboard(type);
+		}
+
+		@ParameterizedTest(name = "[{index}] type={0}")
+		@ValueSource(strings = {"m", "aa"})
+		@DisplayName("유효하지 않은 viewType이면 MONTH로 내역을 조회한다.")
+		void returnsHistoryView_whenViewTypeIsInvalid(String type) throws Exception {
+			//given
+			HistoryDashboardResponse response = HistoryDashboardResponseFixture.defaultFixture().toResponse();
+
+			when(ledgerReadService.getHistoryDashboard(HistoryType.MONTH)).thenReturn(response);
+
+			//when
+			mockMvc.perform(
+							get("/ledgers")
+									.cookie(new Cookie("ACCESS_TOKEN", "test-token"))
+									.param("viewType", type)
+					)
+					.andExpect(status().isOk())
+					.andExpect(view().name(viewName))
+					.andExpect(model().attribute("history", response))
+					.andExpect(model().attributeExists("type"))
+					.andExpect(model().attributeExists("activeMenu"))
+					.andDo(print());
+
+			verify(ledgerReadService).getHistoryDashboard(HistoryType.MONTH);
+		}
+
+		@Test
+		@DisplayName("내역 결과를 모델의 history 속성에 담는다.")
+		void returnsModel_whenRequestIsValid() throws Exception {
+			//given
+			HistoryType type = HistoryType.YEAR;
+
+			LocalDate key1 = LocalDate.of(2026, 1, 10);
+			LocalDate key2 = LocalDate.of(2026, 2, 21);
+
+			Map<LocalDate, List<HistoryItem>> data =
+					Map.of(
+							key1,
+							List.of(
+									HistoryItemFixture.defaultFixture().toHistoryItem(),
+									HistoryItemFixture.defaultFixture().toBuilder().categoryCode("020101").categoryName("식비").amount("25000").build().toHistoryItem()
+							)
+					);
+
+			HistoryDashboardResponse response = HistoryDashboardResponseFixture.defaultFixture()
+					.toBuilder()
+					.title("2026년")
+					.statistics(LedgerStatistics.of(10000L, 500L))
+					.data(data)
+					.build().toResponse();
+
+			when(ledgerReadService.getHistoryDashboard(type)).thenReturn(response);
+
+			//when
+			mockMvc.perform(
+					get("/ledgers")
+							.cookie(new Cookie("ACCESS_TOKEN", "test-token"))
+							.param("viewType", type.name())
+			)
+					.andExpect(status().isOk())
+					.andExpect(view().name("/ledger/ledger_history"))
+					.andExpect(model().attribute("history", response))
+					.andExpect(model().attributeExists("type"))
+					.andExpect(model().attributeExists("activeMenu"))
+					.andDo(print());
+
+			verify(ledgerReadService).getHistoryDashboard(HistoryType.YEAR);
+		}
+
 
 	}
 

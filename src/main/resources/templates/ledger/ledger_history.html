@@ -3,26 +3,26 @@
 <th:block layout:fragment="main">
     <main class="page page-ledger-list">
         <!-- 날짜 선택 -->
-        <h1 class="ledger-date" th:attr="data-type=${search.type}">
-            [[${cards.title}]]
+        <h1 class="ledger-date" th:attr="data-type=${type}">
+            [[${history.title}]]
             <svg class="icon icon--calendar" viewBox="0 0 17 16" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1.375 14.25C1.375 14.4489 1.45402 14.6397 1.59467 14.7803C1.73532 14.921 1.92609 15 2.125 15H14.625C14.8239 15 15.0147 14.921 15.1553 14.7803C15.296 14.6397 15.375 14.4489 15.375 14.25V5.5H1.375V14.25ZM11.375 6.625C11.375 6.59185 11.3882 6.56005 11.4116 6.53661C11.4351 6.51317 11.4668 6.5 11.5 6.5H12.75C12.7832 6.5 12.8149 6.51317 12.8384 6.53661C12.8618 6.56005 12.875 6.59185 12.875 6.625V7.875C12.875 7.90815 12.8618 7.93995 12.8384 7.96339C12.8149 7.98683 12.7832 8 12.75 8H11.5C11.4668 8 11.4351 7.98683 11.4116 7.96339C11.3882 7.93995 11.375 7.90815 11.375 7.875V6.625ZM11.375 9.125C11.375 9.09185 11.3882 9.06005 11.4116 9.03661C11.4351 9.01317 11.4668 9 11.5 9H12.75C12.7832 9 12.8149 9.01317 12.8384 9.03661C12.8618 9.06005 12.875 9.09185 12.875 9.125V10.375C12.875 10.4082 12.8618 10.4399 12.8384 10.4634C12.8149 10.4868 12.7832 10.5 12.75 10.5H11.5C11.4668 10.5 11.4351 10.4868 11.4116 10.4634C11.3882 10.4399 11.375 10.4082 11.375 10.375V9.125ZM8.875 6.625C8.875 6.59185 8.88817 6.56005 8.91161 6.53661C8.93505 6.51317 8.96685 6.5 9 6.5H10.25C10.2832 6.5 10.3149 6.51317 10.3384 6.53661C10.3618 6.56005 10.375 6.59185 10.375 6.625V7.875C10.375 7.90815 10.3618 7.93995 10.3384 7.96339C10.3149 7.98683 10.2832 8 10.25 8H9C8.96685 8 8.93505 7.98683 8.91161 7.96339C8.88817 7.93995 8.875 7.90815 8.875 7.875V6.625ZM8.875 9.125C8.875 9.09185 8.88817 9.06005 8.91161 9.03661C8.93505 9.01317 8.96685 9 9 9H10.25C10.2832 9 10.3149 9.01317 10.3384 9.03661C10.3618 9.06005 10.375 9.09185 10.375 9.125V10.375C10.375 10.4082 10.3618 10.4399 10.3384 10.4634C10.3149 10.4868 10.2832 10.5 10.25 10.5H9C8.96685 10.5 8.93505 10.4868 8.91161 10.4634C8.88817 10.4399 8.875 10.4082 8.875 10.375V9.125ZM8.875 11.625C8.875 11.5918 8.88817 11.5601 8.91161 11.5366C8.93505 11.5132 8.96685 11.5 9 11.5H10.25C10.2832 11.5 10.3149 11.5132 10.3384 11.5366C10.3618 11.5601 10.375 11.5918 10.375 11.625V12.875C10.375 12.9082 10.3618 12.9399 10.3384 12.9634C10.3149 12.9868 10.2832 13 10.25 13H9C8.96685 13 8.93505 12.9868 8.91161 12.9634C8.88817 12.9399 8.875 12.9082 8.875 12.875V11.625ZM6.375 9.125C6.375 9.09185 6.38817 9.06005 6.41161 9.03661C6.43505 9.01317 6.46685 9 6.5 9H7.75C7.78315 9 7.81495 9.01317 7.83839 9.03661C7.86183 9.06005 7.875 9.09185 7.875 9.125V10.375C7.875 10.4082 7.86183 10.4399 7.83839 10.4634C7.81495 10.4868 7.78315 10.5 7.75 10.5H6.5C6.46685 10.5 6.43505 10.4868 6.41161 10.4634C6.38817 10.4399 6.375 10.4082 6.375 10.375V9.125ZM6.375 11.625C6.375 11.5918 6.38817 11.5601 6.41161 11.5366C6.43505 11.5132 6.46685 11.5 6.5 11.5H7.75C7.78315 11.5 7.81495 11.5132 7.83839 11.5366C7.86183 11.5601 7.875 11.5918 7.875 11.625V12.875C7.875 12.9082 7.86183 12.9399 7.83839 12.9634C7.81495 12.9868 7.78315 13 7.75 13H6.5C6.46685 13 6.43505 12.9868 6.41161 12.9634C6.38817 12.9399 6.375 12.9082 6.375 12.875V11.625ZM3.875 9.125C3.875 9.09185 3.88817 9.06005 3.91161 9.03661C3.93505 9.01317 3.96685 9 4 9H5.25C5.28315 9 5.31495 9.01317 5.33839 9.03661C5.36183 9.06005 5.375 9.09185 5.375 9.125V10.375C5.375 10.4082 5.36183 10.4399 5.33839 10.4634C5.31495 10.4868 5.28315 10.5 5.25 10.5H4C3.96685 10.5 3.93505 10.4868 3.91161 10.4634C3.88817 10.4399 3.875 10.4082 3.875 10.375V9.125ZM3.875 11.625C3.875 11.5918 3.88817 11.5601 3.91161 11.5366C3.93505 11.5132 3.96685 11.5 4 11.5H5.25C5.28315 11.5 5.31495 11.5132 5.33839 11.5366C5.36183 11.5601 5.375 11.5918 5.375 11.625V12.875C5.375 12.9082 5.36183 12.9399 5.33839 12.9634C5.31495 12.9868 5.28315 13 5.25 13H4C3.96685 13 3.93505 12.9868 3.91161 12.9634C3.88817 12.9399 3.875 12.9082 3.875 12.875V11.625ZM14.625 2H12.8775V1H11.3775V2H5.3725V1H3.8725V2H2.125C2.02688 1.99918 1.92957 2.01777 1.83868 2.05472C1.74778 2.09167 1.66509 2.14624 1.59538 2.21529C1.52566 2.28433 1.4703 2.36649 1.43248 2.45703C1.39465 2.54757 1.37512 2.64469 1.375 2.74281V4.5H15.375V2.74281C15.3749 2.64469 15.3553 2.54757 15.3175 2.45703C15.2797 2.36649 15.2243 2.28433 15.1546 2.21529C15.0849 2.14624 15.0022 2.09167 14.9113 2.05472C14.8204 2.01777 14.7231 1.99918 14.625 2Z"/>
             </svg>
         </h1>
 
         <!-- 금액 통계 -->
-        <dl class="ledger-stats" th:with="stats=${cards.stats}">
+        <dl class="ledger-stats" th:with="stats=${history.statistics}">
             <div class="ledger-stats__total">
                 <dt>전체</dt>
-                <dd th:text="${#numbers.formatInteger(stats.total, 3, 'COMMA') + '원'}"></dd>
+                <dd th:text="${stats?.total != null and stats.total != 0 ? #numbers.formatInteger(stats.total, 3, 'COMMA') + '원' : '0원'}"></dd>
             </div>
             <div class="ledger-stats__income">
                 <dt>수입</dt>
-                <dd th:text="${#numbers.formatInteger(stats.income, 3, 'COMMA') + '원'}"></dd>
+                <dd th:text="${stats?.income != null and stats.income != 0 ? #numbers.formatInteger(stats.income, 3, 'COMMA') + '원' : '0원'}"></dd>
             </div>
             <div class="ledger-stats__outlay">
                 <dt>지출</dt>
-                <dd th:text="${#numbers.formatInteger(stats.expense, 3, 'COMMA') + '원'}"></dd>
+                <dd th:text="${stats?.outlay != null and stats.outlay != 0 ? #numbers.formatInteger(stats.outlay, 3, 'COMMA') + '원' : '0원'}"></dd>
             </div>
         </dl>
 
@@ -42,20 +42,11 @@
                 <!-- 탭 -->
                 <nav class="ledger-menu__filter">
                     <ul class="ledger-menu__list">
-                        <li class="ledger-menu__item" th:classappend="${search.mode == 'all'} ? 'ledger-menu__item--active'" th:attr="data-mode='all'">
-                            <button class="button">전체</button>
-                        </li>
-                        <li class="ledger-menu__item" th:classappend="${search.mode == 'inout'} ? 'ledger-menu__item--active'" th:attr="data-mode='inout'">
-                            <button class="button">수입/지출</button>
-                        </li>
-                        <li class="ledger-menu__item" th:classappend="${search.mode == 'category'} ? 'ledger-menu__item--active'" th:attr="data-mode='category'">
-                            <button class="button">카테고리</button>
-                        </li>
-                        <li class="ledger-menu__item" th:classappend="${search.mode == 'memo'} ? 'ledger-menu__item--active'" th:attr="data-mode='memo'">
-                            <button class="button">메모</button>
-                        </li>
-                        <li class="ledger-menu__item" th:classappend="${search.mode == 'period'} ? 'ledger-menu__item--active'" th:attr="data-mode='period'">
-                            <button class="button">기간</button>
+                        <li class="ledger-menu__item" th:each="menu : ${history.menu}"
+                            th:classappend="${menu.value == activeMenu} ? 'ledger-menu__item--active'"
+                            th:attr="data-mode=${menu.value}">
+
+                            <button class="button" th:text="${menu.label}"></button>
                         </li>
                     </ul>
                 </nav>
@@ -72,7 +63,7 @@
         </section>
 
         <!-- 내역 리스트 -->
-        <article class="ledger-list" th:classappend="${#maps.isEmpty(summary)} ? 'empty' : 'filled'" th:with="summary=${cards.summary}">
+        <article class="ledger-list" th:classappend="${#maps.isEmpty(summary)} ? 'empty' : 'filled'" th:with="summary=${history.historyGroups}">
             <!-- 내역 없는 상태 -->
             <div th:if="${summary == null or #maps.isEmpty(summary)}">
                 <span>아직 등록된 내역이 없어요.</span>
@@ -86,15 +77,15 @@
                 <h2 class="ledger-list__title" th:text="${entry.key}"></h2>
 
                 <ul th:each="cardList : ${cardChunk}" class="ledger-list__cards">
-                    <li th:each="card : ${cardList}" class="ledger-card" th:classappend="${card == null ? 'empty' : card.type}">
+                    <li th:each="card : ${cardList}" class="ledger-card" th:classappend="${card == null ? 'empty' : card.categoryType.name()}">
                         <div class="ledger-card__type"></div>
-                        <div th:if="${card != null}" class="ledger-card__icon" th:attr="data-pk=${card.id}">
+                        <div th:if="${card != null}" class="ledger-card__icon" th:attr="data-pk=${card.code}">
                             <svg class="icon icon--box" viewBox="0 0 8 9"  xmlns="http://www.w3.org/2000/svg">
                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M1.08333 0.25C0.86232 0.25 0.650358 0.337797 0.494078 0.494078C0.337797 0.650358 0.25 0.86232 0.25 1.08333V6.91667C0.25 7.13768 0.337797 7.34964 0.494078 7.50592C0.650358 7.6622 0.86232 7.75 1.08333 7.75H6.91667C7.13768 7.75 7.34964 7.6622 7.50592 7.50592C7.6622 7.34964 7.75 7.13768 7.75 6.91667V1.08333C7.75 0.86232 7.6622 0.650358 7.50592 0.494078C7.34964 0.337797 7.13768 0.25 6.91667 0.25H1.08333ZM6.0625 3.08167C6.14068 3.00354 6.18463 2.89755 6.18467 2.78702C6.18471 2.67649 6.14084 2.57048 6.06271 2.49229C5.98458 2.41411 5.87859 2.37016 5.76806 2.37012C5.65753 2.37008 5.55152 2.41395 5.47333 2.49208L3.41083 4.55458L2.52708 3.67083C2.4884 3.63212 2.44247 3.60141 2.39191 3.58045C2.34136 3.55948 2.28717 3.54868 2.23244 3.54867C2.12191 3.54863 2.01589 3.5925 1.93771 3.67063C1.85952 3.74875 1.81558 3.85474 1.81554 3.96527C1.8155 4.0758 1.85937 4.18182 1.9375 4.26L3.08667 5.40917C3.12923 5.45175 3.17977 5.48553 3.23539 5.50858C3.29101 5.53162 3.35063 5.54349 3.41083 5.54349C3.47104 5.54349 3.53066 5.53162 3.58628 5.50858C3.6419 5.48553 3.69244 5.45175 3.735 5.40917L6.0625 3.08167Z"/>
                             </svg>
                         </div>
-                        <span class="ledger-card__category" th:text="${card != null ? card.category : ''}"></span>
-                        <span class="ledger-card__price" th:text="${card != null ? #numbers.formatInteger(card.amount, 3, 'COMMA') : ''}"></span>
+                        <span class="ledger-card__category" th:text="${card != null ? card.categoryName : ''}"></span>
+                        <span class="ledger-card__price" th:text="${card?.amount != null and card.amount != 0 ? #numbers.formatInteger(card.amount, 3, 'COMMA') : '0'}"></span>
                         <p class="ledger-card__memo" th:text="${card != null ? card.memo : ''}"></p>
                     </li>
                 </ul>

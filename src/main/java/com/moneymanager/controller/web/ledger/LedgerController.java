@@ -5,6 +5,7 @@ import com.moneymanager.domain.ledger.dto.response.HistoryDashboardResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.domain.ledger.enums.CategoryType;
+import com.moneymanager.domain.ledger.enums.HistoryMenuType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
@@ -63,6 +64,8 @@ public class LedgerController {
 		HistoryDashboardResponse response = ledgerReadService.getHistoryDashboard(type);
 
 		model.addAttribute("history", response);
+		model.addAttribute("type", type);
+		model.addAttribute("activeMenu", HistoryMenuType.ALL.name());
 
 		return "/ledger/ledger_history";
 	}
