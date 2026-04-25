@@ -358,7 +358,7 @@ public class LedgerReadServiceIT {
 			assertThat(histories.values()).hasSize(3);
 			assertThat(histories.values().stream().flatMap(List::stream).toList())
 					.extracting(HistoryItem::getAmount)
-					.containsExactlyInAnyOrder("1000", "2000", "3000");
+					.containsExactlyInAnyOrder(1000L, 2000L, 3000L);
 
 		}
 

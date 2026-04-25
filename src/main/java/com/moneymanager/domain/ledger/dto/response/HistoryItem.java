@@ -34,12 +34,12 @@ import lombok.Getter;
 @Getter
 public class HistoryItem {
 	private final String code;												//가계부 코드
-	private final String amount;											//가계부 금액
+	private final Long amount;											//가계부 금액
 	private final String memo;												//가계부 메모
 	private final CategoryType categoryType;					//카테고리 타입
 	private final String categoryName;								//카테고리 이름
 
-	private HistoryItem(String code, String amount, String memo, CategoryType categoryType, String categoryName) {
+	private HistoryItem(String code, Long amount, String memo, CategoryType categoryType, String categoryName) {
 		this.code = code;
 		this.amount = amount;
 		this.memo = memo;
@@ -50,7 +50,7 @@ public class HistoryItem {
 	public static HistoryItem from(LedgerHistoryQuery query) {
 		return new HistoryItem(
 				query.getCode(),
-				String.format("%,d", query.getAmount()),
+				query.getAmount(),
 				query.getMemo(),
 				CategoryType.fromCategoryCode(query.getCategoryCode()),
 				query.getCategoryName()
