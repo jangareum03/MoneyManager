@@ -1,19 +1,18 @@
 package com.moneymanager.service.ledger;
 
-import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
+import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
+import static com.moneymanager.exception.error.ErrorCode.LEDGER_CATEGORY_TARGET_NOT_FOUND;
 
 /**
  * <p>
@@ -90,31 +89,40 @@ public class CategoryReadService {
 
 	//최상위 카테고리 목록 조회
 	private List<Category> getRootCategories() {
-		return categoryCacheService.getAllCategories().stream()
-				.filter( c -> c.getParentCode() == null )
-				.collect(Collectors.toList());
+		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
+
+		return categoryMap.values().stream()
+						.filter(c -> c.getParentCode() == null)
+						.collect(Collectors.toList());
 	}
 
 	//중간 단계 카테고리 목록 조회
 	private List<Category> getMiddleCategories(CategoryType type) {
-		return categoryCacheService.getAllCategories().stream()
-				.filter(c -> c.getParentCode() != null)
-				.filter(c -> c.getParentCode().endsWith("0000"))
-				.filter( c -> type == CategoryType.INCOME
-						? c.getCode().startsWith("01")
-						: c.getCode().startsWith("02"))
-				.collect(Collectors.toList());
+		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
+
+		return categoryMap.values().stream()
+						.filter(c -> c.getParentCode() != null)
+						.filter(c -> c.getParentCode().endsWith("0000"))
+						.filter(
+								c -> type == CategoryType.INCOME
+								? c.getCode().startsWith("01")
+								: c.getCode().startsWith("02")
+						).toList();
 	}
 
 	//하위 단계 카테고리 목록 조회
 	private List<Category> getLowCategories(CategoryType type) {
-		return categoryCacheService.getAllCategories().stream()
-				.filter(c -> c.getParentCode() != null)
-				.filter(c -> !c.getCode().endsWith("00"))
-				.filter( c -> type == CategoryType.INCOME
-						? c.getCode().startsWith("01")
-						: c.getCode().startsWith("02"))
-				.collect(Collectors.toList());
+		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
+
+		return categoryMap.values().stream()
+						.filter(c -> c.getParentCode() != null)
+						.filter(c -> c.getCode().endsWith("00"))
+						.filter(
+								c -> type == CategoryType.OUTLAY
+								? c.getCode().startsWith("01")
+								: c.getCode().startsWith("02")
+						)
+						.collect(Collectors.toList());
 	}
 
 }

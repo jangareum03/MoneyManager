@@ -1,13 +1,16 @@
 package com.moneymanager.unit.service.ledger;
 
+import com.moneymanager.BusinessExceptionAssert;
 import com.moneymanager.domain.ledger.enums.CategoryType;
-import com.moneymanager.repository.ledger.CategoryRepository;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
+import com.moneymanager.service.ledger.CategoryCacheService;
 import com.moneymanager.service.ledger.CategoryReadService;
-import com.moneymanager.unit.fixture.LedgerCategoryFixture;
+import com.moneymanager.fixture.category.CategoryTreeFixture;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -19,7 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.moneymanager.exception.error.ErrorCode.LEDGER_CATEGORY_TARGET_NOT_FOUND;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -55,58 +59,102 @@ public class CategoryReadServiceTest {
 	@InjectMocks
 	private CategoryReadService service;
 
-	@Mock
-	private CategoryRepository categoryRepository;
+	@Mock	private CategoryCacheService categoryCacheService;
 
 
-	@ParameterizedTest(name = "[{index}] level={0}, type={1}")
-	@MethodSource("provideValidCategoryLevelByType")
-	@DisplayName("카테고리 유형과 레벨에 따른 카테고리 목록을 조회한다.")
-	void returnsCategoriesByTypeAndLevel_whenCategoriesExist(CategoryLevel level, CategoryType type, List<Category> expectedCategories) {
-		//given
-		when(categoryRepository.findAllCategory()).thenReturn(LedgerCategoryFixture.allCategories());
+	@Nested
+	@DisplayName("code로 조회")
+	class FindByCodeTest {
 
-		//when
-		List<CategoryResponse> result = service.getCategoriesByTypeAndLevel(type, level);
+		@Test
+		@DisplayName("유효한 카테고리 코드면 Category를 반환한다.")
+		void returnsCategory_whenCodeIsValid() {
+			//given
+			Category category = CategoryTreeFixture.incomeSalary();
 
-		//then
-		assertThat(result)
-				.extracting(CategoryResponse::getCode)
-				.containsExactlyElementsOf(
-						expectedCategories.stream()
-								.map(Category::getCode)
-								.toList()
-				);
+			when(categoryCacheService.getCategoryMap()).thenReturn(CategoryTreeFixture.toMap());
+
+			//when
+			Category result = service.getCategory("010101");
+
+			//then
+			assertThat(result).isSameAs(category);
+		}
+
+		@Test
+		@DisplayName("없는 카테고리 코드면 이 발생한다.")
+		void throwsException_whenCodeIsInvalid() {
+			//given
+			String code = "no-code";
+
+			when(categoryCacheService.getCategoryMap()).thenReturn(CategoryTreeFixture.toMap());
+
+			//when & then
+			BusinessExceptionAssert.assertThatBusinessException(
+					catchThrowable(() -> service.getCategory(code))
+			)
+					.hasErrorCode(LEDGER_CATEGORY_TARGET_NOT_FOUND)
+					.hasUserMessage("않은 카테고리")
+					.hasLogMessage("조회 실패", "code");
+		}
+
 	}
 
-	static Stream<Arguments> provideValidCategoryLevelByType() {
-		return Stream.of(
-				Arguments.of(
-						CategoryLevel.TOP,
-						null,
-						LedgerCategoryFixture.topCategories()
-				),
-				Arguments.of(
-						CategoryLevel.MIDDLE,
-						CategoryType.INCOME,
-						LedgerCategoryFixture.middleCategoriesByIncome()
-				),
-				Arguments.of(
-						CategoryLevel.MIDDLE,
-						CategoryType.OUTLAY,
-						LedgerCategoryFixture.middleCategoriesByOutlay()
-				),
-				Arguments.of(
-						CategoryLevel.LOW,
-						CategoryType.INCOME,
-						LedgerCategoryFixture.lowCategoriesByIncome()
-				),
-				Arguments.of(
-						CategoryLevel.LOW,
-						CategoryType.OUTLAY,
-						LedgerCategoryFixture.lowCategoriesByOutlay()
-				)
-		);
+
+	@Nested
+	@DisplayName("유형과 레벨로 조회")
+	class FindTypeAndLevelTest {
+
+		@ParameterizedTest(name = "[{index}] level={0}, type={1}")
+		@MethodSource("provideValidCategoryLevelByType")
+		@DisplayName("카테고리 유형과 레벨에 따른 카테고리 목록을 조회한다.")
+		void returnsCategoriesByTypeAndLevel_whenCategoriesExist(CategoryLevel level, CategoryType type, List<Category> expectedCategories) {
+			//given
+			when(categoryCacheService.getCategoryMap()).thenReturn(CategoryTreeFixture.toMap());
+
+			//when
+			List<CategoryResponse> result = service.getCategoriesByTypeAndLevel(type, level);
+
+			//then
+			assertThat(result)
+					.extracting(CategoryResponse::getCode)
+					.containsExactlyElementsOf(
+							expectedCategories.stream()
+									.map(Category::getCode)
+									.toList()
+					);
+		}
+
+		static Stream<Arguments> provideValidCategoryLevelByType() {
+			return Stream.of(
+					Arguments.of(
+							CategoryLevel.TOP,
+							null,
+							CategoryTreeFixture.top()
+					),
+					Arguments.of(
+							CategoryLevel.MIDDLE,
+							CategoryType.INCOME,
+							CategoryTreeFixture.middle().get(CategoryType.INCOME)
+					),
+					Arguments.of(
+							CategoryLevel.MIDDLE,
+							CategoryType.OUTLAY,
+							CategoryTreeFixture.middle().get(CategoryType.OUTLAY)
+					),
+					Arguments.of(
+							CategoryLevel.LOW,
+							CategoryType.INCOME,
+							CategoryTreeFixture.low().get(CategoryType.INCOME)
+					),
+					Arguments.of(
+							CategoryLevel.LOW,
+							CategoryType.OUTLAY,
+							CategoryTreeFixture.low().get(CategoryType.OUTLAY)
+					)
+			);
+		}
+
 	}
 
 }

@@ -6,7 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -48,11 +51,21 @@ public class CategoryCacheService {
 	 *     이후 호출부터는 캐시에 저장된 데이터를 반환합니다.
 	 *     데이터베이스 조회 결과가 비어있는 경우에는 예외가 발생합니다.
 	 * </p>
-	 * @return	전체 카테고리 정보를 담은 {@link Category} 리스트
+	 * @return	전체 카테고리 정보를 담은 {@link Category} map
 	 */
-	@Cacheable(value = "category", unless = "#result == null")
-	public List<Category> getAllCategories() {
-		return categoryRepository.findAllCategory();
+	@Cacheable(value = "category")
+	public Map<String, Category> getCategoryMap() {
+		List<Category> categoryList = categoryRepository.findAllCategory();
+
+		if(categoryList == null || categoryList.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		return	categoryList.stream()
+				.collect(Collectors.toMap(
+						Category::getCode,
+						c -> c
+				));
 	}
 
 }

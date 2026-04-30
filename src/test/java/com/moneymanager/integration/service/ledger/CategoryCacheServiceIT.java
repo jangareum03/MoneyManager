@@ -3,7 +3,6 @@ package com.moneymanager.integration.service.ledger;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.repository.ledger.CategoryRepository;
 import com.moneymanager.service.ledger.CategoryCacheService;
-import net.bytebuddy.TypeCache;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -75,8 +74,8 @@ public class CategoryCacheServiceIT {
 	@DisplayName("같은 메서드를 두 번 호출하면 Repository는 한 번만 호출된다.")
 	void returnsCache_whenCalledTwice() {
 		//when
-		List<Category> first = service.getAllCategories();
-		List<Category> second = service.getAllCategories();
+		Map<String, Category> first = service.getCategoryMap();
+		Map<String, Category> second = service.getCategoryMap();
 
 		//then
 		assertThat(first).isEqualTo(second);
@@ -88,7 +87,7 @@ public class CategoryCacheServiceIT {
 	@DisplayName("처음 호출 후 category 캐시에 값이 저장된다.")
 	void storesResultInCache() {
 		//when
-		List<Category> result = service.getAllCategories();
+		Map<String, Category> result = service.getCategoryMap();
 
 		//then
 		Cache cache = cacheManager.getCache("category");
@@ -107,9 +106,9 @@ public class CategoryCacheServiceIT {
 		assertThat(cache).isNotNull();
 
 		//when
-		service.getAllCategories();
+		service.getCategoryMap();
 		cache.clear();
-		service.getAllCategories();
+		service.getCategoryMap();
 
 		//then
 		verify(categoryRepository, times(2)).findAllCategory();
@@ -122,8 +121,8 @@ public class CategoryCacheServiceIT {
 		when(categoryRepository.findAllCategory()).thenReturn(null);
 
 		//when
-		List<Category> first = service.getAllCategories();
-		List<Category> second = service.getAllCategories();
+		Map<String, Category> first = service.getCategoryMap();
+		Map<String, Category> second = service.getCategoryMap();
 
 		//then
 		assertThat(first).isNull();;
