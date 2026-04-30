@@ -49,7 +49,8 @@ public enum MemberStatus {
 		this.type = type;
 	}
 
-	public static MemberStatus valueOf( char type ) {
+	public static MemberStatus fromCode(char type ) {
+
 		for( MemberStatus status : values() ) {
 			if( status.getType() == type ) {
 				return status;

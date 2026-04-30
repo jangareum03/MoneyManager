@@ -124,7 +124,7 @@ public class MemberDaoImpl {
 				((rs, rowNum) -> {
 					return Member.builder()
 							.userName(rs.getString("username"))
-							.status(MemberStatus.valueOf(rs.getString("status")))
+							.status(MemberStatus.fromCode(rs.getString("status").charAt(0)))
 							.deletedAt(rs.getTimestamp("delete_at").toLocalDateTime())
 							.build();
 				}),
@@ -152,7 +152,7 @@ public class MemberDaoImpl {
 				((rs, rowNum) -> {
 					return Member.builder()
 							.email(rs.getString("email"))
-							.status(MemberStatus.valueOf(rs.getString("status")))
+							.status(MemberStatus.fromCode(rs.getString("status").charAt(0)))
 							.deletedAt(rs.getTimestamp("delete_at").toLocalDateTime())
 							.build();
 				}),
@@ -183,7 +183,7 @@ public class MemberDaoImpl {
 				query,
 				(rs, rowNum) ->
 						Member.builder()
-								.role(rs.getString("role")).status(MemberStatus.valueOf( rs.getString("status").charAt(0) ))
+								.role(rs.getString("role")).status(MemberStatus.fromCode( rs.getString("status").charAt(0) ))
 								.userName(rs.getString("username")).password(rs.getString("password"))
 								.nickName(rs.getString("nickname"))
 								.memberInfo(MemberInfo.builder().profile(rs.getString("profile")).failureCount(rs.getInt("failure_count")).build())
