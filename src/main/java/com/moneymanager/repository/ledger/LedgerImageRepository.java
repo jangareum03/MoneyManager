@@ -88,6 +88,18 @@ public class LedgerImageRepository {
 		);
 	}
 
+	public List<LedgerImage> findByLedgerId(Long ledgerId) {
+		String query = """
+				SELECT *
+				FROM ledger_image
+				WHERE ledger_id = ?
+				""";
+
+		return jdbcTemplate.query(
+			query, ledgerImageRowMapper, ledgerId
+		);
+	}
+
 	public List<LedgerImage> findAll() {
 		String sql = "SELECT * FROM ledger_image";
 

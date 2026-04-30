@@ -79,6 +79,14 @@ public class LedgerController {
 	}
 
 
+	@GetMapping("/{code}")
+	public String getLedgerByCode(@PathVariable String code, Model model) {
+		model.addAttribute("ledger", ledgerReadService.getLedgerDetail(code));
+
+		return "/ledger/ledger_detail";
+	}
+
+
 	/**
 	 * 가계부 초기 작성에 필요한 정보를 조회 후 가계부 작성 1단계 페이지를 반환합니다.
 	 * <p>

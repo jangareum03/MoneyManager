@@ -4,11 +4,16 @@ import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
+import com.moneymanager.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.moneymanager.exception.error.ErrorCode.*;
 
 /**
  * <p>
@@ -42,6 +47,22 @@ import java.util.stream.Collectors;
 public class CategoryReadService {
 
 	private final CategoryCacheService categoryCacheService;
+
+	public Category getCategory(String code) {
+		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
+
+		Category category = categoryMap.get(code);
+
+		if(category == null) {
+			throw BusinessException.of(
+					LEDGER_CATEGORY_TARGET_NOT_FOUND,
+					"존재하지 않은 카테고리입니다. 잠시 후 다시 시도해주세요.",
+					"카테고리 조회 실패   |   reason=카테고리없음   |   object=Category   |   filed=code   |   value=" + code
+			);
+		}
+
+		return category;
+	}
 
 
 	/**

@@ -8,11 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Path;
 import java.time.Clock;
 import java.time.LocalDate;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
+import static com.moneymanager.exception.error.ErrorCode.FILE_TARGET_INVALID;
+import static com.moneymanager.exception.error.ErrorCode.FILE_TARGET_MISSING;
 import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
 
 
@@ -105,7 +105,7 @@ public class LedgerImageNameStrategy implements FileNamingStrategy<Ledger> {
 		String year = String.valueOf(date.getYear());
 		String month = String.format("%02d", date.getMonthValue());
 
-		return "/" + year + "/" + month + "/" + storedName;
+		return year + "/" + month + "/" + storedName;
 	}
 
 }

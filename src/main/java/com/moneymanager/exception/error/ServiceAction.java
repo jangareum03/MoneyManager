@@ -32,7 +32,8 @@ import lombok.Getter;
 @Getter
 public enum ServiceAction {
 	LOGIN("로그인"),
-	LEDGER_REGISTER("가계부 등록");
+	LEDGER_REGISTER("가계부 등록"),
+	LEDGER_DETAIL("가계부 상세 조회");
 
 	private final String title;
 

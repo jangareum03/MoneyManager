@@ -5,23 +5,32 @@ import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
 import com.moneymanager.domain.ledger.dto.response.*;
+import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryMenuType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
+import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.error.ServiceAction;
+import com.moneymanager.mapper.LedgerMapper;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
-import com.moneymanager.service.member.MemberReadService;
 import com.moneymanager.utils.date.DateTimeUtils;
 import com.moneymanager.utils.date.DateUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.moneymanager.exception.error.ErrorCode.*;
 
 /**
  * <p>
@@ -55,6 +64,7 @@ import java.util.stream.Collectors;
  * 		</tbody>
  * </table>
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LedgerReadService {
@@ -62,11 +72,12 @@ public class LedgerReadService {
 	private final SecurityUtil securityUtil;
 
 	private final CategoryReadService categoryReadService;
-	private final MemberReadService memberReadService;
+	private final LedgerImageReadService imageReadService;
 
 	private final LedgerRepository ledgerRepository;
-	private final LedgerHistoryPolicy ledgerHistoryPolicy;
 
+	private final LedgerHistoryPolicy ledgerHistoryPolicy;
+	private final LedgerMapper ledgerMapper;
 	private final Clock clock;
 
 
@@ -213,27 +224,65 @@ public class LedgerReadService {
 	}
 
 
-	/**
-	 * 회원이 사용할 수 있는 가계부 이미지 슬롯 상태를 반환합니다.
-	 * <p>
-	 *     회원이 등록할 수 있는 최대 이미지 개수({@code maxSlot})를 기준으로,
-	 *     실제 사용 가능한 슬롯과 사용 불가능한 슬롯을 {@link Boolean} 값으로 표현합니다.
-	 *     사용 가능한 슬롯은 {@code true}로, 사용 불가능한 슬롯은 {@code false}로 표현합니다.
-	 * </p>
-	 *
-	 * @return	이미지 슬롯 사용 가능 여부를 나타내는 Boolean 리스트
-	 */
-	public List<Boolean> fetchBooleanList(){
-		List<Boolean> slotList = new ArrayList<>();
+	public LedgerDetailResponse getLedgerDetail(String code) {
+		ServiceAction action = ServiceAction.LEDGER_DETAIL;
 
-		String memberId = securityUtil.getMemberId();
+		String memberId = null;
 
-		int availableSlot = memberReadService.getImageLimit(memberId);
-		int maxSlot = Policy.LEDGER_MAX_IMAGE;
-		for( int i =0; i < maxSlot; i++ ) {
-			slotList.add( i < availableSlot );
+		try{
+			// 1. 인증된 사용자 조회
+			memberId = securityUtil.getMemberId();
+
+			//2. 가계부/카테고리 조회
+			Ledger ledger = getLedger(memberId, code);
+			Category category = categoryReadService.getCategory(code);
+
+			//3. 가계부 이미지 조회
+			List<LedgerImage> images = imageReadService.getLedgerImages(ledger.getId());
+			//4. 정책에 맞춰 이미지 개수 보장
+			images = adjustImageCountToPolicy(images);
+
+			LedgerDetailResponse response = ledgerMapper.toDetailDto(ledger, category, images);
+
+			log.info("{} 성공   |   memberId={}   |   result=success   |   ledger={}", action.getTitle(), memberId, code);
+			return response;
+		}catch (BusinessException e) {
+			log.error(
+					"[{}] {} 실패   |   memberId={}   |   result=failure   |   errorCode={}",
+					e.getTraceId(), action.getTitle(), memberId, e.getErrorCode()
+			);
+
+			throw e.withService(action);
+		}
+	}
+
+	private List<LedgerImage> adjustImageCountToPolicy(List<LedgerImage> imageList) {
+		int max = Policy.LEDGER_MAX_IMAGE;
+
+		Map<Integer, LedgerImage> imageMap = imageList.stream()
+				.collect(Collectors.toMap(
+						LedgerImage::getSortOrder,
+						i -> i
+				));
+
+		List<LedgerImage> result = new ArrayList<>();
+		for(int i=1; i<=max; i++) {
+			result.add(imageMap.get(i));
 		}
 
-		return slotList;
+		return result;
 	}
+
+	private Ledger getLedger(String memberId, String code) {
+		try{
+			return ledgerRepository.findByCode(memberId, code);
+		} catch (EmptyResultDataAccessException e) {
+			throw BusinessException.of(
+					LEDGER_TARGET_NOT_FOUND,
+					"요청하신 가계부를 찾을 수 없습니다. 입력하신 주소가 정확한지 확인해주세요.",
+					"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   value={code: " + code + "}"
+			);
+		}
+	}
+
 }

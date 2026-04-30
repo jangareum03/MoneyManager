@@ -183,6 +183,22 @@ public class LedgerRepository {
 	}
 
 
+	public Ledger findByCode(String memberId, String code) {
+		String query = """
+				SELECT *
+				FROM ledger
+				WHERE member_id = ?
+					AND code = ?
+				""";
+
+		return jdbcTemplate.queryForObject(
+				query,
+				ledgerRowMapper,
+				memberId, code
+		);
+	}
+
+
 	public List<Ledger> findAll() {
 		String sql = "SELECT * FROM ledger";
 
