@@ -58,7 +58,7 @@ public class LedgerController {
 
 
 	@GetMapping
-	public String getMyHistories(@RequestParam(required = false) String viewType, Model model) {
+	public String getHistories(@RequestParam(required = false) String viewType, Model model) {
 		HistoryType type = parseHistoryTypeOrDefault(viewType);
 
 		HistoryDashboardResponse response = ledgerReadService.getHistoryDashboard(type);
@@ -80,7 +80,7 @@ public class LedgerController {
 
 
 	@GetMapping("/{code}")
-	public String getLedgerByCode(@PathVariable String code, Model model) {
+	public String getLedgerDetail(@PathVariable String code, Model model) {
 		model.addAttribute("ledger", ledgerReadService.getLedgerDetail(code));
 
 		return "/ledger/ledger_detail";
@@ -97,7 +97,7 @@ public class LedgerController {
 	 * @return 가계부 작성 1단계 화면의 경로
 	 */
 	@GetMapping("/new/step1")
-	public String writeStep1View(Model model){
+	public String showWriteStep1Form(Model model){
 		LedgerWriteStep1Response response = ledgerReadService.getWriteStep1Data();
 
 		model.addAttribute("ledger", response);
@@ -126,7 +126,7 @@ public class LedgerController {
 	 * @return 가계부 작성 2단계 화면의 경로
 	 */
 	@GetMapping("/new/step2")
-	public String writeStep2View(@RequestParam String type, @RequestParam String date, Model model) {
+	public String showWriteStep2Form(@RequestParam String type, @RequestParam String date, Model model) {
 		LocalDate defaultDate = LocalDate.now();
 
 		//입력값 확인
@@ -158,7 +158,7 @@ public class LedgerController {
 	 * @return	가계부 목록 페이지로의 리다이렉트 경로
 	 */
 	@PostMapping
-	public String writeLedger(@ModelAttribute("ledger") LedgerWriteRequest request) {
+	public String createLedger(@ModelAttribute("ledger") LedgerWriteRequest request) {
 		ledgerValidator.register(request);
 
 		ledgerCommandService.registerLedger(request);
