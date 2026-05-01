@@ -36,10 +36,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${image.ledger.resourcePath}")
-    private String accountResourcePath;
-    @Value("${image.ledger.connectPath}")
-    private String accountConnectPath;
+    @Value("${file.image.ledger.resource-path}")
+    private String ledgerResourcePath;
     @Value("${image.profile.resourcePath}")
     private String profileResourcePath;
     @Value("${image.profile.connectPath}")
@@ -47,10 +45,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers( ResourceHandlerRegistry registry ) {
-        registry.addResourceHandler(accountConnectPath).addResourceLocations(accountResourcePath);
+        registry.addResourceHandler("/image/ledger/**").addResourceLocations(ledgerResourcePath);
         registry.addResourceHandler(profileConnectPath).addResourceLocations(profileResourcePath);
         registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/static/");
     }
-
 
 }

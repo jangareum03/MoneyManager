@@ -49,7 +49,7 @@ public class LedgerImageNameStrategy implements FileNamingStrategy<Ledger> {
 
 	private final Clock clock;
 
-	@Value("${file.image.ledger}")
+	@Value("${file.image.ledger.storage-path}")
 	private String rootPath;
 
 	@Override
