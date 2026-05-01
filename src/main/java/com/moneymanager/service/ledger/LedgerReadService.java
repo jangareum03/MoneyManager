@@ -147,7 +147,7 @@ public class LedgerReadService {
 		String title = DateTimeUtils.formatDate(date, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
 
 		//회원별로 이미지 슬롯 조회
-		List<Boolean> imageSlot = fetchBooleanList();
+		List<Boolean> imageSlot = imageReadService.fetchBooleanList();
 
 		return (type == CategoryType.INCOME) ? LedgerWriteStep2Response.ofDataByIncome(title, categories, imageSlot) : LedgerWriteStep2Response.ofDataByOutlay(title, categories, imageSlot);
 	}
