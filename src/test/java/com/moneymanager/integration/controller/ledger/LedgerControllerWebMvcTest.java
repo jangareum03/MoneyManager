@@ -4,17 +4,18 @@ import com.moneymanager.controller.web.GlobalWebControllerAdvice;
 import com.moneymanager.controller.web.ledger.LedgerController;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.response.*;
+import com.moneymanager.domain.ledger.enums.AmountType;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.exception.BusinessException;
-import com.moneymanager.unit.fixture.ledger.HistoryDashboardResponseFixture;
+import com.moneymanager.fixture.history.HistoryDashboardResponseFixture;
 import com.moneymanager.security.jwt.JwtAuthenticationFilter;
 import com.moneymanager.security.jwt.JwtTokenProvider;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.validation.LedgerValidator;
-import com.moneymanager.unit.fixture.LedgerResponseFixture;
-import com.moneymanager.unit.fixture.ledger.HistoryItemFixture;
+import com.moneymanager.fixture.LedgerResponseFixture;
+import com.moneymanager.fixture.history.HistoryItemFixture;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,10 +33,12 @@ import org.springframework.util.MultiValueMap;
 
 import javax.servlet.http.Cookie;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.moneymanager.exception.error.ErrorCode.LEDGER_TARGET_NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -189,7 +192,7 @@ public class LedgerControllerWebMvcTest {
 	class CreateLedgerTest {
 
 		@ParameterizedTest(name = "[{index}] {0}")
-		@MethodSource("com.moneymanager.unit.fixture.LedgerRequestFixture#successWriteRequest")
+		@MethodSource("com.moneymanager.fixture.LedgerRequestFixture#successWriteRequest")
 		@DisplayName("정상 요청이면 가계부를 저장하고 가계부 목록 화면으로 리다이렉트한다.")
 		void redirectsToLedgerHistories_whenRequestIsValid(String description, LedgerWriteRequest request) throws Exception {
 			//when
@@ -405,6 +408,102 @@ public class LedgerControllerWebMvcTest {
 			verify(ledgerReadService).getHistoryDashboard(HistoryType.YEAR);
 		}
 
+	}
+
+
+	@Nested
+	@DisplayName("가계부 상세 조회")
+	class LedgerDetailTest {
+
+		@Test
+		@DisplayName("유효한 code면  해당 code의 가계부 상세정보를 조회한다.")
+		void returnsDetailView_whenCodeIsValid() throws Exception {
+			//given
+			LedgerDetailResponse response = LedgerDetailResponse.builder()
+					.date("날짜")
+					.type(CategoryType.INCOME)
+					.category(CategoryResponse.builder().code("010101").name("월급").build())
+					.memo("메모")
+					.images(Arrays.asList("image/image1.png", null, null))
+					.amount(10000L)
+					.paymentType(AmountType.CARD)
+					.build();
+
+			when(ledgerReadService.getLedgerDetail(any())).thenReturn(response);
+
+			//when
+			mockMvc.perform(
+					get("/ledgers/{code}", "code123")
+							.cookie(new Cookie("ACCESS_TOKEN", "test-token"))
+			)
+					.andExpect(status().isOk())
+					.andExpect(view().name("/ledger/ledger_detail"))
+					.andExpect(model().attributeExists("ledger"))
+					.andDo(print());
+
+			//then
+			verify(ledgerReadService).getLedgerDetail(eq("code123"));
+		}
+
+
+		@Disabled("TODO: 기능 구현 후 진행 예정")
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+
+			@Test
+			@DisplayName("유효하지 않은 code면 가계부 내역조회 화면으로 리디렉션한다.")
+			void redirectsToDashboard_whenCodeIsInvalid() throws Exception {
+				//given
+				when(ledgerReadService.getLedgerDetail(any()))
+						.thenThrow(BusinessException.of(
+								LEDGER_TARGET_NOT_FOUND,
+								"가계부 조회 실패 발생"
+						));
+
+				//when
+				mockMvc.perform(
+								get("/ledgers/{code}", "code123")
+										.cookie(new Cookie("ACCESS_TOKEN", "test-token"))
+						)
+						.andExpect(status().is3xxRedirection())
+						.andExpect(view().name("/ledger/ledger_history"))
+						.andExpect(model().attributeExists("history"))
+						.andExpect(model().attribute("type", HistoryType.MONTH))
+						.andExpect(model().attributeExists("activeMenu"))
+						.andDo(print());
+
+				//then
+				verify(ledgerReadService).getLedgerDetail(eq("code123"));
+			}
+
+			@Test
+			@DisplayName("다른 회원의 code면 가계부 내역조회 화면으로 리디렉션한다.")
+			void redirectsToDashboard_whenCodeIsOtherMember() throws Exception {
+				//given
+				when(ledgerReadService.getLedgerDetail(any()))
+						.thenThrow(BusinessException.of(
+								LEDGER_TARGET_NOT_FOUND,
+								"가계부 조회 실패 발생"
+						));
+
+				//when
+				mockMvc.perform(
+								get("/ledgers/{code}", "otherCode")
+										.cookie(new Cookie("ACCESS_TOKEN", "test-token"))
+						)
+						.andExpect(status().is3xxRedirection())
+						.andExpect(view().name("/ledger/ledger_history"))
+						.andExpect(model().attributeExists("history"))
+						.andExpect(model().attribute("type", HistoryType.MONTH))
+						.andExpect(model().attributeExists("activeMenu"))
+						.andDo(print());
+
+				//then
+				verify(ledgerReadService).getLedgerDetail(eq("otherCode"));
+			}
+
+		}
 
 	}
 

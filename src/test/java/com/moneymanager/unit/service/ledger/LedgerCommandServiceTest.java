@@ -1,10 +1,8 @@
 package com.moneymanager.unit.service.ledger;
 
 
-import com.moneymanager.domain.global.dto.StoredFile;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.exception.error.ErrorInfo;
 import com.moneymanager.exception.error.ServiceAction;
@@ -13,26 +11,18 @@ import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.file.FileCommandService;
 import com.moneymanager.service.ledger.LedgerCommandService;
-import com.moneymanager.unit.fixture.LedgerRequestFixture;
+import com.moneymanager.fixture.LedgerRequestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
 
 import static com.moneymanager.exception.error.ErrorCode.*;
 import static org.assertj.core.api.Assertions.*;
@@ -70,7 +60,7 @@ import static org.mockito.Mockito.*;
 public class LedgerCommandServiceTest {
 
 	@InjectMocks
-	private LedgerCommandService service;
+	private LedgerCommandService target;
 
 	@Mock
 	private SecurityUtil securityUtil;
@@ -87,7 +77,7 @@ public class LedgerCommandServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		ReflectionTestUtils.setField(service, "rootPath", "/test-root");
+		ReflectionTestUtils.setField(target, "rootPath", "/test-root");
 	}
 
 
@@ -111,7 +101,7 @@ public class LedgerCommandServiceTest {
 				when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
 
 				//when
-				service.registerLedger(request);
+				target.registerLedger(request);
 
 				//then
 				verify(ledgerRepository).save(any(Ledger.class));
@@ -179,7 +169,7 @@ public class LedgerCommandServiceTest {
 				);
 
 				//when & then
-				assertThatThrownBy(() -> service.registerLedger(request))
+				assertThatThrownBy(() -> target.registerLedger(request))
 						.isInstanceOfSatisfying(BusinessException.class, e -> {
 							assertThat(e.getErrorInfo().getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
 						});
@@ -198,7 +188,7 @@ public class LedgerCommandServiceTest {
 				when(ledgerRepository.findById(1L)).thenReturn(null);
 
 				//when & then
-				assertThatThrownBy(() -> service.registerLedger(request))
+				assertThatThrownBy(() -> target.registerLedger(request))
 						.isInstanceOfSatisfying(BusinessException.class, e -> {
 							assertThat(e.getErrorCode()).isSameAs(LEDGER_TARGET_NOT_FOUND);
 							assertThat(e.getErrorInfo().getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
@@ -219,7 +209,7 @@ public class LedgerCommandServiceTest {
 						.thenThrow(new DuplicateKeyException("중복키 발생") {});
 
 				//when & then
-				assertThatThrownBy(() -> service.registerLedger(request))
+				assertThatThrownBy(() -> target.registerLedger(request))
 						.isInstanceOfSatisfying(BusinessException.class, e -> {
 							ErrorInfo errorInfo = e.getErrorInfo();
 
@@ -240,7 +230,7 @@ public class LedgerCommandServiceTest {
 						.thenThrow(new DataIntegrityViolationException("위반 발생"));
 
 				//when & then
-				assertThatThrownBy(() -> service.registerLedger(request))
+				assertThatThrownBy(() -> target.registerLedger(request))
 						.isInstanceOfSatisfying(BusinessException.class, e -> {
 							ErrorInfo errorInfo = e.getErrorInfo();
 

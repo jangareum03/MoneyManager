@@ -6,13 +6,13 @@ import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
-import com.moneymanager.domain.member.enums.MemberType;
+import com.moneymanager.domain.member.Member;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.repository.member.MemberRepository;
 import com.moneymanager.security.support.WithMockCustomUser;
 import com.moneymanager.service.ledger.LedgerReadService;
-import com.moneymanager.unit.fixture.LedgerFixture;
-import com.moneymanager.unit.fixture.MemberFixture;
+import com.moneymanager.fixture.ledger.LedgerFixture;
+import com.moneymanager.fixture.MemberFixture;
 import com.moneymanager.utils.date.DateTimeUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -68,7 +68,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LedgerReadServiceIT {
 
 	@Autowired
-	private LedgerReadService service;
+	private LedgerReadService target;
 
 	@Autowired
 	private MemberRepository memberRepository;
@@ -77,7 +77,7 @@ public class LedgerReadServiceIT {
 	private LedgerRepository ledgerRepository;
 
 	private static final LocalDate TEST_DATE = LocalDate.of(2026, 3, 10);
-
+	private Member member;
 
 	@TestConfiguration
 	static class TestConfig {
@@ -97,16 +97,8 @@ public class LedgerReadServiceIT {
 	void setUp() {
 		memberRepository.deleteAll();;
 
-		memberRepository.save(
-				MemberFixture.defaultMember()
-				.id("UCt01001")
-				.type(MemberType.NORMAL)
-				.name("김철수")
-				.birthDate("20001010")
-				.nickName("철수")
-				.email("cheolsu@test.com")
-				.memberInfo(MemberFixture.defaultMemberInfo())
-				.build());
+		member = MemberFixture.create();
+		memberRepository.save(member);
 	}
 
 
@@ -114,7 +106,7 @@ public class LedgerReadServiceIT {
 	@DisplayName("작성 1단계 요청 데이터가 정상 생성된다.")
 	void createsWriteStep1Data_successfully() {
 		//when
-		LedgerWriteStep1Response result = service.getWriteStep1Data();
+		LedgerWriteStep1Response result = target.getWriteStep1Data();
 
 		//then
 		assertThat(result).isNotNull();
@@ -141,7 +133,7 @@ public class LedgerReadServiceIT {
 			CategoryType type = CategoryType.INCOME;
 
 			//when
-			LedgerWriteStep2Response result = service.getWriteStep2Data(type, TEST_DATE);
+			LedgerWriteStep2Response result = target.getWriteStep2Data(type, TEST_DATE);
 
 			//then
 			assertThat(result).isNotNull();
@@ -163,7 +155,7 @@ public class LedgerReadServiceIT {
 			CategoryType type = CategoryType.OUTLAY;
 
 			//when
-			LedgerWriteStep2Response result = service.getWriteStep2Data(type, TEST_DATE);
+			LedgerWriteStep2Response result = target.getWriteStep2Data(type, TEST_DATE);
 
 			//then
 			assertThat(result).isNotNull();
@@ -183,7 +175,7 @@ public class LedgerReadServiceIT {
 		@DisplayName("중분류 카테고리만 조회되어 응답에 포함한다.")
 		void returnsStep2Response_onlyMiddleLevelCategories(CategoryType type) {
 			//when
-			LedgerWriteStep2Response result = service.getWriteStep2Data(type, TEST_DATE);
+			LedgerWriteStep2Response result = target.getWriteStep2Data(type, TEST_DATE);
 
 			//then
 			List<CategoryResponse> categories = result.getCategories();
@@ -211,7 +203,7 @@ public class LedgerReadServiceIT {
 			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
 
 			//when
-			HistoryDashboardResponse result = service.getHistoryDashboard(type);
+			HistoryDashboardResponse result = target.getHistoryDashboard(type);
 
 			//then
 			assertThat(result).isNotNull();
@@ -238,7 +230,7 @@ public class LedgerReadServiceIT {
 			HistoryType type = HistoryType.MONTH;
 
 			//when
-			HistoryDashboardResponse result = service.getHistoryDashboard(type);
+			HistoryDashboardResponse result = target.getHistoryDashboard(type);
 
 			//then
 			assertThat(result).isNotNull();
@@ -268,7 +260,7 @@ public class LedgerReadServiceIT {
 			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 4, 1), "020302", 500));
 
 			//when
-			HistoryDashboardResponse result = service.getHistoryDashboard(type);
+			HistoryDashboardResponse result = target.getHistoryDashboard(type);
 
 			//then
 			assertThat(result).isNotNull();
@@ -294,7 +286,7 @@ public class LedgerReadServiceIT {
 			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 12), "020102", 2000));
 
 			//when
-			HistoryDashboardResponse result = service.getHistoryDashboard(type);
+			HistoryDashboardResponse result = target.getHistoryDashboard(type);
 
 			//then
 			assertThat(result.getHistoryGroups()).hasSize(3);
@@ -317,7 +309,7 @@ public class LedgerReadServiceIT {
 			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 12), "020102", 2000));
 
 			//when
-			HistoryDashboardResponse result = service.getHistoryDashboard(type);
+			HistoryDashboardResponse result = target.getHistoryDashboard(type);
 
 			//then
 			LedgerStatistics statistics = result.getStatistics();
@@ -333,15 +325,8 @@ public class LedgerReadServiceIT {
 			HistoryType type = HistoryType.MONTH;
 
 			memberRepository.save(
-					MemberFixture.defaultMember()
-							.id("UCt01002")
-							.type(MemberType.NORMAL)
-							.name("김영희")
-							.birthDate("19980422")
-							.nickName("영희")
-							.email("Younghee@test.com")
-							.memberInfo(MemberFixture.defaultMemberInfo())
-							.build());
+					MemberFixture.defaultMember().name("김영희").build()
+			);
 
 			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
 			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "010101", 2000));
@@ -350,7 +335,7 @@ public class LedgerReadServiceIT {
 			ledgerRepository.save(createLedger("UCt01002", LocalDate.of(2026, 3, 12), "020102", 2000));
 
 			//when
-			HistoryDashboardResponse result = service.getHistoryDashboard(type);
+			HistoryDashboardResponse result = target.getHistoryDashboard(type);
 
 			//then
 			Map<String, List<HistoryItem>> histories = result.getHistoryGroups();

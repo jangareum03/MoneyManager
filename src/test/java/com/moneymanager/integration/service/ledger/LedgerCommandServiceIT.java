@@ -5,7 +5,6 @@ import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.member.Member;
-import com.moneymanager.domain.member.enums.MemberType;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.repository.ledger.LedgerRepository;
@@ -13,8 +12,8 @@ import com.moneymanager.repository.member.MemberRepository;
 import com.moneymanager.security.support.WithMockCustomUser;
 import com.moneymanager.service.file.FileCommandService;
 import com.moneymanager.service.ledger.LedgerCommandService;
-import com.moneymanager.unit.fixture.LedgerRequestFixture;
-import com.moneymanager.unit.fixture.MemberFixture;
+import com.moneymanager.fixture.LedgerRequestFixture;
+import com.moneymanager.fixture.MemberFixture;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -68,7 +67,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class LedgerCommandServiceIT {
 
 	@Autowired
-	private LedgerCommandService service;
+	private LedgerCommandService target;
 
 	@Autowired
 	private LedgerRepository ledgerRepository;
@@ -81,6 +80,8 @@ public class LedgerCommandServiceIT {
 
 	@Autowired
 	private FileCommandService	fileCommandService;
+
+	private Member member;
 
 
 	@TestConfiguration
@@ -101,16 +102,7 @@ public class LedgerCommandServiceIT {
 	void setUp() {
 		memberRepository.deleteAll();
 
-		Member member = MemberFixture.defaultMember()
-				.id("UCt01001")
-				.type(MemberType.NORMAL)
-				.name("김철수")
-				.birthDate("20001010")
-				.nickName("철수")
-				.email("cheolsu@test.com")
-				.memberInfo(MemberFixture.defaultMemberInfo())
-				.build();
-
+		member = MemberFixture.create();
 		memberRepository.save(member);
 	}
 
@@ -131,7 +123,7 @@ public class LedgerCommandServiceIT {
 				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
 
 				//when
-				service.registerLedger(request);
+				target.registerLedger(request);
 
 				//then
 				List<Ledger> ledgers = ledgerRepository.findAll();
@@ -151,7 +143,7 @@ public class LedgerCommandServiceIT {
 				LedgerWriteRequest request = LedgerRequestFixture.withImage().build();
 
 				//when
-				service.registerLedger(request);
+				target.registerLedger(request);
 
 				//then
 				List<Ledger> ledgers = ledgerRepository.findAll();
@@ -175,7 +167,7 @@ public class LedgerCommandServiceIT {
 				LedgerWriteRequest request = LedgerRequestFixture.withImages().build();
 
 				//when
-				service.registerLedger(request);
+				target.registerLedger(request);
 
 				//then
 				//가계부 검증
@@ -218,7 +210,7 @@ public class LedgerCommandServiceIT {
 				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
 
 				//when & then
-				assertThatThrownBy(() -> service.registerLedger(request))
+				assertThatThrownBy(() -> target.registerLedger(request))
 						.isInstanceOf(BusinessException.class);
 
 				assertThat(ledgerRepository.findAll()).isEmpty();
@@ -234,7 +226,7 @@ public class LedgerCommandServiceIT {
 						.build();
 
 				//when & then
-				assertThatThrownBy(() -> service.registerLedger(request))
+				assertThatThrownBy(() -> target.registerLedger(request))
 						.isInstanceOf(BusinessException.class);
 
 				//then

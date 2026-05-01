@@ -2,8 +2,8 @@ package com.moneymanager;
 
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.exception.error.ErrorCode;
+import com.moneymanager.exception.error.ServiceAction;
 import org.assertj.core.api.AbstractAssert;
-import org.assertj.core.api.Assertions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -71,6 +71,13 @@ public class BusinessExceptionAssert extends AbstractAssert<BusinessExceptionAss
 			assertThat(actual.getErrorInfo().getLogMessage())
 					.doesNotContain(values);
 		}
+
+		return this;
+	}
+
+	public BusinessExceptionAssert hasServiceAction(ServiceAction action) {
+		isNotNull();
+		assertThat(actual.getErrorInfo().getService()).isSameAs(action);
 
 		return this;
 	}

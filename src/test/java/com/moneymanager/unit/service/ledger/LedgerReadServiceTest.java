@@ -1,5 +1,6 @@
 package com.moneymanager.unit.service.ledger;
 
+import com.moneymanager.BusinessExceptionAssert;
 import com.moneymanager.domain.global.Policy;
 import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.global.vo.DateRange;
@@ -7,22 +8,32 @@ import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
 import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.domain.ledger.enums.AmountType;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
+import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.error.ServiceAction;
+import com.moneymanager.mapper.LedgerMapper;
 import com.moneymanager.repository.ledger.LedgerRepository;
+import com.moneymanager.security.support.WithMockCustomUser;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.ledger.CategoryReadService;
+import com.moneymanager.service.ledger.LedgerImageReadService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.member.MemberReadService;
-import com.moneymanager.unit.fixture.LedgerCategoryFixture;
-import com.moneymanager.unit.fixture.LedgerFixture;
+import com.moneymanager.fixture.category.CategoryTreeFixture;
+import com.moneymanager.fixture.ledger.LedgerFixture;
+import com.moneymanager.fixture.ledger.LedgerImageFixture;
 import com.moneymanager.utils.date.DateTimeUtils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -32,6 +43,7 @@ import java.util.*;
 
 import static com.moneymanager.domain.ledger.enums.CategoryType.INCOME;
 import static com.moneymanager.domain.ledger.enums.CategoryType.OUTLAY;
+import static com.moneymanager.exception.error.ErrorCode.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -66,53 +78,49 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class LedgerReadServiceTest {
 
-	@Mock
-	private SecurityUtil securityUtil;
+	private LedgerReadService target;
 
-	@Mock
-	private LedgerHistoryPolicy ledgerHistoryPolicy;
-
-	@Mock
-	private CategoryReadService categoryReadService;
-	@Mock
-	private MemberReadService memberReadService;
-
-	@Mock
-	private LedgerRepository ledgerRepository;
-
-	private LedgerReadService service;
-	private Clock clock;
+	@Mock	private SecurityUtil securityUtil;
+	@Mock	private CategoryReadService categoryReadService;
+	@Mock	private LedgerImageReadService imageReadService;
+	@Mock	private LedgerRepository ledgerRepository;
+	@Mock	private LedgerHistoryPolicy ledgerHistoryPolicy;
+	@Mock	private LedgerMapper ledgerMapper;
+	@Mock	private Clock clock;
 
 
 	@BeforeEach
 	void setUp() {
 		LocalDate fixedDate = LocalDate.of(2025, 5, 5);
 
-		clock =Clock.fixed(
+		clock = Clock.fixed(
 				fixedDate.atStartOfDay().atZone(ZoneId.of("Asia/Seoul")).toInstant(),
 				ZoneId.of("Asia/Seoul")
 		);
 
-		service = new LedgerReadService(
-				securityUtil,
-				categoryReadService,
-				memberReadService,
-				ledgerRepository,
-				ledgerHistoryPolicy,
-				clock
+		target = new LedgerReadService(
+			securityUtil,
+			categoryReadService,
+			imageReadService,
+			ledgerRepository,
+			ledgerHistoryPolicy,
+			ledgerMapper,
+			clock
 		);
+
+		when(securityUtil.getMemberId()).thenReturn("UCt01001");
 	}
 
 
 	@Nested
 	@DisplayName("작성 1단계 요청 데이터 생성")
-	class Step1DataCreate {
+	class Step1DataCreateTest {
 
 		@Test
 		@DisplayName("연도 리스트는 정책상 허용하는 과거연도부터 현재연도까지 가진다.")
 		void returnsYearList_fromPastYearToCurrentYear() {
 			//when
-			LedgerWriteStep1Response result = service.getWriteStep1Data();
+			LedgerWriteStep1Response result = target.getWriteStep1Data();
 
 			//then
 			int expectedStartYear = LocalDate.now(clock).minusYears(Policy.LEDGER_MAX_YEAR).getYear();
@@ -127,7 +135,7 @@ public class LedgerReadServiceTest {
 		@DisplayName("월 리스트는 1월부터 현재월까지 가진다.")
 		void returnsMonthList_fromJanuaryToCurrentMonth() {
 			//when
-			LedgerWriteStep1Response result = service.getWriteStep1Data();
+			LedgerWriteStep1Response result = target.getWriteStep1Data();
 
 			//then
 			assertThat(result.getMonths()).containsExactly(1, 2, 3, 4, 5);
@@ -137,7 +145,7 @@ public class LedgerReadServiceTest {
 		@DisplayName("일 리스트는 1일부터 최대일까지 가진다.")
 		void returnsDayList_fromFirstDayToLastDay() {
 			//when
-			LedgerWriteStep1Response result = service.getWriteStep1Data();
+			LedgerWriteStep1Response result = target.getWriteStep1Data();
 
 			//then
 			int expectedLastDay = LocalDate.now(clock).getDayOfMonth();
@@ -150,7 +158,7 @@ public class LedgerReadServiceTest {
 		@DisplayName("현재 연월일은 오늘 날짜와 일치한다.")
 		void returnsCurrentDate_whenTodayBased() {
 			//when
-			LedgerWriteStep1Response result = service.getWriteStep1Data();
+			LedgerWriteStep1Response result = target.getWriteStep1Data();
 
 			//then
 			LocalDate today = LocalDate.now(clock);
@@ -164,7 +172,7 @@ public class LedgerReadServiceTest {
 		@DisplayName("화면 표시용 제목은 지정된 포맷으로 날짜를 변환한다.")
 		void returnsTitle_whenDateFormatGiven() {
 			//when
-			LedgerWriteStep1Response result = service.getWriteStep1Data();
+			LedgerWriteStep1Response result = target.getWriteStep1Data();
 
 			//then
 			String expectedTitle = DateTimeUtils.formatDate(
@@ -179,7 +187,7 @@ public class LedgerReadServiceTest {
 		@DisplayName("가계부 타입 목록이 포함된다.")
 		void returnsLedgerTypes() {
 			//when
-			LedgerWriteStep1Response result = service.getWriteStep1Data();
+			LedgerWriteStep1Response result = target.getWriteStep1Data();
 
 			//then
 			assertThat(result.getTypes()).isNotNull();
@@ -192,7 +200,10 @@ public class LedgerReadServiceTest {
 
 	@Nested
 	@DisplayName("작성 2단계 요청 데이터 생성")
-	class Step2DataCreate {
+	class Step2DataCreateTest {
+
+		@Mock
+		private MemberReadService memberReadService;
 
 		@Test
 		@DisplayName("수입 유형이면 수입용 작성 2단계 응답을 반환한다.")
@@ -214,7 +225,7 @@ public class LedgerReadServiceTest {
 			when(memberReadService.getImageLimit("test")).thenReturn(1);
 
 			//when
-			LedgerWriteStep2Response result = service.getWriteStep2Data(type, date);
+			LedgerWriteStep2Response result = target.getWriteStep2Data(type, date);
 
 			//then
 			String expectedTitle = DateTimeUtils.formatDate(date, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
@@ -243,12 +254,10 @@ public class LedgerReadServiceTest {
 
 			when(categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE))
 					.thenReturn(categories);
-
-			when(securityUtil.getMemberId()).thenReturn("test");
 			when(memberReadService.getImageLimit("test")).thenReturn(1);
 
 			//when
-			LedgerWriteStep2Response result = service.getWriteStep2Data(type, date);
+			LedgerWriteStep2Response result = target.getWriteStep2Data(type, date);
 
 			//then
 			String expectedTitle = DateTimeUtils.formatDate(date, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
@@ -270,12 +279,10 @@ public class LedgerReadServiceTest {
 
 			when(categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE))
 					.thenReturn(categories);
-
-			when(securityUtil.getMemberId()).thenReturn("test");
 			when(memberReadService.getImageLimit("test")).thenReturn(1);
 
 			//when
-			LedgerWriteStep2Response result = service.getWriteStep2Data(type, date);
+			LedgerWriteStep2Response result = target.getWriteStep2Data(type, date);
 
 			//then
 			assertThat(result.getCategories()).isEmpty();
@@ -289,7 +296,7 @@ public class LedgerReadServiceTest {
 			LocalDate date = LocalDate.of(2026, 1, 1);
 
 			//when
-			service.getWriteStep2Data(type, date);
+			target.getWriteStep2Data(type, date);
 
 			//then
 			verify(categoryReadService).getCategoriesByTypeAndLevel(eq(type), eq(CategoryLevel.MIDDLE));
@@ -306,7 +313,7 @@ public class LedgerReadServiceTest {
 			);
 
 			//when
-			LedgerWriteStep2Response result = service.getWriteStep2Data(INCOME, date);
+			LedgerWriteStep2Response result = target.getWriteStep2Data(INCOME, date);
 
 			//then
 			String expectedTitle = DateTimeUtils.formatDate(date, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
@@ -349,7 +356,7 @@ public class LedgerReadServiceTest {
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년 01월");
 
 				//when
-				HistoryDashboardResponse result = service.getHistoryDashboard(type);
+				HistoryDashboardResponse result = target.getHistoryDashboard(type);
 
 				//then
 				assertThat(result).isNotNull();
@@ -383,7 +390,7 @@ public class LedgerReadServiceTest {
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년 01월 1주");
 
 				//when
-				Map<String, List<HistoryItem>> result = service.getHistoryDashboard(type).getHistoryGroups();
+				Map<String, List<HistoryItem>> result = target.getHistoryDashboard(type).getHistoryGroups();
 
 				//then
 				String dateKey = DateTimeUtils.formatDate(date, DATE_FORMAT);
@@ -418,7 +425,7 @@ public class LedgerReadServiceTest {
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
 
 				//when
-				Map<String, List<HistoryItem>> groups = service.getHistoryDashboard(type).getHistoryGroups();
+				Map<String, List<HistoryItem>> groups = target.getHistoryDashboard(type).getHistoryGroups();
 				List<String> result = new LinkedList<>(groups.keySet());
 
 				//then
@@ -465,7 +472,7 @@ public class LedgerReadServiceTest {
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
 
 				//when
-				LedgerStatistics result = service.getHistoryDashboard(type).getStatistics();
+				LedgerStatistics result = target.getHistoryDashboard(type).getStatistics();
 
 				//then
 				assertThat(result).isNotNull();
@@ -495,7 +502,7 @@ public class LedgerReadServiceTest {
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
 
 				//when
-				LedgerStatistics result = service.getHistoryDashboard(type).getStatistics();
+				LedgerStatistics result = target.getHistoryDashboard(type).getStatistics();
 
 				//then
 				assertThat(result).isNotNull();
@@ -531,7 +538,7 @@ public class LedgerReadServiceTest {
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
 
 				//when
-				List<MenuItem> result = service.getHistoryDashboard(type).getMenu();
+				List<MenuItem> result = target.getHistoryDashboard(type).getMenu();
 
 				//then
 				assertThat(result).hasSize(5);
@@ -560,76 +567,216 @@ public class LedgerReadServiceTest {
 		}
 
 		private Category createCategory(CategoryType type) {
-			return (type == INCOME)
-					? LedgerCategoryFixture.lowCategoriesByIncome().get(0)
-					: LedgerCategoryFixture.lowCategoriesByOutlay().get(0);
+			return CategoryTreeFixture.low().get(type).get(0);
 		}
 
 	}
 
 
+	@WithMockCustomUser
 	@Nested
-	@DisplayName("이미지 슬롯 생성")
-	class ImageSlotCreateTest {
+	@DisplayName("가계부 상세 조회")
+	class LedgerDetailTest {
 
-		@Test
-		@DisplayName("기본적으로 1개의 슬롯만 true다.")
-		void returnsBooleanList_whenDefaultMember() {
-			//given
-			when(securityUtil.getMemberId()).thenReturn("member");
-			when(memberReadService.getImageLimit("member")).thenReturn(1);
-
-			//when
-			List<Boolean> result = service.fetchBooleanList();
-
-			//then
-			assertThat(result).hasSize(3);
-			assertThat(result).containsExactly(true, false, false);
+		@BeforeEach
+		void setUp() {
+			when(securityUtil.getMemberId()).thenReturn("UCt01001");
 		}
 
-		@Test
-		@DisplayName("2개의 슬롯만 true이 가능하다.")
-		void returnsBooleanList_whenTwoSlots() {
-			//given
-			when(securityUtil.getMemberId()).thenReturn("member");
-			when(memberReadService.getImageLimit("member")).thenReturn(2);
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
 
-			//when
-			List<Boolean> result = service.fetchBooleanList();
+			LedgerDetailResponse.LedgerDetailResponseBuilder mockResponse = LedgerDetailResponse.builder()
+					.date("제목")
+					.amount(10000L)
+					.paymentType(AmountType.NONE);
 
-			//then
-			assertThat(result).hasSize(3);
-			assertThat(result).containsExactly(true, true, false);
+			@Test
+			@DisplayName("이미지가 없는 가계부 정보가 조회된다.")
+			void returnsResponse_whenLedgerHasNoImage() {
+				//given
+				Ledger incomeLedger = LedgerFixture.create();
+				Category category = CategoryTreeFixture.incomeSalary();
+
+				when(ledgerRepository.findByCode(any(), any())).thenReturn(incomeLedger);
+				when(categoryReadService.getCategory(any())).thenReturn(category);
+				when(imageReadService.getLedgerImages(any())).thenReturn(Collections.emptyList());
+
+				when(ledgerMapper.toDetailDto(any(), any(), anyList()))
+						.thenReturn(
+								mockResponse.
+										type(INCOME)
+										.category(CategoryResponse.from(category))
+										.images(Arrays.asList(null, null, null))
+										.build()
+						);
+
+				//when
+				LedgerDetailResponse result = target.getLedgerDetail(incomeLedger.getCode());
+
+				//then
+				assertThat(result).isNotNull();
+				assertThat(result)
+						.extracting(
+								LedgerDetailResponse::getPlaceName,
+								LedgerDetailResponse::getRoadAddress,
+								LedgerDetailResponse::getDetailAddress
+						).containsOnlyNulls();
+
+				assertThat(result.getDate()).isEqualTo("제목");
+				assertThat(result.getAmount()).isEqualTo(10000L);
+				assertThat(result.getType()).isSameAs(INCOME);
+				assertThat(result.getPaymentType()).isSameAs(AmountType.NONE);
+
+				assertThat(result.getCategory())
+						.hasFieldOrPropertyWithValue("name", "월급")
+						.hasFieldOrPropertyWithValue("code", "010101");
+
+				//이미지 검증
+				assertThat(result.getImages()).hasSize(3)
+						.containsOnlyNulls();
+			}
+
+			@Test
+			@DisplayName("이미지가 1개 있는 가계부 정보를 조회한다.")
+			void returnsResponse_whenLedgerHasImage() {
+				//given
+				Category category = CategoryTreeFixture.outlayFood();
+				Ledger outlayLedger = LedgerFixture.defaultLedger().category(category.getCode()).build();
+
+				List<LedgerImage> imageList = List.of(
+						LedgerImageFixture.defaultImage(1L, outlayLedger.getId()).build()
+				);
+
+				when(ledgerRepository.findByCode(any(), any())).thenReturn(outlayLedger);
+				when(categoryReadService.getCategory(any())).thenReturn(category);
+				when(imageReadService.getLedgerImages(any())).thenReturn(imageList);
+
+				when(ledgerMapper.toDetailDto(any(),any(),anyList()))
+						.thenReturn(
+								mockResponse
+										.type(OUTLAY)
+										.category(CategoryResponse.from(category))
+										.images(Arrays.asList("test-mid/images/default.png", null, null))
+										.build()
+						);
+
+
+				//when
+				LedgerDetailResponse result = target.getLedgerDetail(outlayLedger.getCode());
+
+				//then
+				assertThat(result).isNotNull();
+
+				List<String> images = result.getImages();
+				assertThat(images).hasSize(3)
+						.containsExactly("test-mid/images/default.png", null, null);
+			}
+
+			@Test
+			@DisplayName("이미지가 여러개 있는 가계부 정보를 조회한다.")
+			void returnsResponse_whenLedgerHasImages() {
+				//given
+				Category category = CategoryTreeFixture.outlayFood();
+				Ledger outlayLedger = LedgerFixture.defaultLedger().category(category.getCode()).build();
+
+				List<LedgerImage> imageList = List.of(
+						LedgerImageFixture.defaultImage(1L, outlayLedger.getId()).build(),
+						LedgerImageFixture.defaultImage(2L, outlayLedger.getId()).id(2L).sortOrder(2).imagePath("images/2.png").build()
+				);
+
+				when(ledgerRepository.findByCode(any(), any())).thenReturn(outlayLedger);
+				when(categoryReadService.getCategory(any())).thenReturn(category);
+				when(imageReadService.getLedgerImages(any())).thenReturn(imageList);
+
+				when(ledgerMapper.toDetailDto(any(),any(),anyList()))
+						.thenReturn(
+								mockResponse
+										.type(OUTLAY)
+										.category(CategoryResponse.from(category))
+										.images(Arrays.asList("test-mid/images/default.png", "test-mid/images/2.png", null))
+										.build()
+						);
+
+
+				//when
+				LedgerDetailResponse result = target.getLedgerDetail(outlayLedger.getCode());
+
+				//then
+				assertThat(result).isNotNull();
+
+				List<String> images = result.getImages();
+				assertThat(images).hasSize(3)
+						.containsExactly("test-mid/images/default.png", "test-mid/images/2.png", null);
+			}
+
 		}
 
-		@Test
-		@DisplayName("최대 슬롯인 3개까지 true가 가능하다.")
-		void returnsBooleanList_whenMaxSlots() {
-			//given
-			when(securityUtil.getMemberId()).thenReturn("member");
-			when(memberReadService.getImageLimit("member")).thenReturn(3);
 
-			//when
-			List<Boolean> result = service.fetchBooleanList();
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
 
-			//then
-			assertThat(result).hasSize(3);
-			assertThat(result).containsExactly(true, true, true);
-		}
+			@Test
+			@DisplayName("인증되지 않은 회원이 요청하면 BusinessException이 발생한다.")
+			void throwsException_whenUnauthorized() {
+				//given
+				when(securityUtil.getMemberId())
+						.thenThrow(BusinessException.of(MEMBER_AUTHORITY_UNAUTHORIZED, "인증 예외"));
 
-		@Test
-		@DisplayName("회원의 허용범위가 3개보다 커도 최대 슬롯인 3개까지 true가 가능하다.")
-		void returnsBooleanList_whenSlotOutOfRange() {
-			//given
-			when(securityUtil.getMemberId()).thenReturn("member");
-			when(memberReadService.getImageLimit("member")).thenReturn(5);
+				//when
+				Throwable throwable = catchThrowable(() -> target.getLedgerDetail("code"));
 
-			//when
-			List<Boolean> result = service.fetchBooleanList();
+				//then
+				BusinessExceptionAssert.assertThatBusinessException(throwable)
+								.hasErrorCode(MEMBER_AUTHORITY_UNAUTHORIZED)
+								.hasLogMessage("인증 예외")
+								.hasServiceAction(ServiceAction.LEDGER_DETAIL);
+			}
 
-			//then
-			assertThat(result).hasSize(3);
-			assertThat(result).containsExactly(true, true, true);
+			@Test
+			@DisplayName("없는 가계부를 조회하면 BusinessException이 발생한다.")
+			void throwsException_whenLedgerDoesNotExist() {
+				//given
+				when(ledgerRepository.findByCode(any(), any())).thenThrow(EmptyResultDataAccessException.class);
+
+				//when & then
+				BusinessExceptionAssert.assertThatBusinessException(
+						catchThrowable(() -> target.getLedgerDetail("code"))
+				).hasErrorCode(LEDGER_TARGET_NOT_FOUND);
+
+			}
+
+			@Test
+			@DisplayName("없는 카테고리를 조회하면 BusinessException이 발생한다.")
+			void throwsException_whenCategoryDoesNotExist() {
+				//given
+				when(ledgerRepository.findByCode(any(), any())).thenReturn(LedgerFixture.create());
+				when(categoryReadService.getCategory(any())).thenThrow(BusinessException.of(LEDGER_CATEGORY_TARGET_NOT_FOUND, "카테고리 없음"));
+
+				//when & then
+				BusinessExceptionAssert.assertThatBusinessException(
+						catchThrowable(() -> target.getLedgerDetail("code"))
+				).hasErrorCode(LEDGER_CATEGORY_TARGET_NOT_FOUND);
+			}
+
+			@Test
+			@DisplayName("DB 문제로 데이터 조회 불가능하면 ")
+			void throwsException_whenImageDbAccessFails() {
+				//given
+				Ledger incomeLedger = LedgerFixture.create();
+				Category category = CategoryTreeFixture.incomeSalary();
+
+				when(ledgerRepository.findByCode(any(), any())).thenReturn(incomeLedger);
+				when(categoryReadService.getCategory(any())).thenReturn(category);
+
+				when(imageReadService.getLedgerImages(any())).thenThrow(new DataAccessException("DB 예외") {});
+
+				//when & then
+				assertThatThrownBy(() -> target.getLedgerDetail("code"))
+						.isInstanceOf(DataAccessException.class);
+			}
 		}
 
 	}

@@ -1,15 +1,13 @@
 package com.moneymanager.integration.repository.member;
 
-import com.moneymanager.config.DatabaseConfig;
 import com.moneymanager.repository.member.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -41,18 +39,13 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * 		</tbody>
  * </table>
  */
-@JdbcTest
+@SpringBootTest
 @ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({
-		DatabaseConfig.class,
-		MemberRepository.class
-})
+@Transactional
 public class MemberRepositoryTest {
 
 	@Autowired
-	private MemberRepository repository;
-
+	private MemberRepository target;
 
 	@Test
 	@DisplayName("회원ID가 존재하면 회원별 이미지 등록 가능한 개수가 반환된다.")
@@ -61,7 +54,7 @@ public class MemberRepositoryTest {
 		String memberId = "test";
 
 		//when
-		Integer result = repository.findImageLimitByMemberId(memberId);
+		Integer result = target.findImageLimitByMemberId(memberId);
 
 		//then
 		assertThat(result).isEqualTo(1);
@@ -75,7 +68,7 @@ public class MemberRepositoryTest {
 
 		//when & then
 		assertThatExceptionOfType(EmptyResultDataAccessException.class)
-				.isThrownBy(() -> repository.findImageLimitByMemberId(memberId));
+				.isThrownBy(() -> target.findImageLimitByMemberId(memberId));
 	}
 
 }

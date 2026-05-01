@@ -5,7 +5,6 @@ import com.moneymanager.domain.global.dto.StoredFile;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.member.Member;
-import com.moneymanager.domain.member.enums.MemberType;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.repository.ledger.LedgerRepository;
@@ -14,8 +13,8 @@ import com.moneymanager.security.support.WithMockCustomUser;
 import com.moneymanager.service.file.FileCommandService;
 import com.moneymanager.service.file.FileNamingStrategy;
 import com.moneymanager.service.ledger.LedgerCommandService;
-import com.moneymanager.unit.fixture.LedgerRequestFixture;
-import com.moneymanager.unit.fixture.MemberFixture;
+import com.moneymanager.fixture.LedgerRequestFixture;
+import com.moneymanager.fixture.MemberFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -69,7 +68,7 @@ import static org.mockito.Mockito.when;
 public class LedgerCommandServiceRollbackIT {
 
 	@Autowired
-	private LedgerCommandService service;
+	private LedgerCommandService target;
 
 	@Autowired
 	private LedgerRepository ledgerRepository;
@@ -83,21 +82,14 @@ public class LedgerCommandServiceRollbackIT {
 	@MockBean
 	private FileCommandService fileCommandService;
 
+	private Member member;
+
 
 	@BeforeEach
 	void setUp() {
 		memberRepository.deleteAll();
 
-		Member member = MemberFixture.defaultMember()
-				.id("UCt01001")
-				.type(MemberType.NORMAL)
-				.name("김철수")
-				.birthDate("20001010")
-				.nickName("철수")
-				.email("cheolsu@test.com")
-				.memberInfo(MemberFixture.defaultMemberInfo())
-				.build();
-
+		member = MemberFixture.create();
 		memberRepository.save(member);
 	}
 
@@ -117,7 +109,7 @@ public class LedgerCommandServiceRollbackIT {
 					.thenThrow(BusinessException.of(FILE_ETC_RESOURCE_ERROR, "파일 저장 실패"));
 
 			//when & then
-			assertThatThrownBy(() -> service.registerLedger(request))
+			assertThatThrownBy(() -> target.registerLedger(request))
 					.isInstanceOf(BusinessException.class)
 					.satisfies(e -> {
 						BusinessExceptionAssert.assertThatBusinessException(e)
@@ -142,7 +134,7 @@ public class LedgerCommandServiceRollbackIT {
 					.when(ledgerImageRepository).saveAll(anyList());
 
 			//when & then
-			assertThatThrownBy(() -> service.registerLedger(request))
+			assertThatThrownBy(() -> target.registerLedger(request))
 					.isInstanceOf(BusinessException.class)
 					.satisfies(e -> {
 						BusinessExceptionAssert.assertThatBusinessException(e)
@@ -164,7 +156,7 @@ public class LedgerCommandServiceRollbackIT {
 					.thenThrow(new RuntimeException("예상치 못한 오류"));
 
 			//when & then
-			assertThatThrownBy(() -> service.registerLedger(request))
+			assertThatThrownBy(() -> target.registerLedger(request))
 					.isInstanceOf(RuntimeException.class)
 					.hasMessage("예상치 못한 오류");
 

@@ -17,8 +17,8 @@ import java.io.InputStream;
 import java.util.stream.Stream;
 
 import static com.moneymanager.exception.error.ErrorCode.*;
-import static com.moneymanager.unit.fixture.LedgerRequestFixture.defaultLedgerWriteRequest;
-import static com.moneymanager.unit.fixture.LedgerRequestFixture.withPlace;
+import static com.moneymanager.fixture.LedgerRequestFixture.defaultLedgerWriteRequest;
+import static com.moneymanager.fixture.LedgerRequestFixture.withPlace;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
