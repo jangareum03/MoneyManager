@@ -40,9 +40,11 @@ public class LedgerImageRepository {
 
 	private final JdbcTemplate jdbcTemplate;
 
+
 	public LedgerImageRepository(DataSource dataSource) {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
+
 
 	private final RowMapper<LedgerImage> ledgerImageRowMapper = (rs, rowNum) -> {
 		return LedgerImage.builder()

@@ -2,6 +2,8 @@ package com.moneymanager.repository.member;
 
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.member.MemberInfo;
+import com.moneymanager.domain.member.enums.MemberStatus;
+import com.moneymanager.domain.member.enums.MemberType;
 import com.moneymanager.exception.BusinessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -50,19 +52,19 @@ public class MemberRepository {
 
 
 	@Transactional
-	public String save(Member member) {
+	public Member save(Member member) {
 		boolean isExists = existsId(member.getId());
 
 		if(!isExists) {
-			return insert(member);
+			insert(member);
 		}else {
 			update(member);
-
-			return member.getId();
 		}
+
+		return findById(member.getId());
 	}
 
-	private String insert(Member member) {
+	private void insert(Member member) {
 		insertMember(member);
 
 		if(member.getMemberInfo() == null) {
@@ -75,8 +77,6 @@ public class MemberRepository {
 		MemberInfo memberInfo = member.getMemberInfo().withMemberId(member.getId());
 
 		insertMemberInfo(memberInfo);
-
-		return member.getId();
 	}
 
 	private void insertMember(Member member) {
@@ -153,6 +153,41 @@ public class MemberRepository {
 		Integer count = jdbcTemplate.queryForObject(query, Integer.class,	memberId);
 
 		return count > 0;
+	}
+
+
+	public Member findById(String id) {
+		String query = """
+				SELECT *
+				FROM member
+				WHERE id = ?
+				""";
+
+		return jdbcTemplate.queryForObject(
+				query,
+				(rs, rowNum) -> {
+
+					MemberType type = MemberType.match(rs.getString("type").charAt(0));
+					MemberStatus status = MemberStatus.fromCode(rs.getString("status").charAt(0));
+
+					return Member.builder()
+							.id(rs.getString("id"))
+							.type(type)
+							.status(status)
+							.role(rs.getString("role"))
+							.userName(rs.getString("username"))
+							.password(rs.getString("password"))
+							.name(rs.getString("name"))
+							.birthDate(rs.getString("birthdate"))
+							.nickName(rs.getString("nickname"))
+							.email(rs.getString("email"))
+							.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+							.deletedAt(rs.getTimestamp("deleted_at") == null ? null : rs.getTimestamp("deleted_at").toLocalDateTime())
+							.build();
+				},
+				id
+		);
+
 	}
 
 
