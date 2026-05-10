@@ -1,19 +1,11 @@
 package com.moneymanager.domain.ledger.dto.response;
 
-import com.moneymanager.domain.global.enums.DatePatterns;
-import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.entity.LedgerImage;
-import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.AmountType;
-import com.moneymanager.domain.ledger.vo.Place;
-import com.moneymanager.utils.date.DateTimeUtils;
+import com.moneymanager.domain.ledger.enums.CategoryType;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -45,52 +37,18 @@ import java.util.stream.Collectors;
 @Builder
 @Getter
 public class LedgerEditResponse {
+	private final CategoryType type;									//가계부 유형
+
 	private final String date;												//가계부 날짜
-	private final String memo;												//메모
-	private final List<CategoryResponse> category;			//카테고리
-	private final List<String> images;									//가계부 사진
-
-	private final CategoryType type;										//가계부 유형
-	private final LedgerFixedResponse fixed;					//가계부 고정여부
-
+	private final LedgerFixed fixed;									//가계부 고정여부
 	private Long amount;													//금액
 	private AmountType paymentType;								//금액 유형
+	private final String memo;												//메모
+	private String placeName;												//장소명
+	private String roadAddress;											//기본주소
+	private String detailAddress;										//상세주소
 
-	private String placeName;								//장소명
-	private String roadAddress;							//기본주소
-	private String detailAddress;						//상세주소
+	private final List<ImageSlot> images;							//가계부 사진
 
-	public static LedgerEditResponse from(Ledger ledger, Category category, List<CategoryResponse> categories, List<LedgerImage> images) {
-		Place place = ledger.getPlace();
-
-		LedgerEditResponse.LedgerEditResponseBuilder builder =
-				LedgerEditResponse.builder()
-						.date(DateTimeUtils.formatDate(ledger.getDate(), DatePatterns.DATE_DOT_WITH_DAY.getPattern()))
-						.type(CategoryType.fromCategoryCode(category.getCode()))
-						.fixed(LedgerFixedResponse.from(ledger))
-						.category(categories)
-						.memo(ledger.getMemo())
-						.amount(ledger.getAmount())
-						.paymentType(ledger.getAmountType())
-						.placeName(place.getName())
-						.roadAddress(place.getRoadAddress())
-						.detailAddress(place.getDetailAddress());
-
-		if( !images.isEmpty() ) {
-			builder.images(
-					toImagePaths(images)
-			);
-		}
-
-		return builder.build();
-	}
-
-	//LedgerImage 리스트를 String 리스트로 변환
-	private static List<String> toImagePaths(List<LedgerImage> images) {
-		return images.stream()
-				.map( image ->
-						image == null ? null : image.getImagePath()
-				)
-				.collect(Collectors.toList());
-	}
+	private final CategoryEditInfo categoryEditInfo;		//카테고리 정보
 }

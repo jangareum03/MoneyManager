@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{/layout/mainLayout}" th:with="pageTitle='가계부 수정 : 돈매니저'">
+<th:block layout:fragment="main">
+    <main class="page page-ledger page-ledger-update" th:classappend="${#strings.toLowerCase(ledger.type)}">
+        <!-- 상단 : 제목 -->
+        <section class="ledger-header">
+            <header>
+                <h1 class="ledger-header__title" th:text="${ledger.date}"></h1>
+                <small class="ledger-header__type"></small>
+            </header>
+        </section>
+
+        <!-- 본문 : 작성폼 -->
+        <section class="ledger-body">
+            <form class="form" th:object="${ledger}">
+                <!-- 고정/변동 -->
+                <div class="form__field form__field--fix">
+                    <label class="form__label">고정/변동</label>
+                    <div class="form__input-container form__input-container--fix">
+                        <section class="form__input-box form__input-box--main">
+                            <label class="form__label" th:each="fix : ${fixes}">
+                                <input class="form__input form__input--radio" name="fix" type="radio"
+                                       th:value="${fix.value}"
+                                       th:checked="${fix == ledger.fixed.fix}">
+                                [[${fix.label}]]
+                            </label>
+                        </section>
+                        <section th:if="${ledger.fixed.fix.name() == 'REPEAT'}" class="form__input-box form__input-box--option">
+                            <label class="form__label" th:each="cycle : ${fixCycles}">
+                                <input class="form__input form__input--radio" name="cycle" type="radio"
+                                       th:value="${cycle.value}"
+                                       th:checked="${cycle == ledger.fixed.cycle}">
+                                [[${cycle.label}]]
+                            </label>
+                        </section>
+                    </div>
+                </div>
+
+                <!-- 카테고리 -->
+                <fieldset class="form__field form__field--category">
+                    <legend class="form__label form__label--essential">카테고리</legend>
+                    <div class="form__input-box form__input-box--category">
+                        <select class="form__select form__select--middle">
+                            <option value="" disabled>-- 선택없음 --</option>
+                            <option
+                                    th:each="category : *{categoryEditInfo.middleOptions}"
+                                    th:value="${category.code}"
+                                    th:text="${category.name}"
+                                    th:selected="${
+                                        !#lists.isEmpty(ledger.categoryEditInfo.selected)
+                                        and
+                                        category.code == ledger.categoryEditInfo.selected[0]
+                                    }"></option>
+                        </select>
+                        <select class="form__select form__select--sub" name="category">
+                            <option value="" disabled>-- 선택없음 --</option>
+                            <option
+                                    th:each="category : *{categoryEditInfo.lowOptions}"
+                                    th:value="${category.code}"
+                                    th:text="${category.name}"
+                                    th:selected="${
+                                        !#lists.isEmpty(ledger.categoryEditInfo.selected)
+                                        and
+                                        category.code == ledger.categoryEditInfo.selected[1]
+                                    }"></option>
+                        </select>
+                    </div>
+                </fieldset>
+
+                <!-- 메모 -->
+                <div class="form__field form__field--memo">
+                    <label class="form__label">메모</label>
+                    <div class="form__input-box form__input-box--memo">
+                        <label>
+                            <textarea class="ledger__field ledger__memo" th:field="*{memo}" placeholder="메모를 입력해주세요." cols="60" rows="4" maxlength="150"></textarea>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 금액 -->
+                <div class="form__field form__field--price">
+                    <label class="form__label form__label--essential">금액</label>
+                    <div class="form__input-container form__input-container--price">
+                        <!-- 금액 입력 -->
+                        <section class="form__input-box form__input-box--main">
+                            <label>
+                                <input class="form__input form__input--text" type="text" placeholder="금액을 입력해주세요." th:field="*{amount}">
+                            </label>
+                        </section>
+
+                        <!-- 금액 유형 -->
+                        <div class="form__input-box form__input-box--type">
+                            <label th:each="payType : ${paymentTypes}">
+                                <input class="form__input form__input--radio" name="paymentType" type="radio"
+                                            th:value="${payType.value}"
+                                            th:checked="${ledger.paymentType == payType}">
+
+                                <span th:utext="${payType.svg}"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 사진 -->
+                <div class="form__field form__field--photo">
+                    <label class="form__label">사진</label>
+                    <div class="form__input-box form__input-box--photo">
+                        <label th:each="image : *{images}" class="form__label">
+                            <input th:if="${image.status.name() != 'LOCKED'}"
+                                        class="form__input form__input--file" type="file" accept=".gif, .jpg, .png">
+
+                            <img alt=""
+                                    th:src="${image.filePath}"
+                                    th:classappend="${image.status.name() == 'FILLED'
+                                        ? 'photo_preview'
+                                        : 'icon'
+                                    }">
+
+                            <button th:if="${image.status.name() == 'FILLED'}"
+                                            class="button button--nano button--danger">
+                                삭제
+                            </button>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 위치 -->
+                <div class="form__field form__field--location" th:with="hasLocation=*{placeName != null}">
+                    <label class="form__label">위치</label>
+                    <div class="form__input-container form__input-container--location">
+                        <div th:unless="${hasLocation}"
+                                class="form__input-box form__input-box--empty">
+                            <img th:src="@{/image/location.png}" alt="위치 아이콘">
+                            <span>위치를 입력해주세요</span>
+                        </div>
+                        <div th:if ="${hasLocation}"
+                                class="form__input-box form__input-box--filled">
+                            <span class="location__name" th:text="*{placeName}"></span>
+                            <span class="location__road" th:text="*{roadAddress}"></span>
+                            <span class="location__add" th:text="*{detailAddress}"></span>
+                        </div>
+                        <svg th:if="${hasLocation}"
+                                class="icon icon--del" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M3.121 17.85a3 3 0 0 1 0-4.243l7.071-7.072l8.486 8.486l-3.243 3.242H20a1 1 0 1 1 0 2H6.778a3 3 0 0 1-2.121-.878L3.12 17.849zm16.97-4.243l1.415-1.415a3 3 0 0 0 0-4.242l-4.243-4.243a3 3 0 0 0-4.242 0l-1.414 1.414z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 버튼 -->
+                <div class="form__actions">
+                    <button type="button" class="button button--medium button--cancel">취소</button>
+                    <button type="button" class="button button--medium button--default">저장</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</th:block>
+<th:block layout:fragment="pageScript">
+    <script src="/js/pages/ledger-update.js"></script>
+</th:block>
+<th:block layout:fragment="pageStyle"></th:block>
+</html>

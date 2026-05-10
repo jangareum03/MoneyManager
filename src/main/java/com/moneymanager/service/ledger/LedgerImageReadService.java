@@ -1,7 +1,8 @@
 package com.moneymanager.service.ledger;
 
 import com.moneymanager.domain.global.Policy;
-import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.domain.ledger.dto.response.ImageSlot;
+import com.moneymanager.domain.ledger.enums.SlotStatus;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.member.MemberReadService;
@@ -9,7 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
 
 /**
  * <p>
@@ -42,39 +46,80 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LedgerImageReadService {
 
-	private SecurityUtil securityUtil;
+	private final SecurityUtil securityUtil;
 
 	private final MemberReadService memberReadService;
 	private final LedgerImageRepository imageRepository;
 
 
-	/**
-	 * 회원이 사용할 수 있는 가계부 이미지 슬롯 상태를 반환합니다.
-	 * <p>
-	 *     회원이 등록할 수 있는 최대 이미지 개수({@code maxSlot})를 기준으로,
-	 *     실제 사용 가능한 슬롯과 사용 불가능한 슬롯을 {@link Boolean} 값으로 표현합니다.
-	 *     사용 가능한 슬롯은 {@code true}로, 사용 불가능한 슬롯은 {@code false}로 표현합니다.
-	 * </p>
-	 *
-	 * @return	이미지 슬롯 사용 가능 여부를 나타내는 Boolean 리스트
-	 */
-	public List<Boolean> fetchBooleanList(){
-		List<Boolean> slotList = new ArrayList<>();
-
+	public List<ImageSlot> resolveImageSlots() {
+		//1. 인증된 회원 조회
 		String memberId = securityUtil.getMemberId();
 
-		int availableSlot = memberReadService.getImageLimit(memberId);
-		int maxSlot = Policy.LEDGER_MAX_IMAGE;
-		for( int i =0; i < maxSlot; i++ ) {
-			slotList.add( i < availableSlot );
-		}
+		//2. 업로드 가능 개수
+		int allowedCount = memberReadService.getImageLimit(memberId);
 
-		return slotList;
+		//3. 슬롯 상태 생성
+		List<SlotStatus> slotStatuses = generateSlotStatuses(allowedCount, 0);
+
+		return createImageSlots(slotStatuses, Collections.emptyList());
 	}
 
 
-	public List<LedgerImage> getLedgerImages(Long id) {
-		return imageRepository.findByLedgerId(id);
+	public List<ImageSlot> resolveImageSlots(Long ledgerId) {
+		//1. 인증된 회원 조회
+		String memberId = securityUtil.getMemberId();
+
+		//2. 업로드 가능 개수
+		int allowedCount = memberReadService.getImageLimit(memberId);
+
+		//3. 저장된 이미지 조회
+		List<String> savedImages =
+				imageRepository.findByLedgerId(ledgerId)
+						.stream()
+						.filter(i -> i != null && !isNullOrBlank(i.getImagePath()))
+						.map(i -> memberId + "/" + i.getImagePath())
+						.toList();
+
+		//4. 슬롯 상태 생성
+		List<SlotStatus> slotStatuses = generateSlotStatuses(allowedCount, savedImages.size());
+
+		//5. 상태 기반 슬롯 생성
+		return createImageSlots(slotStatuses, savedImages);
+	}
+
+	private List<SlotStatus> generateSlotStatuses(int allowedCount, int savedCount) {
+		List<SlotStatus> slotStatuses = new ArrayList<>();
+
+		for(int i=0; i<Policy.LEDGER_MAX_IMAGE; i++) {
+			if( i >= allowedCount) {
+				slotStatuses.add(SlotStatus.LOCKED);
+			}else if(i < savedCount) {
+				slotStatuses.add(SlotStatus.FILLED);
+			}else {
+				slotStatuses.add(SlotStatus.EMPTY);
+			}
+		}
+
+		return slotStatuses;
+	}
+
+	private List<ImageSlot> createImageSlots(List<SlotStatus> slotStatusList, List<String> savedImageList) {
+		List<ImageSlot> imageSlots = new ArrayList<>();
+
+		int savedIndex = 0;
+
+		for(SlotStatus status : slotStatusList) {
+			imageSlots.add(
+					switch (status) {
+						case EMPTY -> ImageSlot.ofEmptySlot();
+						case FILLED -> ImageSlot.ofFilledSlot(savedImageList.get(savedIndex++));
+						case LOCKED -> ImageSlot.ofLockedSlot();
+					}
+			);
+		}
+
+		return imageSlots;
 	}
 
 }
