@@ -79,7 +79,7 @@ public class LedgerController {
 
 	@GetMapping("/{code}")
 	public String getLedgerDetail(@PathVariable String code, Model model) {
-		model.addAttribute("ledger", ledgerReadService.getLedgerDetail(code));
+		model.addAttribute("ledger", ledgerReadService.getDetailData(code));
 
 		return "/ledger/ledger_detail";
 	}

@@ -72,6 +72,11 @@ public enum ErrorCode {
 	LEDGER_ETC_DB_ERROR("S-20-09-02", "데이터베이스 관련 문제가 발생했습니다."),
 
 	/**
+	 * 가계부 카테고리 관련 오류
+	 */
+	LEDGER_CATEGORY_TARGET_NOT_FOUND("C-21-01-01", "찾을 수 없는 카테고리입니다."),
+
+	/**
 	 * 거래내역 관련 오류
 	 */
 	LEDGER_HISTORY_INPUT_FORMAT("C-22-02-03", "가계부 내역조회 입력 형식이 올바르지 않습니다."),
