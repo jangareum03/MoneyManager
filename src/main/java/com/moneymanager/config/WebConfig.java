@@ -45,7 +45,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers( ResourceHandlerRegistry registry ) {
-        registry.addResourceHandler("/image/ledger/**").addResourceLocations(ledgerResourcePath);
+        registry.addResourceHandler("/uploads/ledger/**").addResourceLocations(ledgerResourcePath);
         registry.addResourceHandler(profileConnectPath).addResourceLocations(profileResourcePath);
         registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/static/");
     }
