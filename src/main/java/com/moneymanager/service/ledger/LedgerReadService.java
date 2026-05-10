@@ -227,28 +227,85 @@ public class LedgerReadService {
 	}
 
 
-	public LedgerDetailResponse getLedgerDetail(String code) {
+	public LedgerDetailResponse getDetailData(String code) {
 		ServiceAction action = ServiceAction.LEDGER_DETAIL;
 
-		String memberId = null;
+		return executeWithLog(action, code, () -> {
+			//1. 인증된 사용자 조회
+			String memberId = securityUtil.getMemberId();
+
+			//2. 가계부 조회
+			Ledger ledger = getLedger(memberId, code);
+
+			//3. 카테고리 조회
+			Category category = categoryReadService.getCategory(ledger.getCategory());
+
+			//4. 정책에 맞춰 가계부 이미지 리스트 조회
+			List<String> images
+					= imageReadService.resolveImageSlots(ledger.getId())
+						.stream()
+						.map(ImageSlot::getFilePath)
+						.toList();
+
+			return ledgerMapper.toDetailDto(ledger, category, images);
+		});
+	}
+
+
+	public LedgerEditResponse getEditData(String code) {
+		ServiceAction action = ServiceAction.LEDGER_EDIT_VIEW;
+
+		return executeWithLog(action, code, () -> {
+			//1. 인증된 사용자 조회
+			String memberId = securityUtil.getMemberId();
+
+			//2. 가계부 조회
+			Ledger ledger = getLedger(memberId, code);
+
+			//3. 카테고리 조회
+			CategoryEditInfo categoryEditInfo = buildCategoryInfoForUpdate(ledger);
+
+			//4. 정책에 맞춰 가계부 이미지 리스트 조회
+			List<ImageSlot> images = imageReadService.resolveImageSlots(ledger.getId());
+
+			return ledgerMapper.toEditDto(ledger, images, categoryEditInfo);
+		});
+
+	}
+
+	private CategoryEditInfo buildCategoryInfoForUpdate(Ledger ledger) {
+		String categoryCode = ledger.getCategory();
+		CategoryType type = CategoryType.fromCode(categoryCode);
+
+		return CategoryEditInfo.builder()
+				.selected(getSelectedCategories(categoryCode))
+				.middleOptions(getCategories(type, CategoryLevel.MIDDLE))
+				.lowOptions(getCategories(type, CategoryLevel.LOW))
+				.build();
+	}
+
+	private List<String> getSelectedCategories(String categoryCode) {
+		return categoryReadService.findOrderedStepsByCategory(categoryCode)
+				.stream()
+				.map(CategoryItem::getCode)
+				.skip(1)
+				.toList();
+	}
+
+	private List<CategoryItem> getCategories(CategoryType type, CategoryLevel level) {
+		return categoryReadService.getCategoriesByTypeAndLevel(type, level);
+	}
+
+
+	private <T> T executeWithLog(ServiceAction action, String code, Supplier<T> supplier) {
+		String memberId = "UNKNOWN";
 
 		try{
-			// 1. 인증된 사용자 조회
-			memberId = securityUtil.getMemberId();
-
-			//2. 가계부/카테고리 조회
-			Ledger ledger = getLedger(memberId, code);
-			Category category = categoryReadService.getCategory(code);
-
-			//3. 가계부 이미지 조회
-			List<LedgerImage> images = imageReadService.getLedgerImages(ledger.getId());
-			//4. 정책에 맞춰 이미지 개수 보장
-			images = adjustImageCountToPolicy(images);
-
-			LedgerDetailResponse response = ledgerMapper.toDetailDto(ledger, category, images);
+			T result = supplier.get();
 
 			log.info("{} 성공   |   memberId={}   |   result=success   |   ledger={}", action.getTitle(), memberId, code);
-			return response;
+
+			return result;
 		}catch (BusinessException e) {
 			log.error(
 					"[{}] {} 실패   |   memberId={}   |   result=failure   |   errorCode={}",

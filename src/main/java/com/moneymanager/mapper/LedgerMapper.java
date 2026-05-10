@@ -1,11 +1,9 @@
 package com.moneymanager.mapper;
 
 import com.moneymanager.domain.global.enums.DatePatterns;
-import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
-import com.moneymanager.domain.ledger.dto.response.LedgerDetailResponse;
+import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.utils.date.DateTimeUtils;
@@ -43,7 +41,7 @@ import java.util.List;
 @Component
 public class LedgerMapper {
 
-	public LedgerDetailResponse toDetailDto(Ledger ledger, Category category, List<LedgerImage> images) {
+	public LedgerDetailResponse toDetailDto(Ledger ledger, Category category, List<String> imageList) {
 		Place place = ledger.getPlace();
 
 		String placeName = null;
@@ -60,28 +58,47 @@ public class LedgerMapper {
 				.date(
 						DateTimeUtils.formatDate(ledger.getDate(), DatePatterns.DATE_DOT_WITH_DAY.getPattern())
 				)
-				.type(CategoryType.fromCategoryCode(ledger.getCategory()))
-				.category(CategoryResponse.from(category))
+				.type(CategoryType.fromCode(ledger.getCategory()))
+				.category(CategoryItem.from(category))
 				.memo(ledger.getMemo())
 				.amount(ledger.getAmount())
 				.paymentType(ledger.getAmountType())
 				.placeName(placeName)
 				.roadAddress(roadAddress)
 				.detailAddress(detailAddress)
-				.images(toImageUrl(ledger.getMemberId(), images))
+				.images(imageList)
 				.build();
 	}
 
-	private List<String> toImageUrl(String memberId, List<LedgerImage> images) {
-		return images.stream()
-				.map(i -> {
-					if( i == null ) {
-						return null;
-					}
 
-					return	memberId + "/" + i.getImagePath();
-				})
-				.toList();
+	public LedgerEditResponse toEditDto(Ledger ledger, List<ImageSlot> imageList, CategoryEditInfo categoryInfo) {
+		Place place = ledger.getPlace();
+
+		String placeName = null;
+		String roadAddress = null;
+		String detailAddress = null;
+
+		if(place != null) {
+			placeName = place.getName();
+			roadAddress = place.getRoadAddress();
+			detailAddress = place.getDetailAddress();
+		}
+
+		return LedgerEditResponse.builder()
+				.date(
+						DateTimeUtils.formatDate(ledger.getDate(), DatePatterns.KOREAN_DATE_WITH_DAY.getPattern())
+				)
+				.memo(ledger.getMemo())
+				.type(CategoryType.fromCode(ledger.getCategory()))
+				.fixed(LedgerFixed.from(ledger))
+				.amount(ledger.getAmount())
+				.paymentType(ledger.getAmountType())
+				.placeName(placeName)
+				.roadAddress(roadAddress)
+				.detailAddress(detailAddress)
+				.images(imageList)
+				.categoryEditInfo(categoryInfo)
+				.build();
 	}
 
 }
