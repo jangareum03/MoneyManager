@@ -205,7 +205,7 @@ public class LedgerReadService {
 		Map<CategoryType, Long> sumByCategory = histories.stream()
 				.filter(h -> h.getCategoryCode() != null)
 				.collect(Collectors.groupingBy(
-						h -> CategoryType.fromCategoryCode(h.getCategoryCode()),
+						h -> CategoryType.fromCode(h.getCategoryCode()),
 						Collectors.summingLong(LedgerHistoryQuery::getAmount)
 				));
 

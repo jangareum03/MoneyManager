@@ -152,7 +152,7 @@ public class LedgerController {
 
 	private CategoryType parseCategoryTypeOrDefault(String type) {
 		try{
-			return CategoryType.fromApiCode(type);
+			return CategoryType.from(type);
 		}catch (IllegalArgumentException e) {
 			return CategoryType.INCOME;
 		}

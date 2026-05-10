@@ -36,16 +36,16 @@ import java.util.stream.Collectors;
  */
 @Getter
 public enum FixCycle {
-	WEEKLY("일주일", "W"),
-	MONTHLY("한달", "M"),
-	YEARLY("일년", "Y");
+		WEEKLY("일주일", "W"),
+		MONTHLY("한달", "M"),
+		YEARLY("일년", "Y");
 
 	private final String label;
 	private final String value;
 
-	FixCycle(String label, String dbValue) {
+	FixCycle(String label, String value) {
 		this.label = label;
-		this.value = dbValue;
+		this.value = value;
 	}
 
 	public static FixCycle of(String cycle) {
