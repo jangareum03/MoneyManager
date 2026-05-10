@@ -4,9 +4,7 @@ import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.response.HistoryDashboardResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
-import com.moneymanager.domain.ledger.enums.CategoryType;
-import com.moneymanager.domain.ledger.enums.HistoryMenuType;
-import com.moneymanager.domain.ledger.enums.HistoryType;
+import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.validation.LedgerValidator;
@@ -84,6 +82,18 @@ public class LedgerController {
 		model.addAttribute("ledger", ledgerReadService.getLedgerDetail(code));
 
 		return "/ledger/ledger_detail";
+	}
+
+
+	@GetMapping("/{code}/edit")
+	public String showEditForm(@PathVariable String code, Model model) {
+		model.addAttribute("ledger", ledgerReadService.getEditData(code));
+
+		model.addAttribute("fixes", FixedYN.values());
+		model.addAttribute("fixCycles", FixCycle.values());
+		model.addAttribute("paymentTypes", AmountType.values());
+
+		return "/ledger/ledger_edit";
 	}
 
 
