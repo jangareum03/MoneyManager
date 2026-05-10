@@ -60,6 +60,7 @@ dependencies {
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mockito:mockito-inline'
+    testImplementation 'org.jsoup:jsoup:1.17.2'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
