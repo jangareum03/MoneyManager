@@ -8,14 +8,12 @@ import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
 import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.entity.LedgerImage;
-import com.moneymanager.domain.ledger.enums.AmountType;
-import com.moneymanager.domain.ledger.enums.CategoryLevel;
-import com.moneymanager.domain.ledger.enums.CategoryType;
-import com.moneymanager.domain.ledger.enums.HistoryType;
+import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
 import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.error.ServiceAction;
+import com.moneymanager.fixture.category.CategoryTreeFixture;
+import com.moneymanager.fixture.ledger.ImageSlotFixture;
+import com.moneymanager.fixture.ledger.LedgerFixture;
 import com.moneymanager.mapper.LedgerMapper;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.support.WithMockCustomUser;
@@ -24,11 +22,11 @@ import com.moneymanager.service.ledger.CategoryReadService;
 import com.moneymanager.service.ledger.LedgerImageReadService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.member.MemberReadService;
-import com.moneymanager.fixture.category.CategoryTreeFixture;
-import com.moneymanager.fixture.ledger.LedgerFixture;
-import com.moneymanager.fixture.ledger.LedgerImageFixture;
 import com.moneymanager.utils.date.DateTimeUtils;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,7 +37,10 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static com.moneymanager.domain.ledger.enums.CategoryType.INCOME;
 import static com.moneymanager.domain.ledger.enums.CategoryType.OUTLAY;
@@ -80,12 +81,12 @@ public class LedgerReadServiceTest {
 
 	private LedgerReadService target;
 
+	private final LedgerMapper ledgerMapper = new LedgerMapper();
 	@Mock	private SecurityUtil securityUtil;
 	@Mock	private CategoryReadService categoryReadService;
 	@Mock	private LedgerImageReadService imageReadService;
 	@Mock	private LedgerRepository ledgerRepository;
 	@Mock	private LedgerHistoryPolicy ledgerHistoryPolicy;
-	@Mock	private LedgerMapper ledgerMapper;
 	@Mock	private Clock clock;
 
 
@@ -108,7 +109,6 @@ public class LedgerReadServiceTest {
 			clock
 		);
 
-		when(securityUtil.getMemberId()).thenReturn("UCt01001");
 	}
 
 
@@ -212,9 +212,9 @@ public class LedgerReadServiceTest {
 			CategoryType type = INCOME;
 			LocalDate date = LocalDate.of(2026, 3, 7);
 
-			List<CategoryResponse> categories = List.of(
-					CategoryResponse.builder().name("수입1").code("010101").build(),
-					CategoryResponse.builder().name("수입2").code("010102").build()
+			List<CategoryItem> categories = List.of(
+					CategoryItem.builder().name("수입1").code("010101").build(),
+					CategoryItem.builder().name("수입2").code("010102").build()
 			);
 			List<Boolean> images = List.of(true, false, false);
 
@@ -246,9 +246,9 @@ public class LedgerReadServiceTest {
 			CategoryType type = CategoryType.OUTLAY;
 			LocalDate date = LocalDate.of(2026, 3, 7);
 
-			List<CategoryResponse> categories = List.of(
-					CategoryResponse.builder().name("지출1").code("020101").build(),
-					CategoryResponse.builder().name("지출2").code("020102").build()
+			List<CategoryItem> categories = List.of(
+					CategoryItem.builder().name("지출1").code("020101").build(),
+					CategoryItem.builder().name("지출2").code("020102").build()
 			);
 			List<Boolean> images = List.of(true, false, false);
 
@@ -272,17 +272,14 @@ public class LedgerReadServiceTest {
 		@DisplayName("카테고리 목록이 없어도 응답을 반환한다.")
 		void createsResponse_whenCategoriesDoesNotExist() {
 			//given
-			CategoryType type = INCOME;
 			LocalDate date = LocalDate.of(2026, 3, 7);
+			List<CategoryItem> categories = Collections.emptyList();
 
-			List<CategoryResponse> categories = Collections.emptyList();
-
-			when(categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE))
-					.thenReturn(categories);
-			when(memberReadService.getImageLimit("test")).thenReturn(1);
+			when(categoryReadService.getCategoriesByTypeAndLevel(any(), any())).thenReturn(categories);
+			when(imageReadService.resolveImageSlots()).thenReturn(List.of(ImageSlotFixture.emptySlot(), ImageSlotFixture.lockedSlot(), ImageSlotFixture.lockedSlot()));
 
 			//when
-			LedgerWriteStep2Response result = target.getWriteStep2Data(type, date);
+			LedgerWriteStep2Response result = target.getWriteStep2Data(INCOME, date);
 
 			//then
 			assertThat(result.getCategories()).isEmpty();
@@ -308,8 +305,8 @@ public class LedgerReadServiceTest {
 			//given
 			LocalDate date = LocalDate.of(2026,1, 1);
 
-			List<CategoryResponse> categories = List.of(
-					CategoryResponse.builder().name("수입1").code("010101").build()
+			List<CategoryItem> categories = List.of(
+					CategoryItem.builder().name("수입1").code("010101").build()
 			);
 
 			//when
@@ -327,10 +324,7 @@ public class LedgerReadServiceTest {
 	@DisplayName("가계부 내역 생성")
 	class HistoryCreateTest {
 
-		private final static String TITLE = "제목";
-		private final static String MEMBER_ID = "member";
 		private final static String DATE_FORMAT = DatePatterns.DATE_DOT_WITH_DAY.getPattern();
-		private final static String CATEGORY = "010101";
 
 		@Nested
 		@DisplayName("날짜별로 내역 그룹화")
@@ -350,9 +344,9 @@ public class LedgerReadServiceTest {
 						createHistory(date, OUTLAY, 2000)
 				);
 
-				when(securityUtil.getMemberId()).thenReturn("member");
+				when(securityUtil.getMemberId()).thenReturn("test-mid");
 				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
-				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("test-mid"), any(), any())).thenReturn(histories);
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년 01월");
 
 				//when
@@ -384,9 +378,9 @@ public class LedgerReadServiceTest {
 						createHistory(date.plusDays(1), OUTLAY, 2500)
 				);
 
-				when(securityUtil.getMemberId()).thenReturn("member");
+				when(securityUtil.getMemberId()).thenReturn("test-mid");
 				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
-				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("test-mid"), any(), any())).thenReturn(histories);
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년 01월 1주");
 
 				//when
@@ -419,9 +413,9 @@ public class LedgerReadServiceTest {
 						createHistory(date.plusDays(1), OUTLAY, 2500)
 				);
 
-				when(securityUtil.getMemberId()).thenReturn("member");
+				when(securityUtil.getMemberId()).thenReturn("test-mid");
 				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
-				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("test-mid"), any(), any())).thenReturn(histories);
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
 
 				//when
@@ -441,7 +435,7 @@ public class LedgerReadServiceTest {
 				verify(securityUtil).getMemberId();
 				verify(ledgerHistoryPolicy).calculateDateRange(eq(type), any(LocalDate.class));
 				verify(ledgerHistoryPolicy).validate(dateRange);
-				verify(ledgerRepository).findHistoriesByMemberAndDateBetween(MEMBER_ID, dateRange.getFrom(), dateRange.getTo());
+				verify(ledgerRepository).findHistoriesByMemberAndDateBetween("test-mid", dateRange.getFrom(), dateRange.getTo());
 			}
 
 		}
@@ -466,9 +460,9 @@ public class LedgerReadServiceTest {
 						createHistory(date.plusDays(1), OUTLAY, 2500)
 				);
 
-				when(securityUtil.getMemberId()).thenReturn("member");
+				when(securityUtil.getMemberId()).thenReturn("test-mid");
 				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
-				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("test-mid"), any(), any())).thenReturn(histories);
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
 
 				//when
@@ -496,9 +490,9 @@ public class LedgerReadServiceTest {
 						createHistory(date.plusDays(1), OUTLAY, 2500)
 				);
 
-				when(securityUtil.getMemberId()).thenReturn("member");
+				when(securityUtil.getMemberId()).thenReturn("test-mid");
 				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
-				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("test-mid"), any(), any())).thenReturn(histories);
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
 
 				//when
@@ -532,9 +526,9 @@ public class LedgerReadServiceTest {
 						createHistory(date.plusDays(1), OUTLAY, 2500)
 				);
 
-				when(securityUtil.getMemberId()).thenReturn("member");
+				when(securityUtil.getMemberId()).thenReturn("test-mid");
 				when(ledgerHistoryPolicy.calculateDateRange(eq(type), any(LocalDate.class))).thenReturn(dateRange);
-				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("member"), any(), any())).thenReturn(histories);
+				when(ledgerRepository.findHistoriesByMemberAndDateBetween(eq("test-mid"), any(), any())).thenReturn(histories);
 				when(ledgerHistoryPolicy.getTitleByHistoryType(type)).thenReturn("2026년");
 
 				//when
@@ -587,11 +581,6 @@ public class LedgerReadServiceTest {
 		@DisplayName("성공 케이스")
 		class Success {
 
-			LedgerDetailResponse.LedgerDetailResponseBuilder mockResponse = LedgerDetailResponse.builder()
-					.date("제목")
-					.amount(10000L)
-					.paymentType(AmountType.NONE);
-
 			@Test
 			@DisplayName("이미지가 없는 가계부 정보가 조회된다.")
 			void returnsResponse_whenLedgerHasNoImage() {
@@ -601,19 +590,11 @@ public class LedgerReadServiceTest {
 
 				when(ledgerRepository.findByCode(any(), any())).thenReturn(incomeLedger);
 				when(categoryReadService.getCategory(any())).thenReturn(category);
-				when(imageReadService.getLedgerImages(any())).thenReturn(Collections.emptyList());
-
-				when(ledgerMapper.toDetailDto(any(), any(), anyList()))
-						.thenReturn(
-								mockResponse.
-										type(INCOME)
-										.category(CategoryResponse.from(category))
-										.images(Arrays.asList(null, null, null))
-										.build()
-						);
+				when(imageReadService.resolveImageSlots(any()))
+						.thenReturn(List.of(ImageSlotFixture.emptySlot(), ImageSlotFixture.lockedSlot(), ImageSlotFixture.lockedSlot()));
 
 				//when
-				LedgerDetailResponse result = target.getLedgerDetail(incomeLedger.getCode());
+				LedgerDetailResponse result = target.getDetailData(incomeLedger.getCode());
 
 				//then
 				assertThat(result).isNotNull();
@@ -624,7 +605,7 @@ public class LedgerReadServiceTest {
 								LedgerDetailResponse::getDetailAddress
 						).containsOnlyNulls();
 
-				assertThat(result.getDate()).isEqualTo("제목");
+				assertThat(result.getDate()).isEqualTo("2026. 01. 01 (목)");
 				assertThat(result.getAmount()).isEqualTo(10000L);
 				assertThat(result.getType()).isSameAs(INCOME);
 				assertThat(result.getPaymentType()).isSameAs(AmountType.NONE);
@@ -635,7 +616,7 @@ public class LedgerReadServiceTest {
 
 				//이미지 검증
 				assertThat(result.getImages()).hasSize(3)
-						.containsOnlyNulls();
+						.containsExactly("/image/ledger/slot-unlock.svg", "/image/ledger/slot-lock.svg", "/image/ledger/slot-lock.svg");
 			}
 
 			@Test
@@ -645,33 +626,25 @@ public class LedgerReadServiceTest {
 				Category category = CategoryTreeFixture.outlayFood();
 				Ledger outlayLedger = LedgerFixture.defaultLedger().category(category.getCode()).build();
 
-				List<LedgerImage> imageList = List.of(
-						LedgerImageFixture.defaultImage(1L, outlayLedger.getId()).build()
+				List<ImageSlot> imageList = List.of(
+						ImageSlotFixture.filledSlot("member/2026/default.png"),
+						ImageSlotFixture.lockedSlot(),
+						ImageSlotFixture.lockedSlot()
 				);
 
 				when(ledgerRepository.findByCode(any(), any())).thenReturn(outlayLedger);
 				when(categoryReadService.getCategory(any())).thenReturn(category);
-				when(imageReadService.getLedgerImages(any())).thenReturn(imageList);
-
-				when(ledgerMapper.toDetailDto(any(),any(),anyList()))
-						.thenReturn(
-								mockResponse
-										.type(OUTLAY)
-										.category(CategoryResponse.from(category))
-										.images(Arrays.asList("test-mid/images/default.png", null, null))
-										.build()
-						);
-
+				when(imageReadService.resolveImageSlots(any())).thenReturn(imageList);
 
 				//when
-				LedgerDetailResponse result = target.getLedgerDetail(outlayLedger.getCode());
+				LedgerDetailResponse result = target.getDetailData(outlayLedger.getCode());
 
 				//then
 				assertThat(result).isNotNull();
 
 				List<String> images = result.getImages();
 				assertThat(images).hasSize(3)
-						.containsExactly("test-mid/images/default.png", null, null);
+						.containsExactly("/uploads/ledger/member/2026/default.png", "/image/ledger/slot-lock.svg", "/image/ledger/slot-lock.svg");
 			}
 
 			@Test
@@ -681,34 +654,25 @@ public class LedgerReadServiceTest {
 				Category category = CategoryTreeFixture.outlayFood();
 				Ledger outlayLedger = LedgerFixture.defaultLedger().category(category.getCode()).build();
 
-				List<LedgerImage> imageList = List.of(
-						LedgerImageFixture.defaultImage(1L, outlayLedger.getId()).build(),
-						LedgerImageFixture.defaultImage(2L, outlayLedger.getId()).id(2L).sortOrder(2).imagePath("images/2.png").build()
+				List<ImageSlot> imageList = List.of(
+						ImageSlotFixture.filledSlot(),
+						ImageSlotFixture.filledSlot("image2.png"),
+						ImageSlotFixture.lockedSlot()
 				);
 
 				when(ledgerRepository.findByCode(any(), any())).thenReturn(outlayLedger);
 				when(categoryReadService.getCategory(any())).thenReturn(category);
-				when(imageReadService.getLedgerImages(any())).thenReturn(imageList);
-
-				when(ledgerMapper.toDetailDto(any(),any(),anyList()))
-						.thenReturn(
-								mockResponse
-										.type(OUTLAY)
-										.category(CategoryResponse.from(category))
-										.images(Arrays.asList("test-mid/images/default.png", "test-mid/images/2.png", null))
-										.build()
-						);
-
+				when(imageReadService.resolveImageSlots(any())).thenReturn(imageList);
 
 				//when
-				LedgerDetailResponse result = target.getLedgerDetail(outlayLedger.getCode());
+				LedgerDetailResponse result = target.getDetailData(outlayLedger.getCode());
 
 				//then
 				assertThat(result).isNotNull();
 
 				List<String> images = result.getImages();
 				assertThat(images).hasSize(3)
-						.containsExactly("test-mid/images/default.png", "test-mid/images/2.png", null);
+						.containsExactly("/uploads/ledger/image.png", "/uploads/ledger/image2.png", "/image/ledger/slot-lock.svg");
 			}
 
 		}
@@ -719,23 +683,6 @@ public class LedgerReadServiceTest {
 		class Failure {
 
 			@Test
-			@DisplayName("인증되지 않은 회원이 요청하면 BusinessException이 발생한다.")
-			void throwsException_whenUnauthorized() {
-				//given
-				when(securityUtil.getMemberId())
-						.thenThrow(BusinessException.of(MEMBER_AUTHORITY_UNAUTHORIZED, "인증 예외"));
-
-				//when
-				Throwable throwable = catchThrowable(() -> target.getLedgerDetail("code"));
-
-				//then
-				BusinessExceptionAssert.assertThatBusinessException(throwable)
-								.hasErrorCode(MEMBER_AUTHORITY_UNAUTHORIZED)
-								.hasLogMessage("인증 예외")
-								.hasServiceAction(ServiceAction.LEDGER_DETAIL);
-			}
-
-			@Test
 			@DisplayName("없는 가계부를 조회하면 BusinessException이 발생한다.")
 			void throwsException_whenLedgerDoesNotExist() {
 				//given
@@ -743,7 +690,7 @@ public class LedgerReadServiceTest {
 
 				//when & then
 				BusinessExceptionAssert.assertThatBusinessException(
-						catchThrowable(() -> target.getLedgerDetail("code"))
+						catchThrowable(() -> target.getDetailData("no-code"))
 				).hasErrorCode(LEDGER_TARGET_NOT_FOUND);
 
 			}
@@ -757,12 +704,12 @@ public class LedgerReadServiceTest {
 
 				//when & then
 				BusinessExceptionAssert.assertThatBusinessException(
-						catchThrowable(() -> target.getLedgerDetail("code"))
+						catchThrowable(() -> target.getDetailData("code"))
 				).hasErrorCode(LEDGER_CATEGORY_TARGET_NOT_FOUND);
 			}
 
 			@Test
-			@DisplayName("DB 문제로 데이터 조회 불가능하면 ")
+			@DisplayName("DB 문제로 데이터 조회 불가능하면 DataAccessException이 발생한다.")
 			void throwsException_whenImageDbAccessFails() {
 				//given
 				Ledger incomeLedger = LedgerFixture.create();
@@ -771,12 +718,213 @@ public class LedgerReadServiceTest {
 				when(ledgerRepository.findByCode(any(), any())).thenReturn(incomeLedger);
 				when(categoryReadService.getCategory(any())).thenReturn(category);
 
-				when(imageReadService.getLedgerImages(any())).thenThrow(new DataAccessException("DB 예외") {});
+				when(imageReadService.resolveImageSlots(any())).thenThrow(new DataAccessException("DB 예외") {});
 
 				//when & then
-				assertThatThrownBy(() -> target.getLedgerDetail("code"))
+				assertThatThrownBy(() -> target.getDetailData("code"))
 						.isInstanceOf(DataAccessException.class);
 			}
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("가계부 수정 정보 조회")
+	class LedgerEditTest {
+
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+
+			@Test
+			@DisplayName("정상 요청이면 LedgerEditResponse 객체를 반환한다.")
+			void returnsResponse_whenSuccessfully() {
+				//given
+				Ledger ledger = LedgerFixture.defaultLedger().build();
+				CategoryType type = INCOME;
+
+				List<CategoryItem> selectedCategory = List.of(
+					CategoryItem.from(CategoryTreeFixture.top().get(type)),
+					CategoryItem.from(CategoryTreeFixture.middle().get(type).get(0)),
+					CategoryItem.from(CategoryTreeFixture.low().get(type).get(0))
+				);
+				List<CategoryItem> middle = CategoryItem.from(CategoryTreeFixture.middle().get(type));
+				List<CategoryItem> low = CategoryItem.from(CategoryTreeFixture.low().get(type));
+
+
+				when(securityUtil.getMemberId()).thenReturn("test-mid");
+				when(ledgerRepository.findByCode("test-mid", "code")).thenReturn(ledger);
+				when(imageReadService.resolveImageSlots(anyLong())).thenReturn(Collections.emptyList());
+
+				when(categoryReadService.findOrderedStepsByCategory(any())).thenReturn(selectedCategory);
+				when(categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE)).thenReturn(middle);
+				when(categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.LOW)).thenReturn(low);
+
+				//when
+				LedgerEditResponse result = target.getEditData("code");
+				
+				//then
+				assertThat(result).isNotNull();
+				assertThat(result)
+						.extracting(LedgerEditResponse::getMemo, LedgerEditResponse::getPlaceName, LedgerEditResponse::getRoadAddress, LedgerEditResponse::getDetailAddress)
+						.containsOnlyNulls();
+
+				assertThat(result.getDate()).isEqualTo("2026년 01월 01일 목요일");
+				assertThat(result.getType()).isEqualTo(INCOME);
+				assertThat(result)
+						.extracting(LedgerEditResponse::getAmount, LedgerEditResponse::getPaymentType)
+						.containsExactly(10000L, AmountType.NONE);
+
+
+				//고정주기
+				LedgerFixed fixed = result.getFixed();
+				assertThat(fixed.getFix()).isEqualTo(FixedYN.VARIABLE);
+				assertThat(fixed.getCycle()).isNull();
+			}
+			
+			@Test
+			@DisplayName("카테고리 정보가 포함되어 LedgerEditResponse 객체를 반환한다.")
+			void returnsResponseWithCategoryInfo_whenCategoryExists() {
+				//given
+				Ledger ledger = LedgerFixture.defaultLedger().build();
+				CategoryType type = INCOME;
+
+				List<CategoryItem> selectedCategory = List.of(
+						CategoryItem.from(CategoryTreeFixture.top().get(type)),
+						CategoryItem.from(CategoryTreeFixture.middle().get(type).get(0)),
+						CategoryItem.from(CategoryTreeFixture.low().get(type).get(0))
+				);
+				List<CategoryItem> middle = CategoryItem.from(CategoryTreeFixture.middle().get(type));
+				List<CategoryItem> low = CategoryItem.from(CategoryTreeFixture.low().get(type));
+
+
+				when(securityUtil.getMemberId()).thenReturn("test-mid");
+				when(ledgerRepository.findByCode("test-mid", "code")).thenReturn(ledger);
+				when(imageReadService.resolveImageSlots(anyLong())).thenReturn(Collections.emptyList());
+
+				when(categoryReadService.findOrderedStepsByCategory(any())).thenReturn(selectedCategory);
+				when(categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE)).thenReturn(middle);
+				when(categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.LOW)).thenReturn(low);
+
+				//when
+				LedgerEditResponse result = target.getEditData("code");
+
+				//then
+				assertThat(result).isNotNull();
+
+				CategoryEditInfo categoryEditInfo = result.getCategoryEditInfo();
+				assertThat(categoryEditInfo.getSelected())
+						.hasSize(2)
+						.containsExactly("010100", "010101");
+
+				assertThat(categoryEditInfo.getMiddleOptions())
+						.usingRecursiveComparison()
+						.isEqualTo(middle);
+
+				assertThat(categoryEditInfo.getLowOptions())
+						.usingRecursiveComparison()
+						.isEqualTo(low);
+			}
+			
+			@Test
+			@DisplayName("이미지 정책이 적용된 LedgerEditResponse 객체를 반환한다.")
+			void returnsResponseWithImagePolicy_whenImageExist() {
+				//given
+				Ledger ledger = LedgerFixture.defaultLedger().build();
+				CategoryType type = INCOME;
+
+				List<CategoryItem> selectedCategory = List.of(
+						CategoryItem.from(CategoryTreeFixture.top().get(type)),
+						CategoryItem.from(CategoryTreeFixture.middle().get(type).get(0)),
+						CategoryItem.from(CategoryTreeFixture.low().get(type).get(0))
+				);
+				List<CategoryItem> middle = CategoryItem.from(CategoryTreeFixture.middle().get(type));
+				List<CategoryItem> low = CategoryItem.from(CategoryTreeFixture.low().get(type));
+
+
+				when(securityUtil.getMemberId()).thenReturn("test-mid");
+				when(ledgerRepository.findByCode("test-mid", "code")).thenReturn(ledger);
+				when(imageReadService.resolveImageSlots(anyLong())).thenReturn(
+						List.of(
+								ImageSlotFixture.filledSlot(),
+								ImageSlotFixture.lockedSlot(),
+								ImageSlotFixture.lockedSlot()
+						)
+				);
+
+				when(categoryReadService.findOrderedStepsByCategory(any())).thenReturn(selectedCategory);
+				when(categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE)).thenReturn(middle);
+				when(categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.LOW)).thenReturn(low);
+
+				//when
+				LedgerEditResponse result = target.getEditData("code");
+
+				//then
+				assertThat(result).isNotNull();
+
+				List<ImageSlot> images = result.getImages();
+				assertThat(images)
+						.hasSize(3)
+						.extracting(ImageSlot::getFilePath)
+						.containsExactly(
+								"/uploads/ledger/image.png", "/image/ledger/slot-lock.svg", "/image/ledger/slot-lock.svg"
+						);
+			}
+			
+		}
+
+
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+
+			@Test
+			@DisplayName("인증된 사용자가 아니면 BusinessException이 발생한다.")
+			void throwsException_whenUnauthorized() {
+				//given
+				when(securityUtil.getMemberId()).thenThrow(
+						BusinessException.of(MEMBER_AUTHORITY_UNAUTHORIZED, "인증 실패")
+				);
+
+				//when & then
+				assertThatThrownBy(() -> target.getEditData("code"))
+						.isInstanceOf(BusinessException.class);
+			}
+			
+			@Test
+			@DisplayName("가계부가 없으면 BusinessException이 발생한다.")
+			void throwsException_whenLedgerDoesNotExist() {
+				//given
+				when(securityUtil.getMemberId()).thenReturn("test-mid");
+				when(ledgerRepository.findByCode("test-mid", "no-code"))
+						.thenThrow(EmptyResultDataAccessException.class);
+
+				//when & then
+				assertThatThrownBy(() -> target.getEditData("no-code"))
+						.isInstanceOf(BusinessException.class);
+
+				verifyNoInteractions(categoryReadService);
+				verifyNoInteractions(imageReadService);
+			}
+			
+			@Test
+			@DisplayName("카테고리가 없으면 IllegalArgumentException 발생한다.")
+			void throwsException_whenCategoryDoesNotExist() {
+				//given
+				Ledger ledger = LedgerFixture.defaultLedger().category("noCode").build();
+
+				when(securityUtil.getMemberId()).thenReturn("test-mid");
+				when(ledgerRepository.findByCode("test-mid", "code")).thenReturn(ledger);
+
+				//when & then
+				assertThatThrownBy(() -> target.getEditData("code"))
+						.isInstanceOf(IllegalArgumentException.class);
+
+				verifyNoInteractions(categoryReadService);
+				verifyNoInteractions(imageReadService);
+			}
+
 		}
 
 	}

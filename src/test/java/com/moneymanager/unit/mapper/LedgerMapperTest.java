@@ -1,15 +1,13 @@
 package com.moneymanager.unit.mapper;
 
-import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
-import com.moneymanager.domain.ledger.dto.response.LedgerDetailResponse;
+import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.AmountType;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.fixture.category.CategoryTreeFixture;
+import com.moneymanager.fixture.ledger.ImageSlotFixture;
 import com.moneymanager.fixture.ledger.LedgerFixture;
-import com.moneymanager.fixture.ledger.LedgerImageFixture;
 import com.moneymanager.mapper.LedgerMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -63,7 +61,7 @@ class LedgerMapperTest {
 			//given
 			Ledger incomeLedger = LedgerFixture.defaultLedger().build();
 			Category category = CategoryTreeFixture.incomeSalary();
-			List<LedgerImage> imageList = Arrays.asList(null, null, null);
+			List<String> imageList = Arrays.asList(null, null, null);
 
 			//when
 			LedgerDetailResponse result = target.toDetailDto(incomeLedger, category, imageList);
@@ -86,7 +84,7 @@ class LedgerMapperTest {
 
 			//카테고리 검증
 			assertThat(result.getCategory())
-					.extracting(CategoryResponse::getCode, CategoryResponse::getName)
+					.extracting(CategoryItem::getCode, CategoryItem::getName)
 					.containsExactly("010101", "월급");
 
 			//이미지 검증
@@ -99,7 +97,7 @@ class LedgerMapperTest {
 			//given
 			Ledger incomeLedger = LedgerFixture.withPlace().memo("메모").build();
 			Category category = CategoryTreeFixture.incomeSalary();
-			List<LedgerImage> imageList = Collections.emptyList();
+			List<String> imageList = Collections.emptyList();
 
 			//when
 			LedgerDetailResponse result = target.toDetailDto(incomeLedger, category, imageList);
@@ -120,9 +118,9 @@ class LedgerMapperTest {
 			//given
 			Ledger incomeLedger = LedgerFixture.withPlace().memo("메모").build();
 			Category category = CategoryTreeFixture.incomeSalary();
-			List<LedgerImage> imageList = Arrays.asList(
-					LedgerImageFixture.defaultImage(1L, 1L).sortOrder(1).build(),
-					LedgerImageFixture.defaultImage(2L, 1L).sortOrder(2).build(),
+			List<String> imageList = Arrays.asList(
+					"member/default.png",
+					"member/default.png",
 					null
 			);
 
@@ -138,6 +136,45 @@ class LedgerMapperTest {
 			assertThat(imagePaths).hasSize(3);
 			assertThat(imagePaths)
 					.containsExactly("test-mid/images/default.png", "test-mid/images/default.png", null);
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("상세 가계부 수정 응답 변환")
+	class EditDtoMapperTest {
+
+		@Test
+		@DisplayName("선택한 카테고리 정보와 목록을 포함한 LedgerEditResponse을 반환한다.")
+		void buildsResponse_whenEssentialFieldGiven() {
+			//given
+			Ledger incomeLedger = LedgerFixture.defaultLedger().build();
+			CategoryEditInfo categoryEditInfo = CategoryEditInfo.builder()
+					.selected(
+							List.of("010000", "010100", "010101")
+					)
+					.middleOptions(CategoryItem.from(CategoryTreeFixture.middle().get(CategoryType.INCOME)))
+					.lowOptions(CategoryItem.from(CategoryTreeFixture.low().get(CategoryType.INCOME)))
+					.build();
+
+			List<ImageSlot> imageList = List.of(
+					ImageSlotFixture.emptySlot(),
+					ImageSlotFixture.lockedSlot(),
+					ImageSlotFixture.lockedSlot()
+			);
+
+			//when
+			LedgerEditResponse result = target.toEditDto(incomeLedger, imageList, categoryEditInfo);
+
+			//then
+			assertThat(result).isNotNull();
+
+			//가계부 검증
+			assertThat(result.getDate()).isEqualTo("2026년 01월 01일 목요일");
+
+			//카테고리 검증
+			assertThat(result.getCategoryEditInfo()).isEqualTo(categoryEditInfo);
 		}
 
 	}

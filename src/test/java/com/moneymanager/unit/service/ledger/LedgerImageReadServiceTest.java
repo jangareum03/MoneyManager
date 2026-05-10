@@ -1,23 +1,29 @@
 package com.moneymanager.unit.service.ledger;
 
-import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.domain.ledger.dto.response.ImageSlot;
+import com.moneymanager.domain.ledger.enums.SlotStatus;
+import com.moneymanager.fixture.ledger.LedgerImageFixture;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.ledger.LedgerImageReadService;
 import com.moneymanager.service.member.MemberReadService;
-import com.moneymanager.fixture.ledger.LedgerImageFixture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -57,96 +63,135 @@ public class LedgerImageReadServiceTest {
 	@Mock	private MemberReadService memberReadService;
 	@Mock	private LedgerImageRepository imageRepository;
 
+
 	@Nested
 	@DisplayName("이미지 슬롯 생성")
 	class ImageSlotCreateTest {
 
-		@Test
-		@DisplayName("기본적으로 1개의 슬롯만 true다.")
-		void returnsBooleanList_whenDefaultMember() {
-			//given
+		@BeforeEach
+		void setUp() {
 			when(securityUtil.getMemberId()).thenReturn("member");
-			when(memberReadService.getImageLimit("member")).thenReturn(1);
-
-			//when
-			List<Boolean> result = target.fetchBooleanList();
-
-			//then
-			assertThat(result).hasSize(3);
-			assertThat(result).containsExactly(true, false, false);
 		}
 
-		@Test
-		@DisplayName("2개의 슬롯만 true이 가능하다.")
-		void returnsBooleanList_whenTwoSlots() {
-			//given
-			when(securityUtil.getMemberId()).thenReturn("member");
-			when(memberReadService.getImageLimit("member")).thenReturn(2);
+		@ParameterizedTest
+		@MethodSource("provideValidImageSlotCases")
+		@DisplayName("신규 작성 시 EMPTY 슬롯과 LOCKED 슬롯이 생성된다.")
+		void buildsEmptyAndLockedSlots_whenNewLedgerCreated(int allowedCount, List<SlotStatus> expectedStatuses) {
+			//given: 회원의 업로드 가능 개수 설정
+			String memberId = "member";
 
-			//when
-			List<Boolean> result = target.fetchBooleanList();
-
-			//then
+			when(memberReadService.getImageLimit(memberId)).thenReturn(allowedCount);
+			
+			//when: 이미지 슬롯 생성
+			List<ImageSlot> result = target.resolveImageSlots();
+			
+			//then: 기본 검증
 			assertThat(result).hasSize(3);
-			assertThat(result).containsExactly(true, true, false);
+			assertThat(result)
+					.extracting(ImageSlot::getStatus)
+					.containsExactlyElementsOf(expectedStatuses);
+
+			//FILLED 슬롯 여부 검증
+			assertThat(result)
+					.extracting(ImageSlot::getStatus)
+					.doesNotContain(SlotStatus.FILLED);
 		}
 
-		@Test
-		@DisplayName("최대 슬롯인 3개까지 true가 가능하다.")
-		void returnsBooleanList_whenMaxSlots() {
-			//given
-			when(securityUtil.getMemberId()).thenReturn("member");
-			when(memberReadService.getImageLimit("member")).thenReturn(3);
-
-			//when
-			List<Boolean> result = target.fetchBooleanList();
-
-			//then
-			assertThat(result).hasSize(3);
-			assertThat(result).containsExactly(true, true, true);
-		}
-
-		@Test
-		@DisplayName("회원의 허용범위가 3개보다 커도 최대 슬롯인 3개까지 true가 가능하다.")
-		void returnsBooleanList_whenSlotOutOfRange() {
-			//given
-			when(securityUtil.getMemberId()).thenReturn("member");
-			when(memberReadService.getImageLimit("member")).thenReturn(5);
-
-			//when
-			List<Boolean> result = target.fetchBooleanList();
-
-			//then
-			assertThat(result).hasSize(3);
-			assertThat(result).containsExactly(true, true, true);
-		}
-
-	}
-
-
-	@Nested
-	@DisplayName("이미지리스트 조회")
-	class ImageListTest {
-
-		@Test
-		@DisplayName("DB 데이터를 그대로 반환한다.")
-		void returnsRepositoryList_whenLedgerIdIsValid() {
-			//given
-			List<LedgerImage> expected = List.of(
-					LedgerImageFixture.defaultImage(1L, 1L).build(),
-					LedgerImageFixture.defaultImage(2L, 1L).build()
+		static Stream<Arguments> provideValidImageSlotCases() {
+			return Stream.of(
+				Arguments.of(
+						0,
+						List.of(SlotStatus.LOCKED, SlotStatus.LOCKED, SlotStatus.LOCKED)
+				),
+				Arguments.of(
+						1,
+						List.of(SlotStatus.EMPTY, SlotStatus.LOCKED, SlotStatus.LOCKED)
+				),
+				Arguments.of(
+						2,
+						List.of(SlotStatus.EMPTY, SlotStatus.EMPTY, SlotStatus.LOCKED)
+				),
+				Arguments.of(
+						3,
+						List.of(SlotStatus.EMPTY, SlotStatus.EMPTY, SlotStatus.EMPTY)
+				),
+				Arguments.of(
+						4,
+						List.of(SlotStatus.EMPTY, SlotStatus.EMPTY, SlotStatus.EMPTY)
+				)
 			);
-			when(imageRepository.findByLedgerId(1L)).thenReturn(expected);
-
-			//when
-			List<LedgerImage> result = target.getLedgerImages(1L);
-
-			//then
-			assertThat(result).isEqualTo(expected);
-
-			verify(imageRepository).findByLedgerId(1L);
 		}
 
+		@Test
+		@DisplayName("저장된 이미지는 FILLED 슬롯으로 생성된다.")
+		void buildsFilledSlots_whenImagesExist() {
+			//given: 가계부 번호에 해당하는 이미지 경로를 가져온다.
+			String memberId = "member";
+
+			when(memberReadService.getImageLimit(memberId)).thenReturn(1);
+			when(imageRepository.findByLedgerId(any())).thenReturn(
+					List.of(
+							LedgerImageFixture.defaultImage(1L, 1L).build()
+					)
+			);
+			
+			//when: 이미지 슬롯 생성
+			List<ImageSlot> result = target.resolveImageSlots(1L);
+			
+			//then: 기본 검증
+			assertThat(result).hasSize(3);
+			assertThat(result)
+					.extracting(ImageSlot::getStatus)
+					.containsExactly(SlotStatus.FILLED, SlotStatus.LOCKED, SlotStatus.LOCKED);
+		}
+		
+		@Test
+		@DisplayName("null 또는 blank 이미지는 제외된다.")
+		void excludesSlots_whenImageIsNullOrEmpty() {
+			//given: 이미지 경로에 빈 문자열이 포함된다.
+			String memberId = "member";
+
+			when(memberReadService.getImageLimit(memberId)).thenReturn(2);
+			when(imageRepository.findByLedgerId(any())).thenReturn(
+					List.of(
+							LedgerImageFixture.defaultImage(1L, 1L).build(),
+							LedgerImageFixture.defaultImage(2L, 1L).imagePath("").build()
+					)
+			);
+			
+			//when: 이미지 슬롯 생성
+			List<ImageSlot> result = target.resolveImageSlots(1L);
+			
+			//then: 기본 검증
+			assertThat(result).hasSize(3);
+			assertThat(result)
+					.extracting(ImageSlot::getStatus)
+					.containsExactly(SlotStatus.FILLED, SlotStatus.EMPTY, SlotStatus.LOCKED);
+		}
+
+		@Test
+		@DisplayName("슬롯 상태별 다른 이미지 경로를 가진다.")
+		void resolvesDifferentImagePath_whenBySlotStatus() {
+			//given: 가계부 이미지를 설정
+			String memberId = "member";
+
+			when(memberReadService.getImageLimit(memberId)).thenReturn(2);
+			when(imageRepository.findByLedgerId(any())).thenReturn(
+					List.of(
+							LedgerImageFixture.defaultImage(1L, 1L).build()
+					)
+			);
+
+			//when: 이미지 슬롯 생성
+			List<ImageSlot> result = target.resolveImageSlots(1L);
+			
+			//then: 이미지 경로 검증
+			assertThat(result).hasSize(3);
+			assertThat(result)
+					.extracting("filePath")
+					.containsExactly("/uploads/ledger/member/images/default.png", "/image/ledger/slot-unlock.svg", "/image/ledger/slot-lock.svg");
+		}
+		
 	}
 
 }

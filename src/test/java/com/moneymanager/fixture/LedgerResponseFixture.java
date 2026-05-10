@@ -4,6 +4,7 @@ package com.moneymanager.fixture;
 import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.fixture.category.CategoryTreeFixture;
+import com.moneymanager.fixture.ledger.ImageSlotFixture;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,16 +37,16 @@ public class LedgerResponseFixture {
 	public static  LedgerWriteStep2Response step2Income() {
 		return LedgerWriteStep2Response.ofDataByIncome(
 				title,
-				CategoryResponse.from(CategoryTreeFixture.middle().get(CategoryType.INCOME)),
-				List.of(true, false, false)
+				CategoryItem.from(CategoryTreeFixture.middle().get(CategoryType.INCOME)),
+				List.of(ImageSlotFixture.emptySlot(), ImageSlotFixture.lockedSlot(), ImageSlotFixture.lockedSlot())
 		);
 	}
 
 	private static  LedgerWriteStep2Response step2Outlay() {
 		return LedgerWriteStep2Response.ofDataByOutlay(
 				title,
-				CategoryResponse.from(CategoryTreeFixture.middle().get(CategoryType.OUTLAY)),
-				List.of(true, false, false)
+				CategoryItem.from(CategoryTreeFixture.middle().get(CategoryType.OUTLAY)),
+				List.of(ImageSlotFixture.emptySlot(), ImageSlotFixture.lockedSlot(), ImageSlotFixture.lockedSlot())
 		);
 	}
 

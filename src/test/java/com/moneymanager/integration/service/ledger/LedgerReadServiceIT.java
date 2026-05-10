@@ -1,18 +1,21 @@
 package com.moneymanager.integration.service.ledger;
 
+import com.moneymanager.BusinessExceptionAssert;
 import com.moneymanager.domain.global.Policy;
 import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.CategoryType;
-import com.moneymanager.domain.ledger.enums.HistoryType;
+import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.member.Member;
+import com.moneymanager.fixture.MemberFixture;
+import com.moneymanager.fixture.ledger.LedgerFixture;
+import com.moneymanager.fixture.ledger.LedgerImageFixture;
+import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.repository.member.MemberRepository;
 import com.moneymanager.security.support.WithMockCustomUser;
 import com.moneymanager.service.ledger.LedgerReadService;
-import com.moneymanager.fixture.ledger.LedgerFixture;
-import com.moneymanager.fixture.MemberFixture;
 import com.moneymanager.utils.date.DateTimeUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +36,9 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.moneymanager.exception.error.ErrorCode.LEDGER_TARGET_NOT_FOUND;
+import static com.moneymanager.exception.error.ErrorCode.MEMBER_AUTHORITY_FAILED;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * <p>
@@ -76,6 +81,9 @@ public class LedgerReadServiceIT {
 	@Autowired
 	private LedgerRepository ledgerRepository;
 
+	@Autowired
+	private LedgerImageRepository imageRepository;
+
 	private static final LocalDate TEST_DATE = LocalDate.of(2026, 3, 10);
 	private Member member;
 
@@ -97,7 +105,7 @@ public class LedgerReadServiceIT {
 	void setUp() {
 		memberRepository.deleteAll();;
 
-		member = MemberFixture.create();
+		member = MemberFixture.defaultMember().id("UCt01001").build();
 		memberRepository.save(member);
 	}
 
@@ -178,7 +186,7 @@ public class LedgerReadServiceIT {
 			LedgerWriteStep2Response result = target.getWriteStep2Data(type, TEST_DATE);
 
 			//then
-			List<CategoryResponse> categories = result.getCategories();
+			List<CategoryItem> categories = result.getCategories();
 
 			assertThat(categories)
 					.allMatch(c -> !c.getCode().startsWith("00", 2));
@@ -360,6 +368,182 @@ public class LedgerReadServiceIT {
 			LocalDate date = LocalDate.of(year, month, day);
 
 			return DateTimeUtils.formatDate(date, DatePatterns.DATE_DOT_WITH_DAY.getPattern());
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("수정화면 응답 데이터")
+	class EditResponseTest {
+
+		private Ledger ledger;
+		private List<LedgerImage> images;
+
+
+		@BeforeEach
+		void setUp() {
+			ledger = LedgerFixture.defaultLedger().id(null).memberId(member.getId()).build();
+			Long id = ledgerRepository.save(ledger);
+
+
+			images = List.of(
+					LedgerImageFixture.defaultImage(null, id).sortOrder(1).build(),
+					LedgerImageFixture.defaultImage(null, id).sortOrder(2).build()
+			);
+			imageRepository.saveAll(images);
+		}
+
+
+		@WithMockCustomUser
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+
+			@Test
+			@DisplayName("수입 가계부 조회 시 카테고리와 함께 정상 응답을 반환한다.")
+			void returnsIncomeResponseWithCategory_whenSuccessfully() {
+				//given: 수입 가계부가 존재한다.
+				String code = ledger.getCode();
+				
+				//when: 수정할 가계부 데이터 조회
+				LedgerEditResponse result = target.getEditData(code);
+				
+				//then: 기본 정보 검증
+				assertThat(result).isNotNull();
+				assertThat(result.getDate()).isEqualTo("2026년 01월 01일 목요일");
+				assertThat(result.getAmount()).isEqualTo(10000L);
+				assertThat(result.getPaymentType()).isEqualTo(AmountType.NONE);
+				assertThat(result.getType()).isEqualTo(CategoryType.INCOME);
+				assertThat(result)
+						.extracting(LedgerEditResponse::getMemo, LedgerEditResponse::getPlaceName, LedgerEditResponse::getRoadAddress, LedgerEditResponse::getDetailAddress)
+						.containsOnlyNulls();
+
+				//then: 고정 여부 검증
+				assertThat(result.getFixed())
+						.extracting(LedgerFixed::getFix, LedgerFixed::getCycle)
+						.containsExactly(FixedYN.VARIABLE, null);
+
+				//then: 카테고리 검증
+				CategoryEditInfo editInfo = result.getCategoryEditInfo();
+
+				assertThat(editInfo.getSelected())
+						.hasSize(2)
+						.containsExactly("010100", "010101");
+				assertThat(editInfo.getMiddleOptions())
+						.extracting(CategoryItem::getCode)
+						.allMatch(c -> c.startsWith("01"));
+				assertThat(editInfo.getLowOptions())
+						.extracting(CategoryItem::getCode)
+						.allMatch(c -> c.startsWith("01"));
+
+				//then: 이미지 리스트 검증
+				List<ImageSlot> images = result.getImages();
+				assertThat(images).hasSize(3);
+			}
+
+			@Test
+			@DisplayName("지출 가계부 조회 시 카테고리와 함께 정상 응답을 반환한다.")
+			void returnsOutlayResponseWithCategory_whenSuccessfully() {
+				//given: 월 고정지출을 가진 가계부를 저장한다.
+				Ledger outlayLedger = LedgerFixture.defaultLedger()
+						.id(null).code("code-out").memberId(member.getId())
+						.fix(FixedYN.REPEAT).fixCycle(FixCycle.MONTHLY)
+						.category("020101")
+						.build();
+
+				ledgerRepository.save(outlayLedger);
+
+				String code = outlayLedger.getCode();
+
+				
+				//when: 수정할 가계부 데이터 조회
+				LedgerEditResponse result = target.getEditData(code);
+				
+				//then: 기본정보 검증
+				assertThat(result).isNotNull();
+				assertThat(result.getType()).isEqualTo(CategoryType.OUTLAY);
+
+				//then: 고정주기 검증
+				assertThat(result.getFixed())
+						.extracting(LedgerFixed::getFix, LedgerFixed::getCycle)
+						.containsExactly(FixedYN.REPEAT, FixCycle.MONTHLY);
+
+				//then: 카테고리 검증
+				CategoryEditInfo editInfo = result.getCategoryEditInfo();
+
+				assertThat(editInfo.getSelected())
+						.hasSize(2)
+						.containsExactly("020100", "020101");
+				assertThat(editInfo.getMiddleOptions())
+						.extracting(CategoryItem::getCode)
+						.allMatch(c -> c.startsWith("02"));
+				assertThat(editInfo.getLowOptions())
+						.extracting(CategoryItem::getCode)
+						.allMatch(c -> c.startsWith("02"));
+
+				//then: 이미지 리스트 검증
+				List<ImageSlot> images = result.getImages();
+				assertThat(images).hasSize(3);
+			}
+
+		}
+
+
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+			
+			@Test
+			@DisplayName("인증정보가 없으면 BusinessException이 발생한다.")
+			void throwsException_whenUnauthorized() {
+				//given: 미인증된 사용자가 조회를 시도한다.
+				String code = ledger.getCode();
+				
+				//when & then: 수정할 가계부 조회하면 예외가 발생한다.
+				BusinessExceptionAssert.assertThatBusinessException(
+						catchThrowable(() -> target.getEditData(code))
+				)
+				.hasErrorCode(MEMBER_AUTHORITY_FAILED);
+			}
+
+			@WithMockCustomUser
+			@Test
+			@DisplayName("다른 사용자의 가계부는 접근이 불가능하여 BusinessException이 발생한다.")
+			void throwsException_whenInvalidRequest() {
+				//given: 다른 사용자의 가계부를 저장한다.
+				Member otherMember = MemberFixture.defaultMember().build();
+				memberRepository.save(otherMember);
+
+				//다른 사용자가 작성한 가계부 저장
+				Ledger otherLedger = LedgerFixture.defaultLedger()
+						.id(null).memberId(otherMember.getId()).code("other").build();
+				ledgerRepository.save(otherLedger);
+
+				String code = otherLedger.getCode();
+				
+				//when & then: 다른 사용자의  가계부 조회하면 예외가 발생한다.
+				BusinessExceptionAssert.assertThatBusinessException(
+						catchThrowable(() -> target.getEditData(code))
+				)
+				.hasErrorCode(LEDGER_TARGET_NOT_FOUND);
+			}
+
+			@WithMockCustomUser
+			@Test
+			@DisplayName("존재하지 않은 가계부 조회하면 BusinessException이 발생한다.")
+			void throwsException_whenLedgerDoesNotExist() {
+				//given: 없는 가계부 코드
+				String code = "no-code";
+				
+				//when & then: 가계부 조회 시 예외 발생
+				BusinessExceptionAssert.assertThatBusinessException(
+						catchThrowable(() -> target.getEditData(code))
+				)
+					.hasErrorCode(LEDGER_TARGET_NOT_FOUND);
+				
+			}
+
 		}
 
 	}

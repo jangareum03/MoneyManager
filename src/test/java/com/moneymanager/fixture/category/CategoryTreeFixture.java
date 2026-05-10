@@ -58,10 +58,21 @@ public class CategoryTreeFixture {
 				));
 	}
 
-	public static List<Category> top() {
+	public static Map<CategoryType, Category> top() {
 		return ALL.stream()
 				.filter(c -> c.getParentCode() == null)
-				.toList();
+				.collect(Collectors.toMap(
+						c -> {
+							String prefix = c.getCode().substring(0, 2);
+
+							if(prefix.equals("02")) {
+								return CategoryType.OUTLAY;
+							}else {
+								return CategoryType.INCOME;
+							}
+						},
+						c -> c
+				));
 	}
 
 	public static Map<CategoryType, List<Category>> middle() {
