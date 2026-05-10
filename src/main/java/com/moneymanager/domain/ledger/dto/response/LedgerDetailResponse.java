@@ -40,7 +40,7 @@ import java.util.List;
 public class LedgerDetailResponse {
 	private String date;										//가계부 날짜
 	private CategoryType type;							//가계부 유형
-	private CategoryResponse category;			//카테고리
+	private CategoryItem category;					//카테고리
 	private String memo;										//메모
 	private List<String> images;							//가계부 사진
 

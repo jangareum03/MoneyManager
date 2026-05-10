@@ -1,6 +1,6 @@
 package com.moneymanager.service.ledger;
 
-import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
+import com.moneymanager.domain.ledger.dto.response.CategoryItem;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.CategoryType;
@@ -8,8 +8,7 @@ import com.moneymanager.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.moneymanager.exception.error.ErrorCode.LEDGER_CATEGORY_TARGET_NOT_FOUND;
@@ -47,35 +46,19 @@ public class CategoryReadService {
 
 	private final CategoryCacheService categoryCacheService;
 
-	public Category getCategory(String code) {
-		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
-
-		Category category = categoryMap.get(code);
-
-		if(category == null) {
-			throw BusinessException.of(
-					LEDGER_CATEGORY_TARGET_NOT_FOUND,
-					"존재하지 않은 카테고리입니다. 잠시 후 다시 시도해주세요.",
-					"카테고리 조회 실패   |   reason=카테고리없음   |   object=Category   |   filed=code   |   value=" + code
-			);
-		}
-
-		return category;
-	}
-
 
 	/**
 	 * 가계부 유형({@link CategoryType})과 카테고리 단계({@link CategoryLevel})에 따라 카테고리 목록을 조회합니다.
 	 * <p>
-	 *     주어진 단계에 따라 상위, 중위, 하위 카테고리 정보를 조회하며, {@link CategoryResponse} 객체로 변환됩니다.
+	 *     주어진 단계에 따라 상위, 중위, 하위 카테고리 정보를 조회하며, {@link CategoryItem} 객체로 변환됩니다.
 	 * </p>
 	 *
 	 * @param type		가계부 유형(수입/지출)
 	 * @param level		조회할 카테고리 단계
-	 * @return	요청 조건에 맞는 카테고리 정보를 담은 {@link CategoryResponse} 객체 리스트
+	 * @return	요청 조건에 맞는 카테고리 정보를 담은 {@link CategoryItem} 객체 리스트
 	 * @throws IllegalArgumentException	지원하지 않은 카테고리 단계인 경우
 	 */
-	public List<CategoryResponse> getCategoriesByTypeAndLevel(CategoryType type, CategoryLevel level){
+	public List<CategoryItem> getCategoriesByTypeAndLevel(CategoryType type, CategoryLevel level){
 		List<Category> categories = switch (level) {
 			case TOP -> getRootCategories();
 			case MIDDLE -> getMiddleCategories(type);
@@ -83,7 +66,7 @@ public class CategoryReadService {
 		};
 
 		return categories.stream()
-				.map(CategoryResponse::from)
+				.map(CategoryItem::from)
 				.collect(Collectors.toList());
 	}
 
@@ -93,6 +76,7 @@ public class CategoryReadService {
 
 		return categoryMap.values().stream()
 						.filter(c -> c.getParentCode() == null)
+						.sorted(Comparator.comparing(Category::getCode))
 						.collect(Collectors.toList());
 	}
 
@@ -107,7 +91,9 @@ public class CategoryReadService {
 								c -> type == CategoryType.INCOME
 								? c.getCode().startsWith("01")
 								: c.getCode().startsWith("02")
-						).toList();
+						)
+						.sorted(Comparator.comparing(Category::getCode))
+						.toList();
 	}
 
 	//하위 단계 카테고리 목록 조회
@@ -122,7 +108,45 @@ public class CategoryReadService {
 								? c.getCode().startsWith("01")
 								: c.getCode().startsWith("02")
 						)
+						.sorted(Comparator.comparing(Category::getCode))
 						.collect(Collectors.toList());
+	}
+
+
+	public List<CategoryItem> findOrderedStepsByCategory(String code) {
+		List<Category> result = new ArrayList<>();
+
+		Category current = getCategory(code);
+
+		while (current != null) {
+			result.add(current);
+
+			String parentCode = current.getParentCode();
+			current = (parentCode != null) ? getCategory(parentCode) : null;
+		}
+
+		Collections.reverse(result);
+
+		return result.stream()
+				.map(CategoryItem::from)
+				.toList();
+	}
+
+
+	public Category getCategory(String code) {
+		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
+
+		Category category = categoryMap.get(code);
+
+		if(category == null) {
+			throw BusinessException.of(
+					LEDGER_CATEGORY_TARGET_NOT_FOUND,
+					"존재하지 않은 카테고리입니다. 잠시 후 다시 시도해주세요.",
+					"카테고리 조회 실패   |   reason=카테고리없음   |   object=Category   |   filed=code   |   value=" + code
+			);
+		}
+
+		return category;
 	}
 
 }

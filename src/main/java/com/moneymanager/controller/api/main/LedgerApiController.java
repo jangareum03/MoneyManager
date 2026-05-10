@@ -8,7 +8,7 @@ import com.moneymanager.domain.ledger.dto.request.CategoryRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerSearchRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerUpdateWithFileRequest;
-import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
+import com.moneymanager.domain.ledger.dto.response.CategoryItem;
 import com.moneymanager.domain.ledger.dto.response.LedgerGroupForCardResponse;
 import com.moneymanager.service.main.CategoryService;
 import com.moneymanager.service.main.LedgerService;
@@ -105,7 +105,7 @@ public class LedgerApiController {
 	 * @return 요청한 코드에 해당하는 하위 카테고리 목록
 	 */
 	@GetMapping("/category")
-	public List<CategoryResponse> postCategories(@RequestBody CategoryRequest request) {
+	public List<CategoryItem> postCategories(@RequestBody CategoryRequest request) {
 		return categoryService.getSubCategories(request);
 	}
 

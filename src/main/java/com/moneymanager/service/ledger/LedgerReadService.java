@@ -7,7 +7,6 @@ import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
 import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryMenuType;
@@ -27,10 +26,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
+import static com.moneymanager.exception.error.ErrorCode.LEDGER_TARGET_NOT_FOUND;
 
 /**
  * <p>
@@ -141,13 +144,13 @@ public class LedgerReadService {
 	 */
 	public LedgerWriteStep2Response getWriteStep2Data(CategoryType type, LocalDate date) {
 		//카테고리 목록 조회
-		List<CategoryResponse> categories = categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE);
+		List<CategoryItem> categories = categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE);
 
 		//제목 포맷 변환
 		String title = DateTimeUtils.formatDate(date, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
 
 		//회원별로 이미지 슬롯 조회
-		List<Boolean> imageSlot = imageReadService.fetchBooleanList();
+		List<ImageSlot> imageSlot = imageReadService.resolveImageSlots();
 
 		return (type == CategoryType.INCOME) ? LedgerWriteStep2Response.ofDataByIncome(title, categories, imageSlot) : LedgerWriteStep2Response.ofDataByOutlay(title, categories, imageSlot);
 	}
@@ -254,23 +257,6 @@ public class LedgerReadService {
 
 			throw e.withService(action);
 		}
-	}
-
-	private List<LedgerImage> adjustImageCountToPolicy(List<LedgerImage> imageList) {
-		int max = Policy.LEDGER_MAX_IMAGE;
-
-		Map<Integer, LedgerImage> imageMap = imageList.stream()
-				.collect(Collectors.toMap(
-						LedgerImage::getSortOrder,
-						i -> i
-				));
-
-		List<LedgerImage> result = new ArrayList<>();
-		for(int i=1; i<=max; i++) {
-			result.add(imageMap.get(i));
-		}
-
-		return result;
 	}
 
 	private Ledger getLedger(String memberId, String code) {

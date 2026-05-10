@@ -2,7 +2,7 @@ package com.moneymanager.service.main;
 
 import com.moneymanager.dao.main.CategoryDao;
 import com.moneymanager.domain.ledger.dto.request.CategoryRequest;
-import com.moneymanager.domain.ledger.dto.response.CategoryResponse;
+import com.moneymanager.domain.ledger.dto.response.CategoryItem;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +53,7 @@ public class CategoryService {
 	/**
 	 * 하위 카테고리({@code code})를 기준으로 전체 계층(상위, 중간, 하위) 카테고리를 조회 후 {@link Map} 객체를 반환합니다.
 	 * <p>
-	 *     반환되는 맵은 {@link CategoryLevel}를 키로 하여 각 계층에 해당하는 {@link CategoryResponse} 리스트로 값을 가집니다.
+	 *     반환되는 맵은 {@link CategoryLevel}를 키로 하여 각 계층에 해당하는 {@link CategoryItem} 리스트로 값을 가집니다.
 	 *     <ul>
 	 *         <li>{@link CategoryLevel#TOP}: 상위 카테고리 전체</li>
 	 *         <li>{@link CategoryLevel#MIDDLE}: 주어진 코드(상위 카테고리) 기준 중간 카테고리</li>
@@ -63,18 +63,18 @@ public class CategoryService {
 	 * 조회된 카테고리가 없는 경우 예외가 발생합니다.
 	 *
 	 * @param code		조회할 하위 카테고리 코드
-	 * @return	각 계층별 {@link CategoryResponse} 리스트를 담은 맵
+	 * @return	각 계층별 {@link CategoryItem} 리스트를 담은 맵
 	 */
-	public Map<String, List<CategoryResponse>> getAllCategoriesByCode(String code) {
+	public Map<String, List<CategoryItem>> getAllCategoriesByCode(String code) {
 		List<Category> categories = categoryDAO.findAncestorCategoriesByCode(code);
 
 		String topCode = categories.get(0).getCode();
 		String middleCode = categories.get(1).getCode();
 
-		Map<String, List<CategoryResponse>> map = new HashMap<>();
+		Map<String, List<CategoryItem>> map = new HashMap<>();
 		map.put(CategoryLevel.TOP.name(), getTopCategories());
-		map.put(CategoryLevel.MIDDLE.name(), CategoryResponse.from( categoryDAO.findCategoriesByParentCode(topCode)) );
-		map.put(CategoryLevel.LOW.name(), CategoryResponse.from( categoryDAO.findCategoriesByParentCode(middleCode)) );
+		map.put(CategoryLevel.MIDDLE.name(), CategoryItem.from( categoryDAO.findCategoriesByParentCode(topCode)) );
+		map.put(CategoryLevel.LOW.name(), CategoryItem.from( categoryDAO.findCategoriesByParentCode(middleCode)) );
 
 		return map;
 	}
@@ -86,12 +86,12 @@ public class CategoryService {
 	 * 가계부 카테고리 체계 중 가장 상위 단계에 해당합니다. 조회가 되지 않으면 예외가 발생합니다.
 	 * </p>
 	 *
-	 * @return 최상위 카테고리를 {@link CategoryResponse} 형태로 변환한 리스트
+	 * @return 최상위 카테고리를 {@link CategoryItem} 형태로 변환한 리스트
 	 */
-	public List<CategoryResponse> getTopCategories() {
+	public List<CategoryItem> getTopCategories() {
 		List<Category> categories = categoryDAO.findTopCategories();
 
-		return CategoryResponse.from( categories );
+		return CategoryItem.from( categories );
 	}
 
 
@@ -104,13 +104,13 @@ public class CategoryService {
 	 * @param request 		카테고리 레벨, 선택한 카테고리 코드 정보를 포함한 {@link CategoryRequest} 객체
 	 * @return 요청한 레벨에 해당하는 하위 카테고리 리스트
 	 */
-	public List<CategoryResponse> getSubCategories(CategoryRequest request) {
+	public List<CategoryItem> getSubCategories(CategoryRequest request) {
 
 		if( request.getLevel() == CategoryLevel.TOP ) {
 			return getTopCategories();
 		}
 
-		return CategoryResponse.from( categoryDAO.findCategoriesByParentCode(request.getCode()) );
+		return CategoryItem.from( categoryDAO.findCategoriesByParentCode(request.getCode()) );
 	}
 
 
@@ -122,11 +122,11 @@ public class CategoryService {
 	 * </p>
 	 *
 	 * @param lowCode 	조회할 하위 카테고리 코드
-	 * @return 상위 계층 카테고리 정보를 담은 {@link CategoryResponse} 리스트
+	 * @return 상위 계층 카테고리 정보를 담은 {@link CategoryItem} 리스트
 	 */
-	public List<CategoryResponse> getAncestorCategoriesByCode(String lowCode) {
+	public List<CategoryItem> getAncestorCategoriesByCode(String lowCode) {
 		List<Category> categories = categoryDAO.findAncestorCategoriesByCode(lowCode);
 
-		return CategoryResponse.from(categories);
+		return CategoryItem.from(categories);
 	}
 }

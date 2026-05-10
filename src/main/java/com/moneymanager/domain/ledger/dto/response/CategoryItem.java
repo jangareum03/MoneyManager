@@ -3,7 +3,6 @@ package com.moneymanager.domain.ledger.dto.response;
 import com.moneymanager.domain.ledger.entity.Category;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,7 +10,7 @@ import java.util.stream.Collectors;
 /**
  * <p>
  * 패키지이름    : com.areum.moneymanager.domain.ledger.dto<br>
- * 파일이름       : CategoryResponse<br>
+ * 파일이름       : CategoryItem<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 7. 25.<br>
  * 설명              : 가계부 카테고리 조회 정보를 클라이언트에게 전달하기 위한 클래스
@@ -37,22 +36,21 @@ import java.util.stream.Collectors;
  */
 @Builder
 @Getter
-@ToString
-public class CategoryResponse {
+public class CategoryItem {
 	private String name;			//카테고리 이름
 	private String code;			//카테고리 코드
 
 	//Category 엔티티 리스트를 한 번에 변환하는 정적 메서드
-	public static List<CategoryResponse> from(List<Category> categories) {
+	public static List<CategoryItem> from(List<Category> categories) {
 		return categories.stream()
 				.map(
-						CategoryResponse::from
+						CategoryItem::from
 				).collect(Collectors.toList());
 	}
 
 	//Category 엔티티를 변환하는 정적 메서드
-	public static CategoryResponse from(Category category) {
-		return CategoryResponse.builder()
+	public static CategoryItem from(Category category) {
+		return CategoryItem.builder()
 				.code(category.getCode())
 				.name(category.getName())
 				.build();
