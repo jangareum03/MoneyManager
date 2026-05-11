@@ -6,6 +6,7 @@ import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.error.ErrorInfo;
 import com.moneymanager.exception.error.ServiceAction;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.repository.ledger.LedgerRepository;
@@ -85,7 +86,9 @@ public class LedgerCommandService {
 
 			log.info("{} 성공   |   memberId={}   |   result=success", action.getTitle(), memberId);
 		}catch (BusinessException e) {
-			log.error("[{}] {} 실패   |   memberId={}   |   result=failure   |   errorCode={}", e.getTraceId(), action.getTitle(), memberId, e.getErrorCode());
+			ErrorInfo errorInfo = e.getErrorInfo();
+
+			log.error("[{}] {} 실패   |   memberId={}   |   result=failure   |   errorCode={}", errorInfo.getTraceId(), action.getTitle(), memberId, errorInfo.getErrorCode());
 
 			throw e.withService(action);
 		}
@@ -103,26 +106,25 @@ public class LedgerCommandService {
 			if(savedLedger == null) {
 				throw BusinessException.of(
 						LEDGER_TARGET_NOT_FOUND,
-						"가계부 정보를 불러오지 못 했습니다. 잠시 후 다시 시도해 주세요.",
 						"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   value=" + id
-				);
+				).withUserMessage("가계부 정보를 불러오지 못 했습니다. 잠시 후 다시 시도해 주세요.");
 			}
 
 			return savedLedger;
 		}catch (DuplicateKeyException e) {
 			throw BusinessException.of(
 					LEDGER_COLLISION_UNIQUE_CONSTRAINT,
-					"가계부 등록 중 문제가 발생했습니다. 다시 시도해 주세요.",
-					"가계부 저장 실패   |   reason=DB저장실패   |   detail=중복키   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}",
-					e
-			);
+					"가계부 저장 실패   |   reason=DB저장실패   |   detail=중복키   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}"
+			)
+					.withUserMessage("가계부 등록 중 문제가 발생했습니다. 다시 시도해 주세요.")
+					.withCause(e);
 		}catch (DataIntegrityViolationException e) {
 			throw BusinessException.of(
 					LEDGER_COLLISION_UNIQUE_CONSTRAINT,
-					"가계부 등록 중 문제가 발생했습니다. 다시 시도해 주세요.",
-					"가계부 저장 실패   |   reason=DB저장실패   |   detail=데이터 무결성 위반   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}",
-					e
-			);
+					"가계부 저장 실패   |   reason=DB저장실패   |   detail=데이터 무결성 위반   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}"
+			)
+					.withUserMessage("가계부 등록 중 문제가 발생했습니다. 다시 시도해 주세요.")
+					.withCause(e);
 		}
 	}
 
@@ -154,10 +156,10 @@ public class LedgerCommandService {
 
 			throw BusinessException.of(
 					LEDGER_ETC_DB_ERROR,
-					"이미지 저장 중 문제가 발생했습니다. 다시 시도해주세요.",
-					"이미지 저장 실패   |   reason=DB추가실패   |   object=LedgerImage   |   value={memberId: " + ledger.getMemberId() + ", ledgerId: " + ledger.getId() + "}",
-					e
-			);
+					"이미지 저장 실패   |   reason=DB추가실패   |   object=LedgerImage   |   value={memberId: " + ledger.getMemberId() + ", ledgerId: " + ledger.getId() + "}"
+			)
+					.withUserMessage("이미지 저장 중 문제가 발생했습니다. 다시 시도해주세요.")
+					.withCause(e);
 		}
 	}
 
