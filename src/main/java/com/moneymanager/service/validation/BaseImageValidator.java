@@ -43,9 +43,8 @@ public abstract class BaseImageValidator implements ImageValidator {
 		if(contentType == null || !contentType.startsWith("image/")) {
 			throw BusinessException.of(
 					FILE_POLICY_NOT_ALLOWED,
-					"이미지 파일만 업로드 할 수 있습니다.",
 					"파일 검증 실패   |   reason=정책위반   |   object=file   |   field=contentType   |   policy=이미지가 아닌 다른 파일 업로드 시도  |   value=" + contentType
-			);
+			).withUserMessage("이미지 파일만 업로드 할 수 있습니다.");
 		}
 	}
 
@@ -53,9 +52,8 @@ public abstract class BaseImageValidator implements ImageValidator {
 		if(fileName == null || !fileName.contains(".")) {
 			throw BusinessException.of(
 					FILE_INPUT_FORMAT,
-					"잘못된 파일 이름입니다. 다른 파일로 진행해주세요.",
 					"파일 검증 실패   |   reason=형식오류   |   object=imageFile   |   field=fileName   |   value=" + fileName
-			);
+			).withUserMessage("잘못된 파일 이름입니다. 다른 파일로 진행해주세요.");
 		}
 
 		String ext = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
@@ -63,9 +61,8 @@ public abstract class BaseImageValidator implements ImageValidator {
 		if(!allowedExtensions.contains(ext)) {
 			throw BusinessException.of(
 					FILE_INPUT_FORMAT,
-					"지원하지 않은 확장자입니다. 다른 파일로 진행해주세요.",
 					"파일 검증 실패   |   reason=허용값아님   |   object=imageFile   |   field=fileName   |   allowedType=" + unwrap(allowedExtensions.toString(), "[", "]") + "   |   value=" + ext
-			);
+			).withUserMessage("지원하지 않은 확장자입니다. 다른 파일로 진행해주세요.");
 		}
 	}
 
@@ -77,9 +74,8 @@ public abstract class BaseImageValidator implements ImageValidator {
 			if(read < 4) {
 				throw BusinessException.of(
 						FILE_INPUT_ETC,
-						"손상된 파일입니다. 다른 파일로 진행해주세요.",
 						"이미지 검증 실패   |   reason=길이오류   |   object=imageFile   |   field=header   |   expectedLength=4   |   value=" + read
-				);
+				).withUserMessage("손상된 파일입니다. 다른 파일로 진행해주세요.");
 			}
 
 			String hex = byteToHex(Arrays.copyOf(header, 4));
@@ -87,16 +83,14 @@ public abstract class BaseImageValidator implements ImageValidator {
 			if(!allowedHeaders.contains(hex)) {
 				throw BusinessException.of(
 						FILE_POLICY_NOT_ALLOWED,
-						"지원하지 않은 파일입니다. 다른 파일로 진행해주세요.",
 						"이미지 검증 실패   |   reason=허용값아님   |   object=imageFile   |   field=headerHex   |   allowedValues=" + unwrap(allowedHeaders.toString(), "[", "]") + "   |   value=" + hex
-				);
+				).withUserMessage("지원하지 않은 파일입니다. 다른 파일로 진행해주세요.");
 			}
 		}catch (IOException e) {
 			throw BusinessException.of(
 					FILE_INPUT_ETC,
-					"손상된 파일입니다. 다른 파일로 진행해주세요.",
 					"이미지 검증 실패   |   reason=파일읽기실패   |   object=imageFile"
-			);
+			).withUserMessage("손상된 파일입니다. 다른 파일로 진행해주세요.");
 		}
 	}
 
@@ -117,19 +111,17 @@ public abstract class BaseImageValidator implements ImageValidator {
 		if(size <= 0) {
 			throw BusinessException.of(
 					FILE_INPUT_EMPTY,
-					"빈 파일은 업로드 할 수 없습니다.",
 					String.format("이미지 검증 실패   |   reason=크기오류   |   object=imageFile   |   field=size   |   maxSize~%dMB   |   value=0", max)
-			);
+			).withUserMessage("빈 파일은 업로드 할 수 없습니다.");
 		}
 
 		if(size > max) {
 			throw BusinessException.of(
 					FILE_POLICY_LIMIT_EXCEEDED,
-					String.format("파일은 최대 %dMB까지만 업로드 가능합니다. 파일을 확인해주세요.", max),
 					 String.format("이미지 검증 실패   |   reason=파일크기오류   |   object=imageFile   |   field=size   |   maxSize=%dMB   |   value=%d", max, size)
-			);
+			).withUserMessage(String.format("파일은 최대 %dMB까지만 업로드 가능합니다. 파일을 확인해주세요.", max));
 		}
-	}
 
+	}
 
 }

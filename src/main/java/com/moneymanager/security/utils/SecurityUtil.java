@@ -47,9 +47,8 @@ public class SecurityUtil {
 		if(memberId == null) {
 			throw BusinessException.of(
 					ErrorCode.MEMBER_AUTHORITY_UNAUTHORIZED,
-					"인증 실패했습니다. 다시 로그인해주세요.",
 					"회원 인증 실패   |   reason=사용자 ID 없음   |   object=CustomUserDetails   |   field=id   |   value=null"
-			);
+			).withUserMessage("인증 실패했습니다. 다시 로그인해주세요.");
 		}
 
 		return memberId;
@@ -62,18 +61,16 @@ public class SecurityUtil {
 		if(auth == null) {
 			throw BusinessException.of(
 					ErrorCode.MEMBER_AUTHORITY_FAILED,
-					"인증 실패했습니다. 다시 로그인해주세요.",
 					"회원 인증 실패   |   reason=인증 객체 없음   |   object=SecurityContent   |   field=authentication   |   value=null"
-			);
+			).withUserMessage("인증 실패했습니다. 다시 로그인해주세요.");
 		}
 
 		Object principal = auth.getPrincipal();
 		if(!(principal instanceof CustomUserDetails)) {
 			throw BusinessException.of(
 					ErrorCode.MEMBER_AUTHORITY_FAILED,
-					"인증 정보가 올바르지 않습니다. 다시 로그인해주세요.",
 					"회원 인증 실패   |   reason=principal 타입 불일치   |   object=authentication   |   field=principal   |   value=" + principal
-			);
+			).withUserMessage("인증 정보가 올바르지 않습니다. 다시 로그인해주세요.");
 		}
 
 		return (CustomUserDetails) principal;

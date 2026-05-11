@@ -54,9 +54,8 @@ public class DateValidator {
 		if(startDate.compareTo(endDate) > 0) {
 			throw BusinessException.of(
 					LEDGER_HISTORY_INPUT_CONFLICT,
-					"시작일은 종료일보다 이전 날짜로 입력해주세요.",
 					"가계부 거래내역 검증 실패   |   reason=논리충돌   |   rule=시작일<=종료일   |   value={startDate: " + startDate +", endDate: " + endDate +"}"
-			);
+			).withUserMessage("시작일은 종료일보다 이전 날짜로 입력해주세요.");
 		}
 	}
 
@@ -67,13 +66,13 @@ public class DateValidator {
 
 	private static void checkEmpty(String date, ErrorCode errorCode, String userMsg, String logMsg) {
 		if(isNullOrBlank(date)) {
-			throw BusinessException.of(errorCode, userMsg, logMsg);
+			throw BusinessException.of(errorCode, logMsg).withUserMessage(userMsg);
 		}
 	}
 
 	private static void checkFormat(String date, ErrorCode errorCode, String userMsg, String logMsg) {
 		if(!matchesPattern(date, DATE_FORMAT)) {
-			throw BusinessException.of(errorCode, userMsg, logMsg);
+			throw BusinessException.of(errorCode, logMsg).withUserMessage(userMsg);
 		}
 	}
 }
