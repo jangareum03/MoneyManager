@@ -126,9 +126,8 @@ public class LedgerHistoryPolicy {
 		if( !(isDateInRange(from, fiveYearsAgo, now) && isDateInRange(to, fiveYearsAgo, now)) ) {
 			throw BusinessException.of(
 					ErrorCode.LEDGER_HISTORY_POLICY_VIOLATION,
-					"가계부 내역은 최근 5년 이내만 가능합니다.",
-					"가계부 거래내역 검증 실패   |   reason=조건불만족   |   object=DateRange   |   condition=기간 초과   |   value={from: " + dateRange.getFrom().toString() + ", to: " + dateRange.getTo().toString() + "}"
-			);
+					"가계부 거래내역 검증 실패   |   reason=조건불만족   |   object=DateRange   |   condition=기간 초과   |   value={from: " + dateRange.getFrom().toString() + ", to: " + dateRange.getTo() + "}"
+			).withUserMessage("가계부 내역은 최근 5년 이내만 가능합니다.");
 		}
 	}
 
@@ -163,7 +162,7 @@ public class LedgerHistoryPolicy {
 			String prefix = DateTimeUtils.formatDate(localDate, HistoryType.MONTH.getFormat());
 			int week = calculateWeekOfMonth(localDate);
 
-			return String.format("%s %d주", prefix, (Integer) week);
+			return String.format("%s %d주", prefix, week);
 		}
 
 		return DateTimeUtils.formatDate(localDate, historyType.getFormat());

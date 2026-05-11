@@ -13,6 +13,7 @@ import com.moneymanager.domain.ledger.enums.HistoryMenuType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
 import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.error.ErrorInfo;
 import com.moneymanager.exception.error.ServiceAction;
 import com.moneymanager.mapper.LedgerMapper;
 import com.moneymanager.repository.ledger.LedgerRepository;
@@ -307,9 +308,11 @@ public class LedgerReadService {
 
 			return result;
 		}catch (BusinessException e) {
+			ErrorInfo errorInfo = e.getErrorInfo();
+
 			log.error(
 					"[{}] {} 실패   |   memberId={}   |   result=failure   |   errorCode={}",
-					e.getTraceId(), action.getTitle(), memberId, e.getErrorCode()
+					errorInfo.getTraceId(), action.getTitle(), memberId, errorInfo.getErrorCode()
 			);
 
 			throw e.withService(action);
@@ -322,9 +325,8 @@ public class LedgerReadService {
 		} catch (EmptyResultDataAccessException e) {
 			throw BusinessException.of(
 					LEDGER_TARGET_NOT_FOUND,
-					"요청하신 가계부를 찾을 수 없습니다. 입력하신 주소가 정확한지 확인해주세요.",
 					"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   value={code: " + code + "}"
-			);
+			).withUserMessage("요청하신 가계부를 찾을 수 없습니다. 입력하신 주소가 정확한지 확인해주세요.");
 		}
 	}
 

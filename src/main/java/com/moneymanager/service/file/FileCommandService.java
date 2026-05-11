@@ -93,9 +93,8 @@ public class FileCommandService {
 		}catch (IOException e) {
 			throw BusinessException.of(
 					FILE_ETC_RESOURCE_ERROR,
-					"파일 처리 실패   |   reason=파일저장불가   |   object=file   |   value=" + newFile.getAbsolutePath(),
-					e
-			);
+					"파일 처리 실패   |   reason=파일저장불가   |   object=file   |   value=" + newFile.getAbsolutePath()
+			).withCause(e);
 		}
 	}
 

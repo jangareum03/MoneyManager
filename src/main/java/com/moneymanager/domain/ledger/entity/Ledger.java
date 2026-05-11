@@ -142,19 +142,18 @@ public class Ledger {
 			if(!isDateInRange(transDate, fiveYearsAgo, today)) {
 				throw BusinessException.of(
 						LEDGER_INPUT_RANGE,
-						String.format("최근 %d년 이내에 날짜만 가능합니다.", Policy.LEDGER_MAX_YEAR),
 						String.format("가계부 검증 실패   |   reason=범위오류   |   field=date   |   min=%s   |   max=%s   |   value=%s", DateTimeUtils.formatDate(fiveYearsAgo, DatePatterns.DATE.getPattern()), DateTimeUtils.formatDate(today, DatePatterns.DATE.getPattern()), date)
-				);
+				).withUserMessage(String.format("최근 %d년 이내에 날짜만 가능합니다.", Policy.LEDGER_MAX_YEAR));
 			}
 		}catch (IllegalArgumentException e) {
 			String format = "yyyyMMdd";
 
 			throw BusinessException.of(
 					LEDGER_INPUT_FORMAT,
-					String.format("날짜는 %s 형식으로 입력해주세요.", format),
-					String.format("가계부 검증 실패   |   %s", e.getMessage()),
-					e
-			);
+					String.format("가계부 검증 실패   |   %s", e.getMessage())
+			)
+					.withUserMessage(String.format("날짜는 %s 형식으로 입력해주세요.", format))
+					.withCause(e);
 		}
 	}
 
@@ -163,9 +162,8 @@ public class Ledger {
 		if(!(categoryCode.startsWith("01") || categoryCode.startsWith("02"))) {
 			throw BusinessException.of(
 					LEDGER_INPUT_FORMAT,
-					"사용할 수 없는 카테고리 입니다.",
 					"가계부 검증 실패   |   reason=형식오류   |   field=categoryCode   |   expectedFormat=01/02로 시작하는 6자리 숫자 (예: 010101)   |   value="+categoryCode
-			);
+			).withUserMessage("사용할 수 없는 카테고리 입니다.");
 		}
 
 		//TODO: 범위 검증 추가
@@ -176,9 +174,8 @@ public class Ledger {
 		if(amount < 1) {
 			throw BusinessException.of(
 					LEDGER_INPUT_RANGE,
-					"금액은 1 이상 입력해주세요.",
 					"가계부 검증 실패   |   reason=범위오류   |   field=amount   |   min=1   |   value="+amount
-			);
+			).withUserMessage("금액은 1 이상 입력해주세요.");
 		}
 	}
 
@@ -187,12 +184,9 @@ public class Ledger {
 		try{
 			AmountType.of(type);
 		}catch (IllegalArgumentException e) {
-			throw BusinessException.of(
-					LEDGER_INPUT_INVALID,
-					"사용할 수 없는 금액유형 입니다.",
-					"가게부 검증 실패   |   " + e.getMessage(),
-					e
-			);
+			throw BusinessException.of(LEDGER_INPUT_INVALID,"가게부 검증 실패   |   " + e.getMessage())
+					.withUserMessage("사용할 수 없는 금액유형 입니다.")
+					.withCause(e);
 		}
 	}
 
@@ -203,9 +197,8 @@ public class Ledger {
 			if(!isNullOrBlank(fixCycle)) {
 				throw BusinessException.of(
 						LEDGER_POLICY_NOT_ALLOWED,
-						"고정이 아닌 경우에는 주기를 설정할 수 없습니다. 고정 여부를 확인해주세요.",
 						"가계부 검증 실패   |   reason=정책위반   |   field=fixCycle   |   policy=고정이 아닌데 주기가 존재   |   value=" + fixCycle
-				);
+				).withUserMessage("고정이 아닌 경우에는 주기를 설정할 수 없습니다. 고정 여부를 확인해주세요.");
 			}
 
 			return;
@@ -217,10 +210,10 @@ public class Ledger {
 		}catch (IllegalArgumentException e) {
 			throw BusinessException.of(
 					LEDGER_INPUT_INVALID,
-					"사용할 수 없는 고정주기 입니다.",
-					"가계부 검증 실패   |   " + e.getMessage(),
-					e
-			);
+					"가계부 검증 실패   |   " + e.getMessage()
+			)
+					.withUserMessage("사용할 수 없는 고정주기 입니다.")
+					.withCause(e);
 		}
 	}
 
@@ -229,17 +222,15 @@ public class Ledger {
 		if(isNullOrBlank(placeName) ^ isNullOrBlank(roadAddress)) {
 			throw BusinessException.of(
 					LEDGER_POLICY_NOT_ALLOWED,
-					"장소명과 기본주소 둘 다 있어야 합니다.",
 					"가계부 검증 실패   |   reason=정책위반   |   policy=장소명과 기본주소 둘 다 필요   |   value={placeName:" + placeName + ", roadAddress:"+roadAddress
-			);
+			).withUserMessage("장소명과 기본주소 둘 다 있어야 합니다.");
 		}
 
 		if(detailAddress != null && !matchesPattern(detailAddress, ADDRESS_DETAIL_NAME.getPattern())) {
 			throw BusinessException.of(
 					LEDGER_INPUT_FORMAT,
-					"상세 주소는 한글,숫자,영문, -, (, ), /, .만 입력 가능합니다.",
 					"가계부 검증 실패   |   reason=형식오류   |   field=detailAddress   |   expectedFormat=한글, 숫자, 영문, 공백, -, (, ), /, .   |   value=" + detailAddress
-			);
+			).withUserMessage("상세 주소는 한글,숫자,영문, -, (, ), /, .만 입력 가능합니다.");
 		}
 	}
 
@@ -253,14 +244,6 @@ public class Ledger {
 			this.memo = memo;
 			this.updatedAt = LocalDateTime.now();
 		}
-	}
-
-	public void updateFixCycle(String fixCycle) {
-		if(isNullOrBlank(fixCycle)) {
-			throw new IllegalArgumentException("가계부 고정주기 없음");
-		}
-
-		this.fixCycle = FixCycle.of(fixCycle);
 	}
 
 	public void updateAmount(AmountInfo amountInfo) {
@@ -280,7 +263,4 @@ public class Ledger {
 		this.place = place;
 	}
 
-	public void updateTime() {
-		this.updatedAt = LocalDateTime.now();
-	}
 }

@@ -141,9 +141,8 @@ public class CategoryReadService {
 		if(category == null) {
 			throw BusinessException.of(
 					LEDGER_CATEGORY_TARGET_NOT_FOUND,
-					"존재하지 않은 카테고리입니다. 잠시 후 다시 시도해주세요.",
 					"카테고리 조회 실패   |   reason=카테고리없음   |   object=Category   |   filed=code   |   value=" + code
-			);
+			).withUserMessage("존재하지 않은 카테고리입니다. 잠시 후 다시 시도해주세요.");
 		}
 
 		return category;

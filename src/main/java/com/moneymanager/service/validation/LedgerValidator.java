@@ -1,15 +1,17 @@
 package com.moneymanager.service.validation;
 
-import com.moneymanager.exception.BusinessException;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
+import com.moneymanager.exception.BusinessException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-import static com.moneymanager.domain.global.enums.RegexPattern.*;
+import static com.moneymanager.domain.global.enums.RegexPattern.ADDRESS_PLACE_NAME;
+import static com.moneymanager.domain.global.enums.RegexPattern.ADDRESS_ROAD_NAME;
 import static com.moneymanager.exception.error.ErrorCode.*;
-import static com.moneymanager.utils.validation.ValidationUtils.*;
+import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
+import static com.moneymanager.utils.validation.ValidationUtils.matchesPattern;
 
 /**
  * <p>
@@ -64,9 +66,8 @@ public class LedgerValidator extends BaseImageValidator {
 		if(request == null) {
 			throw BusinessException.of(
 					LEDGER_INPUT_MISSING,
-					"가계부를 등록할 수 없습니다.",
 					FUNCTION_NAME + "   |   reason=객체없음   |   object=LedgerWriteRequest   |   value=null"
-			);
+			).withUserMessage("가계부를 등록할 수 없습니다.");
 		}
 
 		//필수정보 검증
@@ -84,22 +85,24 @@ public class LedgerValidator extends BaseImageValidator {
 		}
 	}
 
+	public void update() {
+		validateCategory("");
+	}
+
 	//가계부 카테고리 검증
 	private void validateCategory(String categoryCode) {
 		if(isNullOrBlank(categoryCode)) {
 			throw BusinessException.of(
 					LEDGER_INPUT_NULL,
-					"카테고리를 선택해주세요.",
 					FUNCTION_NAME + "   |   reason=필수값누락   |   field=categoryCode   |   value=" + categoryCode
-			);
+			).withUserMessage("카테고리를 선택해주세요.");
 		}
 
 		if(!matchesPattern(categoryCode, "\\d{6}")) {
 			throw BusinessException.of(
 					LEDGER_INPUT_INVALID,
-					"허용하지 않은 카테고리입니다.",
 					FUNCTION_NAME + "   |   reason=형식오류   |   field=categoryCode   |   expectedFormat=6자리 숫자 (예: 123456)   |   value=" + categoryCode
-			);
+			).withUserMessage("허용하지 않은 카테고리입니다.");
 		}
 	}
 
@@ -108,17 +111,15 @@ public class LedgerValidator extends BaseImageValidator {
 		if(amount == null) {
 			throw BusinessException.of(
 					LEDGER_INPUT_NULL,
-					"금액을 입력해주세요.",
-					FUNCTION_NAME + "   |   reason=필수값누락   |   field=amount   |   value=" + amount
-			);
+					FUNCTION_NAME + "   |   reason=필수값누락   |   field=amount   |   value=" + null
+			).withUserMessage("금액을 입력해주세요.");
 		}
 
 		if(isNullOrBlank(amountType)) {
 			throw BusinessException.of(
 					LEDGER_INPUT_NULL,
-					"금액 유형을 선택해주세요.",
 					FUNCTION_NAME + "   |   reason=필수값누락   |   field=amountType   |   value=" + amountType
-			);
+			).withUserMessage("금액 유형을 선택해주세요.");
 		}
 	}
 
@@ -127,9 +128,8 @@ public class LedgerValidator extends BaseImageValidator {
 		if(!isNullOrBlank(fixCycle) && !matchesPattern(fixCycle, "^[a-zA-Z]$")) {
 			throw BusinessException.of(
 					LEDGER_INPUT_INVALID,
-					"고정주기를 선택해주세요.",
 					FUNCTION_NAME + "   |   reason=형식오류   |   field=fixCycle   |   expectedFormat=1자리 영어 (예: w)   |   value=" + fixCycle
-			);
+			).withUserMessage("고정주기를 선택해주세요.");
 		}
 	}
 
@@ -138,30 +138,29 @@ public class LedgerValidator extends BaseImageValidator {
 		if(!isNullOrBlank(memo) && memo.length() > 150) {
 			throw BusinessException.of(
 					LEDGER_INPUT_LENGTH,
-					"메모는 최대 150자까지 입력해주세요.",
 					FUNCTION_NAME + "   |   reason=길이오류   |   field=memo   |   maxLength=150   |   value=" + memo.length()
-			);
+			).withUserMessage("메모는 최대 150자까지 입력해주세요.");
 		}
 	}
 
 	//가계부 주소 검증
 	private void validatePlace(String placeName, String roadAddress, String detailAddress) {
+		String message = "장소 정보가 올바르지 않습니다. 다시 선택해 주세요.";
+
 		//장소명 확인
 		if(!isNullOrBlank(placeName)) {
 			if(placeName.length() > 100) {
 				throw BusinessException.of(
 						LEDGER_INPUT_LENGTH,
-						"장소 정보가 올바르지 않습니다. 다시 선택해 주세요.",
 						FUNCTION_NAME + "   |   reason=길이오류   |   field=placeName   |   maxLength=100   |   value=" + placeName.length()
-				);
+				).withUserMessage(message);
 			}
 
 			if(!matchesPattern(placeName, ADDRESS_PLACE_NAME.getPattern())) {
 				throw BusinessException.of(
 						LEDGER_INPUT_INVALID,
-						"장소 정보가 올바르지 않습니다. 다시 선택해 주세요.",
 						FUNCTION_NAME + "   |   reason=형식오류   |   field=placeName   |   expectedFormat=한글, 숫자, 영어, 공백 (예: CGV 강남점)   |   value=" + placeName
-				);
+				).withUserMessage(message);
 			}
 		}
 
@@ -170,17 +169,15 @@ public class LedgerValidator extends BaseImageValidator {
 			if(roadAddress.length() > 300)
 				throw BusinessException.of(
 						LEDGER_INPUT_LENGTH,
-						"장소 정보가 올바르지 않습니다. 다시 선택해 주세요.",
 						FUNCTION_NAME + "   |   reason=길이오류   |   field=roadAddress   |   maxLength=300   |   value=" + roadAddress.length()
-				);
+				).withUserMessage(message);
 			}
 
 			if(!matchesPattern(roadAddress,  ADDRESS_ROAD_NAME.getPattern())) {
 				throw BusinessException.of(
 						LEDGER_INPUT_INVALID,
-						"장소 정보가 올바르지 않습니다. 다시 선택해 주세요.",
 						FUNCTION_NAME + "   |   reason=형식오류   |   field=roadAddress   |   expectedFormat=한글, 숫자, ·, -, 공백"
-				);
+				).withUserMessage(message);
 			}
 
 
@@ -189,9 +186,8 @@ public class LedgerValidator extends BaseImageValidator {
 			if(detailAddress.length() > 500) {
 				throw BusinessException.of(
 						LEDGER_INPUT_LENGTH,
-						"상세 주소는 최대 500자까지만 입력 가능합니다.",
 						FUNCTION_NAME + "   |   reason=길이오류   |   field=detailAddress   |   maxLength=500   |   value=" + detailAddress.length()
-				);
+				).withUserMessage("상세 주소는 최대 500자까지만 입력 가능합니다.");
 			}
 		}
 	}

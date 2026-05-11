@@ -6,8 +6,6 @@ import com.moneymanager.exception.error.ErrorInfo;
 import com.moneymanager.exception.error.ServiceAction;
 import lombok.Getter;
 
-import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.exception<br>
@@ -37,13 +35,8 @@ import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
  */
 @Getter
 public class BusinessException extends RuntimeException {
+
 	private final ErrorInfo errorInfo;
-
-	private BusinessException(ErrorInfo error) {
-		super(error.getLogMessage());
-
-		this.errorInfo = error;
-	}
 
 	private BusinessException(ErrorInfo error, Throwable cause) {
 		super(error.getLogMessage(), cause);
@@ -52,55 +45,38 @@ public class BusinessException extends RuntimeException {
 	}
 
 	public static BusinessException of(ErrorCode errorCode, String logMessage) {
-		return of(errorCode, null, logMessage, null);
-	}
-
-	public static BusinessException of(ErrorCode errorCode, String logMessage, Throwable cause) {
-		return of(errorCode, null, logMessage, cause);
-	}
-
-	public static BusinessException of(ErrorCode errorCode, String userMessage, String logMessage) {
-		return of(errorCode, userMessage, logMessage, null);
-	}
-
-	public static BusinessException of(ErrorCode errorCode, String userMessage, String logMessage, Throwable cause) {
 		ErrorInfo errorInfo = ErrorInfo.builder()
-						.traceId(ErrorInfo.createErrorId())
-						.errorCode(errorCode)
-						.userMessage(resolveUserMessage(errorCode, userMessage))
-						.logMessage(logMessage)
-						.build();
+				.traceId(ErrorInfo.createErrorId())
+				.errorCode(errorCode)
+				.logMessage(logMessage)
+				.userMessage(errorCode.getDefaultMessage())
+				.build();
 
-		return new BusinessException(errorInfo, cause);
-	}
-
-	private static String resolveUserMessage(ErrorCode errorCode, String userMessage) {
-		return isNullOrBlank(userMessage) ? errorCode.getDefaultMessage() : userMessage;
+		return new BusinessException(errorInfo, null);
 	}
 
 	public BusinessException withService(ServiceAction service) {
-		return new BusinessException(
-				this.errorInfo.toBuilder()
-							.service(service)
-							.build(),
-				this.getCause()
+		return copy(
+				errorInfo.toBuilder()
+						.service(service)
+						.build()
 		);
 	}
 
 	public BusinessException withUserMessage(String message) {
-		return new BusinessException(
-				this.errorInfo.toBuilder()
+		return copy(
+				errorInfo.toBuilder()
 						.userMessage(message)
-						.build(),
-				this.getCause()
+						.build()
 		);
 	}
 
-	public String getTraceId() {
-		return this.getErrorInfo().getTraceId();
+	public BusinessException withCause(Throwable cause) {
+		return new BusinessException(this.errorInfo, cause);
 	}
 
-	public ErrorCode getErrorCode() {
-		return this.getErrorInfo().getErrorCode();
+	private BusinessException copy(ErrorInfo errorInfo) {
+		return new BusinessException(errorInfo, this.getCause());
 	}
+
 }
