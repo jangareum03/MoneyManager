@@ -74,7 +74,7 @@ public class LedgerValidator extends BaseImageValidator {
 		DateValidator.validateLedgerDate(request.getDate());
 		validateCategory(request.getCategoryCode());
 		validateAmount(request.getAmount());
-		validatePaymentType(request.getAmountType());
+		validatePaymentType(request.getPaymentType());
 
 		//선택정보 검증
 		validateFixCycle(request.getFixCycle());
@@ -113,7 +113,7 @@ public class LedgerValidator extends BaseImageValidator {
 		if(isNullOrBlank(paymentType)) {
 			throw BusinessException.of(
 					LEDGER_INPUT_NULL,
-					FUNCTION_NAME + "   |   reason=필수값누락   |   field=amountType   |   value=" + paymentType
+					FUNCTION_NAME + "   |   reason=필수값누락   |   field=paymentType   |   value=" + paymentType
 			).withUserMessage("금액 유형을 선택해주세요.");
 		}
 	}
