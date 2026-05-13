@@ -165,7 +165,8 @@ public class LedgerCommandServiceTest {
 				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
 
 				when(securityUtil.getMemberId()).thenThrow(
-						BusinessException.of(MEMBER_AUTHORITY_UNAUTHORIZED, "로그인이 실패합니다.", "인증 실패")
+						BusinessException.of(MEMBER_AUTHORITY_UNAUTHORIZED,  "인증 실패")
+								.withUserMessage("로그인이 실패합니다.")
 				);
 
 				//when & then
@@ -190,7 +191,7 @@ public class LedgerCommandServiceTest {
 				//when & then
 				assertThatThrownBy(() -> target.registerLedger(request))
 						.isInstanceOfSatisfying(BusinessException.class, e -> {
-							assertThat(e.getErrorCode()).isSameAs(LEDGER_TARGET_NOT_FOUND);
+							assertThat(e.getErrorInfo().getErrorCode()).isSameAs(LEDGER_TARGET_NOT_FOUND);
 							assertThat(e.getErrorInfo().getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
 						});
 
