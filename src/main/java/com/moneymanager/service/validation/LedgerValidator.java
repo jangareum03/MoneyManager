@@ -73,20 +73,13 @@ public class LedgerValidator extends BaseImageValidator {
 		//필수정보 검증
 		DateValidator.validateLedgerDate(request.getDate());
 		validateCategory(request.getCategoryCode());
-		validateAmount(request.getAmount(), request.getAmountType());
+		validateAmount(request.getAmount());
+		validatePaymentType(request.getAmountType());
 
 		//선택정보 검증
 		validateFixCycle(request.getFixCycle());
 		validateMemo(request.getMemo());
 		validatePlace(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress());
-
-		if(request.hasImage()) {
-			request.getImage().forEach(this::validateImage);
-		}
-	}
-
-	public void update() {
-		validateCategory("");
 	}
 
 	//가계부 카테고리 검증
@@ -107,18 +100,20 @@ public class LedgerValidator extends BaseImageValidator {
 	}
 
 	//가계부 금액 검증
-	private void validateAmount(Long amount, String amountType) {
+	private void validateAmount(Long amount){
 		if(amount == null) {
 			throw BusinessException.of(
 					LEDGER_INPUT_NULL,
 					FUNCTION_NAME + "   |   reason=필수값누락   |   field=amount   |   value=" + null
 			).withUserMessage("금액을 입력해주세요.");
 		}
+	}
 
-		if(isNullOrBlank(amountType)) {
+	private void validatePaymentType(String paymentType) {
+		if(isNullOrBlank(paymentType)) {
 			throw BusinessException.of(
 					LEDGER_INPUT_NULL,
-					FUNCTION_NAME + "   |   reason=필수값누락   |   field=amountType   |   value=" + amountType
+					FUNCTION_NAME + "   |   reason=필수값누락   |   field=amountType   |   value=" + paymentType
 			).withUserMessage("금액 유형을 선택해주세요.");
 		}
 	}
