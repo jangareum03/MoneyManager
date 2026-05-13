@@ -608,7 +608,7 @@ public class LedgerReadServiceTest {
 				assertThat(result.getDate()).isEqualTo("2026. 01. 01 (목)");
 				assertThat(result.getAmount()).isEqualTo(10000L);
 				assertThat(result.getType()).isSameAs(INCOME);
-				assertThat(result.getPaymentType()).isSameAs(AmountType.NONE);
+				assertThat(result.getPaymentType()).isSameAs(PaymentType.NONE);
 
 				assertThat(result.getCategory())
 						.hasFieldOrPropertyWithValue("name", "월급")
@@ -774,7 +774,7 @@ public class LedgerReadServiceTest {
 				assertThat(result.getType()).isEqualTo(INCOME);
 				assertThat(result)
 						.extracting(LedgerEditResponse::getAmount, LedgerEditResponse::getPaymentType)
-						.containsExactly(10000L, AmountType.NONE);
+						.containsExactly(10000L, PaymentType.NONE);
 
 
 				//고정주기

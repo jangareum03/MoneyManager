@@ -23,7 +23,7 @@ import java.time.LocalDate;
  * 파일이름       : LedgerController<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 1. 5<br>
- * 설명              : 가계부 관련 요청을 처리하는 클래스
+ * 설명              : 가계부 관련 화면 요청을 처리하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -91,7 +91,7 @@ public class LedgerController {
 
 		model.addAttribute("fixes", FixedYN.values());
 		model.addAttribute("fixCycles", FixCycle.values());
-		model.addAttribute("paymentTypes", AmountType.values());
+		model.addAttribute("paymentTypes", PaymentType.values());
 
 		return "/ledger/ledger_edit";
 	}

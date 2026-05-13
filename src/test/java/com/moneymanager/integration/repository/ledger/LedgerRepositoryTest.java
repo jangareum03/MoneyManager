@@ -2,7 +2,7 @@ package com.moneymanager.integration.repository.ledger;
 
 import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.vo.Place;
@@ -116,8 +116,8 @@ public class LedgerRepositoryTest {
 				assertThat(result.getUpdatedAt()).isNull();
 
 				assertThat(result)
-						.extracting(Ledger::getMemberId, Ledger::getCategory, Ledger::getDate, Ledger::getAmount, Ledger::getAmountType)
-						.containsExactly("test", "010101", LocalDate.of(2026, 1, 1), 10000L, AmountType.NONE);
+						.extracting(Ledger::getMemberId, Ledger::getCategory, Ledger::getDate, Ledger::getAmount, Ledger::getPaymentType)
+						.containsExactly("test", "010101", LocalDate.of(2026, 1, 1), 10000L, PaymentType.NONE);
 			}
 
 			@Test
@@ -194,7 +194,7 @@ public class LedgerRepositoryTest {
 						.date(LocalDate.now())
 						.fix(FixedYN.VARIABLE)
 						.amount(100000L)
-						.amountType(AmountType.BANK)
+						.paymentType(PaymentType.BANK)
 						.category("020101")
 						.build();
 

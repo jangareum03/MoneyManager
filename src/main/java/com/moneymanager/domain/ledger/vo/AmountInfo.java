@@ -1,6 +1,6 @@
 package com.moneymanager.domain.ledger.vo;
 
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import lombok.Getter;
 import lombok.Value;
 
@@ -35,9 +35,9 @@ import lombok.Value;
 @Value
 public class AmountInfo {
 	Long amount;
-	AmountType type;
+	PaymentType type;
 
-	public AmountInfo(long amount, AmountType type) {
+	public AmountInfo(long amount, PaymentType type) {
 		this.amount = amount;
 		this.type = type;
 	}

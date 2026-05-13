@@ -1,7 +1,7 @@
 package com.moneymanager.fixture.ledger;
 
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.fixture.category.CategoryTreeFixture;
@@ -22,7 +22,7 @@ public class LedgerFixture {
 				.category(CategoryTreeFixture.incomeSalary().getCode())
 				.fix(FixedYN.VARIABLE)
 				.amount(10000L)
-				.amountType(AmountType.NONE);
+				.paymentType(PaymentType.NONE);
 	}
 
 	public static Ledger create() {

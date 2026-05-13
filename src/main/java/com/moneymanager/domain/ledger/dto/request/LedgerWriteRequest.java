@@ -48,7 +48,7 @@ public class LedgerWriteRequest implements LedgerImageRequest {
 	private String fixCycle;								//반복주기
 
 	private Long amount;								//금액
-	private String amountType;						//금액 유형
+	private String paymentType;						//금액 유형
 
 	private List<MultipartFile> image;			//이미지 리스트
 

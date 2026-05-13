@@ -413,7 +413,7 @@ public class LedgerReadServiceIT {
 				assertThat(result).isNotNull();
 				assertThat(result.getDate()).isEqualTo("2026년 01월 01일 목요일");
 				assertThat(result.getAmount()).isEqualTo(10000L);
-				assertThat(result.getPaymentType()).isEqualTo(AmountType.NONE);
+				assertThat(result.getPaymentType()).isEqualTo(PaymentType.NONE);
 				assertThat(result.getType()).isEqualTo(CategoryType.INCOME);
 				assertThat(result)
 						.extracting(LedgerEditResponse::getMemo, LedgerEditResponse::getPlaceName, LedgerEditResponse::getRoadAddress, LedgerEditResponse::getDetailAddress)

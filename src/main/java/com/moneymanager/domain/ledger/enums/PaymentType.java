@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
- * 파일이름       : AmountType<br>
+ * 파일이름       : PaymentType<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 11. 12.<br>
  * 설명              : 가계부 결제 유형을 정의한 클래스
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * </table>
  */
 @Getter
-public enum AmountType {
+public enum PaymentType {
 	NONE(
 			"없음",
 			"NONE",
@@ -71,14 +71,14 @@ public enum AmountType {
 	private final String value;
 	private final String svg;
 
-	AmountType(String label, String value, String svg) {
+	PaymentType(String label, String value, String svg) {
 		this.label = label;
 		this.value = value;
 		this.svg = svg;
 	}
 
-	public static AmountType of(String code) {
-		for( AmountType type : values() ) {
+	public static PaymentType of(String code) {
+		for( PaymentType type : values() ) {
 			if(type.value.equalsIgnoreCase(code)) return type;
 		}
 
@@ -88,7 +88,7 @@ public enum AmountType {
 	}
 
 	private static String allowedAmountType() {
-		return Arrays.stream(AmountType.values())
+		return Arrays.stream(PaymentType.values())
 				.map(Enum::name)
 				.collect(Collectors.joining(", "));
 	}

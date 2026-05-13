@@ -6,7 +6,7 @@ import com.moneymanager.domain.global.Policy;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.AmountInfo;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.exception.BusinessException;
@@ -67,7 +67,7 @@ public class Ledger {
 	private String memo;									//메모
 
 	private Long amount;								//금액
-	private AmountType amountType;			//금액 유형
+	private PaymentType paymentType;			//금액 유형
 
 	private Place place;									//장소
 
@@ -112,7 +112,7 @@ public class Ledger {
 		validateDate(request.getDate());
 		validateCategory(request.getCategoryCode());
 		validateAmount(request.getAmount());
-		validateAmountType(request.getAmountType());
+		validateAmountType(request.getPaymentType());
 
 		//선택값
 		validateFixCycle(request.isFixed(), request.getFixCycle());
@@ -126,7 +126,7 @@ public class Ledger {
 				.fixCycle(request.getFixCycle() != null ? FixCycle.of(request.getFixCycle()) : null)
 				.category(request.getCategoryCode())
 				.amount(request.getAmount())
-				.amountType(AmountType.of(request.getAmountType()))
+				.paymentType(PaymentType.of(request.getPaymentType()))
 				.memo(request.getMemo())
 				.place(new Place(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress()))
 				.build();
@@ -182,7 +182,7 @@ public class Ledger {
 	//금액유형 규칙
 	private static void validateAmountType(String type) {
 		try{
-			AmountType.of(type);
+			PaymentType.of(type);
 		}catch (IllegalArgumentException e) {
 			throw BusinessException.of(LEDGER_INPUT_INVALID,"가게부 검증 실패   |   " + e.getMessage())
 					.withUserMessage("사용할 수 없는 금액유형 입니다.")
@@ -247,12 +247,12 @@ public class Ledger {
 	}
 
 	public void updateAmount(AmountInfo amountInfo) {
-		AmountInfo entityAmount = new AmountInfo(amount, amountType);
+		AmountInfo entityAmount = new AmountInfo(amount, paymentType);
 
 		if( entityAmount.equals(amountInfo) ) return;
 
 		this.amount = amountInfo.getAmount();
-		this.amountType = amountInfo.getType();
+		this.paymentType = amountInfo.getType();
 	}
 
 	public void updatePlace(Place place) {

@@ -4,7 +4,7 @@ import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.Place;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -75,7 +75,7 @@ public class LedgerRepository {
 				.date(rs.getDate("transaction_date").toLocalDate())
 				.memo(rs.getString("memo"))
 				.amount(rs.getLong("amount"))
-				.amountType(AmountType.of(rs.getString("payment_type")))
+				.paymentType(PaymentType.of(rs.getString("payment_type")))
 				.place(
 						new Place(rs.getString("place_name"),rs.getString("road_address"), rs.getString("detail_address"))
 				)
@@ -128,7 +128,7 @@ public class LedgerRepository {
 
 		String fix = ledger.getFix().getValue();
 		String cycle = ledger.getFixCycle() != null ? ledger.getFixCycle().getValue() : null;
-		String paymentType = ledger.getAmountType().getValue();
+		String paymentType = ledger.getPaymentType().getValue();
 
 		Place place = ledger.getPlace();
 

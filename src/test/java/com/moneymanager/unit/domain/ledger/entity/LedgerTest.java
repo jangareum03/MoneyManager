@@ -3,7 +3,7 @@ package com.moneymanager.unit.domain.ledger.entity;
 import com.moneymanager.BusinessExceptionAssert;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
 import org.junit.jupiter.api.DisplayName;
@@ -94,7 +94,7 @@ public class LedgerTest {
 									assertThat(ledger.getFix()).isSameAs(FixedYN.VARIABLE);
 									assertThat(ledger.getFixCycle()).isNull();
 
-									assertThat(ledger.getAmountType()).isSameAs(AmountType.NONE);
+									assertThat(ledger.getPaymentType()).isSameAs(PaymentType.NONE);
 								}
 						),
 						Arguments.of(
@@ -297,11 +297,11 @@ public class LedgerTest {
 			@ParameterizedTest(name = "[{index}] type={0}")
 			@ValueSource(strings = {"1","ca", "free", "bank#", "n0ne"})
 			@DisplayName("금액유형이 유효하지 않으면 예외가 발생한다.")
-			void throwsException_whenAmountTypeIsInvalid(String type){
+			void throwsException_whenPaymentTypeIsInvalid(String type){
 				//given
 				LedgerWriteRequest request =
 						defaultLedgerWriteRequest()
-								.amountType(type)
+								.paymentType(type)
 								.build();
 
 				//when
