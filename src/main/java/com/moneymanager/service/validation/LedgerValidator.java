@@ -1,5 +1,6 @@
 package com.moneymanager.service.validation;
 
+import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.exception.BusinessException;
 import org.springframework.stereotype.Component;
@@ -77,6 +78,26 @@ public class LedgerValidator extends BaseImageValidator {
 		validatePaymentType(request.getPaymentType());
 
 		//선택정보 검증
+		validateFixCycle(request.getFixCycle());
+		validateMemo(request.getMemo());
+		validatePlace(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress());
+	}
+
+	public void update(LedgerUpdateRequest request) {
+		//1. 객체 null 검증
+		if(request == null) {
+			throw BusinessException.of(
+					LEDGER_INPUT_MISSING,
+					FUNCTION_NAME + "   |   reason=객체없음   |   object=LedgerUpdateRequest   |   value=null"
+			).withUserMessage("가계부를 수정할 수 없습니다.");
+		}
+
+		//2. 필수정보 검증
+		validateCategory(request.getCategoryCode());
+		validateAmount(request.getAmount());
+		validatePaymentType(request.getPaymentType());
+
+		//3. 선택정보 검증
 		validateFixCycle(request.getFixCycle());
 		validateMemo(request.getMemo());
 		validatePlace(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress());
