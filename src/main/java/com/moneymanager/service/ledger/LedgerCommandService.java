@@ -2,6 +2,7 @@ package com.moneymanager.service.ledger;
 
 import com.moneymanager.domain.global.dto.StoredFile;
 import com.moneymanager.domain.ledger.dto.request.LedgerImageRequest;
+import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -124,6 +126,41 @@ public class LedgerCommandService {
 					"가계부 저장 실패   |   reason=DB저장실패   |   detail=데이터 무결성 위반   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}"
 			)
 					.withUserMessage("가계부 등록 중 문제가 발생했습니다. 다시 시도해 주세요.")
+					.withCause(e);
+		}
+	}
+
+	@Transactional
+	public void update(String code, LedgerUpdateRequest request, List<MultipartFile> fileList) {
+		ServiceAction action = ServiceAction.LEDGER_EDIT;
+
+		String memberId = null;
+		try{
+			//1. 인증된 회원 조회
+			memberId = securityUtil.getMemberId();
+
+			//2. 기존 가계부 조회
+			Ledger ledger = getLedger(memberId, code);
+
+			//3. 수정값 반영
+
+			//4. 가계부 저장
+
+			//5. 이미지 삭제 및 추가
+		}catch(BusinessException e) {
+			throw e.withService(action);
+		}
+	}
+
+	private Ledger getLedger(String memberId, String ledgerCode) {
+		try{
+			return ledgerRepository.findByCode(memberId, ledgerCode);
+		}catch (EmptyResultDataAccessException e) {
+			throw BusinessException.of(
+					LEDGER_TARGET_NOT_FOUND,
+					"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   code=" + ledgerCode
+			)
+					.withUserMessage("가계부 정보를 불러오지 못 했습니다. 잠시 후 다시 시도해 주세요.")
 					.withCause(e);
 		}
 	}
