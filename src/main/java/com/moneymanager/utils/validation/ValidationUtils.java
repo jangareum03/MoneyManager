@@ -56,7 +56,7 @@ public class ValidationUtils {
 	 * @return	null이거나 문자열이면 <code>true</code>, 아니면 <code>false</code>
 	 */
 	public static boolean isNullOrBlank(String value) {
-		return value == null || value.isBlank();
+		return value == null || value.trim().isBlank();
 	}
 
 

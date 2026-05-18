@@ -1,7 +1,13 @@
 package com.moneymanager.domain.ledger.vo;
 
+import com.moneymanager.exception.BusinessException;
 import lombok.Getter;
 import lombok.Value;
+
+import static com.moneymanager.domain.global.enums.RegexPattern.ADDRESS_DETAIL_NAME;
+import static com.moneymanager.exception.error.ErrorCode.*;
+import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
+import static com.moneymanager.utils.validation.ValidationUtils.matchesPattern;
 
 /**
  * <p>
@@ -49,4 +55,30 @@ public class Place {
 		this.roadAddress = road;
 		this.detailAddress = detail;
 	}
+
+	private void validate(String placeName, String roadAddress, String detailAddress) {
+		//둘 다 없는 경우
+		if(isEmpty(placeName, roadAddress)) return;
+
+		//둘 중 하나만 존재하는 경우
+		if(isNullOrBlank(placeName) ^ isNullOrBlank(roadAddress)) {
+			throw BusinessException.of(
+					LEDGER_POLICY_NOT_ALLOWED,
+					"가계부 검증 실패   |   reason=정책위반   |   policy=장소명과 기본주소 둘 다 필요   |   value={placeName:" + placeName + ", roadAddress:"+roadAddress
+			).withUserMessage("장소명과 기본주소 둘 다 있어야 합니다.");
+		}
+
+		//상세주소 검증
+		if(detailAddress != null && !matchesPattern(detailAddress, ADDRESS_DETAIL_NAME.getPattern())) {
+			throw BusinessException.of(
+					LEDGER_INPUT_FORMAT,
+					"가계부 검증 실패   |   reason=형식오류   |   field=detailAddress   |   expectedFormat=한글, 숫자, 영문, 공백, -, (, ), /, .   |   value=" + detailAddress
+			).withUserMessage("상세 주소는 한글,숫자,영문, -, (, ), /, .만 입력 가능합니다.");
+		}
+	}
+
+	private boolean isEmpty(String name, String roadAddress) {
+		return isNullOrBlank(name) && isNullOrBlank(roadAddress);
+	}
+
 }
