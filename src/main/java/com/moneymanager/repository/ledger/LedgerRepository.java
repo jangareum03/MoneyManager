@@ -146,9 +146,9 @@ public class LedgerRepository {
 					ps.setString(5, cycle);
 					ps.setObject(6, ledger.getDate());
 					ps.setString(7, ledger.getMemo());
-					ps.setString(10, place != null ? place.getName() : null);
 					ps.setLong(8, money.getAmount());
 					ps.setString(9, money.getPaymentType().getValue());
+					ps.setString(10, place != null ? place.getPlaceName() : null);
 					ps.setString(11, place != null ? place.getRoadAddress() : null);
 					ps.setString(12, place != null ? place.getDetailAddress() : null);
 

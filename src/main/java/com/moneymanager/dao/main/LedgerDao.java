@@ -127,7 +127,7 @@ public class LedgerDao {
 								stmt.setString(9, ledger.getMoney().getPaymentType().getValue());
 
 								Place place = ledger.getPlace();
-								stmt.setString(10, place.getName());
+								stmt.setString(10, place.getPlaceName());
 								stmt.setString(11, place.getRoadAddress());
 								stmt.setString(12, place.getDetailAddress());
 

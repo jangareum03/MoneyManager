@@ -38,12 +38,14 @@ import lombok.Value;
 @Value
 @Getter
 public class Place {
-	String name;					//장소명
+	String placeName;			//장소명
 	String roadAddress;		//도로명 주소
 	String detailAddress;		//상세주소
 
-	public Place(String name, String road, String detail) {
-		this.name = name;
+	public Place(String placeName, String road, String detail) {
+		validate(placeName, road, detail);
+
+		this.placeName = placeName;
 		this.roadAddress = road;
 		this.detailAddress = detail;
 	}

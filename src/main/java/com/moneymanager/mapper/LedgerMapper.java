@@ -52,7 +52,7 @@ public class LedgerMapper {
 		String detailAddress = null;
 
 		if(place != null) {
-			placeName = place.getName();
+			placeName = place.getPlaceName();
 			roadAddress = place.getRoadAddress();
 			detailAddress = place.getDetailAddress();
 		}
@@ -84,7 +84,7 @@ public class LedgerMapper {
 		String detailAddress = null;
 
 		if(place != null) {
-			placeName = place.getName();
+			placeName = place.getPlaceName();
 			roadAddress = place.getRoadAddress();
 			detailAddress = place.getDetailAddress();
 		}
