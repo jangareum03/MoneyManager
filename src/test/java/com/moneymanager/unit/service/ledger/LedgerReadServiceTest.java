@@ -10,6 +10,7 @@ import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
+import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.fixture.category.CategoryTreeFixture;
 import com.moneymanager.fixture.ledger.ImageSlotFixture;
@@ -550,13 +551,13 @@ public class LedgerReadServiceTest {
 			Ledger ledger = createLedger(date, amount);
 			Category category = createCategory(type);
 
-			return new LedgerHistoryQuery(ledger.getCode(), ledger.getDate(), ledger.getAmount(), ledger.getMemo(), category.getName(), category.getCode());
+			return new LedgerHistoryQuery(ledger.getCode(), ledger.getDate(), ledger.getMoney().getAmount(), ledger.getMemo(), category.getName(), category.getCode());
 		}
 
 		private Ledger createLedger(LocalDate date, int amount) {
 			return LedgerFixture.defaultLedger()
 					.date(date)
-					.amount((long) amount)
+					.money(new Money((long) amount, "none"))
 					.build();
 		}
 

@@ -3,9 +3,9 @@ package com.moneymanager.unit.domain.ledger.entity;
 import com.moneymanager.BusinessExceptionAssert;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
+import com.moneymanager.domain.ledger.vo.Money;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -87,14 +87,17 @@ public class LedgerTest {
 													Ledger::getCode,
 													Ledger::getMemberId,
 													Ledger::getDate,
-													Ledger::getCategory,
-													Ledger::getAmount
+													Ledger::getCategory
 											).isNotNull();
 
 									assertThat(ledger.getFix()).isSameAs(FixedYN.VARIABLE);
 									assertThat(ledger.getFixCycle()).isNull();
 
-									assertThat(ledger.getPaymentType()).isSameAs(PaymentType.NONE);
+									assertThat(ledger.getMoney())
+											.extracting(
+													Money::getAmount,
+													Money::getPaymentType
+											).isNotNull();
 								}
 						),
 						Arguments.of(
@@ -128,7 +131,7 @@ public class LedgerTest {
 											.isNotNull()
 											.satisfies(
 													p -> {
-														assertThat(p.getName()).isEqualTo("CGV 강남점");
+														assertThat(p.getPlaceName()).isEqualTo("CGV 강남점");
 														assertThat(p.getRoadAddress()).isEqualTo("서울특별시 강남구 강남대로 438 스타플렉스");
 														assertThat(p.getDetailAddress()).isEqualTo("4층");
 													}

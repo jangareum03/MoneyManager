@@ -7,6 +7,7 @@ import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.*;
+import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.fixture.MemberFixture;
 import com.moneymanager.fixture.ledger.LedgerFixture;
@@ -360,7 +361,7 @@ public class LedgerReadServiceIT {
 					.memberId(memberId)
 					.date(date)
 					.category(category)
-					.amount((long)amount)
+					.money(new Money((long) amount, "none"))
 					.build();
 		}
 

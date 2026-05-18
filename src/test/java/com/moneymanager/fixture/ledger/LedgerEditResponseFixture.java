@@ -51,7 +51,7 @@ public class LedgerEditResponseFixture {
 		Place place = LedgerFixture.withPlace().build().getPlace();
 
 		return base()
-				.placeName(place.getName())
+				.placeName(place.getPlaceName())
 				.roadAddress(place.getRoadAddress())
 				.detailAddress(place.getDetailAddress())
 				.build();

@@ -5,6 +5,7 @@ import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
+import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.repository.ledger.LedgerRepository;
@@ -116,8 +117,12 @@ public class LedgerRepositoryTest {
 				assertThat(result.getUpdatedAt()).isNull();
 
 				assertThat(result)
-						.extracting(Ledger::getMemberId, Ledger::getCategory, Ledger::getDate, Ledger::getAmount, Ledger::getPaymentType)
-						.containsExactly("test", "010101", LocalDate.of(2026, 1, 1), 10000L, PaymentType.NONE);
+						.extracting(Ledger::getMemberId, Ledger::getCategory, Ledger::getDate)
+						.containsExactly("test", "010101", LocalDate.of(2026, 1, 1));
+
+				assertThat(result.getMoney())
+						.extracting(Money::getAmount, Money::getPaymentType)
+						.containsExactly(10000L, PaymentType.NONE);
 			}
 
 			@Test
@@ -173,7 +178,7 @@ public class LedgerRepositoryTest {
 				//then
 				assertThat(result).isNotNull();
 				assertThat(result.getPlace())
-						.extracting(Place::getName, Place::getRoadAddress, Place::getDetailAddress)
+						.extracting(Place::getPlaceName, Place::getRoadAddress, Place::getDetailAddress)
 						.containsExactly(null, null, null);
 
 			}
@@ -193,8 +198,6 @@ public class LedgerRepositoryTest {
 						.code("code")
 						.date(LocalDate.now())
 						.fix(FixedYN.VARIABLE)
-						.amount(100000L)
-						.paymentType(PaymentType.BANK)
 						.category("020101")
 						.build();
 
