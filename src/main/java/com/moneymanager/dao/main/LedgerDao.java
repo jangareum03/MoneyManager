@@ -1,13 +1,13 @@
 package com.moneymanager.dao.main;
 
+import com.moneymanager.domain.global.dto.GoogleChartResponse;
+import com.moneymanager.domain.global.vo.DateGroupable;
 import com.moneymanager.domain.ledger.dto.LedgerCategoryDto;
+import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.global.vo.DateGroupable;
-import com.moneymanager.domain.global.dto.GoogleChartResponse;
-import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -120,8 +123,8 @@ public class LedgerDao {
 								stmt.setString(5, cycleType);
 								stmt.setObject(6, ledger.getDate());
 								stmt.setString(7, ledger.getMemo());
-								stmt.setLong(8, ledger.getAmount());
-								stmt.setString(9, ledger.getPaymentType().getValue());
+								stmt.setLong(8, ledger.getMoney().getAmount());
+								stmt.setString(9, ledger.getMoney().getPaymentType().getValue());
 
 								Place place = ledger.getPlace();
 								stmt.setString(10, place.getName());
@@ -176,8 +179,9 @@ public class LedgerDao {
 							.fixCycle(cycleType)
 							.date(rs.getDate("transaction_date").toLocalDate())
 							.memo(rs.getString("memo"))
-							.amount(rs.getLong("amount"))
-							.paymentType(PaymentType.of(rs.getString("payment_type")))
+							.money(
+									new Money(rs.getLong("amount"), rs.getString("payment_type"))
+							)
 							.place(
 									new Place(rs.getString("place_name"), rs.getString("road_address"), rs.getString("address"))
 							)
@@ -218,8 +222,9 @@ public class LedgerDao {
 							.memberId(rs.getString("member_id"))
 							.date(rs.getDate("transaction_date").toLocalDate())
 							.memo(rs.getString("memo"))
-							.amount(rs.getLong("amount"))
-							.paymentType(PaymentType.of(rs.getString("payment_type")));
+							.money(
+									new Money(rs.getLong("amount"), rs.getString("payment_type"))
+							);
 
 					if( rs.getString("place_name") != null ) {
 						ledger.place(
@@ -266,8 +271,7 @@ public class LedgerDao {
 							.fix(FixedYN.of(rs.getString("fix")))
 							.fixCycle(FixCycle.of(rs.getString("fix_cycle")))
 							.memo(rs.getString("memo"))
-							.amount(rs.getLong("amount"))
-							.paymentType(PaymentType.of(rs.getString("payment_type")));
+							.money(new Money(rs.getLong("amount"), rs.getString("payment_type")));
 
 					if( rs.getString("place_name") != null ) {
 						ledger.place(
@@ -358,8 +362,7 @@ public class LedgerDao {
 							.code(rs.getString("id"))
 							.date(rs.getDate("transaction_date").toLocalDate())
 							.memo(rs.getString("memo"))
-							.amount(rs.getLong("amount"))
-							.paymentType(PaymentType.of(rs.getString("payment_type")))
+							.money(new Money(rs.getLong("amount"), rs.getString("payment_type")))
 							.build();
 
 					Category category = Category.builder()
@@ -495,10 +498,14 @@ public class LedgerDao {
 									"WHERE member_id = ? AND id = ?";
 
 		Place place = ledger.getPlace();
+		Money money = ledger.getMoney();
 
 		return jdbcTemplate.update(
 						query,
-						ledger.getCategory(), ledger.getFix().getValue(), ledger.getFixCycle().getValue(), ledger.getMemo(), ledger.getAmount(), ledger.getPaymentType().getValue(), place.getName(), place.getRoadAddress(), place.getDetailAddress(), ledger.getUpdatedAt(),
+						ledger.getCategory(), ledger.getFix().getValue(), ledger.getFixCycle().getValue(),
+						ledger.getMemo(),
+						money.getAmount(), money.getPaymentType().getValue(),
+						place.getPlaceName(), place.getRoadAddress(), place.getDetailAddress(), ledger.getUpdatedAt(),
 						ledger.getMemberId(), ledger.getCode()
 		);
 	}

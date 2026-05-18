@@ -4,7 +4,7 @@ import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -16,7 +16,8 @@ import javax.sql.DataSource;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -74,8 +75,9 @@ public class LedgerRepository {
 				.fixCycle(cycleType)
 				.date(rs.getDate("transaction_date").toLocalDate())
 				.memo(rs.getString("memo"))
-				.amount(rs.getLong("amount"))
-				.paymentType(PaymentType.of(rs.getString("payment_type")))
+				.money(
+						new Money(rs.getLong("amount"), rs.getString("payment_type"))
+				)
 				.place(
 						new Place(rs.getString("place_name"),rs.getString("road_address"), rs.getString("detail_address"))
 				)
@@ -128,8 +130,8 @@ public class LedgerRepository {
 
 		String fix = ledger.getFix().getValue();
 		String cycle = ledger.getFixCycle() != null ? ledger.getFixCycle().getValue() : null;
-		String paymentType = ledger.getPaymentType().getValue();
 
+		Money money = ledger.getMoney();
 		Place place = ledger.getPlace();
 
 		jdbcTemplate.update(
@@ -144,9 +146,9 @@ public class LedgerRepository {
 					ps.setString(5, cycle);
 					ps.setObject(6, ledger.getDate());
 					ps.setString(7, ledger.getMemo());
-					ps.setLong(8, ledger.getAmount());
-					ps.setString(9, paymentType);
 					ps.setString(10, place != null ? place.getName() : null);
+					ps.setLong(8, money.getAmount());
+					ps.setString(9, money.getPaymentType().getValue());
 					ps.setString(11, place != null ? place.getRoadAddress() : null);
 					ps.setString(12, place != null ? place.getDetailAddress() : null);
 
