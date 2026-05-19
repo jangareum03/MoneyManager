@@ -1,7 +1,6 @@
 package com.moneymanager.unit.service.ledger;
 
 
-import com.moneymanager.BusinessExceptionAssert;
 import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
@@ -15,6 +14,7 @@ import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.file.FileCommandService;
 import com.moneymanager.service.ledger.LedgerCommandService;
+import com.moneymanager.service.ledger.LedgerReadService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,7 +25,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
@@ -81,11 +80,8 @@ public class LedgerCommandServiceTest {
 	@Mock
 	private FileCommandService fileCommandService;
 
-
-	@BeforeEach
-	void setUp() {
-		ReflectionTestUtils.setField(target, "rootPath", "/test-root");
-	}
+	@Mock
+	private LedgerReadService ledgerReadService;
 
 
 	@Nested
@@ -233,21 +229,19 @@ public class LedgerCommandServiceTest {
 			@DisplayName("조회할 수 없는 가계부 수정 시 BusinessException이 발생한다.")
 			void throwsException_whenLedgerDoesNotExist() {
 				//given: 조회되지 않는 가계부 상황을 설정한다.
-				String member = "member", code = "no-code";
+				String code = "no-code";
 				LedgerUpdateRequest request = LedgerUpdateRequestFixture.createRequest().build();
 				List<MultipartFile> fileList = Collections.emptyList();
 
-				when(ledgerRepository.findByCode(member, code))
-						.thenThrow(EmptyResultDataAccessException.class);
+				when(ledgerReadService.getLedger(anyString(), anyString()))
+						.thenThrow(BusinessException.of(
+								LEDGER_TARGET_NOT_FOUND,
+								"DB 조회 실패"
+						));
 				
-				//when: 가계부 수정을 요청한다.
-				 Throwable throwable = catchThrowable(() -> target.update(code, request, fileList));
-
-				 //then: BusinessException이 발생한다.
-				BusinessExceptionAssert.assertThatBusinessException(throwable)
-						.hasErrorCode(LEDGER_TARGET_NOT_FOUND)
-						.hasLogMessage("조회 실패", "Ledger", "no-code")
-						.hasUserMessage("가계부 정보를 불러오지 못 했습니다.");
+				//when: 존재하지 않은 가계부 수정 시 예외가 발생한다.
+				assertThatThrownBy(() -> target.update(code, request, fileList))
+						.isInstanceOf(BusinessException.class);
 			}
 			
 		}

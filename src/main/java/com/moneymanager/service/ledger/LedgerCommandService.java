@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -66,6 +65,7 @@ public class LedgerCommandService {
 	private final SecurityUtil securityUtil;
 
 	private final FileCommandService fileService;
+	private final LedgerReadService ledgerReadService;
 
 	private final LedgerRepository ledgerRepository;
 	private final LedgerImageRepository imageRepository;
@@ -140,7 +140,7 @@ public class LedgerCommandService {
 			memberId = securityUtil.getMemberId();
 
 			//2. 기존 가계부 조회
-			Ledger ledger = getLedger(memberId, code);
+			Ledger ledger = ledgerReadService.getLedger(memberId, code);
 
 			//3. 수정값 반영
 
@@ -149,19 +149,6 @@ public class LedgerCommandService {
 			//5. 이미지 삭제 및 추가
 		}catch(BusinessException e) {
 			throw e.withService(action);
-		}
-	}
-
-	private Ledger getLedger(String memberId, String ledgerCode) {
-		try{
-			return ledgerRepository.findByCode(memberId, ledgerCode);
-		}catch (EmptyResultDataAccessException e) {
-			throw BusinessException.of(
-					LEDGER_TARGET_NOT_FOUND,
-					"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   code=" + ledgerCode
-			)
-					.withUserMessage("가계부 정보를 불러오지 못 했습니다. 잠시 후 다시 시도해 주세요.")
-					.withCause(e);
 		}
 	}
 

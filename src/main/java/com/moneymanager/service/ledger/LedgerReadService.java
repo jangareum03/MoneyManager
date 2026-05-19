@@ -319,14 +319,16 @@ public class LedgerReadService {
 		}
 	}
 
-	private Ledger getLedger(String memberId, String code) {
+	public Ledger getLedger(String memberId, String code) {
 		try{
 			return ledgerRepository.findByCode(memberId, code);
-		} catch (EmptyResultDataAccessException e) {
+		}catch (EmptyResultDataAccessException e) {
 			throw BusinessException.of(
-					LEDGER_TARGET_NOT_FOUND,
-					"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   value={code: " + code + "}"
-			).withUserMessage("요청하신 가계부를 찾을 수 없습니다. 입력하신 주소가 정확한지 확인해주세요.");
+							LEDGER_TARGET_NOT_FOUND,
+							"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   code=" + code
+					)
+					.withUserMessage("가계부 정보를 불러오지 못 했습니다. 잠시 후 다시 시도해 주세요.")
+					.withCause(e);
 		}
 	}
 
