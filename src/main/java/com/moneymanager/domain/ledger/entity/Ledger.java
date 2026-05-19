@@ -113,6 +113,12 @@ public class Ledger {
 				.build();
 	}
 
+	public void updateFixInfo(boolean fixed, String fixCycle) {
+		validateFixCycle(fixed, fixCycle);
+
+		this.fix = FixedYN.of(fixed);
+		this.fixCycle = FixCycle.of(fixCycle);
+	}
 
 	public void updateCategory(String category) {
 		validateCategory(category);

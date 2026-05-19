@@ -6,6 +6,8 @@ import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.domain.ledger.vo.Money;
+import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.exception.error.ErrorInfo;
 import com.moneymanager.exception.error.ServiceAction;
@@ -134,15 +136,15 @@ public class LedgerCommandService {
 	public void update(String code, LedgerUpdateRequest request, List<MultipartFile> fileList) {
 		ServiceAction action = ServiceAction.LEDGER_EDIT;
 
-		String memberId = null;
 		try{
 			//1. 인증된 회원 조회
-			memberId = securityUtil.getMemberId();
+			String memberId = securityUtil.getMemberId();
 
 			//2. 기존 가계부 조회
 			Ledger ledger = ledgerReadService.getLedger(memberId, code);
 
 			//3. 수정값 반영
+			updateLedgerFields(ledger, request);
 
 			//4. 가계부 저장
 
@@ -150,6 +152,21 @@ public class LedgerCommandService {
 		}catch(BusinessException e) {
 			throw e.withService(action);
 		}
+	}
+
+	private void updateLedgerFields(Ledger ledger, LedgerUpdateRequest updateRequest) {
+		//필수정보
+		ledger.updateCategory(updateRequest.getCategoryCode());
+		ledger.updateFixInfo(updateRequest.isFixed(), updateRequest.getFixCycle());
+
+		Money updateMoney = new Money(updateRequest.getAmount(), updateRequest.getPaymentType());
+		ledger.updateMoney(updateMoney);
+
+		//선택정보
+		ledger.updateMemo(updateRequest.getMemo());
+
+		Place updatePlace = new Place(updateRequest.getPlaceName(), updateRequest.getRoadAddress(), updateRequest.getDetailAddress());
+		ledger.updatePlace(updatePlace);
 	}
 
 	private void processImages(LedgerImageRequest request, Ledger ledger) {

@@ -8,6 +8,7 @@ import com.moneymanager.exception.BusinessException;
 import com.moneymanager.exception.error.ErrorInfo;
 import com.moneymanager.exception.error.ServiceAction;
 import com.moneymanager.fixture.LedgerRequestFixture;
+import com.moneymanager.fixture.ledger.LedgerFixture;
 import com.moneymanager.fixture.ledger.LedgerUpdateRequestFixture;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.repository.ledger.LedgerRepository;
@@ -20,6 +21,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -218,7 +221,7 @@ public class LedgerCommandServiceTest {
 
 		@BeforeEach
 		void setUp() {
-			when(securityUtil.getMemberId()).thenReturn("member");
+			when(securityUtil.getMemberId()).thenReturn("test-mid");
 		}
 
 		@Nested
@@ -239,11 +242,87 @@ public class LedgerCommandServiceTest {
 								"DB 조회 실패"
 						));
 				
-				//when: 존재하지 않은 가계부 수정 시 예외가 발생한다.
+				//when & then: 존재하지 않은 가계부 수정 시 예외가 발생한다.
 				assertThatThrownBy(() -> target.update(code, request, fileList))
 						.isInstanceOf(BusinessException.class);
 			}
+
+			@Test
+			@DisplayName("카테고리 코드가 비즈니스 규칙에 벗어나면 예외가 발생한다.")
+			void throwsException_whenCategoryCodeIsInvalid() {
+				//given: 비즈니스 규칙(01/02로 시작) 벗어난 카테고리 코드로 가계부를 설정한다.
+				LedgerUpdateRequest request = LedgerUpdateRequestFixture.createRequest()
+						.categoryCode("030101")
+						.build();
+
+				Ledger ledger = LedgerFixture.defaultLedger().build();
+
+				when(ledgerReadService.getLedger(anyString(), anyString()))
+						.thenReturn(ledger);
+
+				//when & then: 규칙에 벗어난 가계부 수정 시 예외가 발생한다.
+				assertThatCode(() -> target.update("code", request, Collections.emptyList()))
+						.isInstanceOf(BusinessException.class);
+			}
+
+			//고정이 비즈니스 규칙에 벗어나면 예외가 발생한다.
+			@Test
+			@DisplayName("고정이 비즈니스 규칙에 벗어나면 예외가 발생한다.")
+			void throwsException_whenFixedStatusIsInvalid() {
+				//given: 비즈니스 규칙에 벗어난 고정정보로 가계부를 설정한다.
+				LedgerUpdateRequest request = LedgerUpdateRequestFixture.createRequest()
+						.fixed(true)
+						.fixCycle(null)
+						.build();
+
+				Ledger ledger = LedgerFixture.defaultLedger().build();
+
+				when(ledgerReadService.getLedger(anyString(), anyString()))
+						.thenReturn(ledger);
+
+				//when & then: 규칙에 벗어난 가계부 수정 시 예외가 발생한다.
+				assertThatCode(() -> target.update("code", request, Collections.emptyList()))
+						.isInstanceOf(BusinessException.class);
+			}
+
+			@ParameterizedTest(name = "[{index}] amount={0}")
+			@ValueSource(longs = {0, -1, -1000})
+			@DisplayName("금액이 비즈니스 규칙에 벗어나면 예외가 발생한다.,")
+			void throwException_whenAmountIsInvalid(Long amount) {
+				//given: 비즈니스 규칙(0 이하) 벗어난 금액으로 가계부를 설정한다.
+				LedgerUpdateRequest request = LedgerUpdateRequestFixture.createRequest()
+						.amount(amount)
+						.build();
+
+				Ledger ledger = LedgerFixture.defaultLedger().build();
+
+				when(ledgerReadService.getLedger(anyString(), anyString()))
+						.thenReturn(ledger);
+
+				//when & then: 규칙에 벗어난 가계부 수정 시 예외가 발생한다.
+				assertThatCode(() -> target.update("code", request, Collections.emptyList()))
+						.isInstanceOf(BusinessException.class);
+			}
 			
+			@Test
+			@DisplayName("금액유형이 비즈니스 규칙에 벗어나면 예외가 발생한다.,")
+			void throwsException_whenAmountTypeIsInvalid() {
+				//given: 비즈니스 규칙(0 이하) 벗어난 금액으로 가계부를 설정한다.
+				LedgerUpdateRequest request = LedgerUpdateRequestFixture.createRequest()
+						.paymentType("no")
+						.build();
+
+				Ledger ledger = LedgerFixture.defaultLedger().build();
+
+				when(ledgerReadService.getLedger(anyString(), anyString()))
+						.thenReturn(ledger);
+
+				//when & then: 규칙에 벗어난 가계부 수정 시 예외가 발생한다.
+				assertThatCode(() -> target.update("code", request, Collections.emptyList()))
+						.isInstanceOf(BusinessException.class);
+				
+			}
+
 		}
 		
 	}
