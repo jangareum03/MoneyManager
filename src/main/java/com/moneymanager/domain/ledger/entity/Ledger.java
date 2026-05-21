@@ -117,7 +117,7 @@ public class Ledger {
 		validateFixCycle(fixed, fixCycle);
 
 		this.fix = FixedYN.of(fixed);
-		this.fixCycle = FixCycle.of(fixCycle);
+		this.fixCycle = fixCycle == null ? null : FixCycle.of(fixCycle);
 	}
 
 	public void updateCategory(String category) {
