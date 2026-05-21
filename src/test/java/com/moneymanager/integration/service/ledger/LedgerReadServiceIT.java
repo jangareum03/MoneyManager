@@ -207,9 +207,9 @@ public class LedgerReadServiceIT {
 			//given
 			HistoryType type = HistoryType.MONTH;
 
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "020101", 2000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "020101", 2000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
 
 			//when
 			HistoryDashboardResponse result = target.getHistoryDashboard(type);
@@ -261,12 +261,12 @@ public class LedgerReadServiceIT {
 			//given
 			HistoryType type = HistoryType.MONTH;
 
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 2, 28), "010102", 2000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "020101", 2000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 9), "020501", 4500));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 4, 1), "020302", 500));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 2, 28), "010102", 2000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "020101", 2000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 9), "020501", 4500));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 4, 1), "020302", 500));
 
 			//when
 			HistoryDashboardResponse result = target.getHistoryDashboard(type);
@@ -287,12 +287,12 @@ public class LedgerReadServiceIT {
 			//given
 			HistoryType type = HistoryType.MONTH;
 
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020101", 2000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 1000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 12), "020302", 1500));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 12), "020102", 2000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020101", 2000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 1000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 12), "020302", 1500));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 12), "020102", 2000));
 
 			//when
 			HistoryDashboardResponse result = target.getHistoryDashboard(type);
@@ -311,11 +311,11 @@ public class LedgerReadServiceIT {
 			//given
 			HistoryType type = HistoryType.MONTH;
 
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "010101", 2000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 1000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 12), "020102", 2000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "010101", 2000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 1000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 12), "020102", 2000));
 
 			//when
 			HistoryDashboardResponse result = target.getHistoryDashboard(type);
@@ -337,11 +337,11 @@ public class LedgerReadServiceIT {
 					MemberFixture.defaultMember().name("김영희").build()
 			);
 
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "010101", 2000));
-			ledgerRepository.save(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
-			ledgerRepository.save(createLedger("UCt01002", LocalDate.of(2026, 3, 5), "020201", 1000));
-			ledgerRepository.save(createLedger("UCt01002", LocalDate.of(2026, 3, 12), "020102", 2000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "010101", 2000));
+			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
+			ledgerRepository.insert(createLedger("UCt01002", LocalDate.of(2026, 3, 5), "020201", 1000));
+			ledgerRepository.insert(createLedger("UCt01002", LocalDate.of(2026, 3, 12), "020102", 2000));
 
 			//when
 			HistoryDashboardResponse result = target.getHistoryDashboard(type);
@@ -385,7 +385,7 @@ public class LedgerReadServiceIT {
 		@BeforeEach
 		void setUp() {
 			ledger = LedgerFixture.defaultLedger().id(null).memberId(member.getId()).build();
-			Long id = ledgerRepository.save(ledger);
+			Long id = ledgerRepository.insert(ledger);
 
 
 			images = List.of(
@@ -453,7 +453,7 @@ public class LedgerReadServiceIT {
 						.category("020101")
 						.build();
 
-				ledgerRepository.save(outlayLedger);
+				ledgerRepository.insert(outlayLedger);
 
 				String code = outlayLedger.getCode();
 
@@ -519,7 +519,7 @@ public class LedgerReadServiceIT {
 				//다른 사용자가 작성한 가계부 저장
 				Ledger otherLedger = LedgerFixture.defaultLedger()
 						.id(null).memberId(otherMember.getId()).code("other").build();
-				ledgerRepository.save(otherLedger);
+				ledgerRepository.insert(otherLedger);
 
 				String code = otherLedger.getCode();
 				

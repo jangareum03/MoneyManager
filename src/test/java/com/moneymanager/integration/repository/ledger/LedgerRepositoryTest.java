@@ -94,7 +94,7 @@ public class LedgerRepositoryTest {
 				Ledger ledger = LedgerFixture.defaultLedger().build();
 
 				//when
-				Long id = target.save(ledger);
+				Long id = target.insert(ledger);
 
 				//then
 				assertThat(id).isGreaterThan(0L);
@@ -107,7 +107,7 @@ public class LedgerRepositoryTest {
 				Ledger ledger = LedgerFixture.defaultLedger().build();
 
 				//when
-				Long ledgerId = target.save(ledger);
+				Long ledgerId = target.insert(ledger);
 				Ledger result = target.findById(ledgerId);
 
 				//then
@@ -135,7 +135,7 @@ public class LedgerRepositoryTest {
 						.build();
 
 				//when
-				Long ledgerId = target.save(ledger);
+				Long ledgerId = target.insert(ledger);
 				Ledger result = target.findById(ledgerId);
 
 				//then
@@ -155,7 +155,7 @@ public class LedgerRepositoryTest {
 						.build();
 
 				//when
-				Long ledgerId = target.save(ledger);
+				Long ledgerId = target.insert(ledger);
 				Ledger result = target.findById(ledgerId);
 
 				//then
@@ -172,7 +172,7 @@ public class LedgerRepositoryTest {
 						.build();
 
 				//when
-				Long ledgerId = target.save(ledger);
+				Long ledgerId = target.insert(ledger);
 				Ledger result = target.findById(ledgerId);
 
 				//then
@@ -202,7 +202,7 @@ public class LedgerRepositoryTest {
 						.build();
 
 				//when & then
-				assertThatThrownBy(() -> target.save(ledger))
+				assertThatThrownBy(() -> target.insert(ledger))
 						.isInstanceOf(DataIntegrityViolationException.class);
 			}
 
@@ -229,7 +229,7 @@ public class LedgerRepositoryTest {
 			void returnsLedger_whenLedgerIdExists() {
 				//given
 				Ledger ledger = LedgerFixture.withPlace().build();
-				Long id = target.save(ledger);
+				Long id = target.insert(ledger);
 
 				//when
 				Ledger result = target.findById(id);
@@ -274,7 +274,7 @@ public class LedgerRepositoryTest {
 			void setUp() {
 				Ledger ledger = LedgerFixture.defaultLedger().id(null).memberId(member.getId()).build();
 
-				target.save(ledger);
+				target.insert(ledger);
 			}
 
 			@Test
@@ -307,7 +307,7 @@ public class LedgerRepositoryTest {
 				Ledger otherLedger = LedgerFixture.defaultLedger().id(null).code("other-code").memberId(otherMember.getId()).build();
 
 				memberRepository.save(otherMember);
-				target.save(otherLedger);
+				target.insert(otherLedger);
 
 				//when & then
 				assertThatExceptionOfType(EmptyResultDataAccessException.class)
@@ -335,8 +335,8 @@ public class LedgerRepositoryTest {
 			@DisplayName("저장된 가계부가 있으면 전체 목록을 반환한다.")
 			void  returnsAllLedgers_whenLedgersExist() {
 				//given
-				target.save(LedgerFixture.defaultLedger().build());
-				target.save(LedgerFixture.defaultLedger().code("020101").build());
+				target.insert(LedgerFixture.defaultLedger().build());
+				target.insert(LedgerFixture.defaultLedger().code("020101").build());
 
 				//when
 				List<Ledger> result = target.findAll();
@@ -373,11 +373,11 @@ public class LedgerRepositoryTest {
 				LocalDate to = from.with(TemporalAdjusters.lastDayOfMonth());
 
 				//데이터 저장
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 1)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 1)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 9)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 15)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 2, 1)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 1)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 1)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 9)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 15)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 2, 1)).build());
 
 				//when
 				List<LedgerHistoryQuery> result = target.findHistoriesByMemberAndDateBetween(memberId, from, to);
@@ -401,11 +401,11 @@ public class LedgerRepositoryTest {
 				LocalDate to = LocalDate.of(2026, 1, 7);
 
 				//데이터 저장
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2025, 12, 31)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 1)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 5)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 7)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 8)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2025, 12, 31)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 1)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 5)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 7)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 8)).build());
 
 				//when
 				List<LedgerHistoryQuery> result = target.findHistoriesByMemberAndDateBetween(memberId, from, to);
@@ -435,10 +435,10 @@ public class LedgerRepositoryTest {
 				LocalDate to = LocalDate.of(2026, 1, 7);
 
 				//데이터 저장
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 1)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 5)).build());
-				target.save(LedgerFixture.defaultLedger().memberId("UCa12001").date(LocalDate.of(2026, 1, 5)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 7)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 1)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 5)).build());
+				target.insert(LedgerFixture.defaultLedger().memberId("UCa12001").date(LocalDate.of(2026, 1, 5)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 7)).build());
 
 				//when
 				List<LedgerHistoryQuery> result = target.findHistoriesByMemberAndDateBetween(memberId, from, to);
@@ -475,7 +475,7 @@ public class LedgerRepositoryTest {
 				LocalDate to = LocalDate.of(2026, 1, 1);
 
 				//데이터 저장
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 1)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 1)).build());
 
 				//when
 				List<LedgerHistoryQuery> result = target.findHistoriesByMemberAndDateBetween(memberId, from, to);
@@ -505,10 +505,10 @@ public class LedgerRepositoryTest {
 				LocalDate to = LocalDate.of(2026, 1, 1);
 
 				//데이터 저장
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 12, 31)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 2)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 3)).build());
-				target.save(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 10)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 12, 31)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 2)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 3)).build());
+				target.insert(LedgerFixture.defaultLedger().date(LocalDate.of(2026, 1, 10)).build());
 
 				//when
 				List<LedgerHistoryQuery> result = target.findHistoriesByMemberAndDateBetween(memberId, from, to);

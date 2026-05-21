@@ -96,33 +96,7 @@ public class LedgerRepository {
 	);
 
 
-	/**
-	 *	{@code ledger} 테이블에 가계부 정보를 저장합니다.
-	 *<p>
-	 *    다음과 같은 정보를 저장할 수 있습니다.
-	 *    <ul>
-	 *        <li>필수정보 - 고유번호({@code code}), 회원ID({@code memberId}), 거래날짜({@code date}), 카테고리({@code category}), 금액({@code amount})</li>
-	 *        <li>선택정보 - 메모({@code memo}), 금액유형({@code paymentType}), 주소({@code placeName}, {@code roadAddress}, {@code detailAddress}), 가계부 반복({@code fix}, {@code fixCycle})</li>
-	 *    </ul>
-	 *</p>
-	 * 필수 정보 중 하나라도 없거나 {@code NULL}인 경우
-	 * {@link org.springframework.dao.DataIntegrityViolationException}이 발생합니다.
-	 *
-	 * @param ledger 저장할 가계부 정보를 담은 {@link Ledger} 객체
-	 * @return	저장된 가계부의 생성된 식별자
-	 * @throws org.springframework.dao.DataIntegrityViolationException 제약 조건을 위반했을 경우 발생
-	 */
-	public Long save(Ledger ledger) {
-		if(ledger.getId() == null) {
-			return insert(ledger);
-		}else {
-			update(ledger);
-
-			return ledger.getId();
-		}
-	}
-
-	private Long insert(Ledger ledger) {
+	public Long insert(Ledger ledger) {
 		String query = "INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address) " +
 				"VALUES(ledger_seq.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -160,7 +134,25 @@ public class LedgerRepository {
 		return Objects.requireNonNull(keyHolder.getKey()).longValue();
 	}
 
-	private void update(Ledger ledger) {}
+	public int update(Ledger ledger) {
+		String query = """
+				UPDATE ledger
+				SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, amount = ?, payment_type = ?, place_name = ?, road_address = ?, detail_address = ?, updated_at = ?
+				WHERE member_id = ? AND code = ?
+				""";
+
+		Money money = ledger.getMoney();
+		Place place = ledger.getPlace();
+
+		return jdbcTemplate.update(
+				query,
+				ledger.getCategory(), ledger.getFix().getValue(), ledger.getFixCycle().getValue(), ledger.getMemo(),
+				money.getAmount(), money.getPaymentType().getValue(),
+				place.getPlaceName(), place.getRoadAddress(), place.getDetailAddress(),
+				ledger.getUpdatedAt()
+		);
+
+	}
 
 
 	/**

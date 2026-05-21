@@ -103,14 +103,14 @@ public class LedgerCommandServiceTest {
 				Ledger savedLedger = mock(Ledger.class);
 
 				when(securityUtil.getMemberId()).thenReturn("test");
-				when(ledgerRepository.save(any())).thenReturn(1L);
+				when(ledgerRepository.insert(any())).thenReturn(1L);
 				when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
 
 				//when
 				target.registerLedger(request);
 
 				//then
-				verify(ledgerRepository).save(any(Ledger.class));
+				verify(ledgerRepository).insert(any(Ledger.class));
 				verify(ledgerRepository).findById(1L);
 				verify(fileCommandService, never()).storeFile(any(), any(), any());
 				verify(imageRepository, never()).saveAll(anyList());
@@ -150,7 +150,7 @@ public class LedgerCommandServiceTest {
 				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
 
 				when(securityUtil.getMemberId()).thenReturn("test");
-				when(ledgerRepository.save(any(Ledger.class))).thenReturn(1L);
+				when(ledgerRepository.insert(any(Ledger.class))).thenReturn(1L);
 				when(ledgerRepository.findById(1L)).thenReturn(null);
 
 				//when & then
@@ -171,7 +171,7 @@ public class LedgerCommandServiceTest {
 				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
 
 				when(securityUtil.getMemberId()).thenReturn("test");
-				when(ledgerRepository.save(any(Ledger.class)))
+				when(ledgerRepository.insert(any(Ledger.class)))
 						.thenThrow(new DuplicateKeyException("중복키 발생") {});
 
 				//when & then
@@ -192,7 +192,7 @@ public class LedgerCommandServiceTest {
 				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
 
 				when(securityUtil.getMemberId()).thenReturn("test");
-				when(ledgerRepository.save(any(Ledger.class)))
+				when(ledgerRepository.insert(any(Ledger.class)))
 						.thenThrow(new DataIntegrityViolationException("위반 발생"));
 
 				//when & then
@@ -248,7 +248,7 @@ public class LedgerCommandServiceTest {
 			}
 
 			@Test
-			@DisplayName("카테고리 코드가 비즈니스 규칙에 벗어나면 예외가 발생한다.")
+			@DisplayName("카테고리 코드가 비즈니스 규칙에 벗어나면 BusinessException이 발생한다.")
 			void throwsException_whenCategoryCodeIsInvalid() {
 				//given: 비즈니스 규칙(01/02로 시작) 벗어난 카테고리 코드로 가계부를 설정한다.
 				LedgerUpdateRequest request = LedgerUpdateRequestFixture.createRequest()
@@ -265,9 +265,8 @@ public class LedgerCommandServiceTest {
 						.isInstanceOf(BusinessException.class);
 			}
 
-			//고정이 비즈니스 규칙에 벗어나면 예외가 발생한다.
 			@Test
-			@DisplayName("고정이 비즈니스 규칙에 벗어나면 예외가 발생한다.")
+			@DisplayName("고정이 비즈니스 규칙에 벗어나면 BusinessException이 발생한다.")
 			void throwsException_whenFixedStatusIsInvalid() {
 				//given: 비즈니스 규칙에 벗어난 고정정보로 가계부를 설정한다.
 				LedgerUpdateRequest request = LedgerUpdateRequestFixture.createRequest()
@@ -287,7 +286,7 @@ public class LedgerCommandServiceTest {
 
 			@ParameterizedTest(name = "[{index}] amount={0}")
 			@ValueSource(longs = {0, -1, -1000})
-			@DisplayName("금액이 비즈니스 규칙에 벗어나면 예외가 발생한다.,")
+			@DisplayName("금액이 비즈니스 규칙에 벗어나면 BusinessException이 발생한다.,")
 			void throwException_whenAmountIsInvalid(Long amount) {
 				//given: 비즈니스 규칙(0 이하) 벗어난 금액으로 가계부를 설정한다.
 				LedgerUpdateRequest request = LedgerUpdateRequestFixture.createRequest()
@@ -305,7 +304,7 @@ public class LedgerCommandServiceTest {
 			}
 			
 			@Test
-			@DisplayName("금액유형이 비즈니스 규칙에 벗어나면 예외가 발생한다.,")
+			@DisplayName("금액유형이 비즈니스 규칙에 벗어나면 BusinessException이 발생한다.,")
 			void throwsException_whenAmountTypeIsInvalid() {
 				//given: 비즈니스 규칙(0 이하) 벗어난 금액으로 가계부를 설정한다.
 				LedgerUpdateRequest request = LedgerUpdateRequestFixture.createRequest()
@@ -323,6 +322,20 @@ public class LedgerCommandServiceTest {
 				
 			}
 
+			@Test
+			@DisplayName("수정이 적용이 안되면 BusinessException이 발생한다.")
+			void throwsException_whenUpdateFails() {
+				//given: DB에 적용되지 않도록 설정
+				LedgerUpdateRequest request = LedgerUpdateRequestFixture.createRequest().build();
+
+				when(ledgerReadService.getLedger(anyString(), anyString()))
+						.thenReturn(LedgerFixture.defaultLedger().build());
+				when(ledgerRepository.update(any())).thenReturn(0);
+
+				//when & then: 수정된 내용이 저장이 안되면 예외가 발생한다.
+				assertThatCode(() -> target.update("code", request, Collections.emptyList()))
+						.isInstanceOf(BusinessException.class);
+			}
 		}
 		
 	}

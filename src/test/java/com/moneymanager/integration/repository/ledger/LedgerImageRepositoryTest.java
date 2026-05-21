@@ -73,7 +73,7 @@ public class LedgerImageRepositoryTest {
 		member = memberRepository.save(MemberFixture.defaultMember().build());
 
 		//가계부
-		Long id = ledgerRepository.save(LedgerFixture.defaultLedger().id(null).memberId(member.getId()).build());
+		Long id = ledgerRepository.insert(LedgerFixture.defaultLedger().id(null).memberId(member.getId()).build());
 		ledger = ledgerRepository.findById(id);
 
 		//이미지
