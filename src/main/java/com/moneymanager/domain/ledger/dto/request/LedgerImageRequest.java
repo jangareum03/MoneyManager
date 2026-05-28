@@ -32,6 +32,11 @@ import java.util.List;
  * </table>
  */
 public interface LedgerImageRequest {
-	boolean hasImage();
-	List<MultipartFile> getImage();
+
+	List<MultipartFile> getImages();
+
+	default boolean hasImage() {
+		return getImages() != null && !getImages().isEmpty();
+	}
+
 }

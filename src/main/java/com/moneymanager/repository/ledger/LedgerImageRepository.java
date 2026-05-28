@@ -46,16 +46,14 @@ public class LedgerImageRepository {
 	}
 
 
-	private final RowMapper<LedgerImage> ledgerImageRowMapper = (rs, rowNum) -> {
-		return LedgerImage.builder()
-				.id(rs.getLong("id"))
-				.ledgerId(rs.getLong("ledger_id"))
-				.imagePath(rs.getString("image_path"))
-				.sortOrder(rs.getInt("sort_order"))
-				.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-				.updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
-				.build();
-	};
+	private final RowMapper<LedgerImage> ledgerImageRowMapper = (rs, rowNum) -> LedgerImage.builder()
+		   .id(rs.getLong("id"))
+		   .ledgerId(rs.getLong("ledger_id"))
+		   .imagePath(rs.getString("image_path"))
+		   .sortOrder(rs.getInt("sort_order"))
+		   .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+		   .updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
+		   .build();
 
 
 	/**
@@ -119,4 +117,17 @@ public class LedgerImageRepository {
 
 		jdbcTemplate.update(sql);
 	}
+
+	public int deleteByLedgerId(Long ledgerId) {
+		String query = """
+				DELETE FROM ledger_image
+				WHERE ledger_id = ?
+				""";
+
+		return jdbcTemplate.update(
+				query,
+				ledgerId
+		);
+	}
+
 }

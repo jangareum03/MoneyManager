@@ -46,13 +46,14 @@ public class LedgerApiController {
 
 	private final LedgerValidator validator;
 
-	@PutMapping("/{code}")
+	@PatchMapping("/{code}")
 	public ResponseEntity<Void> update(@PathVariable String code, @RequestPart("ledger") LedgerUpdateRequest request, @RequestPart(value = "images", required = false) List<MultipartFile> fileList) {
 		//1. 요청 검증
 		validator.update(request);
 
 		//2. 가계부 정보 수정
-		ledgerCommandService.update(request, fileList);
+		request.attachImages(fileList);
+		ledgerCommandService.update(code, request);
 
 		//3. 200 상태 반환
 		return ResponseEntity.ok().build();

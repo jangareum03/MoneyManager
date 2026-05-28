@@ -2,6 +2,9 @@ package com.moneymanager.domain.ledger.dto.request;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 
 /**
@@ -38,7 +41,7 @@ import lombok.Getter;
  */
 @Builder
 @Getter
-public class LedgerUpdateRequest {
+public class LedgerUpdateRequest implements LedgerImageRequest {
 	private String categoryCode;					//카테고리
 	private String memo;									//메모
 
@@ -51,4 +54,11 @@ public class LedgerUpdateRequest {
 	private String placeName;							//장소명
 	private String roadAddress;						//기본주소
 	private String detailAddress;					//상세주소
+
+	private List<MultipartFile> images;			//이미지 리스트
+
+	public void attachImages(List<MultipartFile> images) {
+		this.images = images;
+	}
+
 }

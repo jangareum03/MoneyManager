@@ -2,6 +2,8 @@ package com.moneymanager.domain.global.dto;
 
 import lombok.Getter;
 
+import java.nio.file.Path;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.global.dto<br>
@@ -31,11 +33,13 @@ import lombok.Getter;
  */
 @Getter
 public class StoredFile {
-	private final String fullPath;	//실제 저장 경로
-	private final String relativePath;	//DB 저장용
 
-	public StoredFile(String fullPath, String relativePath) {
+	private final Path fullPath;				//실제 저장 경로
+	private final String relativePath;		//상대 저장 경로
+
+	public StoredFile(Path fullPath, String relativePath) {
 		this.fullPath = fullPath;
 		this.relativePath = relativePath;
 	}
+
 }

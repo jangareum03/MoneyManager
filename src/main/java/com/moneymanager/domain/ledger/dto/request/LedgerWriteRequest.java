@@ -50,14 +50,9 @@ public class LedgerWriteRequest implements LedgerImageRequest {
 	private Long amount;								//금액
 	private String paymentType;						//금액 유형
 
-	private List<MultipartFile> image;			//이미지 리스트
+	private List<MultipartFile> images;			//이미지 리스트
 
 	private String placeName;							//장소명
 	private String roadAddress;						//기본주소
 	private String detailAddress;					//상세주소
-
-	@Override
-	public boolean hasImage() {
-		return image != null && !image.isEmpty();
-	}
 }
