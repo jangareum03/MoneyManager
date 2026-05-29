@@ -116,8 +116,16 @@ public class Ledger {
 	public void updateFixInfo(boolean fixed, String fixCycle) {
 		validateFixCycle(fixed, fixCycle);
 
+		FixedYN newFix = FixedYN.of(fixed);
+		FixCycle newCycle = fixCycle == null ? null : FixCycle.of(fixCycle);
+
+		if(Objects.equals(this.fix, newFix) && Objects.equals(this.fixCycle, newCycle)) {
+			return;
+		}
+
 		this.fix = FixedYN.of(fixed);
 		this.fixCycle = fixCycle == null ? null : FixCycle.of(fixCycle);
+		this.updatedAt = LocalDateTime.now();
 	}
 
 	public void updateCategory(String category) {
