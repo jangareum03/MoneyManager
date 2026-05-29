@@ -152,8 +152,8 @@ public class Ledger {
 	}
 
 	public void updatePlace(Place place) {
-		if(isNullOrBlank(place.getPlaceName()) && isNullOrBlank(place.getRoadAddress())) {
-			if(place.equals(this.place)) return;
+		if(Objects.equals(this.place, place)) {
+			return;
 		}
 
 		this.place = place;
