@@ -67,15 +67,17 @@ public class LedgerImage {
 	 * @throws BusinessException	입력값이 유효하지 않은 경우 발생
 	 */
 	public static LedgerImage create(Long ledgerId, String path, int order) {
+		//1. 값 검증
+		validateLedgerId(ledgerId);
+		validateOrder(order);
+		validatePath(path);
+
+		//2. db에 저장하기 위해 path 변환
 		String dbPath = path.replace("\\", "/");
 
 		if(!dbPath.startsWith("/")) {
 			dbPath = "/" + dbPath;
 		}
-
-		validateLedgerId(ledgerId);
-		validateOrder(order);
-		validatePath(dbPath);
 
 		return LedgerImage.builder()
 				.ledgerId(ledgerId)
@@ -105,13 +107,6 @@ public class LedgerImage {
 			throw BusinessException.of(
 					LEDGER_TARGET_MISSING,
 					"가계부 이미지 검증 실패   |   reason=필수값누락   |   object=LedgerImage   |   field=imagePath   |   value=" + path
-			);
-		}
-
-		if(path.contains("\\")) {
-			throw BusinessException.of(
-					LEDGER_TARGET_FORMAT,
-					"가계부 이미지 검증 실패   |   reason=형식오류   |   object=LedgerImage   |   field=imagePath   |   expectedFormat=연도/월/이미지명.확장자   |   value=" + path
 			);
 		}
 	}
