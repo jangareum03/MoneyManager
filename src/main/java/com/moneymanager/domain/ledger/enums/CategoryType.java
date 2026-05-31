@@ -85,6 +85,10 @@ public enum CategoryType {
 	public static CategoryType fromCode(String code) {
 		if(isNullOrBlank(code)) {
 			throw new IllegalArgumentException("reason=필수값누락   |   enum=CategoryType   |   field=categoryCode   |   value=" + code);
+		}else {
+			if(!code.matches("\\d{6}")) {
+				throw new IllegalArgumentException("reason=허용값 아님   |   enum=CategoryType   |  field=categoryCode   |   expectedFormat=6자리 숫자 (예: 010101)   |   value=" + code);
+			}
 		}
 
 		for( CategoryType type : values() ) {
@@ -93,7 +97,7 @@ public enum CategoryType {
 			}
 		}
 
-		throw new IllegalArgumentException("reason=허용값 아님   |   enum=CategoryType   |   field=prefixCode   |   allowedValues=" + getAllowedPrefixCodes() + "   |   value=" + code);
+		throw new IllegalArgumentException("reason=허용값 아님   |   enum=CategoryType   |   field=categoryCode   |   allowedValues=" + getAllowedPrefixCodes() + "   |   value=" + code);
 	}
 
 
