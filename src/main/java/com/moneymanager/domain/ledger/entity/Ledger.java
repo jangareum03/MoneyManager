@@ -104,8 +104,8 @@ public class Ledger {
 				.code(code)
 				.memberId(memberId)
 				.date(DateTimeUtils.parseDateFromYyyyMMdd(request.getDate()))
-				.fix(FixedYN.of(request.getFixed()))
-				.fixCycle(request.getFixCycle() != null ? FixCycle.of(request.getFixCycle()) : null)
+				.fix(FixedYN.from(request.getFixed()))
+				.fixCycle(request.getFixCycle() != null ? FixCycle.from(request.getFixCycle()) : null)
 				.category(request.getCategoryCode())
 				.memo(request.getMemo())
 				.money(new Money(request.getAmount(), request.getPaymentType()))
@@ -116,15 +116,15 @@ public class Ledger {
 	public void updateFixInfo(String fixed, String fixCycle) {
 		validateFixCycle(fixed, fixCycle);
 
-		FixedYN newFix = FixedYN.of(fixed);
-		FixCycle newCycle = fixCycle == null ? null : FixCycle.of(fixCycle);
+		FixedYN newFix = FixedYN.from(fixed);
+		FixCycle newCycle = fixCycle == null ? null : FixCycle.from(fixCycle);
 
 		if(Objects.equals(this.fix, newFix) && Objects.equals(this.fixCycle, newCycle)) {
 			return;
 		}
 
-		this.fix = FixedYN.of(fixed);
-		this.fixCycle = fixCycle == null ? null : FixCycle.of(fixCycle);
+		this.fix = FixedYN.from(fixed);
+		this.fixCycle = fixCycle == null ? null : FixCycle.from(fixCycle);
 		this.updatedAt = LocalDateTime.now();
 	}
 
@@ -198,7 +198,7 @@ public class Ledger {
 	}
 
 	private static void validateFixCycle(String fix, String fixCycle) {
-		FixedYN fixedYN = FixedYN.of(fix);
+		FixedYN fixedYN = FixedYN.from(fix);
 
 		//고정이 아닌 경우 주기가 없어야 함
 		if(fixedYN == FixedYN.VARIABLE) {
@@ -214,7 +214,7 @@ public class Ledger {
 
 		//고정인 경우
 		try{
-			FixCycle.of(fixCycle);
+			FixCycle.from(fixCycle);
 		}catch (IllegalArgumentException e) {
 			throw BusinessException.of(
 					LEDGER_INPUT_INVALID,

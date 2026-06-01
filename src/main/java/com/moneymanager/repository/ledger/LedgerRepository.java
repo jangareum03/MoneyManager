@@ -59,11 +59,11 @@ public class LedgerRepository {
 		String fixed = rs.getString("fix");
 		String fixCycle = rs.getString("fix_cycle");
 
-		FixedYN fixedYN = FixedYN.of(fixed);
+		FixedYN fixedYN = FixedYN.from(fixed);
 
 		FixCycle cycleType = null;
 		if( fixedYN == FixedYN.REPEAT ) {
-			cycleType = FixCycle.of(fixCycle);
+			cycleType = FixCycle.from(fixCycle);
 		}
 
 		return Ledger.builder()

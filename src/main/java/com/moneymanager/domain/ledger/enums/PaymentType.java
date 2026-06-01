@@ -77,13 +77,13 @@ public enum PaymentType {
 		this.svg = svg;
 	}
 
-	public static PaymentType of(String code) {
+	public static PaymentType from(String code) {
 		for( PaymentType type : values() ) {
 			if(type.value.equalsIgnoreCase(code)) return type;
 		}
 
 		throw new IllegalArgumentException(
-				"reason=허용값아님   |   field=code   |   allowedValues=" + allowedAmountType() +"   |   value=" + code
+				"reason=허용값아님   |   enum=PaymentType   |   allowedValues=" + allowedAmountType() +"   |   value=" + code
 		);
 	}
 

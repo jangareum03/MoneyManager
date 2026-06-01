@@ -45,7 +45,7 @@ public enum FixedYN {
 		this.value = value;
 	}
 
-	public static FixedYN of(String value) {
+	public static FixedYN from(String value) {
 		for( FixedYN fixed : values() ) {
 			if( fixed.value.equalsIgnoreCase(value) ) return fixed;
 		}

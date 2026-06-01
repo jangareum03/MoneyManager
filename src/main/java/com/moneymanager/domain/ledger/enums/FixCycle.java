@@ -48,7 +48,7 @@ public enum FixCycle {
 		this.value = value;
 	}
 
-	public static FixCycle of(String cycle) {
+	public static FixCycle from(String cycle) {
 		for( FixCycle type : values() ) {
 			if(type.value.equalsIgnoreCase(cycle)) return type;
 		}
@@ -63,4 +63,5 @@ public enum FixCycle {
 				.map(Enum::name)
 				.collect(Collectors.joining(", "));
 	}
+
 }

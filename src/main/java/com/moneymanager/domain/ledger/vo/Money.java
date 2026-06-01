@@ -47,7 +47,7 @@ public class Money {
 		validatePaymentType(paymentType);
 
 		this.amount = amount;
-		this.paymentType = PaymentType.of(paymentType);
+		this.paymentType = PaymentType.from(paymentType);
 	}
 
 	private void validateAmount(Long amount) {
@@ -61,7 +61,7 @@ public class Money {
 
 	private void validatePaymentType(String type) {
 		try{
-			PaymentType.of(type);
+			PaymentType.from(type);
 		}catch (IllegalArgumentException e) {
 			throw BusinessException.of(LEDGER_INPUT_INVALID,"가게부 검증 실패   |   " + e.getMessage())
 					.withUserMessage("사용할 수 없는 금액유형 입니다.")
