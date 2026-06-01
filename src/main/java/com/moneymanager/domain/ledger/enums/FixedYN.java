@@ -50,11 +50,4 @@ public enum FixedYN {
 		return null;
 	}
 
-	public static FixedYN of(boolean fixed) {
-		return fixed ? FixedYN.REPEAT : FixedYN.VARIABLE;
-	}
-
-	public boolean isFixed(){
-		return this == REPEAT;
-	}
 }

@@ -108,7 +108,7 @@ public class LedgerCommandService {
 	private void updateLedgerFields(Ledger ledger, LedgerUpdateRequest updateRequest) {
 		//필수정보
 		ledger.updateCategory(updateRequest.getCategoryCode());
-		ledger.updateFixInfo(updateRequest.isFixed(), updateRequest.getFixCycle());
+		ledger.updateFixInfo(updateRequest.getFixed(), updateRequest.getFixCycle());
 
 		Money updateMoney = new Money(updateRequest.getAmount(), updateRequest.getPaymentType());
 		ledger.updateMoney(updateMoney);

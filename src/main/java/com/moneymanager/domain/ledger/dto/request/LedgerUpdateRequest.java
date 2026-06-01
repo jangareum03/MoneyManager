@@ -45,7 +45,7 @@ public class LedgerUpdateRequest implements LedgerImageRequest {
 	private String categoryCode;					//카테고리
 	private String memo;									//메모
 
-	private boolean fixed;								//가계부 고정여부
+	private String fixed;									//가계부 고정여부
 	private String fixCycle;								//가계부 고정주기
 
 	private Long amount;								//가격

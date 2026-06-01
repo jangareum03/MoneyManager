@@ -67,8 +67,8 @@ public class Ledger {
 	private Money money;								//금액정보
 	private Place place;									//장소
 
-	private FixedYN fix;								//고정여부
-	private FixCycle fixCycle;						//고정주기
+	private FixedYN fix;									//고정여부
+	private FixCycle fixCycle;							//고정주기
 
 	private LocalDateTime createdAt;			//등록일
     private LocalDateTime updatedAt;			//수정일
@@ -98,13 +98,13 @@ public class Ledger {
 		validateCategory(request.getCategoryCode());
 
 		//선택값
-		validateFixCycle(request.isFixed(), request.getFixCycle());
+		validateFixCycle(request.getFixed(), request.getFixCycle());
 
 		return Ledger.builder()
 				.code(code)
 				.memberId(memberId)
 				.date(DateTimeUtils.parseDateFromYyyyMMdd(request.getDate()))
-				.fix(FixedYN.of(request.isFixed()))
+				.fix(FixedYN.of(request.getFixed()))
 				.fixCycle(request.getFixCycle() != null ? FixCycle.of(request.getFixCycle()) : null)
 				.category(request.getCategoryCode())
 				.memo(request.getMemo())
@@ -113,7 +113,7 @@ public class Ledger {
 				.build();
 	}
 
-	public void updateFixInfo(boolean fixed, String fixCycle) {
+	public void updateFixInfo(String fixed, String fixCycle) {
 		validateFixCycle(fixed, fixCycle);
 
 		FixedYN newFix = FixedYN.of(fixed);
@@ -197,9 +197,11 @@ public class Ledger {
 		//TODO: 범위 검증 추가
 	}
 
-	private static void validateFixCycle(boolean fix, String fixCycle) {
+	private static void validateFixCycle(String fix, String fixCycle) {
+		FixedYN fixedYN = FixedYN.of(fix);
+
 		//고정이 아닌 경우 주기가 없어야 함
-		if(!fix) {
+		if(fixedYN == FixedYN.VARIABLE) {
 			if(!isNullOrBlank(fixCycle)) {
 				throw BusinessException.of(
 						LEDGER_POLICY_NOT_ALLOWED,

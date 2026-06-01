@@ -62,7 +62,7 @@ public class LedgerRepository {
 		FixedYN fixedYN = FixedYN.of(fixed);
 
 		FixCycle cycleType = null;
-		if( fixedYN.isFixed() ) {
+		if( fixedYN == FixedYN.REPEAT ) {
 			cycleType = FixCycle.of(fixCycle);
 		}
 

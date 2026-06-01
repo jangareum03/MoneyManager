@@ -44,7 +44,7 @@ public class LedgerWriteRequest implements LedgerImageRequest {
 	private String categoryCode;					//카테고리 코드
 	private String memo;									//메모
 
-	private boolean fixed;								//고정여부(true: 반복, false: 일회성)
+	private String  fixed;									//고정여부(y: 반복, n: 일회성)
 	private String fixCycle;								//반복주기
 
 	private Long amount;								//금액
