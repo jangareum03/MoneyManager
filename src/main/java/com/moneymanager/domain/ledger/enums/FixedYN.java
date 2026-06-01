@@ -2,6 +2,9 @@ package com.moneymanager.domain.ledger.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
@@ -47,7 +50,15 @@ public enum FixedYN {
 			if( fixed.value.equalsIgnoreCase(value) ) return fixed;
 		}
 
-		return null;
+		throw  new IllegalArgumentException(
+				"reason=허용값아님   |   field=fixed   |   allowedValues=" + allowedFixedYN() +"   |   values=" + value
+		);
+	}
+
+	private static String allowedFixedYN() {
+		return Arrays.stream(values())
+				.map(Enum::name)
+				.collect(Collectors.joining(", "));
 	}
 
 }
