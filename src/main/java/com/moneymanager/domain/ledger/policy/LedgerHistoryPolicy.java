@@ -119,10 +119,6 @@ public class LedgerHistoryPolicy {
 		LocalDate from = dateRange.getFrom();
 		LocalDate to = dateRange.getTo();
 
-		if(to.isAfter(now)) {
-			to = now;
-		}
-
 		if( !(isDateInRange(from, fiveYearsAgo, now) && isDateInRange(to, fiveYearsAgo, now)) ) {
 			throw BusinessException.of(
 					ErrorCode.LEDGER_HISTORY_POLICY_VIOLATION,
