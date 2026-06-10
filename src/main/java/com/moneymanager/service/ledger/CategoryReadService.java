@@ -2,7 +2,6 @@ package com.moneymanager.service.ledger;
 
 import com.moneymanager.domain.ledger.dto.response.CategoryItem;
 import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.domain.ledger.enums.CategoryLevel;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -47,41 +46,17 @@ public class CategoryReadService {
 	private final CategoryCacheService categoryCacheService;
 
 
-	/**
-	 * 가계부 유형({@link CategoryType})과 카테고리 단계({@link CategoryLevel})에 따라 카테고리 목록을 조회합니다.
-	 * <p>
-	 *     주어진 단계에 따라 상위, 중위, 하위 카테고리 정보를 조회하며, {@link CategoryItem} 객체로 변환됩니다.
-	 * </p>
-	 *
-	 * @param type		가계부 유형(수입/지출)
-	 * @param level		조회할 카테고리 단계
-	 * @return	요청 조건에 맞는 카테고리 정보를 담은 {@link CategoryItem} 객체 리스트
-	 * @throws IllegalArgumentException	지원하지 않은 카테고리 단계인 경우
-	 */
-	public List<CategoryItem> getCategoriesByTypeAndLevel(CategoryType type, CategoryLevel level){
-		List<Category> categories = switch (level) {
-			case TOP -> getRootCategories();
-			case MIDDLE -> getMiddleCategories(type);
-			case LOW -> getLowCategories(type);
-		};
-
-		return categories.stream()
-				.map(CategoryItem::from)
-				.collect(Collectors.toList());
-	}
-
-	//최상위 카테고리 목록 조회
-	private List<Category> getRootCategories() {
+	public List<CategoryItem> getRootCategories() {
 		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
 
 		return categoryMap.values().stream()
 						.filter(c -> c.getParentCode() == null)
-						.sorted(Comparator.comparing(Category::getCode))
+						.map(CategoryItem::from)
+						.sorted(Comparator.comparing(CategoryItem::getCode))
 						.collect(Collectors.toList());
 	}
 
-	//중간 단계 카테고리 목록 조회
-	private List<Category> getMiddleCategories(CategoryType type) {
+	public List<CategoryItem> getMiddleCategories(CategoryType type) {
 		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
 
 		return categoryMap.values().stream()
@@ -92,12 +67,12 @@ public class CategoryReadService {
 								? c.getCode().startsWith("01")
 								: c.getCode().startsWith("02")
 						)
-						.sorted(Comparator.comparing(Category::getCode))
+						.map(CategoryItem::from)
+						.sorted(Comparator.comparing(CategoryItem::getCode))
 						.toList();
 	}
 
-	//하위 단계 카테고리 목록 조회
-	private List<Category> getLowCategories(CategoryType type) {
+	public List<CategoryItem> getLowCategories(CategoryType type) {
 		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
 
 		return categoryMap.values().stream()
@@ -108,12 +83,13 @@ public class CategoryReadService {
 								? c.getCode().startsWith("01")
 								: c.getCode().startsWith("02")
 						)
-						.sorted(Comparator.comparing(Category::getCode))
+						.map(CategoryItem::from)
+						.sorted(Comparator.comparing(CategoryItem::getCode))
 						.collect(Collectors.toList());
 	}
 
 
-	public List<CategoryItem> findOrderedStepsByCategory(String code) {
+	public List<CategoryItem> findCategoryHierarchy(String code) {
 		List<Category> result = new ArrayList<>();
 
 		Category current = getCategory(code);

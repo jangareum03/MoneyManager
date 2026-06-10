@@ -145,7 +145,7 @@ public class LedgerReadService {
 	 */
 	public LedgerWriteStep2Response getWriteStep2Data(CategoryType type, LocalDate date) {
 		//카테고리 목록 조회
-		List<CategoryItem> categories = categoryReadService.getCategoriesByTypeAndLevel(type, CategoryLevel.MIDDLE);
+		List<CategoryItem> categories = categoryReadService.getMiddleCategories(type);
 
 		//제목 포맷 변환
 		String title = DateTimeUtils.formatDate(date, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
@@ -280,23 +280,18 @@ public class LedgerReadService {
 
 		return CategoryEditInfo.builder()
 				.selected(getSelectedCategories(categoryCode))
-				.middleOptions(getCategories(type, CategoryLevel.MIDDLE))
-				.lowOptions(getCategories(type, CategoryLevel.LOW))
+				.middleOptions(categoryReadService.getMiddleCategories(type))
+				.lowOptions(categoryReadService.getLowCategories(type))
 				.build();
 	}
 
 	private List<String> getSelectedCategories(String categoryCode) {
-		return categoryReadService.findOrderedStepsByCategory(categoryCode)
+		return categoryReadService.findCategoryHierarchy(categoryCode)
 				.stream()
 				.map(CategoryItem::getCode)
 				.skip(1)
 				.toList();
 	}
-
-	private List<CategoryItem> getCategories(CategoryType type, CategoryLevel level) {
-		return categoryReadService.getCategoriesByTypeAndLevel(type, level);
-	}
-
 
 	private <T> T executeWithLog(ServiceAction action, String code, Supplier<T> supplier) {
 		String memberId = "UNKNOWN";
