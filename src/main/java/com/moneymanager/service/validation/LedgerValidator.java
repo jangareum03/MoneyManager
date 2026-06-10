@@ -8,8 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-import static com.moneymanager.domain.global.enums.RegexPattern.ADDRESS_PLACE_NAME;
-import static com.moneymanager.domain.global.enums.RegexPattern.ADDRESS_ROAD_NAME;
 import static com.moneymanager.exception.error.ErrorCode.*;
 import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
 import static com.moneymanager.utils.validation.ValidationUtils.matchesPattern;
@@ -80,8 +78,8 @@ public class LedgerValidator extends BaseImageValidator {
 		//선택정보 검증
 		validateFixCycle(request.getFixCycle());
 		validateMemo(request.getMemo());
-		validatePlace(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress());
 	}
+
 
 	public void update(LedgerUpdateRequest request) {
 		//1. 객체 null 검증
@@ -100,7 +98,6 @@ public class LedgerValidator extends BaseImageValidator {
 		//3. 선택정보 검증
 		validateFixCycle(request.getFixCycle());
 		validateMemo(request.getMemo());
-		validatePlace(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress());
 	}
 
 	//가계부 카테고리 검증
@@ -159,54 +156,6 @@ public class LedgerValidator extends BaseImageValidator {
 		}
 	}
 
-	//가계부 주소 검증
-	private void validatePlace(String placeName, String roadAddress, String detailAddress) {
-		String message = "장소 정보가 올바르지 않습니다. 다시 선택해 주세요.";
-
-		//장소명 확인
-		if(!isNullOrBlank(placeName)) {
-			if(placeName.length() > 100) {
-				throw BusinessException.of(
-						LEDGER_INPUT_LENGTH,
-						FUNCTION_NAME + "   |   reason=길이오류   |   field=placeName   |   maxLength=100   |   value=" + placeName.length()
-				).withUserMessage(message);
-			}
-
-			if(!matchesPattern(placeName, ADDRESS_PLACE_NAME.getPattern())) {
-				throw BusinessException.of(
-						LEDGER_INPUT_INVALID,
-						FUNCTION_NAME + "   |   reason=형식오류   |   field=placeName   |   expectedFormat=한글, 숫자, 영어, 공백 (예: CGV 강남점)   |   value=" + placeName
-				).withUserMessage(message);
-			}
-		}
-
-		//기본주소 확인
-		if(!isNullOrBlank(roadAddress)) {
-			if(roadAddress.length() > 300)
-				throw BusinessException.of(
-						LEDGER_INPUT_LENGTH,
-						FUNCTION_NAME + "   |   reason=길이오류   |   field=roadAddress   |   maxLength=300   |   value=" + roadAddress.length()
-				).withUserMessage(message);
-			}
-
-			if(!matchesPattern(roadAddress,  ADDRESS_ROAD_NAME.getPattern())) {
-				throw BusinessException.of(
-						LEDGER_INPUT_INVALID,
-						FUNCTION_NAME + "   |   reason=형식오류   |   field=roadAddress   |   expectedFormat=한글, 숫자, ·, -, 공백"
-				).withUserMessage(message);
-			}
-
-
-		//상세주소 확인
-		if(!isNullOrBlank(detailAddress)) {
-			if(detailAddress.length() > 500) {
-				throw BusinessException.of(
-						LEDGER_INPUT_LENGTH,
-						FUNCTION_NAME + "   |   reason=길이오류   |   field=detailAddress   |   maxLength=500   |   value=" + detailAddress.length()
-				).withUserMessage("상세 주소는 최대 500자까지만 입력 가능합니다.");
-			}
-		}
-	}
 
 	@Override
 	public void validateImage(MultipartFile file) {
