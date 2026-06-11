@@ -76,10 +76,13 @@ public class CategoryReadService {
 		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
 
 		return categoryMap.values().stream()
-						.filter(c -> c.getParentCode() != null)
-						.filter(c -> c.getCode().endsWith("00"))
+						.filter(c ->
+								c.getParentCode() != null
+								&& c.getParentCode().endsWith("00")
+								&& !c.getParentCode().endsWith("0000")
+						)
 						.filter(
-								c -> type == CategoryType.OUTLAY
+								c -> type == CategoryType.INCOME
 								? c.getCode().startsWith("01")
 								: c.getCode().startsWith("02")
 						)
