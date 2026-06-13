@@ -97,8 +97,10 @@ public class LedgerRepository {
 
 
 	public Long insert(Ledger ledger) {
-		String query = "INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address) " +
-				"VALUES(ledger_seq.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String query = """
+				INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address)
+				VALUES(ledger_seq.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				""";
 
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -128,6 +130,7 @@ public class LedgerRepository {
 
 					return ps;
 				},
+
 				keyHolder
 		);
 
@@ -141,15 +144,19 @@ public class LedgerRepository {
 				WHERE member_id = ? AND code = ?
 				""";
 
+		String cycle = ledger.getFixCycle() == null ? null : ledger.getFixCycle().getValue();
 		Money money = ledger.getMoney();
 		Place place = ledger.getPlace();
 
 		return jdbcTemplate.update(
 				query,
-				ledger.getCategory(), ledger.getFix().getValue(), ledger.getFixCycle().getValue(), ledger.getMemo(),
+
+				ledger.getCategory(), ledger.getFix().getValue(), cycle, ledger.getMemo(),
 				money.getAmount(), money.getPaymentType().getValue(),
 				place.getPlaceName(), place.getRoadAddress(), place.getDetailAddress(),
-				ledger.getUpdatedAt()
+				ledger.getUpdatedAt(),
+
+				ledger.getMemberId(), ledger.getCode()
 		);
 
 	}
@@ -167,12 +174,16 @@ public class LedgerRepository {
 	 * @throws org.springframework.dao.EmptyResultDataAccessException 조회된 정보가 없는 경우
 	 */
 	public Ledger findById(Long id) {
-		String sql = "SELECT id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address, created_at, updated_at " +
-				"FROM ledger " +
-				"WHERE id = ?";
+		String query = """
+				SELECT id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address, created_at, updated_at
+				FROM ledger
+				WHERE id = ?
+				""";
 
 		return jdbcTemplate.queryForObject(
-				sql, ledgerRowMapper, id
+				query,
+				ledgerRowMapper,
+				id
 		);
 	}
 
@@ -194,41 +205,58 @@ public class LedgerRepository {
 
 
 	public List<Ledger> findAll() {
-		String sql = "SELECT * FROM ledger";
+		String query = """
+				SELECT *
+				FROM ledger
+				""";
 
-		return jdbcTemplate.query(sql, ledgerRowMapper);
+		return jdbcTemplate.query(
+				query,
+				ledgerRowMapper
+		);
 	}
 
 
 	public List<LedgerHistoryQuery> findHistoriesByMemberAndDateBetween(String memberId, LocalDate startDate, LocalDate endDate) {
-		String sql = "SELECT l.code, transaction_date, c.code AS category_code, c.name AS category_name, amount, memo " +
-							"FROM ledger l " +
-							"JOIN ledger_category  c ON l.category_id = c.code " +
-							"WHERE l.member_id = ? " +
-							"AND l.transaction_date >= ? " +
-							"AND l.transaction_date < ? " +
-							"ORDER BY l.transaction_date DESC, l.created_at DESC";
+		String query = """
+				SELECT l.code, transaction_date, c.code AS category_code, c.name AS category_name, amount, memo
+				FROM ledger l
+				JOIN ledger_category  c ON l.category_id = c.code
+				WHERE l.member_id = ?
+					AND l.transaction_date >= ?
+					AND l.transaction_date < ?
+				ORDER BY l.transaction_date DESC, l.id DESC
+				""";
 
 		return jdbcTemplate.query(
-				sql,
+				query,
+
 				ledgerHistoryQueryRowMapper,
+
 				memberId,
 				Date.valueOf(startDate),
 				Date.valueOf(endDate.plusDays(1))
 		);
 	}
 
-
 	public Long count() {
-		String sql = "SELECT COUNT(*) FROM ledger";
+		String query = """
+				SELECT COUNT(*)
+				FROM ledger
+				""";
 
-		return jdbcTemplate.queryForObject(sql, Long.class);
+		return jdbcTemplate.queryForObject(
+				query,
+				Long.class
+		);
 	}
-
 
 	public void deleteAll() {
-		String sql ="DELETE FROM ledger";
+		String query = """
+				DELETE FROM ledger
+				""";
 
-		jdbcTemplate.update(sql);
+		jdbcTemplate.update(query);
 	}
+
 }

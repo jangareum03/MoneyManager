@@ -73,13 +73,18 @@ public class LedgerImageRepository {
 	 * @param images	저장할 가계부 이미지 정보를 담은 {@link LedgerImage} 객체 리스트
 	 */
 	public void saveAll(List<LedgerImage> images) {
-		String sql = "INSERT INTO ledger_image(id, ledger_id, image_path, sort_order)" +
-							"VALUES(ledger_image_seq.NEXTVAL, ?, ?, ?)";
+		String query = """
+				INSERT INTO ledger_image(id, ledger_id, image_path, sort_order)
+				VALUES(ledger_image_seq.NEXTVAL, ?, ?, ?)
+				""";
 
 		jdbcTemplate.batchUpdate(
-				sql,
+				query,
+
 				images,
+
 				images.size(),
+
 				(ps, image) -> {
 					ps.setLong(1, image.getLedgerId());
 					ps.setString(2, image.getImagePath());
@@ -93,6 +98,7 @@ public class LedgerImageRepository {
 				SELECT *
 				FROM ledger_image
 				WHERE ledger_id = ?
+				ORDER BY sort_order
 				""";
 
 		return jdbcTemplate.query(
@@ -101,21 +107,35 @@ public class LedgerImageRepository {
 	}
 
 	public List<LedgerImage> findAll() {
-		String sql = "SELECT * FROM ledger_image";
+		String query = """
+				SELECT *
+				FROM ledger_image
+				""";
 
-		return jdbcTemplate.query(sql, ledgerImageRowMapper);
+		return jdbcTemplate.query(
+				query,
+				ledgerImageRowMapper
+		);
 	}
 
 	public Integer count() {
-		String sql = "SELECT COUNT(*) FROM ledger_image";
+		String query = """
+				SELECT COUNT(*)
+				FROM ledger_image
+				""";
 
-		return jdbcTemplate.queryForObject(sql, Integer.class);
+		return jdbcTemplate.queryForObject(
+				query,
+				Integer.class
+		);
 	}
 
 	public void deleteAll() {
-		String sql = "DELETE FROM ledger_image";
+		String query = """
+				DELETE FROM ledger_image
+				""";
 
-		jdbcTemplate.update(sql);
+		jdbcTemplate.update(query);
 	}
 
 	public int deleteByLedgerId(Long ledgerId) {

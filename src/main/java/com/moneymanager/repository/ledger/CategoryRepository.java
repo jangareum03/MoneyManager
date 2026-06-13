@@ -53,11 +53,13 @@ public class CategoryRepository {
 	 * @return	전체 카테고리 정보를 담은 {@link Category} 리스트
 	 */
 	public List<Category> findAllCategory() {
-		String sql = "SELECT name, code, parent_code" +
-							"	FROM ledger_category";
+		String query = """
+				SELECT name, code, parent_code
+				FROM ledger_category
+				""";
 
 		return jdbcTemplate.query(
-				sql,
+				query,
 
 				(rs, row) ->
 						Category.builder()
