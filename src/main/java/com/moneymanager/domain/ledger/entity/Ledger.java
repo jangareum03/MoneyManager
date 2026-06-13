@@ -58,8 +58,8 @@ import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
 @Getter
 public class Ledger {
 	private Long id;											//가계부 번호(내부용)
-	private String code;									//가계부 코드(외부용)
-    private String memberId;							//작성자(회원 고유번호)
+	private final String code;							//가계부 코드(외부용)
+    private final String memberId;					//작성자(회원 고유번호)
 	private LocalDate date;								//거래 날짜
     private String category;							//카테고리 코드
 	private String memo;									//메모
@@ -70,7 +70,7 @@ public class Ledger {
 	private FixedYN fix;									//고정여부
 	private FixCycle fixCycle;							//고정주기
 
-	private LocalDateTime createdAt;			//등록일
+	private final LocalDateTime createdAt;			//등록일
     private LocalDateTime updatedAt;			//수정일
 
 
@@ -113,7 +113,7 @@ public class Ledger {
 				.build();
 	}
 
-	public void updateFixInfo(String fixed, String fixCycle) {
+	public void changeFixInfo(String fixed, String fixCycle) {
 		validateFixCycle(fixed, fixCycle);
 
 		FixedYN newFix = FixedYN.from(fixed);
@@ -128,7 +128,7 @@ public class Ledger {
 		this.updatedAt = LocalDateTime.now();
 	}
 
-	public void updateCategory(String category) {
+	public void changeCategory(String category) {
 		validateCategory(category);
 
 		if( !this.category.equals(category) ) {
@@ -137,21 +137,21 @@ public class Ledger {
 		}
 	}
 
-	public void updateMemo(String memo) {
+	public void changeMemo(String memo) {
 		if(!Objects.equals(this.memo, memo)) {
 			this.memo = memo;
 			this.updatedAt = LocalDateTime.now();
 		}
 	}
 
-	public void updateMoney(Money money) {
+	public void changeMoney(Money money) {
 		if(this.money.equals(money)) return;
 
 		this.money = money;
 		this.updatedAt = LocalDateTime.now();
 	}
 
-	public void updatePlace(Place place) {
+	public void changePlace(Place place) {
 		if(Objects.equals(this.place, place)) {
 			return;
 		}
