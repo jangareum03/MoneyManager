@@ -81,4 +81,12 @@ public class BusinessExceptionAssert extends AbstractAssert<BusinessExceptionAss
 
 		return this;
 	}
+
+	public BusinessExceptionAssert hasCause(Class<? extends Throwable> cause) {
+		isNotNull();
+		assertThat(actual.getCause()).isInstanceOf(cause);
+
+		return this;
+	}
+
 }
