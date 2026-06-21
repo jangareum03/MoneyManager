@@ -45,7 +45,6 @@ public class CategoryReadService {
 
 	private final CategoryCacheService categoryCacheService;
 
-
 	public List<CategoryItem> getRootCategories() {
 		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
 
