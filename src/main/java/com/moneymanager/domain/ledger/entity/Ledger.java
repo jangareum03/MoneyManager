@@ -109,7 +109,7 @@ public class Ledger {
 				.category(request.getCategoryCode())
 				.memo(request.getMemo())
 				.money(new Money(request.getAmount(), request.getPaymentType()))
-				.place(new Place(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress()))
+				.place(Place.of(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress()))
 				.build();
 	}
 

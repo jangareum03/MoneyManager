@@ -79,7 +79,7 @@ public class LedgerRepository {
 						new Money(rs.getLong("amount"), rs.getString("payment_type"))
 				)
 				.place(
-						new Place(rs.getString("place_name"),rs.getString("road_address"), rs.getString("detail_address"))
+						Place.of(rs.getString("place_name"),rs.getString("road_address"), rs.getString("detail_address"))
 				)
 				.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
 				.updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)

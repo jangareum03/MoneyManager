@@ -1,7 +1,6 @@
 package com.moneymanager.domain.ledger.vo;
 
 import com.moneymanager.exception.BusinessException;
-import lombok.Getter;
 import lombok.Value;
 
 import static com.moneymanager.domain.global.enums.RegexPattern.*;
@@ -42,13 +41,12 @@ import static com.moneymanager.utils.validation.ValidationUtils.matchesPattern;
  * </table>
  */
 @Value
-@Getter
 public class Place {
 	String placeName;			//장소명
 	String roadAddress;		//도로명 주소
 	String detailAddress;		//상세주소
 
-	public Place(String placeName, String road, String detail) {
+	private Place(String placeName, String road, String detail) {
 		validate(placeName, road, detail);
 
 		this.placeName = placeName;
@@ -56,17 +54,23 @@ public class Place {
 		this.detailAddress = detail;
 	}
 
-	private void validate(String placeName, String roadAddress, String detailAddress) {
-		//1. 필수값이 없으면 종료
-		if(isNullOrBlank(placeName) && isNullOrBlank(roadAddress)) return;
+	public static Place of(String placeName, String roadAddress, String detailAddress) {
+		if(isNullOrBlank(placeName) || isNullOrBlank(roadAddress)) {
+			return null;
+		}
 
-		//2. 장소명 검증
+		return new Place(placeName, roadAddress, detailAddress);
+	}
+
+
+	private void validate(String placeName, String roadAddress, String detailAddress) {
+		//1. 장소명 검증
 		validatePlaceName(placeName);
 
-		//3. 도로명 검증
+		//2. 도로명 검증
 		validateRoadAddress(roadAddress);
 
-		//4.상세주소 검증
+		//3.상세주소 검증
 		if(!isNullOrBlank(detailAddress)) {
 			validateDetailAddress(detailAddress);
 		}
