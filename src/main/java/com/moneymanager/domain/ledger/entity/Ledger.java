@@ -6,6 +6,7 @@ import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.exception.BusinessException;
@@ -108,7 +109,7 @@ public class Ledger {
 				.fixCycle(request.getFixCycle() != null ? FixCycle.from(request.getFixCycle()) : null)
 				.category(request.getCategoryCode())
 				.memo(request.getMemo())
-				.money(new Money(request.getAmount(), request.getPaymentType()))
+				.money(Money.of(request.getAmount(), PaymentType.from(request.getPaymentType())))
 				.place(Place.of(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress()))
 				.build();
 	}

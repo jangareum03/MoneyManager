@@ -2,7 +2,6 @@ package com.moneymanager.domain.ledger.vo;
 
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.exception.BusinessException;
-import lombok.Getter;
 import lombok.Value;
 
 import static com.moneymanager.exception.error.ErrorCode.LEDGER_INPUT_INVALID;
@@ -36,18 +35,20 @@ import static com.moneymanager.exception.error.ErrorCode.LEDGER_INPUT_RANGE;
  * </table>
  */
 @Value
-@Getter
 public class Money {
 
 	Long amount;
 	PaymentType paymentType;
 
-	public Money(Long amount, String paymentType) {
+	private Money(Long amount, PaymentType paymentType) {
 		validateAmount(amount);
-		validatePaymentType(paymentType);
 
 		this.amount = amount;
-		this.paymentType = PaymentType.from(paymentType);
+		this.paymentType = paymentType;
+	}
+
+	public static Money of(Long amount, PaymentType paymentType) {
+		return new Money(amount, paymentType);
 	}
 
 	private void validateAmount(Long amount) {
