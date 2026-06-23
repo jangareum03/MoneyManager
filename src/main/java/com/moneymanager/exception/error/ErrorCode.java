@@ -76,6 +76,8 @@ public enum ErrorCode {
 	 * 가계부 카테고리 관련 오류
 	 */
 	LEDGER_CATEGORY_TARGET_NOT_FOUND("C-21-01-01", "찾을 수 없는 카테고리입니다."),
+	LEDGER_CATEGORY_TARGET_MISSING("C-21-01-02", "필수값이 없습니다."),
+	LEDGER_CATEGORY_RELATION_PARENT("C-21-03-02", "존재하지 않은 부모 카테고리입니다."),
 
 	/**
 	 * 거래내역 관련 오류
