@@ -20,7 +20,6 @@ import java.util.Objects;
 
 import static com.moneymanager.exception.error.ErrorCode.*;
 import static com.moneymanager.utils.date.DateTimeUtils.isDateInRange;
-import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
 
 
 /**
@@ -97,9 +96,7 @@ public class Ledger {
 		//필수값
 		validateDate(request.getDate());
 		validateCategory(request.getCategoryCode());
-
-		//선택값
-		validateFixCycle(request.getFixed(), request.getFixCycle());
+		validateFixInfo(request.getFixed(), request.getFixCycle());
 
 		return Ledger.builder()
 				.code(code)
@@ -115,7 +112,7 @@ public class Ledger {
 	}
 
 	public void changeFixInfo(String fixed, String fixCycle) {
-		validateFixCycle(fixed, fixCycle);
+		validateFixInfo(fixed, fixCycle);
 
 		FixedYN newFix = FixedYN.from(fixed);
 		FixCycle newCycle = fixCycle == null ? null : FixCycle.from(fixCycle);
@@ -124,8 +121,8 @@ public class Ledger {
 			return;
 		}
 
-		this.fix = FixedYN.from(fixed);
-		this.fixCycle = fixCycle == null ? null : FixCycle.from(fixCycle);
+		this.fix = newFix;
+		this.fixCycle = newCycle;
 		this.updatedAt = LocalDateTime.now();
 	}
 
@@ -198,32 +195,42 @@ public class Ledger {
 		//TODO: 범위 검증 추가
 	}
 
-	private static void validateFixCycle(String fix, String fixCycle) {
-		FixedYN fixedYN = FixedYN.from(fix);
+	private static void validateFixInfo(String fix, String cycle) {
+		FixedYN fixedYN;
 
-		//고정이 아닌 경우 주기가 없어야 함
-		if(fixedYN == FixedYN.VARIABLE) {
-			if(!isNullOrBlank(fixCycle)) {
+		try{
+			fixedYN = FixedYN.from(fix);
+		}catch (IllegalArgumentException e) {
+			throw BusinessException.of(
+							LEDGER_INPUT_INVALID,
+							"가계부 검증 실패   |   " + e.getMessage()
+					)
+					.withUserMessage("사용할 수 없는 고정 여부 입니다.")
+					.withCause(e);
+		}
+
+		if(fixedYN == FixedYN.REPEAT) {
+			try{
+				FixCycle.from(cycle);
+			}catch (IllegalArgumentException e) {
 				throw BusinessException.of(
-						LEDGER_POLICY_NOT_ALLOWED,
-						"가계부 검증 실패   |   reason=정책위반   |   field=fixCycle   |   policy=고정이 아닌데 주기가 존재   |   value=" + fixCycle
-				).withUserMessage("고정이 아닌 경우에는 주기를 설정할 수 없습니다. 고정 여부를 확인해주세요.");
+								LEDGER_INPUT_INVALID,
+								"가계부 검증 실패   |   " + e.getMessage()
+						)
+						.withUserMessage("사용할 수 없는 고정 주기 입니다.")
+						.withCause(e);
 			}
 
 			return;
 		}
 
-		//고정인 경우
-		try{
-			FixCycle.from(fixCycle);
-		}catch (IllegalArgumentException e) {
+		if(cycle != null) {
 			throw BusinessException.of(
-					LEDGER_INPUT_INVALID,
-					"가계부 검증 실패   |   " + e.getMessage()
-			)
-					.withUserMessage("사용할 수 없는 고정주기 입니다.")
-					.withCause(e);
+					LEDGER_POLICY_NOT_ALLOWED,
+					"가계부 검증 실패   |   reason=정책위반   |   field=fixCycle   |   policy=고정이 아닌데 주기가 존재   |   value=" + cycle
+			).withUserMessage("고정이 아닌 경우에는 주기를 설정할 수 없습니다. 고정 여부를 확인해주세요.");
 		}
+
 	}
 
 }
