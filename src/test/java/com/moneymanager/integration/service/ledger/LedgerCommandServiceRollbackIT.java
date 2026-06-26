@@ -109,7 +109,7 @@ public class LedgerCommandServiceRollbackIT {
 					.thenThrow(BusinessException.of(FILE_ETC_RESOURCE_ERROR, "파일 저장 실패"));
 
 			//when & then
-			assertThatThrownBy(() -> target.registerLedger(request))
+			assertThatThrownBy(() -> target.register(request))
 					.isInstanceOf(BusinessException.class)
 					.satisfies(e -> {
 						BusinessExceptionAssert.assertThatBusinessException(e)
@@ -134,7 +134,7 @@ public class LedgerCommandServiceRollbackIT {
 					.when(ledgerImageRepository).saveAll(anyList());
 
 			//when & then
-			assertThatThrownBy(() -> target.registerLedger(request))
+			assertThatThrownBy(() -> target.register(request))
 					.isInstanceOf(BusinessException.class)
 					.satisfies(e -> {
 						BusinessExceptionAssert.assertThatBusinessException(e)
@@ -156,7 +156,7 @@ public class LedgerCommandServiceRollbackIT {
 					.thenThrow(new RuntimeException("예상치 못한 오류"));
 
 			//when & then
-			assertThatThrownBy(() -> target.registerLedger(request))
+			assertThatThrownBy(() -> target.register(request))
 					.isInstanceOf(RuntimeException.class)
 					.hasMessage("예상치 못한 오류");
 

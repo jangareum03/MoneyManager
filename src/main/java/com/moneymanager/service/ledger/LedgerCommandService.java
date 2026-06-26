@@ -61,7 +61,7 @@ public class LedgerCommandService {
 
 
 	@Transactional
-	public void registerLedger(LedgerWriteRequest request) {
+	public void register(LedgerWriteRequest request) {
 		ServiceAction action = ServiceAction.LEDGER_REGISTER;
 
 		try{

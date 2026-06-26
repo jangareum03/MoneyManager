@@ -213,7 +213,7 @@ public class LedgerControllerWebMvcTest {
 
 			//then
 			verify(ledgerValidator).register(any(LedgerWriteRequest.class));
-			verify(ledgerCommandService).registerLedger(any(LedgerWriteRequest.class));
+			verify(ledgerCommandService).register(any(LedgerWriteRequest.class));
 		}
 
 		@Disabled("TODO: 로직 변경 후 진행 예정")
@@ -238,7 +238,7 @@ public class LedgerControllerWebMvcTest {
 						.andExpect(model().attributeExists("ledger"));
 
 				//then
-				verify(ledgerCommandService, never()).registerLedger(any(LedgerWriteRequest.class));
+				verify(ledgerCommandService, never()).register(any(LedgerWriteRequest.class));
 			}
 
 			@Test
@@ -247,7 +247,7 @@ public class LedgerControllerWebMvcTest {
 				//given
 				doThrow(BusinessException.class)
 						.when(ledgerCommandService)
-						.registerLedger(any(LedgerWriteRequest.class));
+						.register(any(LedgerWriteRequest.class));
 
 				//when
 				mockMvc.perform(post("/ledgers")
@@ -259,7 +259,7 @@ public class LedgerControllerWebMvcTest {
 
 				//then
 				verify(ledgerValidator).register(any());
-				verify(ledgerCommandService).registerLedger(any());
+				verify(ledgerCommandService).register(any());
 			}
 
 		}

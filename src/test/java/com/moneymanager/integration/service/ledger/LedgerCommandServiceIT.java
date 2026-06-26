@@ -123,7 +123,7 @@ public class LedgerCommandServiceIT {
 				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
 
 				//when
-				target.registerLedger(request);
+				target.register(request);
 
 				//then
 				List<Ledger> ledgers = ledgerRepository.findAll();
@@ -143,7 +143,7 @@ public class LedgerCommandServiceIT {
 				LedgerWriteRequest request = LedgerRequestFixture.withImage().build();
 
 				//when
-				target.registerLedger(request);
+				target.register(request);
 
 				//then
 				List<Ledger> ledgers = ledgerRepository.findAll();
@@ -167,7 +167,7 @@ public class LedgerCommandServiceIT {
 				LedgerWriteRequest request = LedgerRequestFixture.withImages().build();
 
 				//when
-				target.registerLedger(request);
+				target.register(request);
 
 				//then
 				//가계부 검증
@@ -210,7 +210,7 @@ public class LedgerCommandServiceIT {
 				LedgerWriteRequest request = LedgerRequestFixture.defaultLedgerWriteRequest().build();
 
 				//when & then
-				assertThatThrownBy(() -> target.registerLedger(request))
+				assertThatThrownBy(() -> target.register(request))
 						.isInstanceOf(BusinessException.class);
 
 				assertThat(ledgerRepository.findAll()).isEmpty();
@@ -226,7 +226,7 @@ public class LedgerCommandServiceIT {
 						.build();
 
 				//when & then
-				assertThatThrownBy(() -> target.registerLedger(request))
+				assertThatThrownBy(() -> target.register(request))
 						.isInstanceOf(BusinessException.class);
 
 				//then
