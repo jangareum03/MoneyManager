@@ -3,6 +3,7 @@ package com.moneymanager.service.ledger;
 import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.exception.BusinessException;
@@ -60,7 +61,7 @@ public class LedgerCommandService {
 
 
 	@Transactional
-	public void registerLedger(LedgerWriteRequest request) {
+	public void register(LedgerWriteRequest request) {
 		ServiceAction action = ServiceAction.LEDGER_REGISTER;
 
 		try{
@@ -107,17 +108,17 @@ public class LedgerCommandService {
 
 	private void updateLedgerFields(Ledger ledger, LedgerUpdateRequest updateRequest) {
 		//필수정보
-		ledger.updateCategory(updateRequest.getCategoryCode());
-		ledger.updateFixInfo(updateRequest.getFixed(), updateRequest.getFixCycle());
+		ledger.changeCategory(updateRequest.getCategoryCode());
+		ledger.changeFixInfo(updateRequest.getFixed(), updateRequest.getFixCycle());
 
-		Money updateMoney = new Money(updateRequest.getAmount(), updateRequest.getPaymentType());
-		ledger.updateMoney(updateMoney);
+		Money updateMoney = Money.of(updateRequest.getAmount(), PaymentType.from(updateRequest.getPaymentType()));
+		ledger.changeMoney(updateMoney);
 
 		//선택정보
-		ledger.updateMemo(updateRequest.getMemo());
+		ledger.changeMemo(updateRequest.getMemo());
 
-		Place updatePlace = new Place(updateRequest.getPlaceName(), updateRequest.getRoadAddress(), updateRequest.getDetailAddress());
-		ledger.updatePlace(updatePlace);
+		Place updatePlace = Place.of(updateRequest.getPlaceName(), updateRequest.getRoadAddress(), updateRequest.getDetailAddress());
+		ledger.changePlace(updatePlace);
 	}
 
 	public Ledger save(Ledger ledger) {

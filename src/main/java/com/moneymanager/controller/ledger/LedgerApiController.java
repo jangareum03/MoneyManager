@@ -1,4 +1,4 @@
-package com.moneymanager.controller.web.ledger;
+package com.moneymanager.controller.ledger;
 
 import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.service.ledger.LedgerCommandService;

@@ -107,7 +107,7 @@ public class LedgerCommandServiceTest {
 				when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
 
 				//when
-				target.registerLedger(request);
+				target.register(request);
 
 				//then
 				verify(ledgerRepository).insert(any(Ledger.class));
@@ -135,7 +135,7 @@ public class LedgerCommandServiceTest {
 				);
 
 				//when & then
-				assertThatThrownBy(() -> target.registerLedger(request))
+				assertThatThrownBy(() -> target.register(request))
 						.isInstanceOfSatisfying(BusinessException.class, e -> {
 							assertThat(e.getErrorInfo().getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
 						});
@@ -154,7 +154,7 @@ public class LedgerCommandServiceTest {
 				when(ledgerRepository.findById(1L)).thenReturn(null);
 
 				//when & then
-				assertThatThrownBy(() -> target.registerLedger(request))
+				assertThatThrownBy(() -> target.register(request))
 						.isInstanceOfSatisfying(BusinessException.class, e -> {
 							assertThat(e.getErrorInfo().getErrorCode()).isSameAs(LEDGER_TARGET_NOT_FOUND);
 							assertThat(e.getErrorInfo().getService()).isEqualTo(ServiceAction.LEDGER_REGISTER);
@@ -175,7 +175,7 @@ public class LedgerCommandServiceTest {
 						.thenThrow(new DuplicateKeyException("중복키 발생") {});
 
 				//when & then
-				assertThatThrownBy(() -> target.registerLedger(request))
+				assertThatThrownBy(() -> target.register(request))
 						.isInstanceOfSatisfying(BusinessException.class, e -> {
 							ErrorInfo errorInfo = e.getErrorInfo();
 
@@ -196,7 +196,7 @@ public class LedgerCommandServiceTest {
 						.thenThrow(new DataIntegrityViolationException("위반 발생"));
 
 				//when & then
-				assertThatThrownBy(() -> target.registerLedger(request))
+				assertThatThrownBy(() -> target.register(request))
 						.isInstanceOfSatisfying(BusinessException.class, e -> {
 							ErrorInfo errorInfo = e.getErrorInfo();
 

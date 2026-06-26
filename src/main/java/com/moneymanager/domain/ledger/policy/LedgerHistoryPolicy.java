@@ -5,7 +5,7 @@ import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.exception.error.ErrorCode;
-import com.moneymanager.utils.date.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,7 @@ import java.time.temporal.TemporalAdjusters;
 
 import static com.moneymanager.domain.global.Policy.LEDGER_END_WEEK;
 import static com.moneymanager.domain.global.Policy.LEDGER_START_WEEK;
-import static com.moneymanager.utils.date.DateTimeUtils.isDateInRange;
+import static com.moneymanager.utils.date.DateTimeUtil.isDateInRange;
 
 /**
  * <p>
@@ -155,13 +155,13 @@ public class LedgerHistoryPolicy {
 	 */
 	public String getTitleByHistoryType(LocalDate localDate, HistoryType historyType) {
 		if(historyType == HistoryType.WEEK) {
-			String prefix = DateTimeUtils.formatDate(localDate, HistoryType.MONTH.getFormat());
+			String prefix = DateTimeUtil.formatDate(localDate, HistoryType.MONTH.getFormat());
 			int week = calculateWeekOfMonth(localDate);
 
 			return String.format("%s %d주", prefix, week);
 		}
 
-		return DateTimeUtils.formatDate(localDate, historyType.getFormat());
+		return DateTimeUtil.formatDate(localDate, historyType.getFormat());
 	}
 
 

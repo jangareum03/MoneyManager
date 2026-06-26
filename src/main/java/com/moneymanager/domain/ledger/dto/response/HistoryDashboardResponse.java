@@ -1,7 +1,7 @@
 package com.moneymanager.domain.ledger.dto.response;
 
 import com.moneymanager.domain.global.enums.DatePatterns;
-import com.moneymanager.utils.date.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtil;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -54,7 +54,7 @@ public class HistoryDashboardResponse {
 	public static HistoryDashboardResponse of(String title, List<MenuItem> menus, LedgerStatistics statistics, Map<LocalDate, List<HistoryItem>> historyGroups) {
 		Map<String, List<HistoryItem>> formattedGroups = historyGroups.entrySet().stream()
 				.collect(Collectors.toMap(
-						entry -> DateTimeUtils.formatDate(entry.getKey(), DatePatterns.DATE_DOT_WITH_DAY.getPattern()),
+						entry -> DateTimeUtil.formatDate(entry.getKey(), DatePatterns.DATE_DOT_WITH_DAY.getPattern()),
 						Map.Entry::getValue,
 						(a, b) -> a,
 						LinkedHashMap::new

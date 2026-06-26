@@ -7,7 +7,7 @@ import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
-import com.moneymanager.utils.date.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -59,7 +59,7 @@ public class LedgerMapper {
 
 		return LedgerDetailResponse.builder()
 				.date(
-						DateTimeUtils.formatDate(ledger.getDate(), DatePatterns.DATE_DOT_WITH_DAY.getPattern())
+						DateTimeUtil.formatDate(ledger.getDate(), DatePatterns.DATE_DOT_WITH_DAY.getPattern())
 				)
 				.type(CategoryType.fromCode(ledger.getCategory()))
 				.category(CategoryItem.from(category))
@@ -91,7 +91,7 @@ public class LedgerMapper {
 
 		return LedgerEditResponse.builder()
 				.date(
-						DateTimeUtils.formatDate(ledger.getDate(), DatePatterns.KOREAN_DATE_WITH_DAY.getPattern())
+						DateTimeUtil.formatDate(ledger.getDate(), DatePatterns.KOREAN_DATE_WITH_DAY.getPattern())
 				)
 				.memo(ledger.getMemo())
 				.type(CategoryType.fromCode(ledger.getCategory()))
