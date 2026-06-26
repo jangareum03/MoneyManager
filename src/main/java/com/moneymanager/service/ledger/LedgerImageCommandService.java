@@ -17,7 +17,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.moneymanager.exception.error.ErrorCode.LEDGER_ETC_DB_ERROR;
+import static com.moneymanager.exception.ErrorCode.LEDGER_ETC_DB_ERROR;
 
 /**
  * <p>

@@ -1,7 +1,10 @@
-package com.moneymanager.exception.handler;
+package com.moneymanager.exception;
 
+import com.moneymanager.exception.log.DetailLogFormatter;
+import com.moneymanager.exception.log.MasterLogFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 /**
  * <p>
@@ -33,5 +36,14 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+	@ExceptionHandler(BusinessException.class)
+	public String handle(BusinessException e) {
+		log.warn(DetailLogFormatter.detail(e));
+		log.error(MasterLogFormatter.fail(e));
+
+		//TODO: ServiceAction에서 페이지 정의하기(RedirectUrl)
+		return "/";
+	}
 
 }

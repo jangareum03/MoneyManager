@@ -1,4 +1,4 @@
-package com.moneymanager.exception.error;
+package com.moneymanager.exception;
 
 import lombok.Getter;
 

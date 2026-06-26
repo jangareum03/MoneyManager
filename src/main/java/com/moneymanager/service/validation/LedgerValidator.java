@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
+import static com.moneymanager.exception.ErrorCode.*;
 import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 import static com.moneymanager.utils.string.StringUtil.matchesPattern;
 

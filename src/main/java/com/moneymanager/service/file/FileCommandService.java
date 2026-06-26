@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static com.moneymanager.exception.error.ErrorCode.FILE_ETC_RESOURCE_ERROR;
-import static com.moneymanager.exception.error.ErrorCode.FILE_ETC_UNKNOWN;
+import static com.moneymanager.exception.ErrorCode.FILE_ETC_RESOURCE_ERROR;
+import static com.moneymanager.exception.ErrorCode.FILE_ETC_UNKNOWN;
 
 /**
  * <p>

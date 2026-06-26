@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import java.nio.file.Path;
 import java.time.Clock;
 
-import static com.moneymanager.exception.error.ErrorCode.FILE_TARGET_INVALID;
+import static com.moneymanager.exception.ErrorCode.FILE_TARGET_INVALID;
 
 /**
  * <p>

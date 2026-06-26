@@ -1,7 +1,7 @@
 package com.moneymanager.security.utils;
 
 import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.error.ErrorCode;
+import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.security.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

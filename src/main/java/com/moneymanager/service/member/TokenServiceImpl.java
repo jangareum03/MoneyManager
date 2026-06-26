@@ -5,7 +5,7 @@ import com.moneymanager.dao.member.MemberTokenDao;
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.member.MemberToken;
 import com.moneymanager.security.jwt.JwtTokenProvider;
-import com.moneymanager.utils.date.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -70,9 +70,9 @@ public class TokenServiceImpl {
 				MemberToken.builder()
 						.member(member)
 						.accessToken(accessToken)
-						.accessExpireAt(DateTimeUtils.getLocalDateTime(accessExp))
+						.accessExpireAt(DateTimeUtil.getLocalDateTime(accessExp))
 						.refreshToken(refreshToken)
-						.refreshExpireAt(DateTimeUtils.getLocalDateTime(refreshExp))
+						.refreshExpireAt(DateTimeUtil.getLocalDateTime(refreshExp))
 						.build();
 
 

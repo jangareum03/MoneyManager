@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
+import static com.moneymanager.exception.ErrorCode.*;
 import static com.moneymanager.utils.string.StringUtil.unwrap;
 
 /**

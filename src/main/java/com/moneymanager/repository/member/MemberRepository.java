@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
+import static com.moneymanager.exception.ErrorCode.*;
 
 /**
  * <p>

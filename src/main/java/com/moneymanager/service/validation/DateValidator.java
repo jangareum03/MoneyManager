@@ -2,10 +2,10 @@ package com.moneymanager.service.validation;
 
 
 import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.error.ErrorCode;
+import com.moneymanager.exception.ErrorCode;
 import org.springframework.stereotype.Component;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
+import static com.moneymanager.exception.ErrorCode.*;
 import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 import static com.moneymanager.utils.string.StringUtil.matchesPattern;
 

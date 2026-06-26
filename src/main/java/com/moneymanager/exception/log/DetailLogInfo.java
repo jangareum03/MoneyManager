@@ -1,14 +1,18 @@
-package com.moneymanager.exception.error;
+package com.moneymanager.exception.log;
 
+import lombok.Builder;
 import lombok.Getter;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * <p>
  * 패키지이름    : com.moneymanager.exception.error<br>
- * 파일이름       : ServiceAction<br>
+ * 파일이름       : DetailLogInfo<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 3. 6<br>
- * 설명              : 서비스 요청 상황을 코드로 정의한 클래스
+ * 생성날짜       : 26. 6. 26<br>
+ * 설명              : 상세로그 정보를 위한 데이터 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -22,7 +26,7 @@ import lombok.Getter;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 3. 6</td>
+ * 		 	  <td>26. 6. 26</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
@@ -30,16 +34,19 @@ import lombok.Getter;
  * </table>
  */
 @Getter
-public enum ServiceAction {
-	LOGIN("로그인"),
-	LEDGER_REGISTER("가계부 등록"),
-	LEDGER_DETAIL("가계부 상세 조회"),
-	LEDGER_EDIT_VIEW("가계부 수정 화면 조회"),
-	LEDGER_EDIT("가계부 수정");
+@Builder(toBuilder = true)
+public class DetailLogInfo {
 
-	private final String title;
+	private String work;
+	private String reason;
+	private String object;
+	private String field;
+	private String value;
 
-	ServiceAction(String title) {
-		this.title = title;
-	}
+	@Builder.Default
+	private Map<String, Object> options = new LinkedHashMap<>();
+
+	@Builder.Default
+	private Map<String, Object> context = new LinkedHashMap<>();
+
 }

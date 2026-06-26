@@ -1,9 +1,9 @@
 package com.moneymanager.service.validation;
 
 
-import com.moneymanager.exception.error.ErrorInfo;
 import com.moneymanager.domain.global.enums.RegexPattern;
 import com.moneymanager.exception.client.LoginException;
+import groovyjarjarantlr4.v4.runtime.atn.ErrorInfo;
 
 
 /**

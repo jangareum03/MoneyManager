@@ -1,12 +1,11 @@
 package com.moneymanager.config;
 
-import com.moneymanager.dao.member.MemberDaoImpl;
+import com.moneymanager.exception.log.TraceIdFilter;
 import com.moneymanager.security.CustomAuthFailureHandler;
 import com.moneymanager.security.CustomAuthSuccessHandler;
 import com.moneymanager.security.CustomAuthenticationProvider;
 import com.moneymanager.security.CustomUserDetailService;
 import com.moneymanager.security.jwt.JwtAuthenticationFilter;
-import com.moneymanager.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,6 +56,7 @@ public class SecurityConfig {
 	private final CustomAuthSuccessHandler successHandler;
 	private final CustomAuthFailureHandler failureHandler;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+	private final TraceIdFilter traceIdFillter;
 
 
 	@Bean
@@ -112,6 +112,10 @@ public class SecurityConfig {
 						.logoutUrl("/logout")
 						.logoutSuccessUrl("/")
 						.permitAll()
+				)
+				.addFilterBefore(
+						traceIdFillter,
+						JwtAuthenticationFilter.class
 				)
 				.addFilterBefore(
 						jwtAuthenticationFilter,

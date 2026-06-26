@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.exception.error.ErrorCode.LEDGER_CATEGORY_TARGET_NOT_FOUND;
+import static com.moneymanager.exception.ErrorCode.LEDGER_CATEGORY_TARGET_NOT_FOUND;
 
 /**
  * <p>

@@ -7,17 +7,17 @@ import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.error.ServiceAction;
+import com.moneymanager.exception.ServiceAction;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
+import static com.moneymanager.exception.ErrorCode.*;
 
 
 /**
@@ -140,25 +140,17 @@ public class LedgerCommandService {
 				id = ledger.getId();
 			}
 
-			Ledger savedLedger = ledgerRepository.findById(id);
-			if(savedLedger == null) {
-				throw BusinessException.of(
-						LEDGER_TARGET_NOT_FOUND,
-						"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   value=" + id
-				);
-			}
-
-			return savedLedger;
-		}catch (DuplicateKeyException e) {
-			throw BusinessException.of(
-					LEDGER_COLLISION_UNIQUE_CONSTRAINT,
-					"가계부 저장 실패   |   reason=DB저장실패   |   detail=중복키   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}"
-			)
-					.withCause(e);
+			return ledgerRepository.findById(id);
 		}catch (DataIntegrityViolationException e) {
 			throw BusinessException.of(
 					LEDGER_COLLISION_UNIQUE_CONSTRAINT,
-					"가계부 저장 실패   |   reason=DB저장실패   |   detail=데이터 무결성 위반   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}"
+					"가계부 저장 실패   |   reason=DB저장실패   |   detail=무결성 위반(중복 포함)   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}"
+			)
+					.withCause(e);
+		}catch (EmptyResultDataAccessException e) {
+			throw BusinessException.of(
+					LEDGER_TARGET_NOT_FOUND,
+					"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   value=" + ledger.getId()
 			)
 					.withCause(e);
 		}

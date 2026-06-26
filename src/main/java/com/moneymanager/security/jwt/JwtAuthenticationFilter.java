@@ -4,7 +4,7 @@ import com.moneymanager.dao.member.MemberTokenDao;
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.member.MemberToken;
 import com.moneymanager.security.CustomUserDetailService;
-import com.moneymanager.utils.date.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -81,7 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					tokenDao.updateAccessToken(
 							MemberToken.builder().member(Member.builder().userName(username).build())
 									.accessToken(newAccessToken)
-									.accessExpireAt(DateTimeUtils.getLocalDateTime(tokenProvider.getExpiration(newAccessToken)))
+									.accessExpireAt(DateTimeUtil.getLocalDateTime(tokenProvider.getExpiration(newAccessToken)))
 									.build()
 					);
 

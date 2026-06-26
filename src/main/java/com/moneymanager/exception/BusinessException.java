@@ -1,9 +1,7 @@
 package com.moneymanager.exception;
 
 
-import com.moneymanager.exception.error.ErrorCode;
-import com.moneymanager.exception.error.ErrorInfo;
-import com.moneymanager.exception.error.ServiceAction;
+import com.moneymanager.exception.log.DetailLogInfo;
 import lombok.Getter;
 
 /**
@@ -36,47 +34,52 @@ import lombok.Getter;
 @Getter
 public class BusinessException extends RuntimeException {
 
-	private final ErrorInfo errorInfo;
+	private final ErrorCode errorCode;
+	private final DetailLogInfo logInfo;
+	private final ServiceAction serviceAction;
+	private final String userMessage;
 
-	private BusinessException(ErrorInfo error, Throwable cause) {
-		super(error.getLogMessage(), cause);
+	private BusinessException(ErrorCode errorCode, DetailLogInfo logInfo, ServiceAction serviceAction, String userMessage, Throwable cause) {
+		super(userMessage, cause);
 
-		this.errorInfo = error;
+		this.errorCode = errorCode;
+		this.logInfo = logInfo;
+		this.serviceAction = serviceAction;
+		this.userMessage = userMessage;
 	}
 
-	public static BusinessException of(ErrorCode errorCode, String logMessage) {
-		ErrorInfo errorInfo = ErrorInfo.builder()
-				.traceId(ErrorInfo.createErrorId())
-				.errorCode(errorCode)
-				.logMessage(logMessage)
-				.userMessage(errorCode.getDefaultMessage())
-				.build();
-
-		return new BusinessException(errorInfo, null);
+	public static BusinessException of(ErrorCode errorCode, DetailLogInfo logInfo) {
+		return new BusinessException(errorCode, logInfo, null, errorCode.getDefaultMessage(), null);
 	}
 
 	public BusinessException withService(ServiceAction service) {
-		return copy(
-				errorInfo.toBuilder()
-						.service(service)
-						.build()
+		return new BusinessException(
+				this.errorCode,
+				this.logInfo,
+				serviceAction,
+				this.userMessage,
+				this.getCause()
 		);
 	}
 
 	public BusinessException withUserMessage(String message) {
-		return copy(
-				errorInfo.toBuilder()
-						.userMessage(message)
-						.build()
+		return new BusinessException(
+				this.errorCode,
+				this.logInfo,
+				this.serviceAction,
+				message,
+				this.getCause()
 		);
 	}
 
 	public BusinessException withCause(Throwable cause) {
-		return new BusinessException(this.errorInfo, cause);
-	}
-
-	private BusinessException copy(ErrorInfo errorInfo) {
-		return new BusinessException(errorInfo, this.getCause());
+		return new BusinessException(
+				this.errorCode,
+				this.logInfo,
+				this.serviceAction,
+				this.userMessage,
+				cause
+		);
 	}
 
 }
