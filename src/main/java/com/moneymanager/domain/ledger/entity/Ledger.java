@@ -10,7 +10,7 @@ import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.exception.BusinessException;
-import com.moneymanager.utils.date.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtil;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -18,8 +18,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
-import static com.moneymanager.utils.date.DateTimeUtils.isDateInRange;
+import static com.moneymanager.exception.ErrorCode.*;
+import static com.moneymanager.utils.date.DateTimeUtil.isDateInRange;
 
 
 /**
@@ -101,7 +101,7 @@ public class Ledger {
 		return Ledger.builder()
 				.code(code)
 				.memberId(memberId)
-				.date(DateTimeUtils.parseDateFromYyyyMMdd(request.getDate()))
+				.date(DateTimeUtil.parseDateFromYyyyMMdd(request.getDate()))
 				.fix(FixedYN.from(request.getFixed()))
 				.fixCycle(request.getFixCycle() != null ? FixCycle.from(request.getFixCycle()) : null)
 				.category(request.getCategoryCode())
@@ -162,14 +162,14 @@ public class Ledger {
 	// ===== 비즈니스 규칙 검증 =====
 	private static void validateDate(String date) {
 		try{
-			LocalDate transDate = DateTimeUtils.parseDateFromYyyyMMdd(date);		//가계부 거래날짜
+			LocalDate transDate = DateTimeUtil.parseDateFromYyyyMMdd(date);		//가계부 거래날짜
 			LocalDate today = LocalDate.now();	//오늘날짜
 
 			LocalDate fiveYearsAgo = today.minusYears(Policy.LEDGER_MAX_YEAR);	//오늘 기준 5년 전
 			if(!isDateInRange(transDate, fiveYearsAgo, today)) {
 				throw BusinessException.of(
 						LEDGER_INPUT_RANGE,
-						String.format("가계부 검증 실패   |   reason=범위오류   |   field=date   |   min=%s   |   max=%s   |   value=%s", DateTimeUtils.formatDate(fiveYearsAgo, DatePatterns.DATE.getPattern()), DateTimeUtils.formatDate(today, DatePatterns.DATE.getPattern()), date)
+						String.format("가계부 검증 실패   |   reason=범위오류   |   field=date   |   min=%s   |   max=%s   |   value=%s", DateTimeUtil.formatDate(fiveYearsAgo, DatePatterns.DATE.getPattern()), DateTimeUtil.formatDate(today, DatePatterns.DATE.getPattern()), date)
 				).withUserMessage(String.format("최근 %d년 이내에 날짜만 가능합니다.", Policy.LEDGER_MAX_YEAR));
 			}
 		}catch (IllegalArgumentException e) {

@@ -4,8 +4,8 @@ import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.exception.BusinessException;
 import lombok.Value;
 
-import static com.moneymanager.exception.error.ErrorCode.LEDGER_INPUT_INVALID;
-import static com.moneymanager.exception.error.ErrorCode.LEDGER_INPUT_RANGE;
+import static com.moneymanager.exception.ErrorCode.LEDGER_INPUT_INVALID;
+import static com.moneymanager.exception.ErrorCode.LEDGER_INPUT_RANGE;
 
 /**
  * <p>

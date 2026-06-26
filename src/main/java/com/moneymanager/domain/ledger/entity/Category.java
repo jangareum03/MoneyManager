@@ -1,7 +1,7 @@
 package com.moneymanager.domain.ledger.entity;
 
 import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.error.ErrorCode;
+import com.moneymanager.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 

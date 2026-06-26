@@ -1,4 +1,4 @@
-package com.moneymanager.controller.web.ledger;
+package com.moneymanager.controller.ledger;
 
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.response.HistoryDashboardResponse;
@@ -8,7 +8,7 @@ import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.validation.LedgerValidator;
-import com.moneymanager.utils.date.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -141,7 +141,7 @@ public class LedgerController {
 
 		//입력값 확인
 		CategoryType ledgerType = parseCategoryTypeOrDefault(type);
-		LocalDate localDate = DateTimeUtils.parseDateOrElse(date, defaultDate);
+		LocalDate localDate = DateTimeUtil.parseDateOrElse(date, defaultDate);
 
 		LedgerWriteStep2Response response = ledgerReadService.getWriteStep2Data(ledgerType, localDate);
 
@@ -171,7 +171,7 @@ public class LedgerController {
 	public String createLedger(@ModelAttribute("ledger") LedgerWriteRequest request) {
 		ledgerValidator.register(request);
 
-		ledgerCommandService.registerLedger(request);
+		ledgerCommandService.register(request);
 
 		return "redirect:/ledgers";
 	}

@@ -6,7 +6,7 @@ import lombok.Value;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-import static com.moneymanager.utils.date.DateTimeUtils.*;
+import static com.moneymanager.utils.date.DateTimeUtil.*;
 
 /**
  * <p>
