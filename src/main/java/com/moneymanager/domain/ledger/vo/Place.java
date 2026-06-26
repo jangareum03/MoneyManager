@@ -4,7 +4,7 @@ import com.moneymanager.exception.BusinessException;
 import lombok.Value;
 
 import static com.moneymanager.domain.global.enums.RegexPattern.*;
-import static com.moneymanager.exception.ErrorCode.*;
+import static com.moneymanager.exception.error.ErrorCode.*;
 import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 import static com.moneymanager.utils.string.StringUtil.matchesPattern;
 

@@ -4,7 +4,7 @@ import com.moneymanager.domain.global.Policy;
 import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.ErrorCode;
+import com.moneymanager.exception.error.ErrorCode;
 import com.moneymanager.utils.date.DateTimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

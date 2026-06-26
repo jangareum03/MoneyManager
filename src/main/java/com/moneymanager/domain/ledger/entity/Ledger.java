@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-import static com.moneymanager.exception.ErrorCode.*;
+import static com.moneymanager.exception.error.ErrorCode.*;
 import static com.moneymanager.utils.date.DateTimeUtil.isDateInRange;
 
 

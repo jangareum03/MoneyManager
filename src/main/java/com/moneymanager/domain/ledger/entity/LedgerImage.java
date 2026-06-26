@@ -6,7 +6,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-import static com.moneymanager.exception.ErrorCode.*;
+import static com.moneymanager.exception.error.ErrorCode.*;
 import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 
 /**
