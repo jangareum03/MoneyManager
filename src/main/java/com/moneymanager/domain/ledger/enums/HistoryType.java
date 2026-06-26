@@ -66,17 +66,22 @@ public enum HistoryType {
 	 */
 	public static HistoryType from(String type) {
 		if(isNullOrBlank(type)) {
-			throw new IllegalArgumentException("reason=필수값누락   |   enum=HistoryType   |   value=" + type);
+			throw new IllegalArgumentException(
+					"reason=필수값누락   |   object=HistoryType   |   value=" + type
+			);
 		}
 
-		try{
-			return HistoryType.valueOf(type.toUpperCase());
-		}catch (IllegalArgumentException e) {
-			String allowedValues = Arrays.stream(values())
-					.map(HistoryType::name)
-					.collect(Collectors.joining(", "));
+		return Arrays.stream(values())
+				.filter(t -> t.name().equalsIgnoreCase(type))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException(
+						"reason=허용값 아님   |   object=HistoryType   |   allowedValues=" + getAllowedValues() + "   |   value=" + type
+				));
+	}
 
-			throw new IllegalArgumentException("reason=허용값아님   |   enum=HistoryType   |   allowedValues=" + allowedValues + "   |   value=" + type);
-		}
+	private static String getAllowedValues() {
+		return Arrays.stream(HistoryType.values())
+				.map(Enum::name)
+				.collect(Collectors.joining(", "));
 	}
 }

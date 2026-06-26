@@ -39,77 +39,64 @@ import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
 @Getter
 public enum CategoryType {
 
-	INCOME("수입", "01"),
-	OUTLAY("지출", "02");
+	INCOME("01","수입"),
+	OUTLAY("02", "지출");
 
-	private final String label;						//화면 표시용
-	private final String prefixCode;			//DB 기준코드 (앞 2자리)
+	private final String prefix;			//카테고리 코드 (앞 2자리)
+	private final String label;				//화면 표시용
 
-	CategoryType(String label, String prefixCode) {
+	CategoryType(String prefix, String label) {
+		this.prefix= prefix;
 		this.label = label;
-		this.prefixCode = prefixCode;
 	}
 
+	public static CategoryType from(String type) {
+		validateType(type);
 
-	/**
-	 * API 요청/응답 값과 일치하는 {@link CategoryType} 객체를 반환합니다.
-	 *
-	 * @param value		가계부 유형 값
-	 * @return	가계부 유형 정보를 담은 {@link CategoryType} 객체
-	 * @throws IllegalArgumentException 필수값이 누락되었거나 허용되지 않은 값인 경우
-	 */
-	public static CategoryType from(String value) {
-		if(isNullOrBlank(value)) {
+		return Arrays.stream(values())
+				.filter(t -> t.name().equalsIgnoreCase(type))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException(
+						"reason=허용값 아님   |   object=CategoryType   |   allowedValues=" + getAllowedValues() + "   |   value=" + type
+				));
+	}
+
+	private static void validateType(String type) {
+		if(isNullOrBlank(type)) {
 			throw new IllegalArgumentException(
-				"reason=필수값누락   |   enum=CategoryType   |   field=apiCode   |   value=" + value
+					"reason=필수값누락   |   object=CategoryType   |   value=" + type
 			);
 		}
-
-		for(CategoryType type : values()) {
-			if(type.name().equalsIgnoreCase(value)) return type;
-		}
-
-		throw new IllegalArgumentException(
-				"reason=허용값 아님   |   enum=CategoryType   |   field=apiCode   |   allowedValues=" + getAllowedApiCodes() + "   |   value=" + value
-		);
 	}
 
-
-	/**
-	 *데이터베이스에 저장된 카테고리 코드({@code code})의 앞 2자리를 비교하여 일치하는 {@link CategoryType} 객체를 반환합니다.
-	 *
-	 * @param code	카테고리 코드
-	 * @return 가계부 유형 정보를 담은 {@link CategoryType} 객체
-	 * @throws IllegalArgumentException 필수값이 누락되었거나 허용되지 않은 코드인 경우
-	 */
-	public static CategoryType fromCode(String code) {
-		if(isNullOrBlank(code)) {
-			throw new IllegalArgumentException("reason=필수값누락   |   enum=CategoryType   |   field=categoryCode   |   value=" + code);
-		}else {
-			if(!code.matches("\\d{6}")) {
-				throw new IllegalArgumentException("reason=허용값 아님   |   enum=CategoryType   |  field=categoryCode   |   expectedFormat=6자리 숫자 (예: 010101)   |   value=" + code);
-			}
-		}
-
-		for( CategoryType type : values() ) {
-			if( code.startsWith(type.prefixCode) ) {
-				return type;
-			}
-		}
-
-		throw new IllegalArgumentException("reason=허용값 아님   |   enum=CategoryType   |   field=categoryCode   |   allowedValues=" + getAllowedPrefixCodes() + "   |   value=" + code);
-	}
-
-
-	private static String getAllowedApiCodes() {
+	private static String getAllowedValues() {
 		return Arrays.stream(values())
 				.map(CategoryType::name)
 				.collect(Collectors.joining(", "));
 	}
 
-	private static String getAllowedPrefixCodes() {
+	public static CategoryType fromCode(String code) {
+		validateCategoryCode(code);
+
 		return Arrays.stream(values())
-				.map(CategoryType::getPrefixCode)
+				.filter(t -> code.startsWith(t.prefix))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException(
+						"reason=허용값 아님   |   object=CategoryType   |   allowedValues=" + getAllowedPrefixes() + "   |   value=" + code
+				));
+	}
+
+	private static void validateCategoryCode(String code) {
+		if(isNullOrBlank(code)) {
+			throw new IllegalArgumentException(
+					"reason=필수값누락   |   object=CategoryType   |   value=" + code
+			);
+		}
+	}
+
+	private static String getAllowedPrefixes() {
+		return Arrays.stream(values())
+				.map(CategoryType::getPrefix)
 				.collect(Collectors.joining(", "));
 	}
 

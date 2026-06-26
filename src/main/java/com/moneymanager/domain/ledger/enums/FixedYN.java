@@ -5,6 +5,8 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
@@ -46,18 +48,23 @@ public enum FixedYN {
 	}
 
 	public static FixedYN from(String value) {
-		for( FixedYN fixed : values() ) {
-			if( fixed.value.equalsIgnoreCase(value) ) return fixed;
+		if(isNullOrBlank(value)) {
+			throw new IllegalArgumentException(
+					"reason=필수값누락   |   object=FixedYN   |   value=" + value
+			);
 		}
 
-		throw  new IllegalArgumentException(
-				"reason=허용값아님   |   field=fixed   |   allowedValues=" + allowedFixedYN() +"   |   values=" + value
-		);
+		return Arrays.stream(values())
+				.filter(f -> f.value.equalsIgnoreCase(value))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException(
+						"reason=허용값 아님   |   object=FixedYN   |   allowedValues=" + getAllowedValues() + "   |   value=" + value
+				));
 	}
 
-	private static String allowedFixedYN() {
+	private static String getAllowedValues() {
 		return Arrays.stream(values())
-				.map(Enum::name)
+				.map(FixedYN::getValue)
 				.collect(Collectors.joining(", "));
 	}
 

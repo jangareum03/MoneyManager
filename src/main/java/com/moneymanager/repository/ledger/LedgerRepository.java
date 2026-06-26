@@ -124,7 +124,7 @@ public class LedgerRepository {
 					ps.setObject(6, ledger.getDate());
 					ps.setString(7, ledger.getMemo());
 					ps.setLong(8, money.getAmount());
-					ps.setString(9, money.getPaymentType().getValue());
+					ps.setString(9, money.getPaymentType().name());
 					ps.setString(10, place != null ? place.getPlaceName() : null);
 					ps.setString(11, place != null ? place.getRoadAddress() : null);
 					ps.setString(12, place != null ? place.getDetailAddress() : null);
@@ -147,14 +147,25 @@ public class LedgerRepository {
 
 		String cycle = ledger.getFixCycle() == null ? null : ledger.getFixCycle().getValue();
 		Money money = ledger.getMoney();
+
 		Place place = ledger.getPlace();
+
+		String placeName = null;
+		String roadAddress = null;
+		String detailAddress = null;
+
+		if(place != null) {
+			placeName = place.getPlaceName();
+			roadAddress = place.getRoadAddress();
+			detailAddress = place.getDetailAddress();
+		}
 
 		return jdbcTemplate.update(
 				query,
 
 				ledger.getCategory(), ledger.getFix().getValue(), cycle, ledger.getMemo(),
-				money.getAmount(), money.getPaymentType().getValue(),
-				place.getPlaceName(), place.getRoadAddress(), place.getDetailAddress(),
+				money.getAmount(), money.getPaymentType().name(),
+				placeName, roadAddress, detailAddress,
 				ledger.getUpdatedAt(),
 
 				ledger.getMemberId(), ledger.getCode()

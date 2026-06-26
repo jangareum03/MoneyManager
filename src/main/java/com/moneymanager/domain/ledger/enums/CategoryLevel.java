@@ -3,6 +3,8 @@ package com.moneymanager.domain.ledger.enums;
 
 import lombok.Getter;
 
+import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
+
 
 /**
  * <p>
@@ -38,12 +40,12 @@ public enum CategoryLevel {
 	LOW;
 
 	public static CategoryLevel from(String level) {
-		for( CategoryLevel e : CategoryLevel.values() ) {
-			if( level.equalsIgnoreCase(e.name()) ) {
-				return e;
-			}
+		if(isNullOrBlank(level)) {
+			throw new IllegalArgumentException(
+					"reason=필수값누락   |   object=CategoryLevel   |   value=" + level
+			);
 		}
 
-		return null;
+		return CategoryLevel.valueOf(level.toUpperCase());
 	}
 }
