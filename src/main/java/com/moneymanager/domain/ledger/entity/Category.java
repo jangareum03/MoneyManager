@@ -5,7 +5,7 @@ import com.moneymanager.exception.error.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 
-import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
+import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 
 
 /**

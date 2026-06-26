@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
+import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
+
 
 /**
  * <p>

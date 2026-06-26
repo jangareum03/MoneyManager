@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.moneymanager.exception.error.ErrorCode.*;
-import static com.moneymanager.utils.string.StringUtils.unwrap;
+import static com.moneymanager.utils.string.StringUtil.unwrap;
 
 /**
  * <p>

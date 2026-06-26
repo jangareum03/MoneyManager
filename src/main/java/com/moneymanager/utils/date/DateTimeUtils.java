@@ -1,7 +1,6 @@
 package com.moneymanager.utils.date;
 
 
-
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -9,7 +8,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 
-import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
+import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 
 
 /**

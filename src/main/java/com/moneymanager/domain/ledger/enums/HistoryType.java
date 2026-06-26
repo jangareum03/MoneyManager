@@ -5,7 +5,7 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
+import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 
 /**
  * <p>

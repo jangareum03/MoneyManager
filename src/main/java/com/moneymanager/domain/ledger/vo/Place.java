@@ -5,8 +5,8 @@ import lombok.Value;
 
 import static com.moneymanager.domain.global.enums.RegexPattern.*;
 import static com.moneymanager.exception.error.ErrorCode.*;
-import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
-import static com.moneymanager.utils.validation.ValidationUtils.matchesPattern;
+import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
+import static com.moneymanager.utils.string.StringUtil.matchesPattern;
 
 /**
  * <p>
