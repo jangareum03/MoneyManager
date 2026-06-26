@@ -141,7 +141,7 @@ public class LedgerController {
 
 		//입력값 확인
 		CategoryType ledgerType = parseCategoryTypeOrDefault(type);
-		LocalDate localDate = DateTimeUtil.parseDateOrElse(date, defaultDate);
+		LocalDate localDate = DateTimeUtil.parseDateFromYyyyMMdd(date);
 
 		LedgerWriteStep2Response response = ledgerReadService.getWriteStep2Data(ledgerType, localDate);
 
