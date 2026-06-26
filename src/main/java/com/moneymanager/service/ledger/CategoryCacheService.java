@@ -53,7 +53,7 @@ public class CategoryCacheService {
 	 * </p>
 	 * @return	전체 카테고리 정보를 담은 {@link Category} map
 	 */
-	@Cacheable(value = "category")
+	@Cacheable(value = "category", unless = "#result.isEmpty()")
 	public Map<String, Category> getCategoryMap() {
 		List<Category> categoryList = categoryRepository.findAllCategory();
 

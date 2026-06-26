@@ -3,7 +3,7 @@ package com.moneymanager.unit.mapper;
 import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.fixture.category.CategoryTreeFixture;
 import com.moneymanager.fixture.ledger.ImageSlotFixture;
@@ -73,7 +73,7 @@ class LedgerMapperTest {
 			assertThat(result.getDate()).isEqualTo("2026. 01. 01 (목)");
 			assertThat(result.getType()).isSameAs(CategoryType.INCOME);
 			assertThat(result.getAmount()).isEqualTo(10000L);
-			assertThat(result.getPaymentType()).isSameAs(AmountType.NONE);
+			assertThat(result.getPaymentType()).isSameAs(PaymentType.NONE);
 
 			assertThat(result)
 					.extracting(

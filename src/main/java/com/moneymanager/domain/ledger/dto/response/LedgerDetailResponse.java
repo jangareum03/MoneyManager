@@ -1,6 +1,6 @@
 package com.moneymanager.domain.ledger.dto.response;
 
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,7 +45,7 @@ public class LedgerDetailResponse {
 	private List<String> images;							//가계부 사진
 
 	private Long amount;									//금액
-	private AmountType paymentType;				//금액 유형
+	private PaymentType paymentType;				//금액 유형
 
 	private String placeName;								//장소명
 	private String roadAddress;							//기본주소

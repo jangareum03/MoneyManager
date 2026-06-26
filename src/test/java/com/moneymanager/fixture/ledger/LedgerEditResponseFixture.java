@@ -2,7 +2,7 @@ package com.moneymanager.fixture.ledger;
 
 import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
@@ -51,7 +51,7 @@ public class LedgerEditResponseFixture {
 		Place place = LedgerFixture.withPlace().build().getPlace();
 
 		return base()
-				.placeName(place.getName())
+				.placeName(place.getPlaceName())
 				.roadAddress(place.getRoadAddress())
 				.detailAddress(place.getDetailAddress())
 				.build();
@@ -78,7 +78,7 @@ public class LedgerEditResponseFixture {
 				.date("2026년 01월 01일 목요일")
 				.fixed(LedgerFixed.from(Ledger.builder().fix(FixedYN.VARIABLE).build()))
 				.amount(10000L)
-				.paymentType(AmountType.NONE)
+				.paymentType(PaymentType.NONE)
 				.type(type)
 				.images(List.of(
 						ImageSlotFixture.emptySlot(),

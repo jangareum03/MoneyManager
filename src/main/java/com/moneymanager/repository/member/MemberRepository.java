@@ -147,7 +147,8 @@ public class MemberRepository {
 
 	private boolean existsId(String memberId) {
 		String query = """
-				SELECT COUNT(*) FROM member WHERE id = ?
+				SELECT COUNT(*) 
+				FROM member WHERE id = ?
 				""";
 
 		Integer count = jdbcTemplate.queryForObject(query, Integer.class,	memberId);
@@ -201,12 +202,14 @@ public class MemberRepository {
 	 * @return	회원이 업로드할 수 있는 이미지 최대 개수
 	 */
 	public Integer findImageLimitByMemberId(String memberId) {
-		String sql = "SELECT image_limit" +
-							"	FROM member_info" +
-							"	WHERE id = ?";
+		String query = """
+				SELECT image_limit
+				FROM member_info
+				WHERE id = ?
+				""";
 
 		return jdbcTemplate.queryForObject(
-				sql,
+				query,
 				Integer.class,
 				memberId
 		);

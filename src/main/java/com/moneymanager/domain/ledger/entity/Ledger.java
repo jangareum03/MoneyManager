@@ -1,13 +1,13 @@
 package com.moneymanager.domain.ledger.entity;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.global.Policy;
+import com.moneymanager.domain.global.enums.DatePatterns;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.ledger.enums.AmountType;
-import com.moneymanager.domain.ledger.vo.AmountInfo;
+import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.utils.date.DateTimeUtils;
@@ -16,12 +16,10 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-import static com.moneymanager.domain.global.enums.RegexPattern.ADDRESS_DETAIL_NAME;
 import static com.moneymanager.exception.error.ErrorCode.*;
 import static com.moneymanager.utils.date.DateTimeUtils.isDateInRange;
-import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
-import static com.moneymanager.utils.validation.ValidationUtils.matchesPattern;
 
 
 /**
@@ -59,51 +57,38 @@ import static com.moneymanager.utils.validation.ValidationUtils.matchesPattern;
 @Builder
 @Getter
 public class Ledger {
-    private Long id;											//가계부 번호(내부용)
-	private String code;									//가계부 코드(외부용)
-    private String memberId;							//작성자(회원 고유번호)
+	private Long id;											//가계부 번호(내부용)
+	private final String code;							//가계부 코드(외부용)
+    private final String memberId;					//작성자(회원 고유번호)
 	private LocalDate date;								//거래 날짜
     private String category;							//카테고리 코드
 	private String memo;									//메모
 
-	private Long amount;								//금액
-	private AmountType amountType;			//금액 유형
-
+	private Money money;								//금액정보
 	private Place place;									//장소
 
-	private FixedYN fix;								//고정여부
-	private FixCycle fixCycle;						//고정주기
+	private FixedYN fix;									//고정여부
+	private FixCycle fixCycle;							//고정주기
 
-	private LocalDateTime createdAt;			//등록일
+	private final LocalDateTime createdAt;			//등록일
     private LocalDateTime updatedAt;			//수정일
 
+
 	/**
-	 *	요청 객체({@link LedgerWriteRequest}) 필드값이 비즈니스 규칙과 일치하는지 검증하고,
-	 * 검증에 성공하면 {@link Ledger} 객체를 생성합니다.
-	 *<p>비즈니스 규칙: </p>
+	 *	 가계부 생성 요청 데이터를 검증한 뒤 Ledger 객체를 생성합니다.
+	 *
+	 *<p>검증 규칙: </p>
 	 * <ul>
-	 *     <li><b>필수정보</b>
-	 *     	<ul>
-	 *        		<li>거래날짜: 현재로부터 5년전 날짜인지 확인</li>
-	 *      	  	<li>카테고리 코드: 01/02로 시작하는지 확인</li>
-	 *       	 	<li>금액: 0보다 큰지 확인</li>
-	 *   	     	<li>금액유형: 금액유형이 유효한지 확인</li>
-	 *     	</ul>
-	 *     </li>
-	 *     <li><b>선택정보</b>
-	 *     	<ul>
-	 *         	<li>고정주기: 고정주기가 유효한지 확인</li>
-	 *         	<li>장소: 장소명과 기본주소 둘 다 존재하는지 확인, 상세주소 형식이 일치하는지 확인</li>
-	 *     	</ul>
-	 *     </li>
+	 *     <li>거래 날짜 범위 확인</li>
+	 *     <li>카테고리 코드 유효성 확인</li>
+	 *     <li>금액 및 금액유형 검증</li>
+	 *     <li>고정 주기 및 장소 정책 검증</li>
 	 * </ul>
 	 *
-	 *  <p>검증 실패 시 {@link BusinessException}이 발생합니다.</p>
-	 *
 	 * @param memberId	가계부 작성한 회원번호
-	 * @param request	가계부 작성 요청 데이터
+	 * @param request		가계부 작성 요청 데이터
 	 * @return 검증된 정보를 기반으로 생성된 {@link Ledger} 객체
-	 * @throws BusinessException    비즈니스 규칙과 일치하지 않을 경우 발생
+	 * @throws BusinessException   검증 실패 시 발생
 	 */
 	public static Ledger create(String memberId, LedgerWriteRequest request){
 		String code = UlidCreator.getUlid().toString();
@@ -111,28 +96,70 @@ public class Ledger {
 		//필수값
 		validateDate(request.getDate());
 		validateCategory(request.getCategoryCode());
-		validateAmount(request.getAmount());
-		validateAmountType(request.getAmountType());
-
-		//선택값
-		validateFixCycle(request.isFixed(), request.getFixCycle());
-		validatePlace(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress());
+		validateFixInfo(request.getFixed(), request.getFixCycle());
 
 		return Ledger.builder()
 				.code(code)
 				.memberId(memberId)
 				.date(DateTimeUtils.parseDateFromYyyyMMdd(request.getDate()))
-				.fix(FixedYN.of(request.isFixed()))
-				.fixCycle(request.getFixCycle() != null ? FixCycle.of(request.getFixCycle()) : null)
+				.fix(FixedYN.from(request.getFixed()))
+				.fixCycle(request.getFixCycle() != null ? FixCycle.from(request.getFixCycle()) : null)
 				.category(request.getCategoryCode())
-				.amount(request.getAmount())
-				.amountType(AmountType.of(request.getAmountType()))
 				.memo(request.getMemo())
-				.place(new Place(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress()))
+				.money(Money.of(request.getAmount(), PaymentType.from(request.getPaymentType())))
+				.place(Place.of(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress()))
 				.build();
 	}
 
-	//날짜 규칙검증
+	public void changeFixInfo(String fixed, String fixCycle) {
+		validateFixInfo(fixed, fixCycle);
+
+		FixedYN newFix = FixedYN.from(fixed);
+		FixCycle newCycle = fixCycle == null ? null : FixCycle.from(fixCycle);
+
+		if(Objects.equals(this.fix, newFix) && Objects.equals(this.fixCycle, newCycle)) {
+			return;
+		}
+
+		this.fix = newFix;
+		this.fixCycle = newCycle;
+		this.updatedAt = LocalDateTime.now();
+	}
+
+	public void changeCategory(String category) {
+		validateCategory(category);
+
+		if( !this.category.equals(category) ) {
+			this.category = category;
+			this.updatedAt = LocalDateTime.now();
+		}
+	}
+
+	public void changeMemo(String memo) {
+		if(!Objects.equals(this.memo, memo)) {
+			this.memo = memo;
+			this.updatedAt = LocalDateTime.now();
+		}
+	}
+
+	public void changeMoney(Money money) {
+		if(this.money.equals(money)) return;
+
+		this.money = money;
+		this.updatedAt = LocalDateTime.now();
+	}
+
+	public void changePlace(Place place) {
+		if(Objects.equals(this.place, place)) {
+			return;
+		}
+
+		this.place = place;
+		this.updatedAt = LocalDateTime.now();
+	}
+
+
+	// ===== 비즈니스 규칙 검증 =====
 	private static void validateDate(String date) {
 		try{
 			LocalDate transDate = DateTimeUtils.parseDateFromYyyyMMdd(date);		//가계부 거래날짜
@@ -157,7 +184,6 @@ public class Ledger {
 		}
 	}
 
-	//카테고리 규칙검증
 	private static void validateCategory(String categoryCode) {
 		if(!(categoryCode.startsWith("01") || categoryCode.startsWith("02"))) {
 			throw BusinessException.of(
@@ -169,98 +195,42 @@ public class Ledger {
 		//TODO: 범위 검증 추가
 	}
 
-	//금액 규칙검증
-	private static void validateAmount(Long amount) {
-		if(amount < 1) {
-			throw BusinessException.of(
-					LEDGER_INPUT_RANGE,
-					"가계부 검증 실패   |   reason=범위오류   |   field=amount   |   min=1   |   value="+amount
-			).withUserMessage("금액은 1 이상 입력해주세요.");
-		}
-	}
+	private static void validateFixInfo(String fix, String cycle) {
+		FixedYN fixedYN;
 
-	//금액유형 규칙
-	private static void validateAmountType(String type) {
 		try{
-			AmountType.of(type);
+			fixedYN = FixedYN.from(fix);
 		}catch (IllegalArgumentException e) {
-			throw BusinessException.of(LEDGER_INPUT_INVALID,"가게부 검증 실패   |   " + e.getMessage())
-					.withUserMessage("사용할 수 없는 금액유형 입니다.")
+			throw BusinessException.of(
+							LEDGER_INPUT_INVALID,
+							"가계부 검증 실패   |   " + e.getMessage()
+					)
+					.withUserMessage("사용할 수 없는 고정 여부 입니다.")
 					.withCause(e);
 		}
-	}
 
-	//고정주기 규칙
-	private static void validateFixCycle(boolean fix, String fixCycle) {
-		//고정이 아닌 경우 주기가 없어야 함
-		if(!fix) {
-			if(!isNullOrBlank(fixCycle)) {
+		if(fixedYN == FixedYN.REPEAT) {
+			try{
+				FixCycle.from(cycle);
+			}catch (IllegalArgumentException e) {
 				throw BusinessException.of(
-						LEDGER_POLICY_NOT_ALLOWED,
-						"가계부 검증 실패   |   reason=정책위반   |   field=fixCycle   |   policy=고정이 아닌데 주기가 존재   |   value=" + fixCycle
-				).withUserMessage("고정이 아닌 경우에는 주기를 설정할 수 없습니다. 고정 여부를 확인해주세요.");
+								LEDGER_INPUT_INVALID,
+								"가계부 검증 실패   |   " + e.getMessage()
+						)
+						.withUserMessage("사용할 수 없는 고정 주기 입니다.")
+						.withCause(e);
 			}
 
 			return;
 		}
 
-		//고정인 경우
-		try{
-			FixCycle.of(fixCycle);
-		}catch (IllegalArgumentException e) {
-			throw BusinessException.of(
-					LEDGER_INPUT_INVALID,
-					"가계부 검증 실패   |   " + e.getMessage()
-			)
-					.withUserMessage("사용할 수 없는 고정주기 입니다.")
-					.withCause(e);
-		}
-	}
-
-	//장소 규칙
-	private static void validatePlace(String placeName, String roadAddress, String detailAddress) {
-		if(isNullOrBlank(placeName) ^ isNullOrBlank(roadAddress)) {
+		if(cycle != null) {
 			throw BusinessException.of(
 					LEDGER_POLICY_NOT_ALLOWED,
-					"가계부 검증 실패   |   reason=정책위반   |   policy=장소명과 기본주소 둘 다 필요   |   value={placeName:" + placeName + ", roadAddress:"+roadAddress
-			).withUserMessage("장소명과 기본주소 둘 다 있어야 합니다.");
+					"가계부 검증 실패   |   reason=정책위반   |   field=fixCycle   |   policy=고정이 아닌데 주기가 존재   |   value=" + cycle
+			).withUserMessage("고정이 아닌 경우에는 주기를 설정할 수 없습니다. 고정 여부를 확인해주세요.");
 		}
 
-		if(detailAddress != null && !matchesPattern(detailAddress, ADDRESS_DETAIL_NAME.getPattern())) {
-			throw BusinessException.of(
-					LEDGER_INPUT_FORMAT,
-					"가계부 검증 실패   |   reason=형식오류   |   field=detailAddress   |   expectedFormat=한글, 숫자, 영문, 공백, -, (, ), /, .   |   value=" + detailAddress
-			).withUserMessage("상세 주소는 한글,숫자,영문, -, (, ), /, .만 입력 가능합니다.");
-		}
-	}
-
-	public void updateBasicInfo(String category, String memo) {
-		if( !this.category.equals(category) ) {
-			this.category = category;
-			this.updatedAt = LocalDateTime.now();
-		}
-
-		if( !isNullOrBlank(this.memo) && !this.memo.equals(memo) ) {
-			this.memo = memo;
-			this.updatedAt = LocalDateTime.now();
-		}
-	}
-
-	public void updateAmount(AmountInfo amountInfo) {
-		AmountInfo entityAmount = new AmountInfo(amount, amountType);
-
-		if( entityAmount.equals(amountInfo) ) return;
-
-		this.amount = amountInfo.getAmount();
-		this.amountType = amountInfo.getType();
-	}
-
-	public void updatePlace(Place place) {
-		if(isNullOrBlank(place.getName()) && isNullOrBlank(place.getRoadAddress())) {
-			if( place.equals(this.place) ) return;
-		}
-
-		this.place = place;
 	}
 
 }

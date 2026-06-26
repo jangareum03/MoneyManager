@@ -44,7 +44,7 @@ public class LedgerTypeResponse {
 
 	public static List<LedgerTypeResponse> fromEnum() {
 		return Arrays.stream(CategoryType.values())
-				.map(t -> new LedgerTypeResponse(t.getLabel(), t.getPrefixCode()))
+				.map(t -> new LedgerTypeResponse(t.getLabel(), t.getPrefix()))
 				.collect(Collectors.toList());
 	}
 

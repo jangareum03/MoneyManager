@@ -49,7 +49,7 @@ public class LedgerRequestFixture {
 				.categoryCode("010101")
 				.fixed(false)
 				.amount(10000L)
-				.amountType("none");
+				.paymentType("none");
 	}
 
 	public static LedgerWriteRequest.LedgerWriteRequestBuilder withPlace() {

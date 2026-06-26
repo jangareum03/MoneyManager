@@ -52,7 +52,7 @@ public class HistoryItem {
 				query.getCode(),
 				query.getAmount(),
 				query.getMemo(),
-				CategoryType.fromCode(query.getCategoryCode()),
+				CategoryType.from(query.getCategoryCode()),
 				query.getCategoryName()
 		);
 	}

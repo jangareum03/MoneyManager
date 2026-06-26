@@ -47,7 +47,7 @@ public class LedgerSummary {
 				.id(ledger.getCode())
 				.type(CategoryType.fromCode(ledger.getCategory()))
 				.memo(ledger.getMemo())
-				.amount(ledger.getAmount())
+				.amount(ledger.getMoney().getAmount())
 				.build();
 	}
 }

@@ -1,7 +1,11 @@
 package com.moneymanager.domain.ledger.entity;
 
+import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.error.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
+
+import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 
 
 /**
@@ -36,10 +40,51 @@ import lombok.Getter;
  *		</tbody>
  * </table>
  */
-@Builder
 @Getter
+@Builder
 public class Category {
-    private String code;						//카테고리 번호(식별자)
-	private String name;						//카테코리 이름
-    private String parentCode;			//부모 카테고리 코드
+    private final String code;						//카테고리 번호(식별자)
+	private final String name;						//카테코리 이름
+    private final String parentCode;			//부모 카테고리 코드
+
+	private Category(String code, String name, String parentCode) {
+		validate(code, name);
+
+		this.code = code;
+		this.name = name;
+		this.parentCode = parentCode;
+	}
+
+	public static Category topCategory(String code, String name) {
+		return new Category(code, name, null);
+	}
+
+	public static Category childCategory(String code, String name, Category parent) {
+		//부모 카테고리 검증
+		if(parent == null) {
+			throw BusinessException.of(
+					ErrorCode.LEDGER_CATEGORY_RELATION_PARENT,
+					"객체생성 실패   |   reason=객체없음   |   object=Category   |   value=null"
+			);
+		}
+
+		return new Category(code, name, parent.code);
+	}
+
+	private static void validate(String code, String name) {
+		if(isNullOrBlank(code)) {
+			throw BusinessException.of(
+					ErrorCode.LEDGER_CATEGORY_TARGET_MISSING,
+					"카테고리 검증 실패   |   reason=필수값 누락   |   object=Category   |   field=code   |   value=" + code
+			);
+		}
+
+		if(isNullOrBlank(name)) {
+			throw BusinessException.of(
+					ErrorCode.LEDGER_CATEGORY_TARGET_MISSING,
+					"카테고리 검증 실패   |   reason=필수값 누락   |   object=Category   |   field=name   |   value=" + name
+			);
+		}
+	}
+
 }

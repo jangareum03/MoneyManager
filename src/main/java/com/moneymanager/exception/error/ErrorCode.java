@@ -57,6 +57,7 @@ public enum ErrorCode {
 	LEDGER_TARGET_MISSING("S-20-01-02", "필요한 값이 없습니다."),
 	LEDGER_TARGET_FORMAT("S-20-01-04", "형식이 올바르지 않습니다."),
 	LEDGER_TARGET_RANGE("S-20-01-06", "범위가 벗어났습니다."),
+	LEDGER_STATE_INVALID("S-20-04-01", "알 수 없는 상태의 가계부입니다."),
 
 	LEDGER_INPUT_MISSING("C-20-02-01", "요청하신 가계부가 없습니다."),
 	LEDGER_INPUT_INVALID("C-20-02-02", "가계부 입력값이 올바르지 않습니다."),
@@ -75,6 +76,8 @@ public enum ErrorCode {
 	 * 가계부 카테고리 관련 오류
 	 */
 	LEDGER_CATEGORY_TARGET_NOT_FOUND("C-21-01-01", "찾을 수 없는 카테고리입니다."),
+	LEDGER_CATEGORY_TARGET_MISSING("C-21-01-02", "필수값이 없습니다."),
+	LEDGER_CATEGORY_RELATION_PARENT("C-21-03-02", "존재하지 않은 부모 카테고리입니다."),
 
 	/**
 	 * 거래내역 관련 오류

@@ -1,10 +1,12 @@
 package com.moneymanager.service.file;
 
 
+import com.moneymanager.domain.global.dto.StoredFile;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.service.file<br>
- * 파일이름       : FileNamingStrategy<br>
+ * 파일이름       : FileStorageStrategy<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 3. 18<br>
  * 설명              : 파일 이름과 경로를 지정할 인터페이스
@@ -28,10 +30,7 @@ package com.moneymanager.service.file;
  * 		</tbody>
  * </table>
  */
-public interface FileNamingStrategy<T> {
-	String getRootPath();
-	String generateStoredName(String originalFilename);	//파일명 반경
-	String generateDirectoryPath(T t);
-	String generateDbPath(T t, String storedName);
+public interface FileStorageStrategy<T> {
+	StoredFile createStoredFile(T t, String fileName);
 }
 

@@ -4,7 +4,8 @@ import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.FixCycle;
 import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -16,7 +17,8 @@ import javax.sql.DataSource;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -58,11 +60,11 @@ public class LedgerRepository {
 		String fixed = rs.getString("fix");
 		String fixCycle = rs.getString("fix_cycle");
 
-		FixedYN fixedYN = FixedYN.of(fixed);
+		FixedYN fixedYN = FixedYN.from(fixed);
 
 		FixCycle cycleType = null;
-		if( fixedYN.isFixed() ) {
-			cycleType = FixCycle.of(fixCycle);
+		if( fixedYN == FixedYN.REPEAT ) {
+			cycleType = FixCycle.from(fixCycle);
 		}
 
 		return Ledger.builder()
@@ -74,10 +76,11 @@ public class LedgerRepository {
 				.fixCycle(cycleType)
 				.date(rs.getDate("transaction_date").toLocalDate())
 				.memo(rs.getString("memo"))
-				.amount(rs.getLong("amount"))
-				.amountType(AmountType.of(rs.getString("payment_type")))
+				.money(
+						Money.of(rs.getLong("amount"), PaymentType.from(rs.getString("payment_type")))
+				)
 				.place(
-						new Place(rs.getString("place_name"),rs.getString("road_address"), rs.getString("detail_address"))
+						Place.of(rs.getString("place_name"),rs.getString("road_address"), rs.getString("detail_address"))
 				)
 				.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
 				.updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
@@ -94,42 +97,18 @@ public class LedgerRepository {
 	);
 
 
-	/**
-	 *	{@code ledger} 테이블에 가계부 정보를 저장합니다.
-	 *<p>
-	 *    다음과 같은 정보를 저장할 수 있습니다.
-	 *    <ul>
-	 *        <li>필수정보 - 고유번호({@code code}), 회원ID({@code memberId}), 거래날짜({@code date}), 카테고리({@code category}), 금액({@code amount})</li>
-	 *        <li>선택정보 - 메모({@code memo}), 금액유형({@code paymentType}), 주소({@code placeName}, {@code roadAddress}, {@code detailAddress}), 가계부 반복({@code fix}, {@code fixCycle})</li>
-	 *    </ul>
-	 *</p>
-	 * 필수 정보 중 하나라도 없거나 {@code NULL}인 경우
-	 * {@link org.springframework.dao.DataIntegrityViolationException}이 발생합니다.
-	 *
-	 * @param ledger 저장할 가계부 정보를 담은 {@link Ledger} 객체
-	 * @return	저장된 가계부의 생성된 식별자
-	 * @throws org.springframework.dao.DataIntegrityViolationException 제약 조건을 위반했을 경우 발생
-	 */
-	public Long save(Ledger ledger) {
-		if(ledger.getId() == null) {
-			return insert(ledger);
-		}else {
-			update(ledger);
-
-			return ledger.getId();
-		}
-	}
-
-	private Long insert(Ledger ledger) {
-		String query = "INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address) " +
-				"VALUES(ledger_seq.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	public Long insert(Ledger ledger) {
+		String query = """
+				INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address)
+				VALUES(ledger_seq.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				""";
 
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
 		String fix = ledger.getFix().getValue();
 		String cycle = ledger.getFixCycle() != null ? ledger.getFixCycle().getValue() : null;
-		String paymentType = ledger.getAmountType().getValue();
 
+		Money money = ledger.getMoney();
 		Place place = ledger.getPlace();
 
 		jdbcTemplate.update(
@@ -144,21 +123,55 @@ public class LedgerRepository {
 					ps.setString(5, cycle);
 					ps.setObject(6, ledger.getDate());
 					ps.setString(7, ledger.getMemo());
-					ps.setLong(8, ledger.getAmount());
-					ps.setString(9, paymentType);
-					ps.setString(10, place != null ? place.getName() : null);
+					ps.setLong(8, money.getAmount());
+					ps.setString(9, money.getPaymentType().name());
+					ps.setString(10, place != null ? place.getPlaceName() : null);
 					ps.setString(11, place != null ? place.getRoadAddress() : null);
 					ps.setString(12, place != null ? place.getDetailAddress() : null);
 
 					return ps;
 				},
+
 				keyHolder
 		);
 
 		return Objects.requireNonNull(keyHolder.getKey()).longValue();
 	}
 
-	private void update(Ledger ledger) {}
+	public int update(Ledger ledger) {
+		String query = """
+				UPDATE ledger
+				SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, amount = ?, payment_type = ?, place_name = ?, road_address = ?, detail_address = ?, updated_at = ?
+				WHERE member_id = ? AND code = ?
+				""";
+
+		String cycle = ledger.getFixCycle() == null ? null : ledger.getFixCycle().getValue();
+		Money money = ledger.getMoney();
+
+		Place place = ledger.getPlace();
+
+		String placeName = null;
+		String roadAddress = null;
+		String detailAddress = null;
+
+		if(place != null) {
+			placeName = place.getPlaceName();
+			roadAddress = place.getRoadAddress();
+			detailAddress = place.getDetailAddress();
+		}
+
+		return jdbcTemplate.update(
+				query,
+
+				ledger.getCategory(), ledger.getFix().getValue(), cycle, ledger.getMemo(),
+				money.getAmount(), money.getPaymentType().name(),
+				placeName, roadAddress, detailAddress,
+				ledger.getUpdatedAt(),
+
+				ledger.getMemberId(), ledger.getCode()
+		);
+
+	}
 
 
 	/**
@@ -173,12 +186,16 @@ public class LedgerRepository {
 	 * @throws org.springframework.dao.EmptyResultDataAccessException 조회된 정보가 없는 경우
 	 */
 	public Ledger findById(Long id) {
-		String sql = "SELECT id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address, created_at, updated_at " +
-				"FROM ledger " +
-				"WHERE id = ?";
+		String query = """
+				SELECT id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address, created_at, updated_at
+				FROM ledger
+				WHERE id = ?
+				""";
 
 		return jdbcTemplate.queryForObject(
-				sql, ledgerRowMapper, id
+				query,
+				ledgerRowMapper,
+				id
 		);
 	}
 
@@ -200,41 +217,58 @@ public class LedgerRepository {
 
 
 	public List<Ledger> findAll() {
-		String sql = "SELECT * FROM ledger";
+		String query = """
+				SELECT *
+				FROM ledger
+				""";
 
-		return jdbcTemplate.query(sql, ledgerRowMapper);
+		return jdbcTemplate.query(
+				query,
+				ledgerRowMapper
+		);
 	}
 
 
 	public List<LedgerHistoryQuery> findHistoriesByMemberAndDateBetween(String memberId, LocalDate startDate, LocalDate endDate) {
-		String sql = "SELECT l.code, transaction_date, c.code AS category_code, c.name AS category_name, amount, memo " +
-							"FROM ledger l " +
-							"JOIN ledger_category  c ON l.category_id = c.code " +
-							"WHERE l.member_id = ? " +
-							"AND l.transaction_date >= ? " +
-							"AND l.transaction_date < ? " +
-							"ORDER BY l.transaction_date DESC, l.created_at DESC";
+		String query = """
+				SELECT l.code, transaction_date, c.code AS category_code, c.name AS category_name, amount, memo
+				FROM ledger l
+				JOIN ledger_category  c ON l.category_id = c.code
+				WHERE l.member_id = ?
+					AND l.transaction_date >= ?
+					AND l.transaction_date < ?
+				ORDER BY l.transaction_date DESC, l.id DESC
+				""";
 
 		return jdbcTemplate.query(
-				sql,
+				query,
+
 				ledgerHistoryQueryRowMapper,
+
 				memberId,
 				Date.valueOf(startDate),
 				Date.valueOf(endDate.plusDays(1))
 		);
 	}
 
-
 	public Long count() {
-		String sql = "SELECT COUNT(*) FROM ledger";
+		String query = """
+				SELECT COUNT(*)
+				FROM ledger
+				""";
 
-		return jdbcTemplate.queryForObject(sql, Long.class);
+		return jdbcTemplate.queryForObject(
+				query,
+				Long.class
+		);
 	}
-
 
 	public void deleteAll() {
-		String sql ="DELETE FROM ledger";
+		String query = """
+				DELETE FROM ledger
+				""";
 
-		jdbcTemplate.update(sql);
+		jdbcTemplate.update(query);
 	}
+
 }

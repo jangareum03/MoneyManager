@@ -2,7 +2,7 @@ package com.moneymanager.domain.ledger.dto.response;
 
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.ledger.enums.AmountType;
+import com.moneymanager.domain.ledger.enums.PaymentType;
 import lombok.Getter;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public class LedgerWriteStep2Response {
 	private final CategoryType type;									//가계부 유형
 	private final List<FixedYN> fixed;								//고정여부
 	private final List<CategoryItem> categories;				//카테고리 리스트
-	private final List<AmountType> paymentTypes;			//결제유형
+	private final List<PaymentType> paymentTypes;			//결제유형
 	private final List<ImageSlot> imageSlot;						//이미지 슬롯 정보
 
 	private LedgerWriteStep2Response(String title, CategoryType type, List<CategoryItem> categories, List<ImageSlot> imageSlot) {
@@ -50,7 +50,7 @@ public class LedgerWriteStep2Response {
 		this.type = type;
 
 		this.fixed = List.of(FixedYN.values());
-		this.paymentTypes = List.of(AmountType.values());
+		this.paymentTypes = List.of(PaymentType.values());
 	}
 
 	/**

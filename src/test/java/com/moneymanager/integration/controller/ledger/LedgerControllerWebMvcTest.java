@@ -272,7 +272,7 @@ public class LedgerControllerWebMvcTest {
 			addParam(params, "categoryCode", request.getCategoryCode());
 			addParam(params, "fixed", request.isFixed());
 			addParam(params, "amount", request.getAmount());
-			addParam(params, "amountType", request.getAmountType());
+			addParam(params, "paymentType", request.getPaymentType());
 
 			//선택값
 			addParam(params, "fixCycle", request.getFixCycle());
@@ -436,7 +436,7 @@ public class LedgerControllerWebMvcTest {
 					.memo("메모")
 					.images(Arrays.asList("image/image1.png", null, null))
 					.amount(10000L)
-					.paymentType(AmountType.CARD)
+					.paymentType(PaymentType.CARD)
 					.build();
 
 			when(ledgerReadService.getDetailData(any())).thenReturn(response);
@@ -539,7 +539,7 @@ public class LedgerControllerWebMvcTest {
 					.andExpect(model().attributeExists("ledger"))
 					.andExpect(model().attribute("fixes", FixedYN.values()))
 					.andExpect(model().attribute("fixCycles", FixCycle.values()))
-					.andExpect(model().attribute("paymentTypes", AmountType.values()))
+					.andExpect(model().attribute("paymentTypes", PaymentType.values()))
 					.andReturn();
 
 			//then: 호출 검증

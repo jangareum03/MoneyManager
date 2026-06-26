@@ -2,6 +2,12 @@ package com.moneymanager.domain.ledger.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
+import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
+
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
@@ -42,19 +48,25 @@ public enum FixedYN {
 		this.value = value;
 	}
 
-	public static FixedYN of(String value) {
-		for( FixedYN fixed : values() ) {
-			if( fixed.value.equalsIgnoreCase(value) ) return fixed;
+	public static FixedYN from(String value) {
+		if(isNullOrBlank(value)) {
+			throw new IllegalArgumentException(
+					"reason=필수값누락   |   object=FixedYN   |   value=" + value
+			);
 		}
 
-		return null;
+		return Arrays.stream(values())
+				.filter(f -> f.value.equalsIgnoreCase(value))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException(
+						"reason=허용값 아님   |   object=FixedYN   |   allowedValues=" + getAllowedValues() + "   |   value=" + value
+				));
 	}
 
-	public static FixedYN of(boolean fixed) {
-		return fixed ? FixedYN.REPEAT : FixedYN.VARIABLE;
+	private static String getAllowedValues() {
+		return Arrays.stream(values())
+				.map(FixedYN::getValue)
+				.collect(Collectors.joining(", "));
 	}
 
-	public boolean isFixed(){
-		return this == REPEAT;
-	}
 }

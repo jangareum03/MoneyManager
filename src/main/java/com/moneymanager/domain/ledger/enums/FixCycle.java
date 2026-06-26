@@ -6,6 +6,8 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
+
 
 /**
  * <p>
@@ -48,19 +50,25 @@ public enum FixCycle {
 		this.value = value;
 	}
 
-	public static FixCycle of(String cycle) {
-		for( FixCycle type : values() ) {
-			if(type.value.equalsIgnoreCase(cycle)) return type;
+	public static FixCycle from(String cycle) {
+		if(isNullOrBlank(cycle)) {
+			throw new IllegalArgumentException(
+					"reason=필수값누락   |   object=FixCycle   |   value=" + cycle
+			);
 		}
 
-		throw new IllegalArgumentException(
-				"reason=허용값아님   |   field=fixCycle   |   allowedValues=" + allowedFixCycle() + "   |   value=" + cycle
-		);
+		return Arrays.stream(values())
+						.filter(c -> c.value.equalsIgnoreCase(cycle))
+						.findFirst()
+						.orElseThrow(() -> new IllegalArgumentException(
+								"reason=허용값 아님   |   object=FixCycle   |   allowedValues=" + getAllowedValues() + "   |   value=" + cycle
+						));
 	}
 
-	private static String allowedFixCycle() {
+	private static String getAllowedValues() {
 		return Arrays.stream(FixCycle.values())
-				.map(Enum::name)
+				.map(FixCycle::getValue)
 				.collect(Collectors.joining(", "));
 	}
+
 }

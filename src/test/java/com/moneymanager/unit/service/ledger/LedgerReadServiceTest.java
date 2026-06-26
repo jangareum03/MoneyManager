@@ -10,6 +10,7 @@ import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
+import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.exception.BusinessException;
 import com.moneymanager.fixture.category.CategoryTreeFixture;
 import com.moneymanager.fixture.ledger.ImageSlotFixture;
@@ -28,6 +29,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
@@ -550,13 +553,13 @@ public class LedgerReadServiceTest {
 			Ledger ledger = createLedger(date, amount);
 			Category category = createCategory(type);
 
-			return new LedgerHistoryQuery(ledger.getCode(), ledger.getDate(), ledger.getAmount(), ledger.getMemo(), category.getName(), category.getCode());
+			return new LedgerHistoryQuery(ledger.getCode(), ledger.getDate(), ledger.getMoney().getAmount(), ledger.getMemo(), category.getName(), category.getCode());
 		}
 
 		private Ledger createLedger(LocalDate date, int amount) {
 			return LedgerFixture.defaultLedger()
 					.date(date)
-					.amount((long) amount)
+					.money(new Money((long) amount, "none"))
 					.build();
 		}
 
@@ -608,7 +611,7 @@ public class LedgerReadServiceTest {
 				assertThat(result.getDate()).isEqualTo("2026. 01. 01 (목)");
 				assertThat(result.getAmount()).isEqualTo(10000L);
 				assertThat(result.getType()).isSameAs(INCOME);
-				assertThat(result.getPaymentType()).isSameAs(AmountType.NONE);
+				assertThat(result.getPaymentType()).isSameAs(PaymentType.NONE);
 
 				assertThat(result.getCategory())
 						.hasFieldOrPropertyWithValue("name", "월급")
@@ -774,7 +777,7 @@ public class LedgerReadServiceTest {
 				assertThat(result.getType()).isEqualTo(INCOME);
 				assertThat(result)
 						.extracting(LedgerEditResponse::getAmount, LedgerEditResponse::getPaymentType)
-						.containsExactly(10000L, AmountType.NONE);
+						.containsExactly(10000L, PaymentType.NONE);
 
 
 				//고정주기
@@ -927,6 +930,133 @@ public class LedgerReadServiceTest {
 
 		}
 
+	}
+
+
+	@Nested
+	@DisplayName("가계부 조회 테스트")
+	class LedgerGetTest {
+
+		String memberId = "test-mid";
+		String code = "test-code";
+
+		@Test
+		@DisplayName("정상 요청이면 가계부가 조회된다.")
+		void returnsLedger_whenRequestIsValid() {
+			//given: 조회되는 가계부 상황을 설정한다.
+			when(ledgerRepository.findByCode(memberId, code))
+					.thenReturn(LedgerFixture.defaultLedger().build());
+			
+			//when: 가계부 조회를 요청한다.
+			Ledger result = target.getLedger(memberId, code);
+			
+			//then: 코드에 해당하는 가계부를 반환한다.
+			assertThat(result).isNotNull();
+
+			//필수정보는 null이 아니다.
+			assertThat(result)
+					.extracting(
+							Ledger::getId,
+							Ledger::getCode,
+							Ledger::getMemberId,
+							Ledger::getDate,
+							Ledger::getCategory,
+							Ledger::getFix,
+							Ledger::getMoney
+					)
+					.containsExactly(
+							1L,
+							code,
+							memberId,
+							LocalDate.of(2026, 1, 1),
+							"010101",
+							FixedYN.VARIABLE,
+							new Money(10000L, "none")
+					);
+		}
+
+		@Test
+		@DisplayName("가계부 조회가 실패하면 예외에 에러코드와 메시지가 포함된다.")
+		void throwsExceptionWithErrorCodeAndMessages_whenGetFails() {
+			//given: 가계부 조회 실패 시 포함될 에러코드와 메시지를 설정한다.
+			String code = "no-code";
+			when(ledgerRepository.findByCode(memberId, code))
+					.thenThrow(
+							BusinessException.of(LEDGER_TARGET_NOT_FOUND, "조회 실패")
+									.withUserMessage("정보 없음")
+					);
+			
+			//when: 코드에 해당하는 가계부를 조회한다.
+			Throwable throwable = catchThrowable(() -> target.getLedger(memberId, code));
+			
+			//then: BusinessException이 발생한다.
+			BusinessExceptionAssert.assertThatBusinessException(throwable)
+					.hasErrorCode(LEDGER_TARGET_NOT_FOUND)
+					.hasLogMessage("조회 실패")
+					.hasUserMessage("정보 없음");
+		}
+		
+		@ParameterizedTest(name = "[{index}] memberId={0}")
+		@NullAndEmptySource
+		@DisplayName("회원번호가 null이거나 빈 문자열이면 예외가 발생한다.")
+		void throwsException_whenMemberIdIsEmpty(String memberId) {
+			//given: 가계부 조회 실패로 예외를 던지게 설정한다.
+			when(ledgerRepository.findByCode(memberId, code))
+					.thenThrow(BusinessException.class);
+			
+			//when: 코드에 해당하는 가계부를 조회한다.
+			Throwable throwable = catchThrowable(() -> target.getLedger(memberId, code));
+
+			//then: BusinessException이 발생한다.
+			assertThat(throwable).isInstanceOf(BusinessException.class);	
+		}
+
+		@ParameterizedTest(name = "[{index}] code={0}")
+		@NullAndEmptySource
+		@DisplayName("가계부 코드가 null이거나 빈 문자열이면 예외가 발생한다.")
+		void throwsException_whenLedgerCodeIsEmpty(String code) {
+			//given: 가계부 조회 실패로 예외를 던지게 설정한다.
+			when(ledgerRepository.findByCode(memberId, code))
+					.thenThrow(BusinessException.class);
+			
+			//when: 코드에 해당하는 가계부를 조회한다.
+			Throwable throwable = catchThrowable(() -> target.getLedger(memberId, code));
+
+			//then: BusinessException이 발생한다.
+			assertThat(throwable).isInstanceOf(BusinessException.class);
+		}
+		
+		@Test
+		@DisplayName("존재하지 않은 가계부를 조회하면 예외가 발생한다.")
+		void throwsException_whenLedgerDoesNotExist() {
+			//given: 존재하지 않은 가계부 조회로 예외를 던지게 설정한다.
+			String code = "no-code";
+			
+			when(ledgerRepository.findByCode(memberId, code))
+					.thenThrow(BusinessException.class);
+			
+			//when: 코드에 해당하는 가계부를 조회한다.
+			Throwable throwable = catchThrowable(() -> target.getLedger(memberId, code));
+
+			//then: BusinessException이 발생한다.
+			assertThat(throwable).isInstanceOf(BusinessException.class);
+		}
+
+		@Test
+		@DisplayName("다른 회원의 가계부를 조회하면 예외가 발생한다.")
+		void throwsException_whenMemberIsNotOwner() {
+			//given: 다른 회원의 가계부 조회로 예외를 던지게 설정한다.
+			String code = "other-code";
+
+			when(ledgerRepository.findByCode(memberId, code))
+					.thenThrow(BusinessException.class);
+			
+			//when: 코드에 해당하는 가계부를 조회한다.
+			Throwable throwable = catchThrowable(() -> target.getLedger(memberId, code));
+
+			//then: BusinessException이 발생한다.
+			assertThat(throwable).isInstanceOf(BusinessException.class);
+		}
 	}
 
 }

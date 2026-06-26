@@ -1,17 +1,16 @@
 package com.moneymanager.service.file;
 
-import com.moneymanager.domain.global.dto.StoredFile;
 import com.moneymanager.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
+import static com.moneymanager.exception.error.ErrorCode.FILE_ETC_RESOURCE_ERROR;
+import static com.moneymanager.exception.error.ErrorCode.FILE_ETC_UNKNOWN;
 
 /**
  * <p>
@@ -44,65 +43,34 @@ import static com.moneymanager.exception.error.ErrorCode.*;
 @Slf4j
 public class FileCommandService {
 
-	public <T> StoredFile storeFile(MultipartFile file, T target, FileNamingStrategy<T> strategy) {
-		String rootPath = strategy.getRootPath();
-		String storedName = strategy.generateStoredName(file.getOriginalFilename());
-		String directoryPath = strategy.generateDirectoryPath(target);
-		String dbPath = strategy.generateDbPath(target, storedName);
-
-		String fullDirPath = Path.of(rootPath, directoryPath).toString();
-
-		File directory = new File(fullDirPath);
-		createDirectory(directory);
-
-		File savedFile = new File(directory, storedName);
-
-		upload(file, savedFile);
-
-		return new StoredFile(savedFile.getAbsolutePath(), dbPath);
-	}
-
-	//폴더 생성
-	private void createDirectory(File directory) {
-		if(directory.exists()) {
-			if(!directory.isDirectory()) {
-				throw BusinessException.of(
-						FILE_COLLISION_ALREADY_EXISTS,
-						"폴더 생성 실패   |   reason=중복데이터   |   object=file   |   value=" + directory.getAbsolutePath()
-				);
-			}
-
-			return;
-		}
-
-		if(!directory.mkdirs()) {
-			if(directory.exists() && directory.isDirectory()) {
-				return;
-			}
-
-			throw BusinessException.of(
-					FILE_ETC_UNKNOWN,
-					"폴더 생성 실패   |   reason=폴더생성실패   |   object=file   |   value=" + directory.getAbsolutePath()
-			);
-		}
-	}
-
-	private void upload(MultipartFile oldFile, File newFile) {
+	public void createDirectory(Path directory) {
 		try{
-			oldFile.transferTo(newFile);
+			Files.createDirectories(directory);
 		}catch (IOException e) {
 			throw BusinessException.of(
-					FILE_ETC_RESOURCE_ERROR,
-					"파일 처리 실패   |   reason=파일저장불가   |   object=file   |   value=" + newFile.getAbsolutePath()
+					FILE_ETC_UNKNOWN,
+					"폴더 생성 실패   |   reason=폴더생성실패   |   object=file   |   value=" + directory
 			).withCause(e);
 		}
 	}
 
-	public void deleteFiles(List<File> files) {
-		for(File file : files) {
-			if(!file.delete()) {
-				log.warn("파일 처리 실패   |   reason=파일삭제불가   |   object=file   |   value={}", file.getAbsolutePath());
-			}
+	public void upload(MultipartFile source, Path target) {
+		try{
+			source.transferTo(target);
+		}catch (IOException e) {
+			throw BusinessException.of(
+					FILE_ETC_RESOURCE_ERROR,
+					"파일 저장 실패   |   reason=저장불가   |   object=file   |   value=" + target
+			).withCause(e);
 		}
 	}
+
+	public void delete(Path path) {
+		try {
+			Files.deleteIfExists(path);
+		}catch (IOException e) {
+			log.warn("파일 삭제 실패   |   reason=삭제불가   |   object=file   |   value={}", path);
+		}
+	}
+
 }

@@ -6,8 +6,8 @@ import com.moneymanager.exception.error.ErrorCode;
 import org.springframework.stereotype.Component;
 
 import static com.moneymanager.exception.error.ErrorCode.*;
-import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
-import static com.moneymanager.utils.validation.ValidationUtils.matchesPattern;
+import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
+import static com.moneymanager.utils.string.StringUtil.matchesPattern;
 
 /**
  * <p>

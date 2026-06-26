@@ -133,7 +133,7 @@ public class LedgerCommandServiceIT {
 				assertThat(ledger.getMemberId()).isEqualTo("UCt01001");
 				assertThat(ledger.getDate()).isEqualTo(LocalDate.of(2026,1,1));
 				assertThat(ledger.getCategory()).isEqualTo("010101");
-				assertThat(ledger.getAmount()).isEqualTo(10000L);
+				assertThat(ledger.getMoney().getAmount()).isEqualTo(10000L);
 			}
 
 			@Test

@@ -5,6 +5,7 @@ import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.CategoryType;
+import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.utils.date.DateTimeUtils;
 import org.springframework.stereotype.Component;
@@ -42,6 +43,8 @@ import java.util.List;
 public class LedgerMapper {
 
 	public LedgerDetailResponse toDetailDto(Ledger ledger, Category category, List<String> imageList) {
+		Money money = ledger.getMoney();
+
 		Place place = ledger.getPlace();
 
 		String placeName = null;
@@ -49,7 +52,7 @@ public class LedgerMapper {
 		String detailAddress = null;
 
 		if(place != null) {
-			placeName = place.getName();
+			placeName = place.getPlaceName();
 			roadAddress = place.getRoadAddress();
 			detailAddress = place.getDetailAddress();
 		}
@@ -61,8 +64,8 @@ public class LedgerMapper {
 				.type(CategoryType.fromCode(ledger.getCategory()))
 				.category(CategoryItem.from(category))
 				.memo(ledger.getMemo())
-				.amount(ledger.getAmount())
-				.paymentType(ledger.getAmountType())
+				.amount(money.getAmount())
+				.paymentType(money.getPaymentType())
 				.placeName(placeName)
 				.roadAddress(roadAddress)
 				.detailAddress(detailAddress)
@@ -72,6 +75,8 @@ public class LedgerMapper {
 
 
 	public LedgerEditResponse toEditDto(Ledger ledger, List<ImageSlot> imageList, CategoryEditInfo categoryInfo) {
+		Money money = ledger.getMoney();
+
 		Place place = ledger.getPlace();
 
 		String placeName = null;
@@ -79,7 +84,7 @@ public class LedgerMapper {
 		String detailAddress = null;
 
 		if(place != null) {
-			placeName = place.getName();
+			placeName = place.getPlaceName();
 			roadAddress = place.getRoadAddress();
 			detailAddress = place.getDetailAddress();
 		}
@@ -91,8 +96,8 @@ public class LedgerMapper {
 				.memo(ledger.getMemo())
 				.type(CategoryType.fromCode(ledger.getCategory()))
 				.fixed(LedgerFixed.from(ledger))
-				.amount(ledger.getAmount())
-				.paymentType(ledger.getAmountType())
+				.amount(money.getAmount())
+				.paymentType(money.getPaymentType())
 				.placeName(placeName)
 				.roadAddress(roadAddress)
 				.detailAddress(detailAddress)

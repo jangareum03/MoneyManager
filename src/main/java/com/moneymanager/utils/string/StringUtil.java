@@ -1,11 +1,9 @@
 package com.moneymanager.utils.string;
 
-import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.utils.string<br>
- * 파일이름       : StringUtils<br>
+ * 파일이름       : StringUtil<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 3. 23<br>
  * 설명              : 공통적으로 사용하는 문자 기능 클래스
@@ -29,9 +27,38 @@ import static com.moneymanager.utils.validation.ValidationUtils.isNullOrBlank;
  * 		</tbody>
  * </table>
  */
-public class StringUtils {
+public class StringUtil {
 
-	private StringUtils() {}
+	private StringUtil() {}
+
+	/**
+	 * 매개변수로 전달받은 문자열(<code>value</code>)이 null 이거나 빈 문자열인지 확인합니다.
+	 *
+	 * @param value		확인할 문자열
+	 * @return	null이거나 문자열이면 <code>true</code>, 아니면 <code>false</code>
+	 */
+	public static boolean isNullOrBlank(String value) {
+		return value == null || value.trim().isBlank();
+	}
+
+	/**
+	 *	주어진 문자열이 정규식 패턴과 일치하는지 확인합니다. <br>
+	 *	예를 들어, 숫자만 가능하다면:
+	 *	<pre>{@code
+	 *		boolean result = ValidationUtils.matchesPattern("111", "\\d");
+	 *  }</pre>
+	 *
+	 * @param value			검사할 문자열
+	 * @param pattern		비교할 정규식 패턴
+	 * @return	문자열이 유효한 경우{@code ture}, 아니면 {@code false}
+	 */
+	public static boolean matchesPattern(String value, String pattern) {
+		if( isNullOrBlank(value) || isNullOrBlank(pattern) ) {
+			return true;
+		}
+
+		return value.matches(pattern);
+	}
 
 	/**
 	 * 문자열의 앞(prefix)과 뒤(suffix)에 포함된 특정 문자열을 제거합니다.
