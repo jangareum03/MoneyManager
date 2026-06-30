@@ -1,5 +1,6 @@
 package com.moneymanager.exception.log;
 
+import com.moneymanager.exception.ServiceAction;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -8,11 +9,11 @@ import java.util.Map;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.exception.error<br>
- * 파일이름       : DetailLogInfo<br>
+ * 패키지이름    : com.moneymanager.exception.log<br>
+ * 파일이름       : OperationContext<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 6. 26<br>
- * 설명              : 상세로그 정보를 위한 데이터 클래스
+ * 생성날짜       : 26. 7. 1<br>
+ * 설명              : 운영로그 정보를 위한 데이터 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -26,7 +27,7 @@ import java.util.Map;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 6. 26</td>
+ * 		 	  <td>26. 7. 1</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
@@ -34,19 +35,17 @@ import java.util.Map;
  * </table>
  */
 @Getter
-@Builder(toBuilder = true)
-public class DetailLogInfo {
+@Builder
+public class OperationContext {
 
-	private String work;
-	private String reason;
-	private Class<?> object;
-	private String field;
-	private String value;
+	private ServiceAction action;					//요청 기능
+	private Class<?> resource;							//요청정보가 담긴 클래스
 
 	@Builder.Default
-	private Map<String, Object> options = new LinkedHashMap<>();
+	private Map<String, Object> options = new LinkedHashMap<>();		//옵션
 
-	@Builder.Default
-	private Map<String, Object> context = new LinkedHashMap<>();
+	public void addOption(String key, Object value) {
+		options.put(key, value);
+	}
 
 }

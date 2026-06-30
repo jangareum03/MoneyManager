@@ -2,7 +2,7 @@ package com.moneymanager.exception.exception;
 
 
 import com.moneymanager.exception.code.ErrorCode;
-import com.moneymanager.exception.log.DetailLogInfo;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import lombok.Getter;
 
 /**
@@ -35,15 +35,15 @@ import lombok.Getter;
 @Getter
 public class BusinessException extends ApplicationException {
 
-	private BusinessException(ErrorCode errorCode, DetailLogInfo logInfo, String userMessage) {
+	private BusinessException(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
 		super(errorCode, logInfo, userMessage);
 	}
 
-	public static BusinessException of(ErrorCode errorCode, DetailLogInfo logInfo) {
+	public static BusinessException of(ErrorCode errorCode, DeveloperLogInfo logInfo) {
 		return new BusinessException(errorCode, logInfo, errorCode.getDefaultMessage());
 	}
 
-	public static BusinessException of(ErrorCode errorCode, DetailLogInfo logInfo, String userMessage) {
+	public static BusinessException of(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
 		return new BusinessException(errorCode, logInfo, userMessage);
 	}
 

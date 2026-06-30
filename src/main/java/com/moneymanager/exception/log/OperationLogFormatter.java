@@ -1,18 +1,17 @@
 package com.moneymanager.exception.log;
 
+import com.moneymanager.exception.code.ErrorCode;
 import com.moneymanager.exception.exception.ApplicationException;
-
-import java.util.Optional;
 
 import static com.moneymanager.exception.log.LogFormatterSupport.append;
 
 /**
  * <p>
  * 패키지이름    : com.moneymanager.exception<br>
- * 파일이름       : DetailLogFormatter<br>
+ * 파일이름       : OperationLogFormatter<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 6. 26<br>
- * 설명              : 상세로그 형식을 지정하는 클래스
+ * 설명              : 운영 로그 형식을 지정하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -33,32 +32,31 @@ import static com.moneymanager.exception.log.LogFormatterSupport.append;
  * 		</tbody>
  * </table>
  */
-public final class DetailLogFormatter {
+public final class OperationLogFormatter {
 
-	private DetailLogFormatter() {}
+	public static String success(OperationContext context) {
+		return build(OperationResult.SUCCESS, context, null);
+	}
 
-	public static String detail(ApplicationException e) {
-		DetailLogInfo log = e.getLogInfo();
+	public static String fail(OperationContext context, ApplicationException e) {
+		return build(OperationResult.FAIL, context, e.getErrorCode());
+	}
 
+	private static String build(OperationResult result,OperationContext context, ErrorCode errorCode) {
 		StringBuilder sb = new StringBuilder();
 
-		sb.append(log.getWork()).append(" 실패")
-				.append("   |   reason=").append(log.getReason());
+		String action = context.getAction().getTitle();
 
-		append(
-				sb,
-				"object",
-				Optional.ofNullable(log.getObject())
-						.map(Class::getSimpleName)
-						.orElse(null)
-		);
-		append(sb, "field", log.getField());
-		append(sb, log.getOptions());
-		append(sb, "value", log.getValue());
+		sb.append(action).append(" ").append(result.getKorean())
+				.append("result=").append(result);
+
+		append(sb, context.getOptions());
+
+		if(result.equals(OperationResult.FAIL)) {
+			append(sb, "errorCode", errorCode);
+		}
 
 		return sb.toString();
 	}
-
-
 
 }

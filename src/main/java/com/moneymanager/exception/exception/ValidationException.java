@@ -1,7 +1,7 @@
 package com.moneymanager.exception.exception;
 
 import com.moneymanager.exception.code.ErrorCode;
-import com.moneymanager.exception.log.DetailLogInfo;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 
 /**
  * <p>
@@ -32,15 +32,15 @@ import com.moneymanager.exception.log.DetailLogInfo;
  */
 public class ValidationException extends ApplicationException {
 
-	private ValidationException(ErrorCode errorCode, DetailLogInfo logInfo, String userMessage) {
+	private ValidationException(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
 		super(errorCode, logInfo, userMessage);
 	}
 
-	public static ValidationException of(ErrorCode errorCode, DetailLogInfo logInfo) {
+	public static ValidationException of(ErrorCode errorCode, DeveloperLogInfo logInfo) {
 		return new ValidationException(errorCode, logInfo, errorCode.getDefaultMessage());
 	}
 
-	public static ValidationException of(ErrorCode errorCode, DetailLogInfo logInfo, String userMessage) {
+	public static ValidationException of(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
 		return new ValidationException(errorCode, logInfo, userMessage);
 	}
 
