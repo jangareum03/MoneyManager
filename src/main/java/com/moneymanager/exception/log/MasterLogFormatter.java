@@ -1,8 +1,8 @@
 package com.moneymanager.exception.log;
 
-import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.ErrorCode;
 import com.moneymanager.exception.ServiceAction;
+import com.moneymanager.exception.code.ErrorCode;
+import com.moneymanager.exception.exception.ApplicationException;
 
 import java.util.Map;
 
@@ -41,9 +41,9 @@ public final class MasterLogFormatter {
 		return build(action.getTitle(), true, context, null);
 	}
 
-	public static String fail(BusinessException e) {
+	public static String fail(ServiceAction action, ApplicationException e) {
 		return build(
-				e.getServiceAction().getTitle(),
+				action.getTitle(),
 				false,
 				e.getLogInfo().getContext(),
 				e.getErrorCode()
