@@ -1,6 +1,8 @@
 package com.moneymanager.exception.log;
 
-import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.exception.ApplicationException;
+
+import java.util.Optional;
 
 import static com.moneymanager.exception.log.LogFormatterSupport.append;
 
@@ -41,9 +43,15 @@ public final class DetailLogFormatter {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append(log.getWork()).append(" 실패")
-				.append("   |   reason=").append(log.getReason())
-				.append("   |   object=").append(log.getObject());
+				.append("   |   reason=").append(log.getReason());
 
+		append(
+				sb,
+				"object",
+				Optional.ofNullable(log.getObject())
+						.map(Class::getSimpleName)
+						.orElse(null)
+		);
 		append(sb, "field", log.getField());
 		append(sb, log.getOptions());
 		append(sb, "value", log.getValue());

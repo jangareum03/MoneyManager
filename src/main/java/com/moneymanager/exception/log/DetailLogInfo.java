@@ -39,7 +39,7 @@ public class DetailLogInfo {
 
 	private String work;
 	private String reason;
-	private String object;
+	private Class<?> object;
 	private String field;
 	private String value;
 
