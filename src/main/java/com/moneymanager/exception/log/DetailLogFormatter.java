@@ -37,7 +37,7 @@ public final class DetailLogFormatter {
 
 	private DetailLogFormatter() {}
 
-	public static String detail(BusinessException e) {
+	public static String detail(ApplicationException e) {
 		DetailLogInfo log = e.getLogInfo();
 
 		StringBuilder sb = new StringBuilder();

@@ -1,5 +1,6 @@
 package com.moneymanager.exception;
 
+import com.moneymanager.exception.exception.ApplicationException;
 import com.moneymanager.exception.log.DetailLogFormatter;
 import com.moneymanager.exception.log.MasterLogFormatter;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +38,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @Slf4j
 public class GlobalExceptionHandler {
 
-	@ExceptionHandler(BusinessException.class)
-	public String handle(BusinessException e) {
+	@ExceptionHandler(ApplicationException.class)
+	public String handle(ApplicationException e) {
+		ServiceAction action = ActionContext.get();
+
 		log.warn(DetailLogFormatter.detail(e));
-		log.error(MasterLogFormatter.fail(e));
+		log.error(MasterLogFormatter.fail(action, e));
 
 		//TODO: ServiceAction에서 페이지 정의하기(RedirectUrl)
 		return "/";
