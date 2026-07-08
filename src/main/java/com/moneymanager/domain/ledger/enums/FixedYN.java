@@ -1,10 +1,14 @@
 package com.moneymanager.domain.ledger.enums;
 
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import static com.moneymanager.exception.code.CommonErrorCode.INVALID_VALUE;
+import static com.moneymanager.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 
 
@@ -48,19 +52,25 @@ public enum FixedYN {
 		this.value = value;
 	}
 
-	public static FixedYN from(String value) {
-		if(isNullOrBlank(value)) {
-			throw new IllegalArgumentException(
-					"reason=필수값누락   |   object=FixedYN   |   value=" + value
+	public static FixedYN from(String fix) {
+		if(isNullOrBlank(fix)) {
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("고정여부 생성", "고정 여부 없음", "fix", fix),
+					"고정을 선택해주세요."
 			);
 		}
 
 		return Arrays.stream(values())
-				.filter(f -> f.value.equalsIgnoreCase(value))
+				.filter(f -> f.value.equalsIgnoreCase(fix))
 				.findFirst()
-				.orElseThrow(() -> new IllegalArgumentException(
-						"reason=허용값 아님   |   object=FixedYN   |   allowedValues=" + getAllowedValues() + "   |   value=" + value
-				));
+				.orElseThrow(() ->	ValidationException.of(
+						INVALID_VALUE,
+						DeveloperLogInfo.of("고정여부 생성","허용되지 않은 고정 여부", "fix", fix)
+							.addOption("allowed", getAllowedValues()),
+						"허용하지 않은 고정입니다."
+				)
+		);
 	}
 
 	private static String getAllowedValues() {

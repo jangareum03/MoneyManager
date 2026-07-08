@@ -12,13 +12,13 @@ import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryMenuType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
-import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.error.ErrorInfo;
-import com.moneymanager.exception.error.ServiceAction;
+import com.moneymanager.exception.ServiceAction;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import com.moneymanager.mapper.LedgerMapper;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
-import com.moneymanager.utils.date.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtil;
 import com.moneymanager.utils.date.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.exception.error.ErrorCode.LEDGER_TARGET_NOT_FOUND;
+import static com.moneymanager.exception.code.LedgerErrorCode.NOT_FOUND_DATA;
 
 /**
  * <p>
@@ -113,7 +113,7 @@ public class LedgerReadService {
 		List<Integer> days = DateUtils.getDaysInRange( 1, today.getDayOfMonth() );
 
 		//날짜를 문자열로 변환
-		String title = DateTimeUtils.formatDate(today, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
+		String title = DateTimeUtil.formatDate(today, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
 
 		return LedgerWriteStep1Response.builder()
 				.types(LedgerTypeResponse.fromEnum())
@@ -148,7 +148,7 @@ public class LedgerReadService {
 		List<CategoryItem> categories = categoryReadService.getMiddleCategories(type);
 
 		//제목 포맷 변환
-		String title = DateTimeUtils.formatDate(date, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
+		String title = DateTimeUtil.formatDate(date, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
 
 		//회원별로 이미지 슬롯 조회
 		List<ImageSlot> imageSlot = imageReadService.resolveImageSlots();
@@ -303,14 +303,7 @@ public class LedgerReadService {
 
 			return result;
 		}catch (BusinessException e) {
-			ErrorInfo errorInfo = e.getErrorInfo();
-
-			log.error(
-					"[{}] {} 실패   |   memberId={}   |   result=failure   |   errorCode={}",
-					errorInfo.getTraceId(), action.getTitle(), memberId, errorInfo.getErrorCode()
-			);
-
-			throw e.withService(action);
+			throw e;
 		}
 	}
 
@@ -319,11 +312,10 @@ public class LedgerReadService {
 			return ledgerRepository.findByCode(memberId, code);
 		}catch (EmptyResultDataAccessException e) {
 			throw BusinessException.of(
-							LEDGER_TARGET_NOT_FOUND,
-							"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   code=" + code
-					)
-					.withUserMessage("가계부 정보를 불러오지 못 했습니다. 잠시 후 다시 시도해 주세요.")
-					.withCause(e);
+					NOT_FOUND_DATA,
+					DeveloperLogInfo.of("가계부 조회", "조회 결과 없음", Ledger.class, DeveloperLogInfo.valueOf("memberId", memberId, "ledgerCode", code)),
+					"존재하지 않은 가계부입니다."
+			);
 		}
 	}
 

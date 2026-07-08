@@ -1,11 +1,11 @@
 package com.moneymanager.domain.ledger.vo;
 
 import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import lombok.Value;
 
-import static com.moneymanager.exception.error.ErrorCode.LEDGER_INPUT_INVALID;
-import static com.moneymanager.exception.error.ErrorCode.LEDGER_INPUT_RANGE;
+import static com.moneymanager.exception.code.CommonErrorCode.INVALID_VALUE;
 
 /**
  * <p>
@@ -53,20 +53,16 @@ public class Money {
 
 	private void validateAmount(Long amount) {
 		if(amount < 1) {
-			throw BusinessException.of(
-					LEDGER_INPUT_RANGE,
-					"가계부 검증 실패   |   reason=범위오류   |   field=amount   |   min=1   |   value="+amount
-			).withUserMessage("금액은 1 이상 입력해주세요.");
-		}
-	}
-
-	private void validatePaymentType(String type) {
-		try{
-			PaymentType.from(type);
-		}catch (IllegalArgumentException e) {
-			throw BusinessException.of(LEDGER_INPUT_INVALID,"가게부 검증 실패   |   " + e.getMessage())
-					.withUserMessage("사용할 수 없는 금액유형 입니다.")
-					.withCause(e);
+			throw ValidationException.of(
+					INVALID_VALUE,
+					DeveloperLogInfo.builder()
+							.work("가계부 금액 검증")
+							.cause("범위 오류")
+							.field("amount")
+							.value(String.valueOf(amount))
+							.build()
+							.addOption("min", 1)
+			);
 		}
 	}
 

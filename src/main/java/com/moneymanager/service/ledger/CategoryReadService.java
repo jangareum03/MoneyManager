@@ -3,14 +3,15 @@ package com.moneymanager.service.ledger;
 import com.moneymanager.domain.ledger.dto.response.CategoryItem;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryType;
-import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.exception.error.ErrorCode.LEDGER_CATEGORY_TARGET_NOT_FOUND;
+import static com.moneymanager.exception.code.CategoryErrorCode.NOT_FOUND_DATA;
 
 /**
  * <p>
@@ -118,9 +119,10 @@ public class CategoryReadService {
 
 		if(category == null) {
 			throw BusinessException.of(
-					LEDGER_CATEGORY_TARGET_NOT_FOUND,
-					"카테고리 조회 실패   |   reason=카테고리없음   |   object=Category   |   filed=code   |   value=" + code
-			).withUserMessage("존재하지 않은 카테고리입니다. 잠시 후 다시 시도해주세요.");
+					NOT_FOUND_DATA,
+					DeveloperLogInfo.of("카테고리 조회", "카테고리 없음", Category.class, "code", code),
+					"존재하지 않은 카테고리입니다. 잠시 후 다시 시도해주세요."
+			);
 		}
 
 		return category;

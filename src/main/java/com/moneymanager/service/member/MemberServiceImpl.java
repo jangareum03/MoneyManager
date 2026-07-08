@@ -17,7 +17,7 @@ import com.moneymanager.domain.member.dto.MemberMyPageResponse;
 import com.moneymanager.domain.member.dto.MemberRecoveryResponse;
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.member.MemberInfo;
-import com.moneymanager.utils.date.DateTimeUtils;
+import com.moneymanager.utils.date.DateTimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -381,7 +381,7 @@ public class MemberServiceImpl {
 				message.append("아이디 전체를 알고 싶으시면 고객센터에 문의해주세요.</p>");
 				break;
 			case DELETE:
-				boolean isDelete = DateTimeUtils.isPastDays(member.getDeletedAt(), 30);
+				boolean isDelete = DateTimeUtil.isPastDays(member.getDeletedAt(), 30);
 				if (isDelete) {
 					message = new StringBuilder("찾으시는 아이디의 현재 상태는 아래와 같습니다.<br><br>탈퇴일로부터 30일이 지나지 않아 복구 가능한 아이디입니다.<br>복구를 원하신다면 로그인을 해주시길 바랍니다.<br>복구를 원하시지 않는다면 30일이 지난 후 다른 아이디로 다시 가입해주시길 바랍니다.");
 				} else {
@@ -491,7 +491,7 @@ public class MemberServiceImpl {
 				message.append("<span>해당 이메일로 확인 후 로그인 부탁드립니다.</span>");
 				break;
 			case DELETE:
-				boolean isDelete = DateTimeUtils.isPastDays(member.getDeletedAt(), 30);
+				boolean isDelete = DateTimeUtil.isPastDays(member.getDeletedAt(), 30);
 				if (isDelete) {
 					message = new StringBuilder("복구 불가능한 계정으로 비밀번호를 찾을 수 없습니다.");
 				}

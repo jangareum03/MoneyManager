@@ -2,14 +2,15 @@ package com.moneymanager.service.file;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.domain.global.dto.StoredFile;
-import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
 import java.time.Clock;
 
-import static com.moneymanager.exception.error.ErrorCode.FILE_TARGET_INVALID;
+import static com.moneymanager.exception.code.CommonErrorCode.INVALID_FORMAT;
 
 /**
  * <p>
@@ -68,9 +69,10 @@ public abstract class ImageStorageStrategy<T> implements FileStorageStrategy<T> 
 
 		//점 없음, 맨 앞쪽에 있음, 맨 끝에 있는 경우
 		if(dotIndex <= 0 || dotIndex == (file.length() - 1)) {
-			throw BusinessException.of(
-					FILE_TARGET_INVALID,
-					"파일 변경 실패   |   reason=형식오류   |   target=fileName   |   format=파일명.확장자   |   value=" + file
+			throw ValidationException.of(
+					INVALID_FORMAT,
+					DeveloperLogInfo.of("이미지 검증", "확장자 형식 불일치", "file", file),
+					"파일 형식이 올바르지 않습니다."
 			);
 		}
 

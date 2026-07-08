@@ -4,15 +4,12 @@ import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.member.MemberInfo;
 import com.moneymanager.domain.member.enums.MemberStatus;
 import com.moneymanager.domain.member.enums.MemberType;
-import com.moneymanager.exception.BusinessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.sql.PreparedStatement;
-
-import static com.moneymanager.exception.error.ErrorCode.*;
 
 /**
  * <p>
@@ -65,21 +62,14 @@ public class MemberRepository {
 	}
 
 	private void insert(Member member) {
-		insertMember(member);
+		int insertMember = insertMember(member);
 
-		if(member.getMemberInfo() == null) {
-			throw BusinessException.of(
-					MEMBER_TARGET_MISSING,
-					"회원 저장 실패   |   reason=필수값누락   |   field=memberInfo   |   value=null"
-			);
+		if(insertMember == 1) {
+			insertMemberInfo(member.getMemberInfo().withMemberId(member.getId()));
 		}
-
-		MemberInfo memberInfo = member.getMemberInfo().withMemberId(member.getId());
-
-		insertMemberInfo(memberInfo);
 	}
 
-	private void insertMember(Member member) {
+	private int insertMember(Member member) {
 		String query = """
 				INSERT INTO member(id, type, username, password, name, birthdate, nickname, email)
 				VALUES(?, ?, ?, ?, ?, ?, ?, ?)
@@ -87,7 +77,7 @@ public class MemberRepository {
 
 		String type = String.valueOf(member.getType().getValue());
 
-		int insertedRow = jdbcTemplate.update(
+		return jdbcTemplate.update(
 				con -> {
 					PreparedStatement ps = con.prepareStatement(query, new String[] {"id"});
 
@@ -103,13 +93,6 @@ public class MemberRepository {
 					return ps;
 				}
 		);
-
-		if(insertedRow != 1) {
-			throw BusinessException.of(
-					MEMBER_ETC_DB_ERROR,
-					"회원 저장 실패   |   reason=DB저장실패   |   detail=저장건수 불일치(기대=1, 실제=0)   |   object=Member"
-			);
-		}
 	}
 
 	private void insertMemberInfo(MemberInfo memberInfo) {
@@ -120,7 +103,7 @@ public class MemberRepository {
 
 		String gender = String.valueOf(memberInfo.getGender().getType());
 
-		int insertedRow = jdbcTemplate.update(
+		jdbcTemplate.update(
 				con -> {
 					PreparedStatement ps = con.prepareStatement(query);
 
@@ -131,12 +114,6 @@ public class MemberRepository {
 				}
 		);
 
-		if(insertedRow != 1) {
-			throw BusinessException.of(
-					MEMBER_ETC_DB_ERROR,
-					"회원 저장 실패   |   reason=DB저장실패   |   detail=저장건수 불일치(기대=1, 실제=0)   |   object=MemberInfo"
-			);
-		}
 	}
 
 

@@ -1,11 +1,14 @@
 package com.moneymanager.security.utils;
 
-import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.error.ErrorCode;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import com.moneymanager.security.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import static com.moneymanager.exception.code.CommonErrorCode.UNAUTHORIZED;
 
 /**
  * <p>
@@ -37,6 +40,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class SecurityUtil {
 
+	private final String work = "회원 인증";
+
 	/**
 	 * 인증 성공한 현재 사용자의 회원번호를 반환합니다.
 	 *
@@ -44,11 +49,13 @@ public class SecurityUtil {
 	 */
 	public String getMemberId() {
 		String memberId = getCurrentUser().getId();
+
 		if(memberId == null) {
 			throw BusinessException.of(
-					ErrorCode.MEMBER_AUTHORITY_UNAUTHORIZED,
-					"회원 인증 실패   |   reason=사용자 ID 없음   |   object=CustomUserDetails   |   field=id   |   value=null"
-			).withUserMessage("인증 실패했습니다. 다시 로그인해주세요.");
+					UNAUTHORIZED,
+					DeveloperLogInfo.of(work, "회원번호 없음", Member.class, "id", null),
+					"인증 실패했습니다. 다시 로그인해주세요."
+			);
 		}
 
 		return memberId;
@@ -60,19 +67,22 @@ public class SecurityUtil {
 
 		if(auth == null) {
 			throw BusinessException.of(
-					ErrorCode.MEMBER_AUTHORITY_FAILED,
-					"회원 인증 실패   |   reason=인증 객체 없음   |   object=SecurityContent   |   field=authentication   |   value=null"
-			).withUserMessage("인증 실패했습니다. 다시 로그인해주세요.");
+					UNAUTHORIZED,
+					DeveloperLogInfo.of(work, "인증 객체 없음", Authentication.class, null),
+					"인증 실패했습니다. 다시 로그인해주세요."
+			);
 		}
 
 		Object principal = auth.getPrincipal();
 		if(!(principal instanceof CustomUserDetails)) {
 			throw BusinessException.of(
-					ErrorCode.MEMBER_AUTHORITY_FAILED,
-					"회원 인증 실패   |   reason=principal 타입 불일치   |   object=authentication   |   field=principal   |   value=" + principal
-			).withUserMessage("인증 정보가 올바르지 않습니다. 다시 로그인해주세요.");
+					UNAUTHORIZED,
+					DeveloperLogInfo.of(work, "principal 타입 불일치", CustomUserDetails.class, "principal", principal == null ? null : principal.getClass().getSimpleName()),
+					"인증 정보가 올바르지 않습니다. 다시 로그인해주세요."
+			);
 		}
 
 		return (CustomUserDetails) principal;
 	}
+
 }

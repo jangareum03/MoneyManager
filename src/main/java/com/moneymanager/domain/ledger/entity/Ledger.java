@@ -9,7 +9,9 @@ import com.moneymanager.domain.ledger.enums.FixedYN;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
-import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import com.moneymanager.utils.date.DateTimeUtil;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,8 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
-import static com.moneymanager.utils.date.DateTimeUtil.isDateInRange;
+import static com.moneymanager.exception.code.LedgerErrorCode.*;
 
 
 /**
@@ -57,6 +58,7 @@ import static com.moneymanager.utils.date.DateTimeUtil.isDateInRange;
 @Builder
 @Getter
 public class Ledger {
+
 	private Long id;											//가계부 번호(내부용)
 	private final String code;							//가계부 코드(외부용)
     private final String memberId;					//작성자(회원 고유번호)
@@ -161,76 +163,53 @@ public class Ledger {
 
 	// ===== 비즈니스 규칙 검증 =====
 	private static void validateDate(String date) {
-		try{
-			LocalDate transDate = DateTimeUtil.parseDateFromYyyyMMdd(date);		//가계부 거래날짜
-			LocalDate today = LocalDate.now();	//오늘날짜
+		String format = DatePatterns.DATE.getPattern();
 
-			LocalDate fiveYearsAgo = today.minusYears(Policy.LEDGER_MAX_YEAR);	//오늘 기준 5년 전
-			if(!isDateInRange(transDate, fiveYearsAgo, today)) {
-				throw BusinessException.of(
-						LEDGER_INPUT_RANGE,
-						String.format("가계부 검증 실패   |   reason=범위오류   |   field=date   |   min=%s   |   max=%s   |   value=%s", DateTimeUtil.formatDate(fiveYearsAgo, DatePatterns.DATE.getPattern()), DateTimeUtil.formatDate(today, DatePatterns.DATE.getPattern()), date)
-				).withUserMessage(String.format("최근 %d년 이내에 날짜만 가능합니다.", Policy.LEDGER_MAX_YEAR));
-			}
-		}catch (IllegalArgumentException e) {
-			String format = "yyyyMMdd";
+		LocalDate transDate = DateTimeUtil.parseDateFromYyyyMMdd(date);		//가계부 거래날짜
+		LocalDate today = LocalDate.now();	//오늘날짜
 
+		LocalDate fiveYearsAgo = today.minusYears(Policy.LEDGER_MAX_YEAR);	//오늘 기준 5년 전
+		if(!DateTimeUtil.isDateInRange(transDate, fiveYearsAgo, today)) {
 			throw BusinessException.of(
-					LEDGER_INPUT_FORMAT,
-					String.format("가계부 검증 실패   |   %s", e.getMessage())
-			)
-					.withUserMessage(String.format("날짜는 %s 형식으로 입력해주세요.", format))
-					.withCause(e);
+					OUT_OF_RANGE,
+					DeveloperLogInfo.of("가계부 검증", "거래날짜 허용 범위 초과", "date", date)
+							.addOption("min", DateTimeUtil.formatDate(fiveYearsAgo, format))
+							.addOption("max", DateTimeUtil.formatDate(today, format)),
+					String.format("최근 %d년 이내 날짜만 가능합니다.", Policy.LEDGER_MAX_YEAR)
+			);
 		}
 	}
 
-	private static void validateCategory(String categoryCode) {
-		if(!(categoryCode.startsWith("01") || categoryCode.startsWith("02"))) {
-			throw BusinessException.of(
-					LEDGER_INPUT_FORMAT,
-					"가계부 검증 실패   |   reason=형식오류   |   field=categoryCode   |   expectedFormat=01/02로 시작하는 6자리 숫자 (예: 010101)   |   value="+categoryCode
-			).withUserMessage("사용할 수 없는 카테고리 입니다.");
+	private static void validateCategory(String code) {
+		if(!(code.startsWith("01") || code.startsWith("02"))) {
+			throw ValidationException.of(
+					INVALID_VALUE,
+					DeveloperLogInfo.of("가계부 검증", "허용되지 않은 카테고리 코드", "category", code)
+							.addOption("allowedPrefix", "01, 02"),
+					"사용할 수 없는 카테고리 입니다."
+			);
 		}
 
 		//TODO: 범위 검증 추가
 	}
 
 	private static void validateFixInfo(String fix, String cycle) {
-		FixedYN fixedYN;
-
-		try{
-			fixedYN = FixedYN.from(fix);
-		}catch (IllegalArgumentException e) {
-			throw BusinessException.of(
-							LEDGER_INPUT_INVALID,
-							"가계부 검증 실패   |   " + e.getMessage()
-					)
-					.withUserMessage("사용할 수 없는 고정 여부 입니다.")
-					.withCause(e);
-		}
+		FixedYN fixedYN = FixedYN.from(fix);
 
 		if(fixedYN == FixedYN.REPEAT) {
-			try{
-				FixCycle.from(cycle);
-			}catch (IllegalArgumentException e) {
-				throw BusinessException.of(
-								LEDGER_INPUT_INVALID,
-								"가계부 검증 실패   |   " + e.getMessage()
-						)
-						.withUserMessage("사용할 수 없는 고정 주기 입니다.")
-						.withCause(e);
-			}
+			FixCycle.from(cycle);
 
 			return;
 		}
 
 		if(cycle != null) {
-			throw BusinessException.of(
-					LEDGER_POLICY_NOT_ALLOWED,
-					"가계부 검증 실패   |   reason=정책위반   |   field=fixCycle   |   policy=고정이 아닌데 주기가 존재   |   value=" + cycle
-			).withUserMessage("고정이 아닌 경우에는 주기를 설정할 수 없습니다. 고정 여부를 확인해주세요.");
+			throw ValidationException.of(
+					POLICY_VIOLATION,
+					DeveloperLogInfo.of("가계부 검증", "고정 여부와 주기 불일치", "fixCycle", cycle)
+							.addOption("policy", "고정이 아닌 경우 주기 설정 불가"),
+					"고정이 아닌 경우에는 주기를 설정할 수 없습니다. 고정 여부를 확인해주세요."
+			);
 		}
-
 	}
 
 }

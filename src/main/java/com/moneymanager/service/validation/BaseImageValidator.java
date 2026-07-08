@@ -1,6 +1,9 @@
 package com.moneymanager.service.validation;
 
-import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.exception.ExternalException;
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -8,8 +11,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
-import static com.moneymanager.utils.string.StringUtil.unwrap;
+import static com.moneymanager.exception.code.CommonErrorCode.*;
 
 /**
  * <p>
@@ -39,30 +41,38 @@ import static com.moneymanager.utils.string.StringUtil.unwrap;
  * </table>
  */
 public abstract class BaseImageValidator implements ImageValidator {
+
+	private final String work = "파일 검증";
+
 	protected void checkIsImage(String contentType) {
 		if(contentType == null || !contentType.startsWith("image/")) {
 			throw BusinessException.of(
-					FILE_POLICY_NOT_ALLOWED,
-					"파일 검증 실패   |   reason=정책위반   |   object=file   |   field=contentType   |   policy=이미지가 아닌 다른 파일 업로드 시도  |   value=" + contentType
-			).withUserMessage("이미지 파일만 업로드 할 수 있습니다.");
+					UNSUPPORTED_FILE_TYPE,
+					DeveloperLogInfo.of(work, "이미지 파일 아님", MultipartFile.class, "contentType", contentType)
+							.addOption("policy", "이미지가 아닌 다른 파일 업로드 시도"),
+					"이미지 파일만 업로드 할 수 있습니다."
+			);
 		}
 	}
 
 	protected void checkExtension(String fileName, List<String> allowedExtensions) {
 		if(fileName == null || !fileName.contains(".")) {
-			throw BusinessException.of(
-					FILE_INPUT_FORMAT,
-					"파일 검증 실패   |   reason=형식오류   |   object=imageFile   |   field=fileName   |   value=" + fileName
-			).withUserMessage("잘못된 파일 이름입니다. 다른 파일로 진행해주세요.");
+			throw ValidationException.of(
+					INVALID_FORMAT,
+					DeveloperLogInfo.of(work,"파일 확장자 없음", MultipartFile.class, "fileName", fileName),
+					"잘못된 파일 이름입니다. 다른 파일로 진행해주세요."
+			);
 		}
 
 		String ext = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
 
 		if(!allowedExtensions.contains(ext)) {
 			throw BusinessException.of(
-					FILE_INPUT_FORMAT,
-					"파일 검증 실패   |   reason=허용값아님   |   object=imageFile   |   field=fileName   |   allowedType=" + unwrap(allowedExtensions.toString(), "[", "]") + "   |   value=" + ext
-			).withUserMessage("지원하지 않은 확장자입니다. 다른 파일로 진행해주세요.");
+					UNSUPPORTED_FILE_TYPE,
+					DeveloperLogInfo.of(work, "허용되지 않은 확장자", MultipartFile.class, "fileName", fileName)
+							.addOption("allowed", allowedExtensions),
+					"지원하지 않은 확장자입니다. 다른 파일로 진행해주세요."
+			);
 		}
 	}
 
@@ -73,24 +83,30 @@ public abstract class BaseImageValidator implements ImageValidator {
 
 			if(read < 4) {
 				throw BusinessException.of(
-						FILE_INPUT_ETC,
-						"이미지 검증 실패   |   reason=길이오류   |   object=imageFile   |   field=header   |   expectedLength=4   |   value=" + read
-				).withUserMessage("손상된 파일입니다. 다른 파일로 진행해주세요.");
+						FILE_CORRUPTED,
+						DeveloperLogInfo.of(work, "파일 헤더 길이 부족", MultipartFile.class, "header", String.valueOf(read))
+								.addOption("size", 4),
+						"손상된 파일입니다. 다른 파일로 진행해주세요."
+				);
 			}
 
 			String hex = byteToHex(Arrays.copyOf(header, 4));
 
 			if(!allowedHeaders.contains(hex)) {
 				throw BusinessException.of(
-						FILE_POLICY_NOT_ALLOWED,
-						"이미지 검증 실패   |   reason=허용값아님   |   object=imageFile   |   field=headerHex   |   allowedValues=" + unwrap(allowedHeaders.toString(), "[", "]") + "   |   value=" + hex
-				).withUserMessage("지원하지 않은 파일입니다. 다른 파일로 진행해주세요.");
+						UNSUPPORTED_FILE_TYPE,
+						DeveloperLogInfo.of(work, "허용하지 않은 파일", MultipartFile.class, "headerHex", hex)
+								.addOption("allowed", allowedHeaders.toString()),
+						"지원하지 않은 파일입니다. 다른 파일로 진행해주세요."
+				);
 			}
 		}catch (IOException e) {
-			throw BusinessException.of(
-					FILE_INPUT_ETC,
-					"이미지 검증 실패   |   reason=파일읽기실패   |   object=imageFile"
-			).withUserMessage("손상된 파일입니다. 다른 파일로 진행해주세요.");
+			throw ExternalException.of(
+					FILE_READ_FAILED,
+					DeveloperLogInfo.of(work, "파일 읽기 불가", MultipartFile.class, "fileName", file.getOriginalFilename()),
+					"읽을 수 없는 파일입니다. 다른 파일로 진행해주세요.",
+					e
+			);
 		}
 	}
 
@@ -109,17 +125,21 @@ public abstract class BaseImageValidator implements ImageValidator {
 		long max = 5 * 1024 * 1024;
 
 		if(size <= 0) {
-			throw BusinessException.of(
-					FILE_INPUT_EMPTY,
-					String.format("이미지 검증 실패   |   reason=크기오류   |   object=imageFile   |   field=size   |   maxSize~%dMB   |   value=0", max)
-			).withUserMessage("빈 파일은 업로드 할 수 없습니다.");
+			throw ExternalException.of(
+					FILE_READ_FAILED,
+					DeveloperLogInfo.of(work, "파일 사이즈 0", MultipartFile.class, "size", String.valueOf(size))
+									.addOption("min", 1),
+					"빈 파일은 업로드 할 수 없습니다."
+			);
 		}
 
 		if(size > max) {
-			throw BusinessException.of(
-					FILE_POLICY_LIMIT_EXCEEDED,
-					 String.format("이미지 검증 실패   |   reason=파일크기오류   |   object=imageFile   |   field=size   |   maxSize=%dMB   |   value=%d", max, size)
-			).withUserMessage(String.format("파일은 최대 %dMB까지만 업로드 가능합니다. 파일을 확인해주세요.", max));
+			throw ExternalException.of(
+					FILE_TOO_LARGE,
+					DeveloperLogInfo.of(work, "파일 용량 초과", MultipartFile.class, "size", String.valueOf(size))
+							.addOption("max", max),
+					String.format("파일은 최대 %dMB까지만 업로드 가능합니다. 파일을 확인해주세요.", max)
+			);
 		}
 
 	}

@@ -3,8 +3,9 @@ package com.moneymanager.domain.ledger.policy;
 import com.moneymanager.domain.global.Policy;
 import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.domain.ledger.enums.HistoryType;
-import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.error.ErrorCode;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import com.moneymanager.utils.date.DateTimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,9 @@ import java.time.temporal.TemporalAdjusters;
 
 import static com.moneymanager.domain.global.Policy.LEDGER_END_WEEK;
 import static com.moneymanager.domain.global.Policy.LEDGER_START_WEEK;
+import static com.moneymanager.exception.code.CommonErrorCode.OUT_OF_RANGE;
+import static com.moneymanager.exception.code.CommonErrorCode.REQUIRED_VALUE;
+import static com.moneymanager.exception.log.DeveloperLogInfo.valueOf;
 import static com.moneymanager.utils.date.DateTimeUtil.isDateInRange;
 
 /**
@@ -51,12 +55,20 @@ public class LedgerHistoryPolicy {
 	private final Clock clock;
 
 	public DateRange calculateDateRange(HistoryType historyType, LocalDate date) {
-		if(historyType == null) {
-			throw new IllegalArgumentException("날짜기간 계산 실패   |   reason=필수값누락   |   enum=HistoryType   |   value=null");
+		if(historyType == null) {//Ill로 던지기
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("날짜 계산", "내역유형 객체 없음", HistoryType.class, null),
+					"기간 범위는 필수입니다."
+			);
 		}
 
 		if(date == null) {
-			throw new IllegalArgumentException("날짜기간 계산 실패   |   reason=필수값누락   |   object=LocalDate   |   value=null");
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("날짜 계산", "날짜 없음", "date", null),
+					"기간 범위는 필수입니다."
+			);
 		}
 
 		return switch (historyType) {
@@ -110,7 +122,7 @@ public class LedgerHistoryPolicy {
 	 *	</p>
 	 *
 	 * @param dateRange	검증할 조회 기간을 담은 객체
-	 * @throws BusinessException	조회 기간이 허용 범위를 초과한 경우 발생
+	 * @throws BusinessException    조회 기간이 허용 범위를 초과한 경우 발생
 	 */
 	public void validate(DateRange dateRange) {
 		LocalDate now = LocalDate.now(clock);
@@ -121,9 +133,11 @@ public class LedgerHistoryPolicy {
 
 		if( !(isDateInRange(from, fiveYearsAgo, now) && isDateInRange(to, fiveYearsAgo, now)) ) {
 			throw BusinessException.of(
-					ErrorCode.LEDGER_HISTORY_POLICY_VIOLATION,
-					"가계부 거래내역 검증 실패   |   reason=조건불만족   |   object=DateRange   |   condition=기간 초과   |   value={from: " + dateRange.getFrom().toString() + ", to: " + dateRange.getTo() + "}"
-			).withUserMessage("가계부 내역은 최근 5년 이내만 가능합니다.");
+					OUT_OF_RANGE,
+					DeveloperLogInfo.of("기간 검증", "기간 허용범위 초과", DateRange.class, valueOf("from", from, "to", to))
+							.addOption("policy", "조회 기간 초과된 날짜"),
+					"가계부 내역은 최근 5년 이내만 가능합니다."
+			);
 		}
 	}
 

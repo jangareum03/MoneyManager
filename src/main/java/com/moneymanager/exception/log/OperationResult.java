@@ -1,15 +1,14 @@
-package com.moneymanager.exception.handler;
+package com.moneymanager.exception.log;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import lombok.Getter;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.exception.handler<br>
- * 파일이름       : GlobalExceptionHandler<br>
+ * 패키지이름    : com.moneymanager.exception.log<br>
+ * 파일이름       : OperationResult<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 1. 5<br>
- * 설명              : 공통적으로 예외 발생 시 처리하는 클래스
+ * 생성날짜       : 26. 7. 1<br>
+ * 설명              : 운영 로그 결과를 정의한 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -23,15 +22,21 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 1. 5.</td>
+ * 		 	  <td>26. 7. 1</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
  */
-@ControllerAdvice
-@Slf4j
-public class GlobalExceptionHandler {
+public enum OperationResult {
+	SUCCESS("성공"),
+	FAIL("실패");
 
+	@Getter
+	private final String korean;
+
+	OperationResult(String korean) {
+		this.korean = korean;
+	}
 }

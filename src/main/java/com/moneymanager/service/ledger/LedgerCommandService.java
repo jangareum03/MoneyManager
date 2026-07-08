@@ -6,18 +6,16 @@ import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
-import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.error.ServiceAction;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
-import static com.moneymanager.exception.error.ErrorCode.*;
+import static com.moneymanager.exception.code.LedgerErrorCode.NOT_FOUND_DATA;
 
 
 /**
@@ -62,20 +60,13 @@ public class LedgerCommandService {
 
 	@Transactional
 	public void register(LedgerWriteRequest request) {
-		ServiceAction action = ServiceAction.LEDGER_REGISTER;
+		String memberId = securityUtil.getMemberId();
 
-		try{
-			String memberId = securityUtil.getMemberId();
+		Ledger ledger = createLedger(memberId, request);
 
-			Ledger ledger = createLedger(memberId, request);
+		Ledger savedLedger = save(ledger);
 
-			Ledger savedLedger = save(ledger);
-
-			imageCommandService.processImages(savedLedger, request);
-		}catch (BusinessException e) {
-			throw e.withService(action)
-					.withUserMessage("가계부 등록 중 문제가 발생했습니다. 다시 시도해 주세요.");
-		}
+		imageCommandService.processImages(savedLedger, request);
 	}
 
 	private Ledger createLedger(String memberId, LedgerWriteRequest request) {
@@ -84,26 +75,20 @@ public class LedgerCommandService {
 
 	@Transactional
 	public void update(String code, LedgerUpdateRequest request) {
-		ServiceAction action = ServiceAction.LEDGER_EDIT;
+		//1. 인증된 회원 조회
+		String memberId = securityUtil.getMemberId();
 
-		try{
-			//1. 인증된 회원 조회
-			String memberId = securityUtil.getMemberId();
+		//2. 기존 가계부 조회
+		Ledger ledger = ledgerReadService.getLedger(memberId, code);
 
-			//2. 기존 가계부 조회
-			Ledger ledger = ledgerReadService.getLedger(memberId, code);
+		//3. 수정값 반영
+		updateLedgerFields(ledger, request);
 
-			//3. 수정값 반영
-			updateLedgerFields(ledger, request);
+		//4. 가계부 저장
+		save(ledger);
 
-			//4. 가계부 저장
-			save(ledger);
-
-			//5. 이미지 삭제 및 추가
-			imageCommandService.processImages(ledger, request);
-		}catch(BusinessException e) {
-			throw e.withService(action);
-		}
+		//5. 이미지 삭제 및 추가
+		imageCommandService.processImages(ledger, request);
 	}
 
 	private void updateLedgerFields(Ledger ledger, LedgerUpdateRequest updateRequest) {
@@ -122,46 +107,25 @@ public class LedgerCommandService {
 	}
 
 	public Ledger save(Ledger ledger) {
-		try{
-			Long id;
+		Long id;
 
-			if( ledger.getId() == null ) {
-				id = ledgerRepository.insert(ledger);
-			}else {
-				int updatedRow = ledgerRepository.update(ledger);
+		if( ledger.getId() == null ) {
+			id = ledgerRepository.insert(ledger);
+		}else {
+			int updatedRow = ledgerRepository.update(ledger);
 
-				if(updatedRow != 1) {
-					throw BusinessException.of(
-							LEDGER_STATE_INVALID,
-							"가계부 수정 실패   |   reason=수정된 데이터 없음   |   object=Ledger   |   value=" + ledger.getId()
-					);
-				}
-
-				id = ledger.getId();
-			}
-
-			Ledger savedLedger = ledgerRepository.findById(id);
-			if(savedLedger == null) {
+			if(updatedRow != 1) {
 				throw BusinessException.of(
-						LEDGER_TARGET_NOT_FOUND,
-						"가계부 조회 실패   |   reason=객체없음   |   object=Ledger   |   value=" + id
+						NOT_FOUND_DATA,
+						DeveloperLogInfo.of("가계부 수정", "수정 대상 없음", Ledger.class, DeveloperLogInfo.valueOf("memberId", ledger.getMemberId(), "ledgerId", ledger.getId())),
+						"가계부를 수정할 수 없습니다. 잠시 후 다시 시도해주세요."
 				);
 			}
 
-			return savedLedger;
-		}catch (DuplicateKeyException e) {
-			throw BusinessException.of(
-					LEDGER_COLLISION_UNIQUE_CONSTRAINT,
-					"가계부 저장 실패   |   reason=DB저장실패   |   detail=중복키   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}"
-			)
-					.withCause(e);
-		}catch (DataIntegrityViolationException e) {
-			throw BusinessException.of(
-					LEDGER_COLLISION_UNIQUE_CONSTRAINT,
-					"가계부 저장 실패   |   reason=DB저장실패   |   detail=데이터 무결성 위반   |   object=Ledger   |   value={memberId:" + ledger.getMemberId() + ", ledgerCode:" + ledger.getCode() + "}"
-			)
-					.withCause(e);
+			id = ledger.getId();
 		}
+
+		return ledgerRepository.findById(id);
 	}
 
 }

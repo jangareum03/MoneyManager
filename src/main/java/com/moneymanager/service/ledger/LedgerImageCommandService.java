@@ -4,7 +4,9 @@ import com.moneymanager.domain.global.dto.StoredFile;
 import com.moneymanager.domain.ledger.dto.request.LedgerImageRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.entity.LedgerImage;
-import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.exception.ExternalException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.service.file.FileCommandService;
 import com.moneymanager.service.file.LedgerImageStorageStrategy;
@@ -17,7 +19,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.moneymanager.exception.error.ErrorCode.LEDGER_ETC_DB_ERROR;
+import static com.moneymanager.exception.code.CommonErrorCode.DATABASE_ERROR;
+import static com.moneymanager.exception.log.DeveloperLogInfo.valueOf;
 
 /**
  * <p>
@@ -114,11 +117,12 @@ public class LedgerImageCommandService {
 		try{
 			imageRepository.saveAll(ledgerImages);
 		}catch (DataAccessException e) {
-			throw BusinessException.of(
-							LEDGER_ETC_DB_ERROR,
-							"이미지 저장 실패   |   reason=DB추가실패   |   object=LedgerImage   |   value={memberId: " + ledger.getMemberId() + ", ledgerId: " + ledger.getId() + "}"
-					)
-					.withCause(e);
+			throw ExternalException.of(
+							DATABASE_ERROR,
+							DeveloperLogInfo.of("이미지 저장", "DB 저장 문제", LedgerImage.class, valueOf("memberId", ledger.getMemberId(), "ledgerId", ledger.getId())),
+					"이미지 저장 중 문제가 발생했습니다.",
+					e
+					);
 		}
 	}
 
@@ -145,10 +149,11 @@ public class LedgerImageCommandService {
 		int deleted  = imageRepository.deleteByLedgerId(ledger.getId());
 
 		if(deleted != imageSize) {
-			throw BusinessException.of(
-							LEDGER_ETC_DB_ERROR,
-							"이미지 삭제 실패   |   reason=DB삭제실패   |   object=LedgerImage   |   value={memberId: " + ledger.getMemberId() + ", ledgerId: " + ledger.getId() + "}"
-					);
+			throw ExternalException.of(
+					DATABASE_ERROR,
+					DeveloperLogInfo.of("이미지 삭제", "DB 삭제 실패", "ledgerId", String.valueOf(ledger.getId())),
+					"이미지 삭제 중 문제가 발생했습니다."
+			);
 		}
 	}
 

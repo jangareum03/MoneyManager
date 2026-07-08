@@ -1,16 +1,15 @@
 package com.moneymanager.service.file;
 
-import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.exception.ExternalException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 
-import static com.moneymanager.exception.error.ErrorCode.FILE_ETC_RESOURCE_ERROR;
-import static com.moneymanager.exception.error.ErrorCode.FILE_ETC_UNKNOWN;
+import static com.moneymanager.exception.code.CommonErrorCode.FILE_UPLOAD_FAILED;
 
 /**
  * <p>
@@ -47,10 +46,12 @@ public class FileCommandService {
 		try{
 			Files.createDirectories(directory);
 		}catch (IOException e) {
-			throw BusinessException.of(
-					FILE_ETC_UNKNOWN,
-					"폴더 생성 실패   |   reason=폴더생성실패   |   object=file   |   value=" + directory
-			).withCause(e);
+			throw ExternalException.of(
+					FILE_UPLOAD_FAILED,
+					DeveloperLogInfo.of("폴더 생성", getCause(e), Path.class, directory.toString()),
+					"폴더 생성 중 문제가 발생했습니다.",
+					e
+			);
 		}
 	}
 
@@ -58,10 +59,12 @@ public class FileCommandService {
 		try{
 			source.transferTo(target);
 		}catch (IOException e) {
-			throw BusinessException.of(
-					FILE_ETC_RESOURCE_ERROR,
-					"파일 저장 실패   |   reason=저장불가   |   object=file   |   value=" + target
-			).withCause(e);
+			throw ExternalException.of(
+					FILE_UPLOAD_FAILED,
+					DeveloperLogInfo.of("파일 저장", getCause(e), Path.class, target.toString()),
+					"파일 저장 중 문제가 발생했습니다.",
+					e
+			);
 		}
 	}
 
@@ -69,8 +72,29 @@ public class FileCommandService {
 		try {
 			Files.deleteIfExists(path);
 		}catch (IOException e) {
-			log.warn("파일 삭제 실패   |   reason=삭제불가   |   object=file   |   value={}", path);
+			throw ExternalException.of(
+					FILE_UPLOAD_FAILED,
+					DeveloperLogInfo.of("파일 삭제", getCause(e), Path.class, path.toString()),
+					"파일 삭제 중 문제가 발생했습니다.",
+					e
+			);
 		}
+	}
+
+	private String getCause(IOException e) {
+		if (e instanceof AccessDeniedException) {
+			return "접근 권한 없음";
+		}
+
+		if (e instanceof FileAlreadyExistsException) {
+			return "존재하는 파일 또는 폴더";
+		}
+
+		if (e instanceof NoSuchFileException) {
+			return "찾을 수 없는 파일 또는 폴더";
+		}
+
+		return "파일 시스템 오류";
 	}
 
 }

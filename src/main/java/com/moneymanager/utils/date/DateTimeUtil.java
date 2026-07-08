@@ -1,6 +1,9 @@
 package com.moneymanager.utils.date;
 
 
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
+
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -8,6 +11,8 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 
+import static com.moneymanager.exception.code.CommonErrorCode.INVALID_FORMAT;
+import static com.moneymanager.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 
 
@@ -47,58 +52,22 @@ public class DateTimeUtil {
 
 	private final static String DATE_FORMAT = "yyyyMMdd";
 
-	/**
-	 * 문자열을 {@link LocalDate}로 변환합니다.
-	 * <p>
-	 *     문자열 형식이 {@code yyyyMMdd}이면 파싱에 성공한 결과를 반환합니다.
-	 *     입력값이 null, 공백, {@code yyyyMMdd} 형식이 아닌 문자열은 {@link IllegalArgumentException}가 발생합니다.
-	 * </p>
-	 *
-	 * @param date	변환할 날짜 문자열
-	 * @return	변환된 {@link LocalDate}
-	 * @throws IllegalArgumentException	문자열 형식이 {@code yyyyMMdd}가 아닌 경우 발생
-	 */
 	public static LocalDate parseDateFromYyyyMMdd(String date) {
 		if(isNullOrBlank(date)) {
-			throw new IllegalArgumentException("reason=필수값누락   |   field=date   |   value=" + date);
+			throw ValidationException.of(
+						REQUIRED_VALUE,
+						DeveloperLogInfo.of("날짜 변환", "날짜 형식 없음", "date", date)
+					);
 		}
 
 		try{
 			return LocalDate.parse(date, DateTimeFormatter.ofPattern(DATE_FORMAT));
 		}catch (DateTimeParseException e) {
-			throw new IllegalArgumentException("reason=형식오류   |   field=date   |   expectedFormat=yyyyMMdd (예: 20260101)   |   value=" + date);
-		}
-	}
-
-
-	/**
-	 * 문자열을 {@link LocalDate}로 변환하고, 변환이 실패할 경우 기본값을 반환합니다.
-	 * <p>
-	 *     입력된 날짜 문자열은 {@code yyyyMMdd} 형식으로 파싱을 시도하여,
-	 *     파싱 과정에서 예외가 발생하면 지정된 기본날짜를 반환합니다.
-	 * </p>
-	 * <p>
-	 *     아래와 같은 경우에는 예외가 발생합니다.
-	 *     <ul>
-	 *         <li>defaultDate가 null인 경우</li>
-	 *     </ul>
-	 * </p>
-	 *
-	 *
-	 * @param date	변환할 날짜 문자열 (yyyyMMdd 형식)
-	 * @param defaultDate	변환 실패 시 반환할 기본 날짜
-	 * @return	변환된 {@link LocalDate}, 실패하면 defaultDate
-	 * @throws IllegalArgumentException	필수값이 없거나 defaultDate가 null인 경우
-	 */
-	public static LocalDate parseDateOrElse(String date, LocalDate defaultDate) {
-		if(defaultDate == null) {
-			throw new IllegalArgumentException("reason=객체없음   |   object=LocalDate   |   value=null");
-		}
-
-		try{
-			return parseDateFromYyyyMMdd(date);
-		}catch (IllegalArgumentException e) {
-			return defaultDate;
+			throw ValidationException.of(
+					INVALID_FORMAT,
+					DeveloperLogInfo.of("날짜 변환", "날짜 형식 불일치", "date", date)
+							.addOption("format", DATE_FORMAT + " (예: 20260101)")
+			);
 		}
 	}
 
