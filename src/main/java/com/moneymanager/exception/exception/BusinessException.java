@@ -11,7 +11,7 @@ import lombok.Getter;
  * 파일이름       : BusinessException<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 3. 6<br>
- * 설명              : 비즈니스 규칙으로 발생하는 예외 클래스
+ * 설명              : 서비스 문제로 발생하는 예외 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -40,10 +40,15 @@ public class BusinessException extends ApplicationException {
 	}
 
 	public static BusinessException of(ErrorCode errorCode, DeveloperLogInfo logInfo) {
-		return new BusinessException(errorCode, logInfo, errorCode.getDefaultMessage());
+		return of(errorCode, logInfo, errorCode.getDefaultMessage());
 	}
 
 	public static BusinessException of(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
+		return new BusinessException(errorCode, logInfo, userMessage);
+	}
+
+	@Override
+	protected BusinessException newInstance(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
 		return new BusinessException(errorCode, logInfo, userMessage);
 	}
 

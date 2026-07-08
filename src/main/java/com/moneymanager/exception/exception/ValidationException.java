@@ -5,11 +5,11 @@ import com.moneymanager.exception.log.DeveloperLogInfo;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.exception<br>
+ * 패키지이름    : com.moneymanager.exception.exception<br>
  * 파일이름       : ValidationException<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 6. 30<br>
- * 설명              : 입력 자체 문제로 발생하는 예외 클래스
+ * 생성날짜       : 26. 7. 1<br>
+ * 설명              : 잘못된 값 문제로 발생하는 예외 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -23,7 +23,7 @@ import com.moneymanager.exception.log.DeveloperLogInfo;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 6. 30</td>
+ * 		 	  <td>26. 7. 1</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
@@ -36,12 +36,17 @@ public class ValidationException extends ApplicationException {
 		super(errorCode, logInfo, userMessage);
 	}
 
-	public static ValidationException of(ErrorCode errorCode, DeveloperLogInfo logInfo) {
-		return new ValidationException(errorCode, logInfo, errorCode.getDefaultMessage());
+	public static ValidationException of(ErrorCode errorCode , DeveloperLogInfo logInfo) {
+		return ValidationException.of(errorCode, logInfo, errorCode.getDefaultMessage());
 	}
 
 	public static ValidationException of(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
 		return new ValidationException(errorCode, logInfo, userMessage);
+	}
+
+	@Override
+	protected ApplicationException newInstance(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
+		return of(errorCode, logInfo, userMessage);
 	}
 
 }

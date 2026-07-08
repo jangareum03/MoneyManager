@@ -43,8 +43,8 @@ public final class DevelopmentLogFormatter {
 		sb.append(log.getWork()).append(" 실패");
 
 		append(sb, "cause", log.getCause());
-		append(sb, "class", log.getClassName());
-		append(sb, "method", log.getMethod());
+		append(sb, "class", log.getSourceClass());
+		append(sb, "method", log.getSourceMethod());
 		append(sb, "target", log.getTarget() == null ? null : log.getTarget().getSimpleName());
 		append(sb, "field", log.getField());
 		append(sb, log.getOptions());

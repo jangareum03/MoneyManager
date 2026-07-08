@@ -38,10 +38,26 @@ public abstract class ApplicationException extends RuntimeException {
 	private final DeveloperLogInfo developerLog;		//개발 로그정보
 	private final String userMessage;								//안내 메시지
 
-	public ApplicationException(ErrorCode errorCode, DeveloperLogInfo developerLog, String userMessage) {
+	protected ApplicationException(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
+		this(errorCode, logInfo, userMessage, null);
+	}
+
+	protected ApplicationException(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage, Throwable throwable) {
+		super(throwable);
+
 		this.errorCode = errorCode;
-		this.developerLog = developerLog;
+		this.developerLog = logInfo;
 		this.userMessage = userMessage;
 	}
+
+	public ApplicationException withUserMessage(String userMessage) {
+		return newInstance(getErrorCode(), getDeveloperLog(), userMessage);
+	}
+
+	protected abstract ApplicationException newInstance(
+			ErrorCode errorCode,
+			DeveloperLogInfo logInfo,
+			String userMessage
+	);
 
 }
