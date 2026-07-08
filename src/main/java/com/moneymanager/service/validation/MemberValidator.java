@@ -2,8 +2,12 @@ package com.moneymanager.service.validation;
 
 
 import com.moneymanager.domain.global.enums.RegexPattern;
-import com.moneymanager.exception.client.LoginException;
-import groovyjarjarantlr4.v4.runtime.atn.ErrorInfo;
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
+import com.moneymanager.utils.string.StringUtil;
+
+import static com.moneymanager.exception.code.CommonErrorCode.INVALID_FORMAT;
+import static com.moneymanager.exception.code.CommonErrorCode.REQUIRED_VALUE;
 
 
 /**
@@ -36,79 +40,52 @@ import groovyjarjarantlr4.v4.runtime.atn.ErrorInfo;
 
 public class MemberValidator {
 
-	/**
-	 * 로그인 시 전달받은 <code>id</code>와 <code>password</code>가 유효한지  검증합니다.
-	 * <p>
-	 *     아이디(id) 또는 비밀번호(password) 둘 중 하나라도 유효하지 않으면 {@link LoginException}을 발생시킵니다.
-	 * </p>
-	 *
-	 * @param id					로그인 한 아이디
-	 * @param password		로그인 한 비밀번호
-	 * @throws LoginException	유효하지 않은 아이디/비밀번호 입력한 경우 발생
-	 */
-	public static void validateLogin( String id, String password ) {
-		ErrorInfo errorDTO = validateId(id);
+	private static final String MASKED_PASSWORD = "********";
 
-		//아이디 검증 실패한 상태
-		if( errorDTO != null ) {
-			throw new LoginException(errorDTO);
+	public static void validateLogin(String id, String password) {
+		validateId(id);
+		validatePassword(password);
+	}
+
+	private static void validateId(String id) {
+		if(StringUtil.isNullOrBlank(id)) {
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("아이디 검증", "아이디 없음","userName", id),
+					"아이디를 입력해주세요."
+			);
 		}
 
-		errorDTO = validatePassword(password);
-		if( errorDTO != null ) {
-			throw new LoginException(errorDTO);
+		if(!StringUtil.matchesPattern(id, RegexPattern.MEMBER_ID.getPattern())) {
+			throw ValidationException.of(
+					INVALID_FORMAT,
+					DeveloperLogInfo.of("아이디 검증", "아이디 형식 불일치", "userName", id)
+							.addOption("format", "영어, 숫자")
+							.addOption("min", 4)
+							.addOption("max", 15),
+					"아이디는 4~15자 사이의 영어와 숫자만 입력 가능합니다."
+			);
 		}
 	}
 
-
-	/**
-	 * 회원의 아이디를 검증합니다.
-	 * <p>
-	 *     로그인 시 전달받은 <code>id</code>의 입력 여부와 형식을 확인합니다.
-	 * </p>
-	 *
-	 * @param id		검증할 회원의 아이디
-	 * @return 검증에 통과하면 <code>null</code>, 실패하면  {@link ErrorInfo}
-	 */
-	private static ErrorInfo validateId(String id ) {
-		ErrorInfo errorDTO = null;
-
-		if( id == null || id.isBlank() ) {	//아이디 미입력한 경우
-			errorDTO = ErrorInfo.builder()
-					.logMessage("아이디를 입력해주세요.")
-					.build();
-		}else if( !id.matches(RegexPattern.MEMBER_ID.getPattern()) ) {	//아이디 형식 불일치한 경우
-			errorDTO = ErrorInfo.builder()
-					.logMessage("아이디는 4~15자 사이의 영어와 숫자만 입력 가능합니다.")
-					.build();
+	private static void validatePassword(String password ) {
+		if(StringUtil.isNullOrBlank(password)) {
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("비밀번호 검증", "비밀번호 없음", "password", MASKED_PASSWORD),
+					"비밀번호를 입력해주세요."
+			);
 		}
 
-		return errorDTO;
-	}
-
-
-	/**
-	 * 회원의 비밀번호를 검증합니다.
-	 * <p>
-	 *     로그인 시 전달받은 <code>password</code>의 입력 여부와 형식을 확인합니다.
-	 * </p>
-	 *
-	 * @param password		검증할 회원의 비밀번호
-	 * @return 검증에 통과하면 <code>null</code>, 실패하면  {@link ErrorInfo}
-	 */
-	private static ErrorInfo validatePassword(String password ) {
-		ErrorInfo errorDTO = null;
-
-		if( password == null || password.isBlank() ) {	//비밀번호 미입력한 경우
-			errorDTO = ErrorInfo.builder()
-					.logMessage("비밀번호를 입력해주세요.")
-					.build();
-		}else if( !password.matches(RegexPattern.MEMBER_PWD.getPattern()) ) {	//비밀번호 형식 불일치한 경우
-			errorDTO = ErrorInfo.builder()
-					.logMessage("비밀번호는 8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다.")
-					.build();
+		if(!StringUtil.matchesPattern(password, RegexPattern.MEMBER_PWD.getPattern()) ) {
+			throw ValidationException.of(
+					INVALID_FORMAT,
+					DeveloperLogInfo.of("비밀번호 검증", "비밀번호 형식 불일치", "password", MASKED_PASSWORD)
+							.addOption("format", "영어, 숫자, 느낌표, 퍼센트, 별표, #, ^")
+							.addOption("min", 8)
+							.addOption("max", 20),
+					"비밀번호는 8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다."
+			);
 		}
-
-		return errorDTO;
 	}
 }

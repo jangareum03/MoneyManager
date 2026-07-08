@@ -1,10 +1,13 @@
 package com.moneymanager.domain.ledger.enums;
 
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import static com.moneymanager.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 
 
@@ -75,15 +78,22 @@ public enum PaymentType {
 
 	public static PaymentType from(String code) {
 		if(isNullOrBlank(code)) {
-			throw new IllegalArgumentException(
-					"reason=필수값누락   |   object=PaymentType   |   value=" + code
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.builder()
+							.work("객체 생성")
+							.cause("필수값 누락")
+							.field("paymentType")
+							.value(code)
+							.build()
 			);
 		}
 
 		return Arrays.stream(values())
 				.filter(c -> c.name().equalsIgnoreCase(code))
 				.findFirst()
-				.orElseThrow(() -> new IllegalArgumentException(
+				.orElseThrow(() ->
+						new IllegalArgumentException(
 						"reason=허용값 아님   |   object=PaymentType   |   allowedValues=" + getAllowedValues() + "   |   value=" + code
 				));
 	}

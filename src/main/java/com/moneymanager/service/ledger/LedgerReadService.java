@@ -12,8 +12,9 @@ import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryMenuType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
-import com.moneymanager.exception.BusinessException;
 import com.moneymanager.exception.ServiceAction;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import com.moneymanager.mapper.LedgerMapper;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
@@ -32,6 +33,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static com.moneymanager.exception.code.LedgerErrorCode.NOT_FOUND_DATA;
 
 /**
  * <p>
@@ -308,7 +311,11 @@ public class LedgerReadService {
 		try{
 			return ledgerRepository.findByCode(memberId, code);
 		}catch (EmptyResultDataAccessException e) {
-			throw e;
+			throw BusinessException.of(
+					NOT_FOUND_DATA,
+					DeveloperLogInfo.of("가계부 조회", "조회 결과 없음", Ledger.class, DeveloperLogInfo.valueOf("memberId", memberId, "ledgerCode", code)),
+					"존재하지 않은 가계부입니다."
+			);
 		}
 	}
 

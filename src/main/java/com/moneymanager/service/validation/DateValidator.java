@@ -1,13 +1,16 @@
 package com.moneymanager.service.validation;
 
 
-import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.ErrorCode;
+import com.moneymanager.domain.global.vo.DateRange;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
+import com.moneymanager.utils.string.StringUtil;
 import org.springframework.stereotype.Component;
 
-import static com.moneymanager.exception.ErrorCode.*;
-import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
-import static com.moneymanager.utils.string.StringUtil.matchesPattern;
+import static com.moneymanager.exception.code.CommonErrorCode.INVALID_FORMAT;
+import static com.moneymanager.exception.code.CommonErrorCode.REQUIRED_VALUE;
+import static com.moneymanager.exception.code.LedgerErrorCode.POLICY_VIOLATION;
 
 /**
  * <p>
@@ -39,40 +42,73 @@ import static com.moneymanager.utils.string.StringUtil.matchesPattern;
 @Component
 public class DateValidator {
 
+	//TODO(refactor):
+	//DateValidator가 Ledger 도메인에 종속되어 있어 날짜 공통 검증(DateValidator)과 Ledger 도메인 검증(LedgerValidator)으로 분리 예정
+
 	private final static String DATE_FORMAT = "^[12]\\d{3}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])$";
 
 	public static void validateLedgerDate(String date) {
-		checkEmpty(date, LEDGER_INPUT_NULL, "날짜를 선택해주세요.","가계부 검증 실패   |   reason=필수값누락   |   field=date   |   value=" + date);
-		checkFormat(date, LEDGER_INPUT_FORMAT, "날짜는 yyyyMMdd 형식으로 입력해주세요.","가계부 검증 실패   |   reason=형식오류   |   field=date   |   expectedFormat=yyyyMMdd (예: 20260101)   |   value=" + date);
+		if(StringUtil.isNullOrBlank(date)) {
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("가계부 검증", "날짜 없음", "date", date),
+					"날짜를 선택해주세요."
+			);
+		}
+
+		if(!StringUtil.matchesPattern(date, DATE_FORMAT)) {
+			throw ValidationException.of(
+					INVALID_FORMAT,
+					DeveloperLogInfo.of("가계부 검증", "날짜 형식 불일치", "date", date)
+							.addOption("format", "yyyyMMdd (예: 20260101)"),
+					"날짜는 yyyyMMdd 형식으로 입력해주세요."
+			);
+		}
 	}
 
 	public static void validatePeriod(String startDate, String endDate) {
-		validateHistoryDate(startDate, "시작일");
-		validateHistoryDate(endDate, "종료일");
+		if(StringUtil.isNullOrBlank(startDate)) {
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("거래내역 검증", "시작일 없음", "startDate", startDate),
+					"시작일을 입력해주세요."
+			);
+		}
+
+		if(!StringUtil.matchesPattern(startDate, DATE_FORMAT)) {
+			throw ValidationException.of(
+					INVALID_FORMAT,
+					DeveloperLogInfo.of("거래내역 검증", "시작일 형식 불일치", "startDate", startDate)
+							.addOption("format", "yyyyMMdd (예: 20260101)"),
+					"시작일은 yyyyMMdd 형식으로 입력해주세요."
+			);
+		}
+
+		if(StringUtil.isNullOrBlank(endDate)) {
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("거래내역 검증", "종료일 없음", "endDate", endDate),
+					"날짜를 선택해주세요."
+			);
+		}
+
+		if(!StringUtil.matchesPattern(endDate, DATE_FORMAT)) {
+			throw ValidationException.of(
+					INVALID_FORMAT,
+					DeveloperLogInfo.of("거래내역 검증", "종료일 형식 불일치", "endDate", endDate)
+							.addOption("format", "yyyyMMdd (예: 20260101)"),
+					"종료일은 yyyyMMdd 형식으로 입력해주세요."
+			);
+		}
 
 		//기간 확인
 		if(startDate.compareTo(endDate) > 0) {
 			throw BusinessException.of(
-					LEDGER_HISTORY_INPUT_CONFLICT,
-					"가계부 거래내역 검증 실패   |   reason=논리충돌   |   rule=시작일<=종료일   |   value={startDate: " + startDate +", endDate: " + endDate +"}"
-			).withUserMessage("시작일은 종료일보다 이전 날짜로 입력해주세요.");
+					POLICY_VIOLATION,
+					DeveloperLogInfo.of("거래내역 검증", "시작일 > 종료일", DateRange.class, DeveloperLogInfo.valueOf("from", startDate, "to", endDate)),
+					"시작일은 종료일보다 이전 날짜로 입력해주세요."
+			);
 		}
 	}
 
-	public static void validateHistoryDate(String date, String fieldName) {
-		checkEmpty(date, LEDGER_HISTORY_INPUT_NULL,fieldName + "을 입력해주세요.","가계부 거래내역 검증 실패   |   reason=필수값누락   |   field=date   |   value=" + date);
-		checkFormat(date,	LEDGER_HISTORY_INPUT_FORMAT,fieldName + "는 yyyyMMdd 형식으로 입력해주세요.","가계부 거래내역 검증 실패   |   reason=형식오류   |   field=date   |   value=" + date);
-	}
-
-	private static void checkEmpty(String date, ErrorCode errorCode, String userMsg, String logMsg) {
-		if(isNullOrBlank(date)) {
-			throw BusinessException.of(errorCode, logMsg).withUserMessage(userMsg);
-		}
-	}
-
-	private static void checkFormat(String date, ErrorCode errorCode, String userMsg, String logMsg) {
-		if(!matchesPattern(date, DATE_FORMAT)) {
-			throw BusinessException.of(errorCode, logMsg).withUserMessage(userMsg);
-		}
-	}
 }

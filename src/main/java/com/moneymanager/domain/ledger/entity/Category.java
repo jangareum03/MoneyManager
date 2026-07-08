@@ -1,10 +1,13 @@
 package com.moneymanager.domain.ledger.entity;
 
-import com.moneymanager.exception.BusinessException;
-import com.moneymanager.exception.error.ErrorCode;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import lombok.Builder;
 import lombok.Getter;
 
+import static com.moneymanager.exception.code.CommonErrorCode.REQUIRED_VALUE;
+import static com.moneymanager.exception.code.LedgerErrorCode.DATA_INTEGRITY_ERROR;
 import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 
 
@@ -63,8 +66,8 @@ public class Category {
 		//부모 카테고리 검증
 		if(parent == null) {
 			throw BusinessException.of(
-					ErrorCode.LEDGER_CATEGORY_RELATION_PARENT,
-					"객체생성 실패   |   reason=객체없음   |   object=Category   |   value=null"
+					DATA_INTEGRITY_ERROR,
+					DeveloperLogInfo.of("객체 생성", "부모 카테고리 없음", "parent", null)
 			);
 		}
 
@@ -73,16 +76,16 @@ public class Category {
 
 	private static void validate(String code, String name) {
 		if(isNullOrBlank(code)) {
-			throw BusinessException.of(
-					ErrorCode.LEDGER_CATEGORY_TARGET_MISSING,
-					"카테고리 검증 실패   |   reason=필수값 누락   |   object=Category   |   field=code   |   value=" + code
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("카테고리 검증", "카테고리 코드 없음", "code", code)
 			);
 		}
 
 		if(isNullOrBlank(name)) {
-			throw BusinessException.of(
-					ErrorCode.LEDGER_CATEGORY_TARGET_MISSING,
-					"카테고리 검증 실패   |   reason=필수값 누락   |   object=Category   |   field=name   |   value=" + name
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("카테고리 검증", "카테고리 이름 없음", "name", name)
 			);
 		}
 	}

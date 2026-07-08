@@ -2,13 +2,15 @@ package com.moneymanager.service.validation;
 
 import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
-import com.moneymanager.exception.BusinessException;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-import static com.moneymanager.exception.ErrorCode.*;
+import static com.moneymanager.exception.code.CommonErrorCode.*;
 import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 import static com.moneymanager.utils.string.StringUtil.matchesPattern;
 
@@ -42,7 +44,7 @@ import static com.moneymanager.utils.string.StringUtil.matchesPattern;
 @Component
 public class LedgerValidator extends BaseImageValidator {
 
-	private final String FUNCTION_NAME = "가계부 검증 실패";
+	private final String work = "가계부 검증";
 
 	/**
 	 * 가계부 등록 요청 시 입력된 데이터가 정상적인지 검증합니다.
@@ -63,10 +65,11 @@ public class LedgerValidator extends BaseImageValidator {
 	 */
 	public void register(LedgerWriteRequest request) {
 		if(request == null) {
-			throw BusinessException.of(
-					LEDGER_INPUT_MISSING,
-					FUNCTION_NAME + "   |   reason=객체없음   |   object=LedgerWriteRequest   |   value=null"
-			).withUserMessage("가계부를 등록할 수 없습니다.");
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of(work, "요청 객체 없음", LedgerWriteRequest.class, null),
+					"가계부를 등록할 수 없습니다."
+			);
 		}
 
 		//필수정보 검증
@@ -84,10 +87,11 @@ public class LedgerValidator extends BaseImageValidator {
 	public void update(LedgerUpdateRequest request) {
 		//1. 객체 null 검증
 		if(request == null) {
-			throw BusinessException.of(
-					LEDGER_INPUT_MISSING,
-					FUNCTION_NAME + "   |   reason=객체없음   |   object=LedgerUpdateRequest   |   value=null"
-			).withUserMessage("가계부를 수정할 수 없습니다.");
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of(work,  "요청 객체 없음", LedgerUpdateRequest.class, null),
+					"가계부를 수정할 수 없습니다."
+			);
 		}
 
 		//2. 필수정보 검증
@@ -103,46 +107,53 @@ public class LedgerValidator extends BaseImageValidator {
 	//가계부 카테고리 검증
 	private void validateCategory(String categoryCode) {
 		if(isNullOrBlank(categoryCode)) {
-			throw BusinessException.of(
-					LEDGER_INPUT_NULL,
-					FUNCTION_NAME + "   |   reason=필수값누락   |   field=categoryCode   |   value=" + categoryCode
-			).withUserMessage("카테고리를 선택해주세요.");
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of(work, "카테고리 없음", "category", categoryCode),
+					"카테고리를 선택해주세요."
+			);
 		}
 
 		if(!matchesPattern(categoryCode, "\\d{6}")) {
-			throw BusinessException.of(
-					LEDGER_INPUT_INVALID,
-					FUNCTION_NAME + "   |   reason=형식오류   |   field=categoryCode   |   expectedFormat=6자리 숫자 (예: 123456)   |   value=" + categoryCode
-			).withUserMessage("허용하지 않은 카테고리입니다.");
+			throw ValidationException.of(
+					INVALID_FORMAT,
+					DeveloperLogInfo.of(work, "카테고리 형식 불일치", "category", categoryCode)
+							.addOption("format", "6자리 숫자 (예: 123456)"),
+					"허용하지 않은 카테고리입니다."
+			);
 		}
 	}
 
 	//가계부 금액 검증
 	private void validateAmount(Long amount){
 		if(amount == null) {
-			throw BusinessException.of(
-					LEDGER_INPUT_NULL,
-					FUNCTION_NAME + "   |   reason=필수값누락   |   field=amount   |   value=" + null
-			).withUserMessage("금액을 입력해주세요.");
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of(work, "금액 없음", "amount", null),
+					"금액을 입력해주세요."
+			);
 		}
 	}
 
 	private void validatePaymentType(String paymentType) {
 		if(isNullOrBlank(paymentType)) {
-			throw BusinessException.of(
-					LEDGER_INPUT_NULL,
-					FUNCTION_NAME + "   |   reason=필수값누락   |   field=paymentType   |   value=" + paymentType
-			).withUserMessage("금액 유형을 선택해주세요.");
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of(work, "금액 유형 없음", "paymentType", paymentType),
+					"금액 유형을 선택해주세요."
+			);
 		}
 	}
 
 	//가계부 고정주기 검증
 	private void validateFixCycle(String fixCycle) {
 		if(!isNullOrBlank(fixCycle) && !matchesPattern(fixCycle, "^[a-zA-Z]$")) {
-			throw BusinessException.of(
-					LEDGER_INPUT_INVALID,
-					FUNCTION_NAME + "   |   reason=형식오류   |   field=fixCycle   |   expectedFormat=1자리 영어 (예: w)   |   value=" + fixCycle
-			).withUserMessage("고정주기를 선택해주세요.");
+			throw ValidationException.of(
+					INVALID_FORMAT,
+					DeveloperLogInfo.of(work, "고정주기 형식 불일치", "fixCycle", fixCycle)
+							.addOption("format", "영어"),
+					"고정주기를 선택해주세요."
+			);
 		}
 	}
 
@@ -150,9 +161,12 @@ public class LedgerValidator extends BaseImageValidator {
 	private void validateMemo(String memo) {
 		if(!isNullOrBlank(memo) && memo.length() > 150) {
 			throw BusinessException.of(
-					LEDGER_INPUT_LENGTH,
-					FUNCTION_NAME + "   |   reason=길이오류   |   field=memo   |   maxLength=150   |   value=" + memo.length()
-			).withUserMessage("메모는 최대 150자까지 입력해주세요.");
+					OUT_OF_RANGE,
+					DeveloperLogInfo.of(work, "최대 길이 초과", "memo", String.valueOf(memo.length()))
+							.addOption("min", 0)
+							.addOption("max", 150),
+					"메모는 최대 150자까지 입력해주세요."
+			);
 		}
 	}
 
