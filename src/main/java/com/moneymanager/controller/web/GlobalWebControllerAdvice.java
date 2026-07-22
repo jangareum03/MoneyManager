@@ -1,12 +1,11 @@
 package com.moneymanager.controller.web;
 
 import com.moneymanager.domain.member.dto.MemberLoginResponse;
-import com.moneymanager.security.jwt.JwtTokenProvider;
+import com.moneymanager.security.CustomUserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * <p>
@@ -38,35 +37,20 @@ import javax.servlet.http.HttpServletRequest;
 @ControllerAdvice
 public class GlobalWebControllerAdvice {
 
-	private final JwtTokenProvider tokenProvider;
-
-	public GlobalWebControllerAdvice(JwtTokenProvider jwtTokenProvider) {
-		this.tokenProvider = jwtTokenProvider;
-	}
-
 	@ModelAttribute("member")
-	public MemberLoginResponse.Success getMemberInfo(HttpServletRequest request) {
-		String token = getTokenFromCookies(request);
+	public MemberLoginResponse.Success getMemberInfo() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-		if( token != null && tokenProvider.validateToken(token) ) {
-			return MemberLoginResponse.Success.builder()
-					.nickName(tokenProvider.getNickName(token))
-					.profile(tokenProvider.getProfile(token))
-					.build();
+		if(authentication == null) {
+			return null;
 		}
 
-		return null;
+		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+		return MemberLoginResponse.Success.builder()
+				.nickName(userDetails.getNickname())
+				.profile(userDetails.getProfile())
+				.build();
 	}
 
-	private String getTokenFromCookies(HttpServletRequest request) {
-		if( request.getCookies() == null) return  null;
-
-		for(Cookie cookie : request.getCookies() ) {
-			if( "ACCESS_TOKEN".equals(cookie.getName()) ) {
-				return cookie.getValue();
-			}
-		}
-
-		return null;
-	}
 }

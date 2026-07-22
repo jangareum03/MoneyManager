@@ -86,7 +86,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					);
 
 					//쿠키 갱신
-					Cookie newCookie = new Cookie("accessToken", newAccessToken);
+					Cookie newCookie = new Cookie("ACCESS_TOKEN", newAccessToken);
 					newCookie.setHttpOnly(true);
 					newCookie.setPath("/");
 					newCookie.setMaxAge(60 * 60);
@@ -98,7 +98,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					tokenDao.updateTokenIsNull(username);
 
 					//쿠키 초기화
-					Cookie clearCookie = new Cookie("accessToken", null);
+					Cookie clearCookie = new Cookie("ACCESS_TOKEN", null);
 					clearCookie.setMaxAge(0);
 					clearCookie.setPath("/");
 
@@ -115,7 +115,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		if( cookies != null ) {
 			for(Cookie cookie : cookies ) {
-				if( "accessToken".equals(cookie.getName()) ) {
+				if( "ACCESS_TOKEN".equals(cookie.getName()) ) {
 					return cookie.getValue();
 				}
 			}

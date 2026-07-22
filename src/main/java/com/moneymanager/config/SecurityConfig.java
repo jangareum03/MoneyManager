@@ -19,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 
 
 /**
@@ -108,6 +109,9 @@ public class SecurityConfig {
 						.failureHandler(failureHandler)
 						.permitAll()
 				)
+				.exceptionHandling(exception -> exception
+						.accessDeniedPage("/403")
+				)
 				.logout(logout -> logout
 						.logoutUrl("/logout")
 						.logoutSuccessUrl("/")
@@ -115,7 +119,7 @@ public class SecurityConfig {
 				)
 				.addFilterBefore(
 						traceIdFillter,
-						JwtAuthenticationFilter.class
+						SecurityContextHolderFilter.class
 				)
 				.addFilterBefore(
 						jwtAuthenticationFilter,
