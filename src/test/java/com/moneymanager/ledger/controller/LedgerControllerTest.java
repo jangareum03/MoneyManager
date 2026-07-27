@@ -2,8 +2,11 @@ package com.moneymanager.ledger.controller;
 
 import com.moneymanager.controller.ledger.LedgerController;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
+import com.moneymanager.domain.ledger.dto.response.HistoryDashboardResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.enums.CategoryType;
+import com.moneymanager.domain.ledger.enums.HistoryMenuType;
+import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.exception.exception.BusinessException;
 import com.moneymanager.exception.exception.ValidationException;
 import com.moneymanager.service.ledger.LedgerCommandService;
@@ -11,6 +14,7 @@ import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.validation.LedgerValidator;
 import com.moneymanager.support.ControllerTestSupport;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
+import com.moneymanager.support.fixture.response.HistoryDashboardResponseFixture;
 import com.moneymanager.support.fixture.response.LedgerWriteStep1ResponseFixture;
 import com.moneymanager.support.fixture.response.LedgerWriteStep2ResponseFixture;
 import com.moneymanager.support.security.WithMockCustomUser;
@@ -20,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +36,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import javax.servlet.http.Cookie;
-
 import java.time.LocalDate;
 import java.util.stream.Stream;
 
@@ -428,6 +432,164 @@ public class LedgerControllerTest extends ControllerTestSupport {
 						);
 			}
 			
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("가계부 내역 조회")
+	@WithMockCustomUser
+	class GetHistories {
+
+		private final String URL = "/ledgers";
+
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+			
+			@ParameterizedTest
+			@ValueSource(strings = {"week", "month", "Year"})
+			@DisplayName("정상적인 viewType이면 해당 타입으로 서비스가 호출된다.")
+			void fetchesData_whenViewTypeIsValid(String type) throws Exception {
+				//given: 정상적인 응답 객체가 반환되도록 Service의 동작이 정의되어 있다.
+				when(readService.getHistoryDashboard(any(HistoryType.class)))
+						.thenReturn(HistoryDashboardResponseFixture.create());
+				
+				//when: 가계부 내역 조회를 요청한다.
+				mockMvc.perform(
+						get(URL)
+								.param("viewType", type)
+				)
+						.andExpect(status().isOk());
+
+				//then: LedgerReadService에서 내역조회 메서드가 호출된다.
+				switch (type) {
+					case "week" -> verify(readService).getHistoryDashboard(HistoryType.WEEK);
+					case "month" -> verify(readService).getHistoryDashboard(HistoryType.MONTH);
+					case "year" -> verify(readService).getHistoryDashboard(HistoryType.YEAR);
+				}
+			}
+
+			@Test
+			@DisplayName("잘못된 viewType이면 기본 타입으로  변환된다.")
+			void returnsDefaultType_whenViewTypeIsInvalid() throws Exception {
+				//given: 잘못된 viewType과 정상적인 응답 객체가 반환되도록 동작이 되어 있다.
+				String viewType = "error";
+
+				when(readService.getHistoryDashboard(any(HistoryType.class)))
+						.thenReturn(HistoryDashboardResponseFixture.create());
+
+				//when: 가계부 내역 조회를 요청한다.
+				mockMvc.perform(
+						get(URL)
+								.param("viewType", viewType)
+				)
+						.andExpect(status().isOk());
+				
+				//then: HistoryType은 MONTH로 변환된다.
+				verify(readService).getHistoryDashboard(HistoryType.MONTH);
+			}
+			
+			@ParameterizedTest
+			@NullSource
+			@DisplayName("viewType이 null이면 기본 타입으로 변환된다.")
+			void returnsDefaultType_whenViewTypeIsNull(String viewType) throws Exception {
+				//given: 응답 객체가 반환되도록 동작이 되어 있다.
+				when(readService.getHistoryDashboard(any(HistoryType.class)))
+						.thenReturn(HistoryDashboardResponseFixture.create());
+
+				//when: 가계부 내역 조회를 요청한다.
+				mockMvc.perform(
+						get(URL)
+								.param("viewType", viewType)
+				)
+						.andExpect(status().isOk());
+
+				//then: HistoryType은 MONTH로 변환된다.
+				verify(readService).getHistoryDashboard(HistoryType.MONTH);
+			}
+			
+			@ParameterizedTest
+			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@DisplayName("viewType이 빈 문자열이면 기본 타입으로 변환된다.")
+			void returnsDefaultType_whenViewTypeIsEmpty(String viewType) throws Exception {
+				//given: 응답 객체가 반환되도록 동작이 되어 있다.
+				when(readService.getHistoryDashboard(any(HistoryType.class)))
+						.thenReturn(HistoryDashboardResponseFixture.create());
+
+				//when: 가계부 내역 조회를 요청한다.
+				mockMvc.perform(
+								get(URL)
+										.param("viewType", viewType)
+						)
+						.andExpect(status().isOk());
+
+				//then: HistoryType은 MONTH로 변환된다.
+				verify(readService).getHistoryDashboard(HistoryType.MONTH);
+			}
+			
+			@Test
+			@DisplayName("페이지에 필요한 Model 속성을 저장한다.")
+			void savesModelAttributes_whenPageIsRequested() throws Exception {
+				//given: 응답 객체가 반환되도록 동작이 되어 있다.
+				HistoryDashboardResponse response = HistoryDashboardResponseFixture.create();
+
+				when(readService.getHistoryDashboard(HistoryType.MONTH))
+						.thenReturn(response);
+
+				//when: 가계부 내역 조회를 요청한다.
+				mockMvc.perform(
+								get(URL)
+										.param("viewType", "month")
+						)
+						.andExpect(status().isOk())
+						.andExpect(model().attribute("history", response))
+						.andExpect(model().attribute("type", HistoryType.MONTH))
+						.andExpect(model().attribute("activeMenu", HistoryMenuType.ALL.name()));
+			}
+			
+			@Test
+			@DisplayName("가계부 목록 페이지를 반환한다.")
+			void returnsLedgerListPage_whenRequestIsValid() throws Exception {
+				//given: 응답 객체가 반환되도록 동작이 되어 있다.
+				HistoryDashboardResponse response = HistoryDashboardResponseFixture.create();
+
+				when(readService.getHistoryDashboard(HistoryType.YEAR))
+						.thenReturn(response);
+
+				//when: 가계부 내역 조회를 요청한다.
+				mockMvc.perform(
+								get(URL)
+										.param("viewType", "year")
+						)
+						.andExpect(status().isOk())
+						.andExpect(view().name("/ledger/ledger_history"));
+			}
+
+		}
+		
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+			
+			@Test
+			@DisplayName("서비스 예외가 발생하면 예외가 전달된다.")
+			void throwsException_whenServiceFails() throws Exception {
+				//given: LedgerReadService에서 예외가 발생하도록 동작이 정의되어 있다.
+				when(readService.getHistoryDashboard(any(HistoryType.class)))
+						.thenThrow(ValidationException.class);
+				
+				//when & then: 가계부 내역 조회 중 예외가 발생한다.
+				mockMvc.perform(
+						get(URL)
+								.param("viewType", "month")
+				)
+						.andExpect(result ->
+							assertThat(result.getResolvedException()).isInstanceOf(ValidationException.class)
+						);
+			}
+		
 		}
 
 	}

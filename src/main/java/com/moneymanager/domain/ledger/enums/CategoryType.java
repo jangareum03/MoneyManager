@@ -1,11 +1,16 @@
 package com.moneymanager.domain.ledger.enums;
 
 
+import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import static com.moneymanager.exception.code.CommonErrorCode.INVALID_VALUE;
+import static com.moneymanager.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static com.moneymanager.utils.string.StringUtil.isNullOrBlank;
 
 
@@ -56,15 +61,22 @@ public enum CategoryType {
 		return Arrays.stream(values())
 				.filter(t -> t.name().equalsIgnoreCase(type))
 				.findFirst()
-				.orElseThrow(() -> new IllegalArgumentException(
-						"reason=허용값 아님   |   object=CategoryType   |   allowedValues=" + getAllowedValues() + "   |   value=" + type
-				));
+				.orElseThrow(() ->
+						ValidationException.of(
+								INVALID_VALUE,
+								DeveloperLogInfo.of("CategoryType 변환", "허용되지 않은 값", CategoryType.class, "name", type)
+										.addOption("allowed", getAllowedValues()),
+								"허용하지 않은 가계부 유형입니다."
+						)
+				);
 	}
 
 	private static void validateType(String type) {
 		if(isNullOrBlank(type)) {
-			throw new IllegalArgumentException(
-					"reason=필수값누락   |   object=CategoryType   |   value=" + type
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("CategoryType 변환", "필수값 누락", CategoryType.class, "name", type),
+					"가계부 유형은 필수입니다."
 			);
 		}
 	}
@@ -81,15 +93,22 @@ public enum CategoryType {
 		return Arrays.stream(values())
 				.filter(t -> code.startsWith(t.prefix))
 				.findFirst()
-				.orElseThrow(() -> new IllegalArgumentException(
-						"reason=허용값 아님   |   object=CategoryType   |   allowedValues=" + getAllowedPrefixes() + "   |   value=" + code
-				));
+				.orElseThrow(() ->
+						ValidationException.of(
+								INVALID_VALUE,
+								DeveloperLogInfo.of("CategoryType 변환", "허용되지 않은 값", Category.class, "code", code)
+										.addOption("allowedPrefix", getAllowedPrefixes()),
+								"허용하지 않은 카테고리 코드입니다."
+						)
+				);
 	}
 
 	private static void validateCategoryCode(String code) {
 		if(isNullOrBlank(code)) {
-			throw new IllegalArgumentException(
-					"reason=필수값누락   |   object=CategoryType   |   value=" + code
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					DeveloperLogInfo.of("CategoryType 변환", "필수값 누락", Category.class, "code", code),
+					"카테고리 코드는 필수입니다."
 			);
 		}
 	}

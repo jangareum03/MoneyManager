@@ -33,6 +33,7 @@ import lombok.Getter;
  */
 @Getter
 public class HistoryItem {
+
 	private final String code;												//가계부 코드
 	private final Long amount;											//가계부 금액
 	private final String memo;												//가계부 메모
@@ -52,8 +53,9 @@ public class HistoryItem {
 				query.getCode(),
 				query.getAmount(),
 				query.getMemo(),
-				CategoryType.from(query.getCategoryCode()),
+				CategoryType.fromCode(query.getCategoryCode()),
 				query.getCategoryName()
 		);
 	}
+
 }

@@ -161,11 +161,9 @@ public class LedgerReadService {
 		// 1. 인증된 사용자 조회
 		String memberId = securityUtil.getMemberId();
 
-		// 2. 기간 생성 후 검증
+		// 2. 기간 생성
 		LocalDate today = LocalDate.now(clock);
 		DateRange dateRange = ledgerHistoryPolicy.calculateDateRange(historyType, today);
-
-		ledgerHistoryPolicy.validate(dateRange);
 
 		// 3. 내역 조회
 		List<LedgerHistoryQuery> histories = ledgerRepository.findHistoriesByMemberAndDateBetween(memberId, dateRange.getFrom(), dateRange.getTo());

@@ -1,9 +1,10 @@
 package com.moneymanager.ledger.domain.policy;
 
-import com.moneymanager.domain.global.enums.DatePatterns;
+import com.moneymanager.domain.global.Policy;
 import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
+import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -11,12 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import com.moneymanager.support.ApplicationExceptionAssert;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
 import static com.moneymanager.exception.code.CommonErrorCode.OUT_OF_RANGE;
@@ -56,23 +56,18 @@ public class LedgerHistoryPolicyTest {
 
 	private LedgerHistoryPolicy target;
 
-	private final static LocalDate localDate = LocalDate.of(2026, 3, 15);
-	private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DatePatterns.DATE.getPattern());
+	private static final Clock FIXED_CLOCK = Clock.fixed(
+			Instant.parse("2026-01-15T00:00:00Z"),
+			ZoneId.systemDefault()
+	);
+
+	private static final LocalDate TODAY = LocalDate.now(FIXED_CLOCK);
 
 
 	@BeforeEach
 	void setUp() {
-		Clock clock = Clock.fixed(
-				localDate
-						.atStartOfDay()
-						.atZone(ZoneId.of("Asia/Seoul"))
-						.toInstant(),
-				ZoneId.of("Asia/Seoul")
-		);
-
-		target = new LedgerHistoryPolicy(clock);
+		target = new LedgerHistoryPolicy(FIXED_CLOCK);
 	}
-
 
 	@Nested
 	@DisplayName("날짜범위 계산")
@@ -204,14 +199,14 @@ public class LedgerHistoryPolicyTest {
 						.hasCauseMessage("필수값 누락")
 						.hasTarget(HistoryType.class)
 						.hasValue(null)
-						.hasUserMessage("기간 범위", "필수");
+						.hasUserMessage("내역 유형", "필수");
 			}
 
 			@Test
 			@DisplayName("날짜가 null이면 예외가 발생한다.")
 			void throwsException_whenLocalDateIsNull() {
 				//when & then: LocalDate를 null로 하면 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(catchException(() -> target.calculateDateRange(null, LocalDate.now())))
+				ApplicationExceptionAssert.assertThatApplicationException(catchException(() -> target.calculateDateRange(HistoryType.MONTH, null)))
 						.hasErrorCode(REQUIRED_VALUE)
 						.hasWork("날짜 계산")
 						.hasCauseMessage("필수값 누락")
@@ -233,7 +228,7 @@ public class LedgerHistoryPolicyTest {
 		@Nested
 		@DisplayName("성공 케이스")
 		class Success {
-		
+
 			@ParameterizedTest
 			@MethodSource("provideValidDateRanges")
 			@DisplayName("날짜가 범위내면 검증에 통과한다.")
@@ -241,7 +236,7 @@ public class LedgerHistoryPolicyTest {
 				//when & then: DateRange 검증을 통과한다.
 				assertThatCode(() -> target.validate(dateRange))
 						.doesNotThrowAnyException();
-				
+
 			}
 
 			static Stream<Arguments> provideValidDateRanges() {
@@ -250,16 +245,16 @@ public class LedgerHistoryPolicyTest {
 							named(
 					"시작일, 종료일 모두 범위 내 날짜",
 									new DateRange(
-											localDate.minusYears(3).plusMonths(7).plusDays(5),
-											localDate.minusMonths(5)
+											TODAY.minusYears(3).plusMonths(7).plusDays(5),
+											TODAY.minusMonths(5)
 									)
 					)),
 					Arguments.of(
 							named(
 									"시작일은 5년전, 종료일은 범위 내 날짜",
 									new DateRange(
-											localDate.minusYears(5),
-											localDate.minusMonths(1).plusDays(2)
+											TODAY.minusYears(5),
+											TODAY.minusMonths(1).plusDays(2)
 									)
 							)
 					),
@@ -267,8 +262,8 @@ public class LedgerHistoryPolicyTest {
 							named(
 									"시작일은 범위 내, 종료일은 현재날짜",
 									new DateRange(
-											localDate.minusYears(2).plusMonths(2).minusDays(10),
-											localDate
+											TODAY.minusYears(2).plusMonths(2).minusDays(10),
+											TODAY
 									)
 							)
 					),
@@ -276,7 +271,8 @@ public class LedgerHistoryPolicyTest {
 							named(
 									"시작일, 종료일 모두 5년전 날짜",
 									new DateRange(
-											localDate.minusYears(5), localDate.minusYears(5)
+											TODAY.minusYears(5),
+											TODAY.minusYears(5)
 									)
 							)
 					),
@@ -284,7 +280,8 @@ public class LedgerHistoryPolicyTest {
 							named(
 									"시작일, 종료일 모두 현재 날짜",
 									new DateRange(
-											localDate, localDate
+											TODAY,
+											TODAY
 									)
 							)
 					)
@@ -297,7 +294,7 @@ public class LedgerHistoryPolicyTest {
 		@Nested
 		@DisplayName("실패 케이스")
 		class Failure {
-			
+
 			@ParameterizedTest
 			@MethodSource("provideInvalidDateRange")
 			@DisplayName("날짜가 범위에 벗어나면 예외가 발생한다.")
@@ -309,10 +306,11 @@ public class LedgerHistoryPolicyTest {
 				ApplicationExceptionAssert.assertThatApplicationException(throwable)
 						.hasErrorCode(OUT_OF_RANGE)
 						.hasWork("기간 검증")
-						.hasCauseMessage("기간 범위 초과")
+						.hasCauseMessage("범위 오류")
 						.hasTarget(DateRange.class)
 						.hasValue(valueOf("from", dateRange.getFrom(), "to", dateRange.getTo()))
-						.hasOption("policy", "조회 기간 초과된 날짜")
+						.hasOption("min", String.valueOf(TODAY.minusYears(Policy.LEDGER_MAX_YEAR)))
+						.hasOption("max", String.valueOf(TODAY))
 						.hasUserMessage("내역", "최근 5년 이내");
 			}
 
@@ -322,8 +320,8 @@ public class LedgerHistoryPolicyTest {
 								named(
 										"시작일, 종료일 모두 현재일 기준 5년 이전인 경우",
 										new DateRange(
-												localDate.minusYears(5).minusMonths(1),
-												localDate.minusYears(5).minusDays(5)
+												TODAY.minusYears(5).minusMonths(1),
+												TODAY.minusYears(5).minusDays(5)
 										)
 								)
 						),
@@ -331,8 +329,8 @@ public class LedgerHistoryPolicyTest {
 								named(
 										"시작일은 현재일 기준 5년을 초과한 미래 날짜고, 종료일은 현재일 기준 5년 이내인 경우",
 										new DateRange(
-												localDate.plusYears(5).plusMonths(1),
-												localDate
+												TODAY.plusYears(5).plusMonths(1),
+												TODAY
 										)
 								)
 						),
@@ -340,8 +338,8 @@ public class LedgerHistoryPolicyTest {
 								named(
 										"시작일은 현재일 기준 5년 이내이고, 종료일은 현재일 기준 5년을 초과한 미래 날짜인 경우",
 										new DateRange(
-												localDate,
-												localDate.plusMonths(3)
+												TODAY,
+												TODAY.plusMonths(3)
 										)
 								)
 						),
@@ -349,8 +347,8 @@ public class LedgerHistoryPolicyTest {
 								named(
 										"시작일이 다음날인 경우",
 										new DateRange(
-												localDate.plusDays(1),
-												localDate
+												TODAY.plusDays(1),
+												TODAY
 										)
 								)
 						),
@@ -358,8 +356,8 @@ public class LedgerHistoryPolicyTest {
 								named(
 										"종료일이 다음날인 경우",
 										new DateRange(
-												localDate,
-												localDate.plusDays(1)
+												TODAY,
+												TODAY.plusDays(1)
 										)
 								)
 						),
@@ -367,14 +365,14 @@ public class LedgerHistoryPolicyTest {
 								named(
 										"시작일, 종료일 모두 미래 날짜인 경우",
 										new DateRange(
-												localDate.plusMonths(1),
-												localDate.plusMonths(2)
+												TODAY.plusMonths(1),
+												TODAY.plusMonths(2)
 										)
 								)
 						)
 				);
 			}
-			
+
 		}
 
 	}
@@ -407,7 +405,7 @@ public class LedgerHistoryPolicyTest {
 			String result = target.getTitleByHistoryType(historyType);
 
 			//then: 제목에 연도+월만 포함된다.
-			assertThat(result).isEqualTo("2026년 03월");
+			assertThat(result).isEqualTo("2026년 01월");
 		}
 
 		@Test
@@ -420,7 +418,7 @@ public class LedgerHistoryPolicyTest {
 			String result = target.getTitleByHistoryType(historyType);
 
 			//then: 제목에 연도+월+주가 포함된다.
-			assertThat(result).isEqualTo("2026년 03월 3주");
+			assertThat(result).isEqualTo("2026년 01월 3주");
 		}
 
 		@Test

@@ -223,9 +223,7 @@ public class LedgerCommandServiceIT {
 
 		@BeforeEach
 		void setUp() {
-			Long ledgerId = ledgerRepository.insert(
-					LedgerFixture.newLedger()
-			);
+			Long ledgerId = ledgerRepository.insert(LedgerFixture.newLedger().build());
 
 			savedLedger = ledgerRepository.findById(ledgerId);
 		}
@@ -339,7 +337,7 @@ public class LedgerCommandServiceIT {
 				Member otherMember = memberRepository.save(MemberFixture.builder().build());
 
 				Long ledgerId = ledgerRepository.insert(
-						LedgerFixture.newLedger(otherMember.getId(), "other")
+						LedgerFixture.newLedger().memberId(otherMember.getId()).code("other").build()
 				);
 
 				Ledger ledger = ledgerRepository.findById(ledgerId);
@@ -368,7 +366,7 @@ public class LedgerCommandServiceIT {
 			@DisplayName("신규 가계부는 DB에 저장된다.")
 			void savesLedger_whenRequestIsValid() {
 				//given: 신규 가계부가 준비되어 있다.
-				Ledger ledger = LedgerFixture.newLedger();
+				Ledger ledger = LedgerFixture.newLedger().build();
 				
 				//when: 가계부 저장을 요청한다.
 				Ledger result = target.save(ledger);
@@ -385,7 +383,7 @@ public class LedgerCommandServiceIT {
 			@DisplayName("기존 가계부는 수정 후 DB에 반영된다.")
 			void updatesLedger_whenLedgerExists() {
 				//given: 가계부가 저장되어 있다.
-				Long ledgerId = ledgerRepository.insert(LedgerFixture.newLedger());
+				Long ledgerId = ledgerRepository.insert(LedgerFixture.newLedger().build());
 
 				Ledger savedLedger = ledgerRepository.findById(ledgerId);
 				savedLedger.changeMemo("수정 완료");
@@ -408,11 +406,7 @@ public class LedgerCommandServiceIT {
 			@DisplayName("존재하지 않은 가계부를 수정하면 실패한다.")
 			void rejectsRequest_whenLedgerDoesNotExist() {
 				//given: 가계부가 저장되어 있다.
-				Long ledgerId = ledgerRepository.insert(LedgerFixture.newLedger());
-
-				Ledger errorLedger = LedgerFixture.builder()
-						.id(999999999L)
-						.build();
+				Ledger errorLedger = LedgerFixture.savedLedger(99999999L).build();
 				
 				//when & then: 가계부 저장 요청하면 BusinessException이 발생한다.
 				assertThatThrownBy(() -> target.save(errorLedger))

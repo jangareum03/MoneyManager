@@ -92,8 +92,8 @@ public class LedgerRepository {
 			rs.getDate("transaction_date").toLocalDate(),
 			rs.getLong("amount"),
 			rs.getString("memo"),
-			rs.getString("category_code"),
-			rs.getString("category_name")
+			rs.getString("category_name"),
+			rs.getString("category_code")
 	);
 
 

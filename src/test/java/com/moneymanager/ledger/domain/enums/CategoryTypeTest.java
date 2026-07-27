@@ -1,12 +1,13 @@
 package com.moneymanager.ledger.domain.enums;
 
+import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.domain.ledger.enums.CategoryType;
+import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
-import com.moneymanager.support.ApplicationExceptionAssert;
 
 import java.util.stream.Stream;
 
@@ -117,7 +118,8 @@ public class CategoryTypeTest {
 								.hasErrorCode(REQUIRED_VALUE)
 								.hasWork("CategoryType 변환")
 								.hasCauseMessage("필수값 누락")
-								.hasField("type")
+								.hasTarget(CategoryType.class)
+								.hasField("name")
 								.hasValue(null);
 			}
 
@@ -134,7 +136,8 @@ public class CategoryTypeTest {
 						.hasErrorCode(REQUIRED_VALUE)
 						.hasWork("CategoryType 변환")
 						.hasCauseMessage("필수값 누락")
-						.hasField("type")
+						.hasTarget(CategoryType.class)
+						.hasField("name")
 						.hasValue(type);
 			}
 
@@ -150,7 +153,8 @@ public class CategoryTypeTest {
 						.hasWork("CategoryType 변환")
 						.hasCauseMessage("허용되지 않은 값")
 						.hasOption("allowed", "INCOME, OUTLAY")
-						.hasField("type")
+						.hasTarget(CategoryType.class)
+						.hasField("name")
 						.hasValue("error");
 			}
 
@@ -205,8 +209,9 @@ public class CategoryTypeTest {
 				//then: 카테고리 코드 검증에 대한 예외가 발생한다.
 				ApplicationExceptionAssert.assertThatApplicationException(throwable)
 						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("가계부 유형 변환")
+						.hasWork("CategoryType 변환")
 						.hasCauseMessage("필수값 누락")
+						.hasTarget(Category.class)
 						.hasField("code")
 						.hasValue(code);
 			}
@@ -222,8 +227,9 @@ public class CategoryTypeTest {
 				//then: 카테고리 코드 검증에 대한 예외가 발생한다.
 				ApplicationExceptionAssert.assertThatApplicationException(throwable)
 						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("가계부 유형 변환")
+						.hasWork("CategoryType 변환")
 						.hasCauseMessage("필수값 누락")
+						.hasTarget(Category.class)
 						.hasField("code")
 						.hasValue(code);
 			}
@@ -237,8 +243,9 @@ public class CategoryTypeTest {
 				//then: 변환 중 예외가 발생한다.
 				ApplicationExceptionAssert.assertThatApplicationException(throwable)
 						.hasErrorCode(INVALID_VALUE)
-						.hasWork("가계부 유형 변환")
+						.hasWork("CategoryType 변환")
 						.hasCauseMessage("허용되지 않은 값")
+						.hasTarget(Category.class)
 						.hasField("code")
 						.hasValue("error");
 			}

@@ -80,10 +80,7 @@ public class HistoryDashboardResponseTest {
 
 				//then: 제목, 메뉴, 금액통계는 요청값 그대로 반환된다.
 				assertThat(result.getTitle()).isEqualTo(title);
-				assertThat(result.getMenu()).containsExactly(
-						new MenuItem("메뉴1", "메뉴1"),
-						new MenuItem("메뉴2", "메뉴2")
-				);
+				assertThat(result.getMenu()).isEqualTo(menu);
 				assertThat(result.getStatistics())
 						.extracting(
 								LedgerStatistics::getTotal,
@@ -128,8 +125,8 @@ public class HistoryDashboardResponseTest {
 								HistoryItem::getCategoryType,
 								HistoryItem::getCategoryName
 						).containsExactly(
-								Tuple.tuple(50000L, CategoryType.INCOME, CategoryTestData.INCOME_NAME),
-								Tuple.tuple(10000L, CategoryType.OUTLAY, CategoryTestData.SALARY_NAME)
+								Tuple.tuple(50000L, CategoryType.INCOME, CategoryTestData.SALARY_NAME),
+								Tuple.tuple(10000L, CategoryType.OUTLAY, CategoryTestData.FOOD_NAME)
 						);
 			}
 			

@@ -55,19 +55,19 @@ public class LedgerHistoryPolicy {
 	private final Clock clock;
 
 	public DateRange calculateDateRange(HistoryType historyType, LocalDate date) {
-		if(historyType == null) {//Ill로 던지기
+		if(historyType == null) {
 			throw ValidationException.of(
 					REQUIRED_VALUE,
-					DeveloperLogInfo.of("날짜 계산", "내역유형 객체 없음", HistoryType.class, null),
-					"기간 범위는 필수입니다."
+					DeveloperLogInfo.of("날짜 계산", "필수값 누락", HistoryType.class, null),
+					"내역 유형은 필수입니다."
 			);
 		}
 
 		if(date == null) {
 			throw ValidationException.of(
 					REQUIRED_VALUE,
-					DeveloperLogInfo.of("날짜 계산", "날짜 없음", "date", null),
-					"기간 범위는 필수입니다."
+					DeveloperLogInfo.of("날짜 계산", "필수값 누락", LocalDate.class, null),
+					"날짜는 필수입니다."
 			);
 		}
 
@@ -134,8 +134,9 @@ public class LedgerHistoryPolicy {
 		if( !(isDateInRange(from, fiveYearsAgo, now) && isDateInRange(to, fiveYearsAgo, now)) ) {
 			throw BusinessException.of(
 					OUT_OF_RANGE,
-					DeveloperLogInfo.of("기간 검증", "기간 허용범위 초과", DateRange.class, valueOf("from", from, "to", to))
-							.addOption("policy", "조회 기간 초과된 날짜"),
+					DeveloperLogInfo.of("기간 검증", "범위 오류", DateRange.class, valueOf("from", from, "to", to))
+							.addOption("min", fiveYearsAgo)
+							.addOption("max", now),
 					"가계부 내역은 최근 5년 이내만 가능합니다."
 			);
 		}

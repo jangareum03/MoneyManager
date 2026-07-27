@@ -1,43 +1,40 @@
 package com.moneymanager.ledger.service;
 
-import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.domain.global.Policy;
-import com.moneymanager.domain.global.enums.DatePatterns;
+import com.moneymanager.config.MutableClock;
+import com.moneymanager.config.TimeConfig;
 import com.moneymanager.domain.ledger.dto.response.*;
-import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.entity.LedgerImage;
 import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.member.Member;
-import com.moneymanager.support.fixture.entity.LedgerFixture;
-import com.moneymanager.support.fixture.entity.LedgerImageFixture;
-import com.moneymanager.support.fixture.entity.MemberFixture;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.repository.member.MemberRepository;
 import com.moneymanager.service.ledger.LedgerReadService;
-import com.moneymanager.utils.date.DateTimeUtil;
+import com.moneymanager.support.data.CategoryTestData;
+import com.moneymanager.support.data.MemberTestData;
+import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.entity.MemberFixture;
+import com.moneymanager.support.security.WithMockCustomUser;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
-import com.moneymanager.support.security.WithMockCustomUser;
 
-import java.time.Clock;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.List;
-import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Named.named;
 
 /**
  * <p>
@@ -67,8 +64,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * </table>
  */
 @SpringBootTest
-@Transactional
 @ActiveProfiles("test")
+@Import(TimeConfig.class)
+@Transactional
 public class LedgerReadServiceIT {
 
 	@Autowired
@@ -83,456 +81,298 @@ public class LedgerReadServiceIT {
 	@Autowired
 	private LedgerImageRepository imageRepository;
 
-	private static final LocalDate TEST_DATE = LocalDate.of(2026, 3, 10);
+	@Autowired
+	private MutableClock clock;
+
 	private Member member;
-
-	@TestConfiguration
-	static class TestConfig {
-		@Bean
-		public Clock clock() {
-			LocalDate fixedDate = LocalDate.of(2026, 3, 20);
-
-			return Clock.fixed(
-					fixedDate.atStartOfDay().atZone(ZoneId.of("Asia/Seoul")).toInstant(),
-					ZoneId.of("Asia/Seoul")
-			);
-		}
-	}
 
 
 	@BeforeEach
 	void setUp() {
-		memberRepository.deleteAll();;
-
-		member = MemberFixture.builder(MemberTestData.MEMBER_ID).build();
-		memberRepository.save(member);
+		member = memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
+		clock.set(LocalDate.of(2026, 1, 10));
 	}
 
 
-	@Test
-	@DisplayName("작성 1단계 요청 데이터가 정상 생성된다.")
-	void createsWriteStep1Data_successfully() {
-		//when
-		LedgerWriteStep1Response result = target.getWriteStep1Data();
-
-		//then
-		assertThat(result).isNotNull();
-		assertThat(result.getTypes()).isNotNull().isNotEmpty();
-		assertThat(result.getYears()).isNotNull().isNotEmpty();
-		assertThat(result.getMonths()).isNotNull().isNotEmpty();
-		assertThat(result.getDays()).isNotNull().isNotEmpty();
-		assertThat(result.getCurrentYear()).isNotZero();
-		assertThat(result.getCurrentMonth()).isNotZero();
-		assertThat(result.getCurrentDay()).isNotZero();
-		assertThat(result.getDisplayDate()).isNotBlank();
-	}
-
-
+	@Nested
+	@DisplayName("작성 1단계 데이터 얻기")
 	@WithMockCustomUser
-	@Nested
-	@DisplayName("작성 2단계 응답 데이터")
-	class Step2ResponseTest {
+	class GetStep1DataTest {
 
-		@Test
-		@DisplayName("수입유형 요청 시 수입 작성 2단계 응답을 반환한다.")
-		void returnsIncomeResponse_whenCategoryTypeIsIncome() {
-			//given
-			CategoryType type = CategoryType.INCOME;
-
-			//when
-			LedgerWriteStep2Response result = target.getWriteStep2Data(type, TEST_DATE);
-
-			//then
-			assertThat(result).isNotNull();
-
-			assertThat(result.getCategories()).hasSize(3);
-			assertThat(result.getCategories())
-					.allMatch(category -> category.getCode().startsWith("01"))
-					.allMatch(category -> category.getCode().endsWith("00"));
-
-			assertThat(result.getImageSlot()).hasSize(Policy.LEDGER_MAX_IMAGE);
-
-			assertThat(result.getTitle()).isEqualTo("2026년 03월 10일 화요일");
-		}
-
-		@Test
-		@DisplayName("지출유형 요청 시 지출 작성 2단계 응답을 반환한다.")
-		void returnsOutlayResponse_whenCategoryTypeIsOutlay() {
-			//given
-			CategoryType type = CategoryType.OUTLAY;
-
-			//when
-			LedgerWriteStep2Response result = target.getWriteStep2Data(type, TEST_DATE);
-
-			//then
-			assertThat(result).isNotNull();
-
-			assertThat(result.getCategories()).hasSize(9);
-			assertThat(result.getCategories())
-					.allMatch(category -> category.getCode().startsWith("02"))
-					.allMatch(category -> category.getCode().endsWith("00"));
-
-			assertThat(result.getImageSlot()).hasSize(Policy.LEDGER_MAX_IMAGE);
-
-			assertThat(result.getTitle()).isEqualTo("2026년 03월 10일 화요일");
-		}
-
-		@ParameterizedTest
-		@EnumSource(CategoryType.class)
-		@DisplayName("중분류 카테고리만 조회되어 응답에 포함한다.")
-		void returnsStep2Response_onlyMiddleLevelCategories(CategoryType type) {
-			//when
-			LedgerWriteStep2Response result = target.getWriteStep2Data(type, TEST_DATE);
-
-			//then
-			List<CategoryItem> categories = result.getCategories();
-
-			assertThat(categories)
-					.allMatch(c -> !c.getCode().startsWith("00", 2));
-		}
-
-	}
-
-
-	@WithMockCustomUser
-	@Nested
-	@DisplayName("거래내역 대시보드")
-	class HistoryDashboardTest {
-
-		@Test
-		@DisplayName("정상적으로 거래내역 응답을 반환한다.")
-		void returnsHistoryDashboard() {
-			//given
-			HistoryType type = HistoryType.MONTH;
-
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "020101", 2000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
-
-			//when
-			HistoryDashboardResponse result = target.getHistoryDashboard(type);
-
-			//then
-			assertThat(result).isNotNull();
-
-			assertThat(result.getTitle()).isEqualTo("2026년 03월");
-			assertThat(result.getMenu()).hasSize(5);
-
-			//그룹 검증
-			assertThat(result.getHistoryGroups()).hasSize(2);
-			assertThat(result.getHistoryGroups()).containsKeys(getKey(2026,3,1), getKey(2026,3,5));
-			assertThat(result.getHistoryGroups().get(getKey(2026, 3, 1))).hasSize(2);
-			assertThat(result.getHistoryGroups().get(getKey(2026, 3, 5))).hasSize(1);
-
-			//금액 검증
-			assertThat(result.getStatistics())
-					.extracting("total", "income", "outlay")
-					.containsExactly(6000L, 1000L, 5000L);
-		}
-
-		@Test
-		@DisplayName("내역 조회가 없어도 정상적으로 거래내역 응답을 반환한다.")
-		void returnsHistoryDashboard_whenHistoryDoesNotExist() {
-			//given
-			HistoryType type = HistoryType.MONTH;
-
-			//when
-			HistoryDashboardResponse result = target.getHistoryDashboard(type);
-
-			//then
-			assertThat(result).isNotNull();
-			assertThat(result.getMenu()).isNotEmpty();
-
-			//그룹 검증
-			assertThat(result.getHistoryGroups()).isEmpty();
-
-			//금액 검증
-			assertThat(result.getStatistics())
-					.extracting(
-							LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay
-					).containsOnly(0L);
-		}
-
-		@Test
-		@DisplayName("특정 기간 안의 내역만 거래내역에 포함된다.")
-		void returnsHistoryDashboard_whenDateWithinPeriod() {
-			//given
-			HistoryType type = HistoryType.MONTH;
-
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 2, 28), "010102", 2000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "020101", 2000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 9), "020501", 4500));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 4, 1), "020302", 500));
-
-			//when
-			HistoryDashboardResponse result = target.getHistoryDashboard(type);
-
-			//then
-			assertThat(result).isNotNull();
-
-			assertThat(result.getHistoryGroups()).hasSize(3);
-			assertThat(result.getHistoryGroups())
-					.containsKeys(getKey(2026, 3, 1), getKey(2026, 3, 5), getKey(2026, 3, 9));
-			assertThat(result.getHistoryGroups())
-					.doesNotContainKeys(getKey(2026, 2, 28), getKey(2026, 4, 1));
-		}
-
-		@Test
-		@DisplayName("날짜별로 내역을 그룹화되어 거래내역에 포함된다.")
-		void returnsHistoryDashboard_whenGropingHistoriesSameDate() {
-			//given
-			HistoryType type = HistoryType.MONTH;
-
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020101", 2000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 1000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 12), "020302", 1500));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 12), "020102", 2000));
-
-			//when
-			HistoryDashboardResponse result = target.getHistoryDashboard(type);
-
-			//then
-			assertThat(result.getHistoryGroups()).hasSize(3);
-
-			assertThat(result.getHistoryGroups().get(getKey(2026, 3, 1))).hasSize(1);
-			assertThat(result.getHistoryGroups().get(getKey(2026, 3, 5))).hasSize(3);
-			assertThat(result.getHistoryGroups().get(getKey(2026, 3, 12))).hasSize(2);
-		}
-
-		@Test
-		@DisplayName("수입과 지출 계산이 정확하게 표현된다.")
-		void returnsHistoryDashboard_whenIncomeAndOutlayExist() {
-			//given
-			HistoryType type = HistoryType.MONTH;
-
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "010101", 2000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 1000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 12), "020102", 2000));
-
-			//when
-			HistoryDashboardResponse result = target.getHistoryDashboard(type);
-
-			//then
-			LedgerStatistics statistics = result.getStatistics();
-			assertThat(statistics.getTotal()).isEqualTo(9000);
-			assertThat(statistics.getIncome()).isEqualTo(3000);
-			assertThat(statistics.getOutlay()).isEqualTo(6000);
-		}
-
-		@Test
-		@DisplayName("다른 회원의 거래내역은 포함되지 않는다.")
-		void returnsHistoryDashboard_whenDifferentMemberExists() {
-			//given
-			HistoryType type = HistoryType.MONTH;
-
-			memberRepository.save(
-					MemberFixture.builder(MemberTestData.MEMBER_ID).name("김영희").build()
-			);
-
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 1), "010101", 1000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "010101", 2000));
-			ledgerRepository.insert(createLedger("UCt01001", LocalDate.of(2026, 3, 5), "020201", 3000));
-			ledgerRepository.insert(createLedger("UCt01002", LocalDate.of(2026, 3, 5), "020201", 1000));
-			ledgerRepository.insert(createLedger("UCt01002", LocalDate.of(2026, 3, 12), "020102", 2000));
-
-			//when
-			HistoryDashboardResponse result = target.getHistoryDashboard(type);
-
-			//then
-			Map<String, List<HistoryItem>> histories = result.getHistoryGroups();
-
-			assertThat(histories.values()).hasSize(3);
-			assertThat(histories.values().stream().flatMap(List::stream).toList())
-					.extracting(HistoryItem::getAmount)
-					.containsExactlyInAnyOrder(1000L, 2000L, 3000L);
-
-		}
-
-		private Ledger createLedger(String memberId, LocalDate date, String category, int amount) {
-			return LedgerFixture.builder()
-					.memberId(memberId)
-					.date(date)
-					.category(category)
-					.money(Money.of((long) amount, PaymentType.NONE))
-					.build();
-		}
-
-		private String getKey(int year, int month, int day) {
-			LocalDate date = LocalDate.of(year, month, day);
-
-			return DateTimeUtil.formatDate(date, DatePatterns.DATE_DOT_WITH_DAY.getPattern());
-		}
-
-	}
-
-
-	@Nested
-	@DisplayName("수정화면 응답 데이터")
-	class EditResponseTest {
-
-		private Ledger ledger;
-		private List<LedgerImage> images;
-
-
-		@BeforeEach
-		void setUp() {
-			Long id = ledgerRepository.insert(
-					LedgerFixture.newLedger(member.getId())
-			);
-
-
-			images = List.of(
-					LedgerImageFixture.savedImage(null, id, 1),
-					LedgerImageFixture.savedImage(null, id, 2)
-			);
-			imageRepository.saveAll(images);
-		}
-
-
-		@WithMockCustomUser
 		@Nested
 		@DisplayName("성공 케이스")
 		class Success {
 
 			@Test
-			@DisplayName("수입 가계부 조회 시 카테고리와 함께 정상 응답을 반환한다.")
-			void returnsIncomeResponseWithCategory_whenSuccessfully() {
-				//given: 수입 가계부가 존재한다.
-				String code = ledger.getCode();
-				
-				//when: 수정할 가계부 데이터 조회
-				LedgerEditResponse result = target.getEditData(code);
-				
-				//then: 기본 정보 검증
+			@DisplayName("오늘 날짜로 가계부 1단계 작성에 필요한 데이터가 반환된다.")
+			void returnsStep1Data_whenTodayIsGiven() {
+				//when: 가계부 작성 1단계에 필요한 데이터를 요청한다.
+				LedgerWriteStep1Response result = target.getWriteStep1Data();
+
+				//then: 작성에 필요한 데이터가 반환된다.
 				assertThat(result).isNotNull();
-				assertThat(result.getDate()).isEqualTo("2026년 01월 01일 목요일");
-				assertThat(result.getAmount()).isEqualTo(10000L);
-				assertThat(result.getPaymentType()).isEqualTo(PaymentType.NONE);
-				assertThat(result.getType()).isEqualTo(CategoryType.INCOME);
+
+				assertThat(result.getDisplayDate()).isEqualTo("2026년 01월 10일 토요일");
+
+				assertThat(result.getTypes())
+						.hasSize(2)
+						.extracting(
+								LedgerTypeResponse::getLabel,
+								LedgerTypeResponse::getValue
+						)
+						.containsExactly(
+								Tuple.tuple("수입", "01"),
+								Tuple.tuple("지출", "02")
+						);
+
 				assertThat(result)
-						.extracting(LedgerEditResponse::getMemo, LedgerEditResponse::getPlaceName, LedgerEditResponse::getRoadAddress, LedgerEditResponse::getDetailAddress)
-						.containsOnlyNulls();
-
-				//then: 고정 여부 검증
-				assertThat(result.getFixed())
-						.extracting(LedgerFixed::getFix, LedgerFixed::getCycle)
-						.containsExactly(FixedYN.VARIABLE, null);
-
-				//then: 카테고리 검증
-				CategoryEditInfo editInfo = result.getCategoryEditInfo();
-
-				assertThat(editInfo.getSelected())
-						.hasSize(2)
-						.containsExactly("010100", "010101");
-				assertThat(editInfo.getMiddleOptions())
-						.extracting(CategoryItem::getCode)
-						.allMatch(c -> c.startsWith("01"));
-				assertThat(editInfo.getLowOptions())
-						.extracting(CategoryItem::getCode)
-						.allMatch(c -> c.startsWith("01"));
-
-				//then: 이미지 리스트 검증
-				List<ImageSlot> images = result.getImages();
-				assertThat(images).hasSize(3);
-			}
-
-			@Test
-			@DisplayName("지출 가계부 조회 시 카테고리와 함께 정상 응답을 반환한다.")
-			void returnsOutlayResponseWithCategory_whenSuccessfully() {
-				//given: 월 고정지출을 가진 가계부를 저장한다.
-				Ledger outlayLedger = LedgerFixture.builder()
-						.id(null)
-						.code("code-out")
-						.memberId(member.getId())
-						.fix(FixedYN.REPEAT).fixCycle(FixCycle.MONTHLY)
-						.category("020101")
-						.build();
-
-				ledgerRepository.insert(outlayLedger);
-
-				String code = outlayLedger.getCode();
-
-				
-				//when: 수정할 가계부 데이터 조회
-				LedgerEditResponse result = target.getEditData(code);
-				
-				//then: 기본정보 검증
-				assertThat(result).isNotNull();
-				assertThat(result.getType()).isEqualTo(CategoryType.OUTLAY);
-
-				//then: 고정주기 검증
-				assertThat(result.getFixed())
-						.extracting(LedgerFixed::getFix, LedgerFixed::getCycle)
-						.containsExactly(FixedYN.REPEAT, FixCycle.MONTHLY);
-
-				//then: 카테고리 검증
-				CategoryEditInfo editInfo = result.getCategoryEditInfo();
-
-				assertThat(editInfo.getSelected())
-						.hasSize(2)
-						.containsExactly("020100", "020101");
-				assertThat(editInfo.getMiddleOptions())
-						.extracting(CategoryItem::getCode)
-						.allMatch(c -> c.startsWith("02"));
-				assertThat(editInfo.getLowOptions())
-						.extracting(CategoryItem::getCode)
-						.allMatch(c -> c.startsWith("02"));
-
-				//then: 이미지 리스트 검증
-				List<ImageSlot> images = result.getImages();
-				assertThat(images).hasSize(3);
+						.extracting(
+								LedgerWriteStep1Response::getCurrentYear,
+								LedgerWriteStep1Response::getCurrentMonth,
+								LedgerWriteStep1Response::getCurrentDay
+						)
+						.containsExactly(
+								2026,
+								1,
+								15
+						);
 			}
 
 		}
 
+	}
+
+
+	@Nested
+	@DisplayName("작성 2단계 데이터 얻기")
+	@WithMockCustomUser
+	class GetStep2DataTest {
 
 		@Nested
-		@DisplayName("실패 케이스")
-		class Failure {
+		@DisplayName("성공 케이스")
+		class Success {
+
+			@Test
+			@DisplayName("수입 유형이면 정상적으로 응답 데이터가 반환된다.")
+			void returnsResponseData_whenIncomeTypeIsGiven() {
+				//when: 가계부 작성 2단계에 필요한 데이터를 요청한다.
+				LedgerWriteStep2Response result = target.getWriteStep2Data(CategoryType.INCOME, LocalDate.now(clock));
+				
+				//then: 작성에 필요한 데이터가 반환된다.
+				assertThat(result).isNotNull();
+
+				assertThat(result.getTitle()).isEqualTo("2026년 01월 10일 토요일");
+
+				assertThat(result.getImageSlot()).hasSize(3);
+
+				assertThat(result.getCategories())
+						.allMatch(item -> item.getCode().startsWith("01"));
+			}
 			
 			@Test
-			@DisplayName("인증정보가 없으면 BusinessException이 발생한다.")
-			void throwsException_whenUnauthorized() {
-				//given: 미인증된 사용자가 조회를 시도한다.
-				String code = ledger.getCode();
-				
-				//when & then: 수정할 가계부 조회하면 예외가 발생한다.
-			}
+			@DisplayName("지출 유형이면 정상적으로 응답 데이터가 반환된다.")
+			void returnsResponseData_whenExpenseTypeIsGiven() {
+				//when: 가계부 작성 2단계에 필요한 데이터를 요청한다.
+				LedgerWriteStep2Response result = target.getWriteStep2Data(CategoryType.OUTLAY, LocalDate.now(clock));
 
-			@WithMockCustomUser
+				//then: 작성에 필요한 데이터가 반환된다.
+				assertThat(result).isNotNull();
+
+				assertThat(result.getCategories())
+						.allMatch(item -> item.getCode().startsWith("02"));
+			}
+			
 			@Test
-			@DisplayName("다른 사용자의 가계부는 접근이 불가능하여 BusinessException이 발생한다.")
-			void throwsException_whenInvalidRequest() {
-				//given: 다른 사용자의 가계부를 저장한다.
-				Member otherMember = MemberFixture.builder(MemberTestData.MEMBER_ID).build();
-				memberRepository.save(otherMember);
+			@Sql(statements = "DELETE FROM ledger_category", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+			@DisplayName("카테고리가 없어도 응답 데이터가 반환된다.")
+			void returnsResponseData_whenCategoryIsNull() {
+				//when: 가계부 작성 2단계에 필요한 데이터를 요청한다.
+				LedgerWriteStep2Response result = target.getWriteStep2Data(CategoryType.OUTLAY, LocalDate.now(clock));
 
-				//다른 사용자가 작성한 가계부 저장
-				Ledger otherLedger = LedgerFixture.newLedger(otherMember.getId(), "other");
-				ledgerRepository.insert(otherLedger);
-
-				String code = otherLedger.getCode();
-				
-				//when & then: 다른 사용자의  가계부 조회하면 예외가 발생한다.
+				//then: 빈 카테고리 목록이 응답에 저장된다.
+				assertThat(result.getCategories()).isEmpty();
 			}
-
-			@WithMockCustomUser
+			
 			@Test
-			@DisplayName("존재하지 않은 가계부 조회하면 BusinessException이 발생한다.")
-			void throwsException_whenLedgerDoesNotExist() {
-				//given: 없는 가계부 코드
-				String code = "no-code";
-				
-				//when & then: 가계부 조회 시 예외 발생
-				
+			@Sql(statements = "UPDATE member_info SET image_limit = 0", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+			@DisplayName("이미지 정보가 없어도 응답 데이터가 반환된다.")
+			void returnsResponseData_whenImageInfoIsNull () {
+				//when: 가계부 작성 2단계에 필요한 데이터를 요청한다.
+				LedgerWriteStep2Response result = target.getWriteStep2Data(CategoryType.INCOME, LocalDate.now(clock));
+
+				//then: 빈 이미지 슬롯 정보가 응답에 저장된다.
+				assertThat(result.getImageSlot())
+						.hasSize(3)
+						.extracting(
+								ImageSlot::getStatus
+						)
+						.containsExactly(SlotStatus.EMPTY, SlotStatus.LOCKED ,SlotStatus.LOCKED);
+			}
+			
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("내역 리스트 얻기")
+	@WithMockCustomUser
+	class GetHistoryDashboard {
+		
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+
+			@BeforeEach
+			void setUp() {
+				saveIncomeLedger("code1", LocalDate.of(2026, 1, 3), 20000L, PaymentType.NONE);
+				saveIncomeLedger("code2", LocalDate.of(2026, 1, 5), 15000L, PaymentType.CASH);
+				saveIncomeLedger("code3", LocalDate.of(2026, 1, 10), 50000L, PaymentType.BANK);
 			}
 
+			private void saveIncomeLedger(String code, LocalDate date, long amount , PaymentType type) {
+				ledgerRepository.insert(
+						LedgerFixture.newLedger()
+								.code(code)
+								.date(date)
+								.money(Money.of(amount, type))
+								.build()
+				);
+			}
+
+			private void saveOutlayLedger(String code, LocalDate date, long amount, PaymentType type) {
+				ledgerRepository.insert(
+						LedgerFixture.newLedger()
+								.code(code)
+								.date(date)
+								.money(Money.of(amount, type))
+								.category(CategoryTestData.FOOD_CODE)
+								.build()
+				);
+			}
+
+			@Test
+			@DisplayName("저장된 가계부가 있으면 정상적으로 응답 데이터가 반환된다.")
+			void returnsResponseData_whenLedgerExists() {
+				//when: 가계부 내역 조회를 요청한다.
+				HistoryDashboardResponse result = target.getHistoryDashboard(HistoryType.MONTH);
+				
+				//then: 가계부 내역 조회 응답이 정상적으로 조회된다.
+				assertThat(result).isNotNull();
+				assertThat(result.getTitle()).isNotNull();
+
+				assertThat(result.getStatistics())
+						.satisfies(statistics -> {
+							assertThat(statistics.getTotal()).isGreaterThanOrEqualTo(0L);
+							assertThat(statistics.getIncome()).isGreaterThanOrEqualTo(0L);
+							assertThat(statistics.getOutlay()).isGreaterThanOrEqualTo(0L);
+						});
+
+				assertThat(result.getHistoryGroups()).hasSize(3);
+
+				assertThat(result.getMenu())
+						.hasSize(5)
+						.extracting(
+								MenuItem::getLabel,
+								MenuItem::getValue
+						)
+						.containsExactly(
+								Tuple.tuple("전체", HistoryMenuType.ALL.name()),
+								Tuple.tuple("수입/지출", HistoryMenuType.CATEGORY.name()),
+								Tuple.tuple("카테고리", HistoryMenuType.SUB_CATEGORY.name()),
+								Tuple.tuple("메모", HistoryMenuType.MEMO.name()),
+								Tuple.tuple("기간", HistoryMenuType.DATE.name())
+						);
+			}
+			
+			@Test
+			@DisplayName("저장된 가계부가 없으면 내역이 빈 리스트로 반환된다.")
+			void returnsEmptyList_whenLedgerDoesNotExist() {
+				//given: 저장된 가게부가 모두 삭제된 상태이다.
+				ledgerRepository.deleteAll();
+
+				//when: 가계부 내역 조회를 요청한다.
+				HistoryDashboardResponse result =target.getHistoryDashboard(HistoryType.MONTH);
+
+				//then: 내역 그룹화는 비어있고, 통계는 모두 0이다.
+				assertThat(result.getHistoryGroups()).isEmpty();
+
+				assertThat(result.getStatistics())
+						.extracting(
+								LedgerStatistics::getTotal,
+								LedgerStatistics::getIncome,
+								LedgerStatistics::getOutlay
+						)
+						.containsExactly(0L, 0L, 0L);
+			}
+			
+			@Test
+			@DisplayName("여러 날짜의 내역이 그룹화가 된다.")
+			void createsDateGroups_whenMultipleDatesAreGiven() {
+				//when: 가계부 내역 조회를 요청한다.
+				HistoryDashboardResponse result =target.getHistoryDashboard(HistoryType.MONTH);
+
+				//then: 내역 그룹은 3개로 생성된다.
+				assertThat(result.getHistoryGroups()).hasSize(3);
+
+				assertThat(result.getHistoryGroups().keySet())
+						.contains("2026. 01. 03 (토)", "2026. 01. 05 (월)", "2026. 01. 10 (토)");
+			}
+			
+			@Test
+			@DisplayName("수입과 지출 금액별로 통계가 올바르게 계산된다.")
+			void validatesStatistics_whenHistoriesExist() {
+				//given: 지출 내역이 저장되어 있다.
+				saveOutlayLedger("code4", LocalDate.of(2026, 1, 15), 20000L, PaymentType.NONE);
+
+				//when: 가계부 내역 조회를 요청한다.
+				HistoryDashboardResponse result =target.getHistoryDashboard(HistoryType.MONTH);
+				
+				//then: 저장된 수입과 지출별 구분하여 금액 통계가 반환된다.
+				assertThat(result.getStatistics())
+						.extracting(
+								LedgerStatistics::getTotal,
+								LedgerStatistics::getIncome,
+								LedgerStatistics::getOutlay
+						)
+						.containsExactly(
+							105000L, 85000L, 20000L
+						);
+			}
+			
+			@ParameterizedTest
+			@MethodSource("validHistories")
+			@DisplayName("HistoryType에 맞는 기간의 내역만 조회된다.")
+			void returnsHistories_whenHistoryTypeIsGiven(HistoryType type, int expectedCount) {
+				//given: 여러 날짜를 가진 가계부 내역이 저장되어 있다.
+				saveOutlayLedger("code4", LocalDate.of(2026, 1, 29), 30000L, PaymentType.CASH);
+				saveOutlayLedger("code5", LocalDate.of(2026, 2, 1), 10000L, PaymentType.NONE);
+				saveOutlayLedger("code6", LocalDate.of(2026, 2, 15), 1000L, PaymentType.BANK);
+
+				//when: 가계부 내역 조회를 요청한다.
+				HistoryDashboardResponse result =target.getHistoryDashboard(type);
+				
+				//then: HistoryType에 따라 조회된 내역의 개수가 다르다.
+				assertThat(result.getHistoryGroups()).hasSize(expectedCount);
+			}
+
+			static Stream<Arguments> validHistories() {
+				return Stream.of(
+						Arguments.of(
+								named("YEAR인 경우", HistoryType.YEAR),
+								6
+						),
+						Arguments.of(
+								named("MONTH인 경우", HistoryType.MONTH),
+								4
+						),
+						Arguments.of(
+								named("WEEK인 경우", HistoryType.WEEK),
+								2
+						)
+				);
+			}
+			
 		}
 
 	}

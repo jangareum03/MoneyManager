@@ -115,7 +115,7 @@ public class LedgerCommandServiceTest {
 				LedgerWriteRequest request = LedgerWriteRequestFixture.withPlace().build();
 
 				when(ledgerRepository.insert(any(Ledger.class))).thenReturn(1L);
-				when(ledgerRepository.findById(1L)).thenReturn(LedgerFixture.savedLedger());
+				when(ledgerRepository.findById(1L)).thenReturn(LedgerFixture.savedLedger(1L).build());
 				
 				//when: 가계부 등록을 요쳥한다.
 				target.register(request);
@@ -144,7 +144,7 @@ public class LedgerCommandServiceTest {
 				LedgerWriteRequest request = LedgerWriteRequestFixture.withImages(2).build();
 
 				when(ledgerRepository.insert(any(Ledger.class))).thenReturn(1L);
-				when(ledgerRepository.findById(1L)).thenReturn(LedgerFixture.savedLedger());
+				when(ledgerRepository.findById(1L)).thenReturn(LedgerFixture.savedLedger(1L).build());
 
 				//when: 가계부 등록을 요쳥한다.
 				target.register(request);
@@ -226,7 +226,7 @@ public class LedgerCommandServiceTest {
 
 				//given: 저장된 가계부가 반환되도록 Repository 동작이 정의되어 있다.
 				when(ledgerRepository.insert(any(Ledger.class))).thenReturn(1L);
-				when(ledgerRepository.findById(1L)).thenReturn(LedgerFixture.savedLedger());
+				when(ledgerRepository.findById(1L)).thenReturn(LedgerFixture.savedLedger(1L).build());
 
 				//given: 서버에 이미지를 저장 중 예외가 발생하도록 Service의 동작이 정의되어 있다.
 				doThrow(BusinessException.class)
@@ -260,7 +260,7 @@ public class LedgerCommandServiceTest {
 			@DisplayName("수정 요청으로 가계부를 수정한다.")
 			void updatesLedger_whenRequestIsValid() {
 				//given: 기존 가계부가 저장되어 있다.
-				Ledger ledger = LedgerFixture.savedLedger();
+				Ledger ledger = LedgerFixture.savedLedger(1L).build();
 				String code = LedgerTestData.CODE;
 
 				when(ledgerReadService.getLedger(MemberTestData.MEMBER_ID, code))
@@ -295,7 +295,7 @@ public class LedgerCommandServiceTest {
 			@DisplayName("기존 값과 동일한 값으로 가계부를 수정한다.")
 			void updatesLedger_whenValuesAreIdentical() {
 				//given: 저장된 기존 가계부와 동일한 수정 요청이 준비되어 있다.
-				Ledger ledger = LedgerFixture.savedLedger();
+				Ledger ledger = LedgerFixture.savedLedger(1L).build();
 				String code = LedgerTestData.CODE;
 
 				when(ledgerReadService.getLedger(MemberTestData.MEMBER_ID, code))
@@ -335,7 +335,7 @@ public class LedgerCommandServiceTest {
 			@DisplayName("이미지가 포함된 수정 정보로 가계부를 수정한다.")
 			void updatesLedger_whenImagesExist() {
 				//given: 이미지가 포함되지 않은 가계부가 저장되어 있다.
-				Ledger ledger = LedgerFixture.savedLedger();
+				Ledger ledger = LedgerFixture.savedLedger(1L).build();
 				String code = LedgerTestData.CODE;
 
 				when(ledgerReadService.getLedger(MemberTestData.MEMBER_ID, code))
@@ -410,7 +410,7 @@ public class LedgerCommandServiceTest {
 						.categoryCode("000000")
 						.build();
 
-				Ledger ledger = LedgerFixture.savedLedger();
+				Ledger ledger = LedgerFixture.savedLedger(1L).build();
 
 				when(ledgerReadService.getLedger(MemberTestData.MEMBER_ID, code))
 						.thenReturn(ledger);
@@ -429,7 +429,7 @@ public class LedgerCommandServiceTest {
 				//given: 수정 중 문제가 발생하도록 동작이 정의되어 있다.
 				String code = LedgerTestData.CODE;
 				LedgerUpdateRequest request = LedgerUpdateRequestFixture.create();
-				Ledger ledger = LedgerFixture.savedLedger();
+				Ledger ledger = LedgerFixture.savedLedger(1L).build();
 
 				when(ledgerReadService.getLedger(MemberTestData.MEMBER_ID, code))
 						.thenReturn(ledger);
@@ -451,7 +451,7 @@ public class LedgerCommandServiceTest {
 				//given: 이미지 처리 중 문제가 발생하도록 동작이 정의되어 있다.
 				String code = LedgerTestData.CODE;
 				LedgerUpdateRequest request = LedgerUpdateRequestFixture.create();
-				Ledger ledger = LedgerFixture.savedLedger();
+				Ledger ledger = LedgerFixture.savedLedger(1L).build();
 
 				when(ledgerReadService.getLedger(MemberTestData.MEMBER_ID, code))
 						.thenReturn(ledger);
@@ -484,8 +484,8 @@ public class LedgerCommandServiceTest {
 			@DisplayName("신규 가계부는 저장 후 반환한다.")
 			void returnsCreatedLedger_whenRequestIsValid() {
 				//given: 신규 가계부가 준비되어 있다.
-				Ledger newLedger = LedgerFixture.newLedger();
-				Ledger savedLedger = LedgerFixture.savedLedger();
+				Ledger newLedger = LedgerFixture.newLedger().build();
+				Ledger savedLedger = LedgerFixture.savedLedger(1L).build();
 
 				when(ledgerRepository.insert(any())).thenReturn(1L);
 				when(ledgerRepository.findById(1L)).thenReturn(savedLedger);
@@ -505,8 +505,8 @@ public class LedgerCommandServiceTest {
 			@DisplayName("기존 가계부는 수정 후 반환한다.")
 			void returnsUpdatedLedger_whenLedgerExists() {
 				//given: 수정할 가계부가 저장되어 있다.
-				Ledger ledger = LedgerFixture.savedLedger();
-				Ledger updatedLedger = LedgerFixture.builder()
+				Ledger ledger = LedgerFixture.savedLedger(1L).build();
+				Ledger updatedLedger = LedgerFixture.savedLedger(1L)
 						.id(ledger.getId())
 						.memberId(ledger.getMemberId())
 						.build();
@@ -536,7 +536,7 @@ public class LedgerCommandServiceTest {
 			@DisplayName("가계부 수정에 실패하면 예외가 발생한다.")
 			void throwsException_whenLedgerUpdateFails() {
 				//given: 수정할 가계부가 준비되어 있다.
-				Ledger ledger = LedgerFixture.savedLedger();
+				Ledger ledger = LedgerFixture.savedLedger(1L).build();
 
 				when(ledgerRepository.update(any()))
 						.thenReturn(0);

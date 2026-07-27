@@ -1,9 +1,15 @@
 package com.moneymanager.ledger.controller;
 
+import com.moneymanager.config.MutableClock;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
+import com.moneymanager.domain.ledger.dto.response.HistoryDashboardResponse;
+import com.moneymanager.domain.ledger.dto.response.HistoryItem;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.domain.ledger.dto.response.MenuItem;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.CategoryType;
+import com.moneymanager.domain.ledger.enums.HistoryMenuType;
+import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.member.Member;
@@ -12,8 +18,10 @@ import com.moneymanager.repository.member.MemberRepository;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.validation.LedgerValidator;
+import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
+import com.moneymanager.support.fixture.entity.LedgerFixture;
 import com.moneymanager.support.fixture.entity.MemberFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
 import com.moneymanager.support.security.WithMockCustomUser;
@@ -21,20 +29,29 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.time.Clock;
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Named.named;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -85,13 +102,13 @@ public class LedgerControllerIT {
 	private LedgerValidator validator;
 
 	@Autowired
-	private Clock clock;
+	private MutableClock clock;
 
 	@Nested
 	@DisplayName("작성 1단계")
 	class Step1ViewTest {
 
-		private final String URL = "/ledgers/new/step1";
+		private final String URI = "/ledgers/new/step1";
 
 		@Nested
 		@DisplayName("성공 케이스")
@@ -102,7 +119,7 @@ public class LedgerControllerIT {
 			@DisplayName("현재 날짜 기준 가계부 작성 페이지를 조회한다.")
 			void returnsLedgerWritePage_whenCurrentDateIsGiven() throws Exception {
 				mockMvc.perform(
-						get(URL)
+						get(URI)
 				)
 						.andExpect(status().isOk())
 						.andExpect(view().name("/ledger/ledger_writeStep1"))
@@ -120,7 +137,7 @@ public class LedgerControllerIT {
 			@DisplayName("인증되지 않은 사용자는 로그인 페이지로 이동한다.")
 			void rejectsRequestToLoginPage_whenUserIsUnauthenticated() throws Exception {
 				mockMvc.perform(
-						get(URL)
+						get(URI)
 				)
 						.andExpect(status().is3xxRedirection())
 						.andExpect(redirectedUrlPattern("**/"));
@@ -131,7 +148,7 @@ public class LedgerControllerIT {
 			@DisplayName("권한이 없는 사용자는 접근할 수 없다.")
 			void rejectsRequest_whenUserHasNoPermission() throws Exception {
 				mockMvc.perform(
-						get(URL)
+						get(URI)
 				)
 						.andExpect(status().isForbidden())
 						.andExpect(redirectedUrl("/403"));
@@ -144,7 +161,7 @@ public class LedgerControllerIT {
 				session.invalidate();
 
 				mockMvc.perform(
-						get(URL)
+						get(URI)
 								.session(session)
 				)
 						.andExpect(status().is3xxRedirection())
@@ -242,12 +259,11 @@ public class LedgerControllerIT {
 		@Autowired
 		private MemberRepository memberRepository;
 
-		private final String URL = "/ledgers";
-		private Member member;
+		private final String URI = "/ledgers";
 
 		@BeforeEach
 		void setUp() {
-			member = memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
+			memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
 		}
 		
 		@Nested
@@ -262,7 +278,7 @@ public class LedgerControllerIT {
 				
 				//when: 가계부 등록을 요청한다.
 				mockMvc.perform(
-						post(URL)
+						post(URI)
 								.flashAttr("ledger", request)
 				)
 						.andExpect(status().is3xxRedirection())
@@ -295,7 +311,7 @@ public class LedgerControllerIT {
 
 				//when: 가계부 등록을 요청한다.
 				mockMvc.perform(
-						post(URL)
+						post(URI)
 								.flashAttr("ledger", request)
 				)
 						.andExpect(status().is3xxRedirection())
@@ -313,7 +329,7 @@ public class LedgerControllerIT {
 
 				//when: 가계부 등록을 요청한다.
 				mockMvc.perform(
-								post(URL)
+								post(URI)
 										.flashAttr("ledger", request)
 						)
 						.andExpect(status().is3xxRedirection())
@@ -323,6 +339,211 @@ public class LedgerControllerIT {
 			
 		}
 		
+	}
+
+
+	@Nested
+	@DisplayName("가계부 내역 조회")
+	@WithMockCustomUser
+	class GetHistories {
+
+		@Autowired
+		MemberRepository memberRepository;
+
+		@Autowired
+		LedgerRepository ledgerRepository;
+
+		private Member member;
+
+		private final String URI = "/ledgers";
+
+		@BeforeEach
+		void setUp() {
+			member = memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
+			clock.set(LocalDate.of(2026, 1, 10));
+
+			//수입 내역
+			savedIncomeLedger(member.getId(), "code1", LocalDate.of(2026, 1, 5), 20000);
+			savedIncomeLedger(member.getId(), "code2", LocalDate.of(2026, 1, 12), 35000);
+
+			//지출 내역
+			savedOutlayLedger(member.getId(), "code3", LocalDate.of(2026, 1, 3), 5000);
+			savedOutlayLedger(member.getId(), "code4", LocalDate.of(2026, 1, 12), 15000);
+			savedOutlayLedger(member.getId(), "code5", LocalDate.of(2026, 1, 20), 20000);
+		}
+
+		private void savedIncomeLedger(String memberId, String code, LocalDate date, int amount) {
+			ledgerRepository.insert(
+					LedgerFixture.newLedger()
+							.memberId(memberId)
+							.code(code)
+							.date(date)
+							.money(Money.of((long) amount, PaymentType.NONE))
+							.build()
+			);
+		}
+
+		private void savedOutlayLedger(String memberId, String code, LocalDate date, int amount) {
+			ledgerRepository.insert(
+					LedgerFixture.newLedger()
+							.memberId(memberId)
+							.code(code)
+							.date(date)
+							.money(Money.of((long) amount, PaymentType.NONE))
+							.category(CategoryTestData.FOOD_CODE)
+							.build()
+			);
+		}
+
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+
+			@Test
+			@DisplayName("저장된 가계부가 있으면 목록 페이지가 정상적으로 렌더링된다.")
+			void returnsLedgerListPage_whenLedgerExists() throws Exception {
+				//given: 2월에 등록한 가계부 내역이 1건 저장되어 있다.
+				savedOutlayLedger(member.getId(), "code6", LocalDate.of(2026, 2, 1), 10000);
+
+				//when: 가계부 내역 조회를 요청한다.
+				MvcResult result = mockMvc.perform(
+						get(URI)
+								.param("viewType", "month")
+				)
+						.andExpect(status().isOk())
+						.andExpect(view().name("/ledger/ledger_history"))
+						.andExpect(model().attribute("type", HistoryType.MONTH))
+						.andExpect(model().attribute("activeMenu", HistoryMenuType.ALL.name()))
+						.andReturn();
+
+				//then: 월별 가계부 내역 정보가 모델에 정상적으로 저장된다.
+				assertThat(result.getModelAndView()).isNotNull();
+
+				HistoryDashboardResponse history = (HistoryDashboardResponse) result.getModelAndView()
+																						.getModel()
+																						.get("history");
+
+				assertThat(history).isNotNull();
+
+				assertThat(history.getTitle()).isEqualTo("2026년 01월");
+
+				assertThat(history.getMenu())
+						.extracting(MenuItem::getLabel)
+						.containsExactly("전체", "수입/지출", "카테고리", "메모", "기간");
+
+				assertThat(history.getStatistics())
+						.satisfies(stat -> {
+							assertThat(stat.getTotal()).isEqualTo(95000L);
+							assertThat(stat.getIncome()).isEqualTo(55000L);
+							assertThat(stat.getOutlay()).isEqualTo(40000L);
+						});
+
+				assertThat(history.getHistoryGroups()).containsKeys("2026. 01. 03 (토)", "2026. 01. 05 (월)", "2026. 01. 12 (월)", "2026. 01. 20 (화)");
+
+				assertThat(history.getHistoryGroups().get("2026. 01. 12 (월)"))
+						.hasSize(2)
+						.extracting(
+								HistoryItem::getCode,
+								HistoryItem::getCategoryType
+						)
+						.containsExactly(
+								tuple("code4", CategoryType.OUTLAY),
+								tuple("code2", CategoryType.INCOME)
+						);
+			}
+			
+			@Test
+			@Sql(statements = "DELETE FROM ledger")
+			@DisplayName("저장된 가계부가 없으면 빈 목록 페이지가 랜더링된다.")
+			void returnsEmptyLedgerListPage_whenLedgerDoesNotExist() throws Exception {
+				//given: 날짜가 2월 1일로 설정된 상태이다.
+				clock.set(LocalDate.of(2026, 2, 1));
+
+				//when: 가계부 내역 조회를 요쳥한다.
+				mockMvc.perform(
+						get(URI)
+								.param("viewType", "month")
+				)
+						.andExpect(status().isOk())
+						.andExpect(model().attribute(
+								"history",
+								hasProperty("historyGroups", is(Collections.emptyMap()))
+						));
+			}
+			
+			@ParameterizedTest(name = "[{index}] {0}")
+			@MethodSource("validHistoryTypes")
+			@DisplayName("정상 viewType으로 요청하면 해당 타입의 데이터가 조회된다.")
+			void returnsData_whenViewTypeIsValid(String viewType, int size, String key) throws Exception {
+				//given: 2월에 등록한 가계부 내역이 1건 저장되어 있다.
+				savedOutlayLedger(member.getId(), "code6", LocalDate.of(2026, 2, 1), 10000);
+				
+				//when: 가계부 내역 조회를 요청한다.
+				mockMvc.perform(
+						get(URI)
+								.param("viewType", viewType)
+				)
+						.andExpect(status().isOk())
+						.andExpect(model().attributeExists("history"))
+						.andExpect(model().attribute(
+								"history",
+								hasProperty("historyGroups", allOf(
+										aMapWithSize(size),
+										hasKey(key)
+								))
+						));
+			}
+
+			static Stream<Arguments> validHistoryTypes() {
+				return Stream.of(
+						Arguments.of(
+								named("YEAR인 경우", "year"),
+								5,
+								"2026. 02. 01 (일)"
+						),
+						Arguments.of(
+								named("MONTH인 경우", "month"),
+								4,
+								"2026. 01. 20 (화)"
+						),
+						Arguments.of(
+								named("WEEK 경우", "week"),
+								1,
+								"2026. 01. 05 (월)"
+						)
+				);
+			}
+			
+			@Test
+			@DisplayName("잘못된 viewType이면 기본 타입으로 조회된다.")
+			void returnsDataWithDefaultType_whenViewTypeIsInvalid() throws Exception {
+				//given: 잘못된 vieType이 주어진다.
+				String viewType = "error";
+				
+				//when: 가계부 내역 조회를 요청한다.
+				mockMvc.perform(
+						get(URI)
+								.param("viewType", viewType)
+				)
+						.andExpect(status().isOk())
+						.andExpect(model().attribute("type", HistoryType.MONTH));
+			}
+			
+			@ParameterizedTest
+			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@DisplayName("viewType이 없으면 기본 타입으로 조회된다.")
+			void returnsDataWithDefaultType_whenViewTypeDoesNotExist(String viewType) throws Exception {
+				//when: 가계부 내역 조회를 요청한다.
+				mockMvc.perform(
+								get(URI)
+										.param("viewType", viewType)
+						)
+						.andExpect(status().isOk())
+						.andExpect(model().attribute("type", HistoryType.MONTH));
+			}
+
+		}
+
 	}
 
 }

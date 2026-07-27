@@ -128,9 +128,7 @@ public class LedgerCommandServiceRollbackIT {
 		@DisplayName("이미지 처리 중 실패하면 전체 롤백한다.")
 		void rollback_whenProcessImageFails() {
 			//given: 수정할 가계부가 준비되어 있다.
-			Long ledgerId = ledgerRepository.insert(
-					LedgerFixture.newLedger(MemberTestData.MEMBER_ID)
-			);
+			Long ledgerId = ledgerRepository.insert(LedgerFixture.newLedger().memberId(MemberTestData.MEMBER_ID).build());
 
 			Ledger savedLedger = ledgerRepository.findById(ledgerId);
 

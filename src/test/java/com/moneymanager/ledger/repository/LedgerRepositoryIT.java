@@ -1,5 +1,6 @@
 package com.moneymanager.ledger.repository;
 
+import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
@@ -90,10 +91,11 @@ public class LedgerRepositoryIT {
 			@DisplayName("Ledger 정보가 데이터베이스에 저장된다.")
 			void savesLedger_whenRequestIsValid() {
 				//given: 필수 정보와 선택 정보가 모두 있는 Ledger가 준비되어 있다.
-				Ledger newLedger = LedgerFixture.builderWithPlace()
+				Ledger newLedger = LedgerFixture.newLedger()
 						.memo("메모")
 						.fix(FixedYN.REPEAT)
 						.fixCycle(FixCycle.YEARLY)
+						.place(Place.of(LedgerTestData.PLACE_NAME, LedgerTestData.ROAD_ADDRESS, LedgerTestData.DETAIL_ADDRESS))
 						.build();
 				
 				//when: 가계부를 저장한다.
@@ -116,7 +118,7 @@ public class LedgerRepositoryIT {
 			@DisplayName("장소 정보가 없어도 데이터베이스 저장된다.")
 			void savesLedger_whenPlaceDoesNotExist() {
 				//given: 장소 정보만 없는 Ledger가 준비되어 있다.
-				Ledger newLedger = LedgerFixture.builder()
+				Ledger newLedger = LedgerFixture.newLedger()
 						.memo("메모")
 						.fix(FixedYN.REPEAT)
 						.fixCycle(FixCycle.YEARLY)
@@ -135,7 +137,7 @@ public class LedgerRepositoryIT {
 			@DisplayName("고정주기 정보가 없어도 데이터베이스 저장된다.")
 			void savesLedger_whenRecurringDoesNotExist() {
 				//given: 고정주기가 없는 Ledger가 준비되어 있다.
-				Ledger newLedger = LedgerFixture.newLedger();
+				Ledger newLedger = LedgerFixture.newLedger().build();
 
 				//when: 가계부를 저장한다.
 				Long result = target.insert(newLedger);
@@ -151,7 +153,7 @@ public class LedgerRepositoryIT {
 			@DisplayName("가계부가 저장되면 Generated Key가 반환된다.")
 			void returnsGeneratedKey_whenLedgerIsSaved() {
 				//given: 저장할 수 있는 가계부가 준비되어 있다.
-				Ledger ledger = LedgerFixture.newLedger();
+				Ledger ledger = LedgerFixture.newLedger().build();
 
 				//when: 가계부를 저장한다.
 				Long result = target.insert(ledger);
@@ -165,7 +167,7 @@ public class LedgerRepositoryIT {
 			@DisplayName("가계부를 저장하면 데이터베이스에 한 건이 추가된다.")
 			void savesLedgerSuccessfully_whenRequestIsValid() {
 				//given: 저장할 수 있는 가계부가 준비되어 있다.
-				Ledger ledger = LedgerFixture.newLedger();
+				Ledger ledger = LedgerFixture.newLedger().build();
 				
 				long before = target.count();
 
@@ -188,10 +190,20 @@ public class LedgerRepositoryIT {
 			@DisplayName("가계부 코드가 중복되면 예외가 발생한다.")
 			void throwsException_whenLedgerCodeExist() {
 				//given: 중복되는 코드를 가진 가계부가 준비되어 있다.
-				Ledger savedLedger = LedgerFixture.newLedger();
-				target.insert(savedLedger);
+				String memberId = MemberTestData.MEMBER_ID;
+				String ledgerCode = LedgerTestData.CODE;
 
-				Ledger newLedger = LedgerFixture.newLedger(savedLedger.getMemberId(), savedLedger.getCode());
+				target.insert(
+						LedgerFixture.savedLedger(1L)
+								.memberId(memberId)
+								.code(ledgerCode)
+								.build()
+				);
+
+				Ledger newLedger = LedgerFixture.newLedger()
+						.memberId(memberId)
+						.code(ledgerCode)
+						.build();
 
 				//when & then: 동일한 가계부 저장 시 DuplicateKeyException이 발생한다.
 				assertThatCode(() -> target.insert(newLedger))
@@ -212,10 +224,11 @@ public class LedgerRepositoryIT {
 		@BeforeEach
 		void setUp() {
 			Long id = target.insert(
-					LedgerFixture.builderWithPlace()
+					LedgerFixture.newLedger()
 							.memo("메모")
 							.fix(FixedYN.REPEAT)
 							.fixCycle(FixCycle.MONTHLY)
+							.place(Place.of(LedgerTestData.PLACE_NAME, LedgerTestData.ROAD_ADDRESS, null))
 							.build()
 			);
 
@@ -293,7 +306,11 @@ public class LedgerRepositoryIT {
 			@DisplayName("존재하지 않은 회원으로 가계부를 수정하면 0을 반환한다.")
 			void returnsZero_whenMemberDoesNotExist() {
 				//given: 존재하지 않은 회원 ID를 가진 가계부가 준비되어 있다.
-				Ledger ledger = LedgerFixture.newLedger("error", savedLedger.getCode());
+				Ledger ledger = LedgerFixture.newLedger()
+						.memberId("error")
+						.code(savedLedger.getCode())
+						.build();
+
 				ledger.changeMemo("수정");
 				
 				//when: 가계부 수정을 요청한다.
@@ -311,7 +328,11 @@ public class LedgerRepositoryIT {
 			@DisplayName("존재하지 않은 회원으로 가계부를 수정하면 0을 반환한다.")
 			void returnsZero_whenLedgerDoesNotExist() {
 				//given: 존재하지 않은 가계부 코드를 가진 가계부가 준비되어 있다.
-				Ledger ledger = LedgerFixture.newLedger(savedLedger.getMemberId(), "error");
+				Ledger ledger = LedgerFixture.newLedger()
+						.memberId(savedLedger.getMemberId())
+						.code("error")
+						.build();
+
 				ledger.changeMemo("수정");
 
 				//when: 가계부 수정을 요청한다.
@@ -338,7 +359,7 @@ public class LedgerRepositoryIT {
 
 		@BeforeEach
 		void setUp() {
-			Long ledgerId = target.insert(LedgerFixture.newLedger());
+			Long ledgerId = target.insert(LedgerFixture.newLedger().build());
 
 			savedLedger = target.findById(ledgerId);
 		}
@@ -398,7 +419,7 @@ public class LedgerRepositoryIT {
 
 		@BeforeEach
 		void setUp() {
-			Long ledgerId = target.insert(LedgerFixture.newLedger());
+			Long ledgerId = target.insert(LedgerFixture.newLedger().build());
 
 			savedLedger = target.findById(ledgerId);
 		}
@@ -435,7 +456,7 @@ public class LedgerRepositoryIT {
 				//given: 다른 회원과 가계부가 저장된다.
 				Member otherMember = memberRepository.save(MemberFixture.builder().build());
 
-				Long ledgerId = target.insert(LedgerFixture.newLedger(otherMember.getId(), "code1"));
+				Long ledgerId = target.insert(LedgerFixture.newLedger().memberId(otherMember.getId()).code("code").build());
 				Ledger otherLedger = target.findById(ledgerId);
 				
 				//when & then: 가계부를 조회하면 EmptyResultDataAccessException이 발생한다.
@@ -471,9 +492,9 @@ public class LedgerRepositoryIT {
 			@DisplayName("저장된 전체 가계부가 조회한다.")
 			void returnsAllLedger_whenLedgersExist() {
 				//given: 여러 개의 가계부가 저장되어 있다.
-				target.insert(LedgerFixture.newLedger(member.getId(), "code1"));
-				target.insert(LedgerFixture.newLedger(member.getId(), "code2"));
-				target.insert(LedgerFixture.newLedger(member.getId(), "code3"));
+				target.insert(LedgerFixture.newLedger().memberId(member.getId()).code("code1").build());
+				target.insert(LedgerFixture.newLedger().memberId(member.getId()).code("code2").build());
+				target.insert(LedgerFixture.newLedger().memberId(member.getId()).code("code3").build());
 
 				//when: 전체 가계부를 조회한다.
 				List<Ledger> result = target.findAll();
@@ -506,18 +527,18 @@ public class LedgerRepositoryIT {
 
 		@BeforeEach
 		void setUp() {
-			target.insert(LedgerFixture.builder().code("code1").date(LocalDate.of(2026, 1,1)).build());
-			target.insert(LedgerFixture.builder().code("code2").date(LocalDate.of(2026, 1,1)).build());
-			target.insert(LedgerFixture.builder().code("code3").date(LocalDate.of(2026, 1,3)).build());
-			target.insert(LedgerFixture.builder().code("code4").date(LocalDate.of(2026, 1,3)).build());
-			target.insert(LedgerFixture.builder().code("code5").date(LocalDate.of(2026, 1,5)).build());
+			target.insert(LedgerFixture.newLedger().code("code1").date(LocalDate.of(2026, 1,1)).build());
+			target.insert(LedgerFixture.newLedger().code("code2").date(LocalDate.of(2026, 1,1)).build());
+			target.insert(LedgerFixture.newLedger().code("code3").date(LocalDate.of(2026, 1,3)).build());
+			target.insert(LedgerFixture.newLedger().code("code4").date(LocalDate.of(2026, 1,3)).build());
+			target.insert(LedgerFixture.newLedger().code("code5").date(LocalDate.of(2026, 1,5)).build());
 
 			//다른 회원의 가계부 추가
 			Member otherMember = memberRepository.save(MemberFixture.builder().build());
 
-			target.insert(LedgerFixture.builder().memberId(otherMember.getId()).code("code6").date(LocalDate.of(2026, 1, 3)).build());
-			target.insert(LedgerFixture.builder().memberId(otherMember.getId()).code("code7").date(LocalDate.of(2026, 1, 4)).build());
-			target.insert(LedgerFixture.builder().memberId(otherMember.getId()).code("code8").date(LocalDate.of(2026, 1, 6)).build());
+			target.insert(LedgerFixture.newLedger().memberId(otherMember.getId()).code("code6").date(LocalDate.of(2026, 1,3)).build());
+			target.insert(LedgerFixture.newLedger().memberId(otherMember.getId()).code("code7").date(LocalDate.of(2026, 1,4)).build());
+			target.insert(LedgerFixture.newLedger().memberId(otherMember.getId()).code("code8").date(LocalDate.of(2026, 1,6)).build());
 		}
 
 		@Nested
@@ -545,6 +566,19 @@ public class LedgerRepositoryIT {
 				assertThat(result)
 						.extracting(LedgerHistoryQuery::getCode)
 						.containsOnlyOnce("code3", "code4");
+
+				//객체 필드값이 정상적으로 매핑되어 있다.
+				LedgerHistoryQuery history = result.stream()
+						.filter(item -> item.getCode().equals("code3"))
+						.findFirst()
+						.orElseThrow();
+
+				assertThat(history.getMemo()).isNull();
+				assertThat(history.getCode()).isEqualTo("code3");
+				assertThat(history.getDate()).isEqualTo(LocalDate.of(2026, 1, 3));
+				assertThat(history.getAmount()).isEqualTo(LedgerTestData.AMOUNT);
+				assertThat(history.getCategoryCode()).isEqualTo(CategoryTestData.SALARY_CODE);
+				assertThat(history.getCategoryName()).isEqualTo(CategoryTestData.SALARY_NAME);
 			}
 			
 			@Test
@@ -654,9 +688,9 @@ public class LedgerRepositoryIT {
 			@DisplayName("저장된 전체 가계부 건수가 조회된다.")
 			void returnsLedgerCount_whenLedgersExist() {
 				//given: 여러 개의 가계부가 저장되어 있다.
-				target.insert(LedgerFixture.builder().code("code1").date(LocalDate.of(2026, 1,1)).build());
-				target.insert(LedgerFixture.builder().code("code2").date(LocalDate.of(2026, 1,1)).build());
-				target.insert(LedgerFixture.builder().code("code3").date(LocalDate.of(2026, 1,3)).build());
+				target.insert(LedgerFixture.newLedger().code("code1").date(LocalDate.of(2026, 1,1)).build());
+				target.insert(LedgerFixture.newLedger().code("code2").date(LocalDate.of(2026, 1,1)).build());
+				target.insert(LedgerFixture.newLedger().code("code3").date(LocalDate.of(2026, 1,3)).build());
 
 				//when: 모든 가계부의 건수를 조회한다.
 				Long result = target.count();
@@ -686,9 +720,9 @@ public class LedgerRepositoryIT {
 
 		@BeforeEach
 		void setUp() {
-			target.insert(LedgerFixture.builder().code("code1").date(LocalDate.of(2026, 1,1)).build());
-			target.insert(LedgerFixture.builder().code("code2").date(LocalDate.of(2026, 1,1)).build());
-			target.insert(LedgerFixture.builder().code("code3").date(LocalDate.of(2026, 1,3)).build());
+			target.insert(LedgerFixture.newLedger().code("code1").date(LocalDate.of(2026, 1,1)).build());
+			target.insert(LedgerFixture.newLedger().code("code2").date(LocalDate.of(2026, 1,1)).build());
+			target.insert(LedgerFixture.newLedger().code("code3").date(LocalDate.of(2026, 1,3)).build());
 		}
 		
 		@Nested

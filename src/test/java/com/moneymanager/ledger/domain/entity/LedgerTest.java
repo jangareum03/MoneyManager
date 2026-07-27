@@ -232,7 +232,7 @@ public class LedgerTest {
 		class Failure {
 
 			@ParameterizedTest
-			@MethodSource("com.moneymanager.data.DateTestData#unsupportedFormats")
+			@MethodSource("com.moneymanager.support.data.DateTestData#unsupportedFormats")
 			@DisplayName("거래날짜 형식이 yyyyMMdd가 아니면 생성에 실패한다.")
 			void throwsException_whenDateFormatIsInvalid(String date) {
 				//given: 유효하지 않은 거래날짜 형식을 가진 생성 요청이 준비되어 있다.
@@ -397,7 +397,7 @@ public class LedgerTest {
 
 		@BeforeEach
 		void setUp() {
-			ledger = LedgerFixture.builder()
+			ledger = LedgerFixture.savedLedger(1L)
 					.fix(FixedYN.REPEAT)
 					.fixCycle(FixCycle.YEARLY)
 					.build();
@@ -486,7 +486,9 @@ public class LedgerTest {
 
 		@BeforeEach
 		void setUp() {
-			incomeLedger = LedgerFixture.builder().build();
+			incomeLedger = LedgerFixture.savedLedger(1L)
+					.category(CategoryTestData.SALARY_CODE)
+					.build();
 		}
 		
 		@Nested
@@ -560,7 +562,7 @@ public class LedgerTest {
 
 		@BeforeEach
 		void setUp() {
-			ledger = LedgerFixture.savedLedger();
+			ledger = LedgerFixture.savedLedger(1L).build();
 		}
 		
 		@Nested
@@ -608,7 +610,7 @@ public class LedgerTest {
 
 		@BeforeEach
 		void setUp() {
-			ledger = LedgerFixture.savedLedger();
+			ledger = LedgerFixture.savedLedger(1L).build();
 		}
 
 		@Nested
@@ -666,7 +668,13 @@ public class LedgerTest {
 
 			@BeforeEach
 			void setUp() {
-				ledger = LedgerFixture.builderWithPlace().build();
+				ledger = LedgerFixture.savedLedger(1L)
+						.place(Place.of(
+								LedgerTestData.PLACE_NAME,
+								LedgerTestData.ROAD_ADDRESS,
+								LedgerTestData.DETAIL_ADDRESS
+						))
+						.build();
 			}
 
 			@ParameterizedTest

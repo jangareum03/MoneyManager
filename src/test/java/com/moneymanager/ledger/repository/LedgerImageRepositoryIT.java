@@ -71,7 +71,7 @@ public class LedgerImageRepositoryIT {
 	void setUp() {
 		memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
 
-		Long id = ledgerRepository.insert(LedgerFixture.newLedger());
+		Long id = ledgerRepository.insert(LedgerFixture.newLedger().build());
 		ledger = ledgerRepository.findById(id);
 	}
 
