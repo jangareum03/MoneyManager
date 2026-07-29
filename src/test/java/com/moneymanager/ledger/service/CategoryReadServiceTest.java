@@ -10,6 +10,9 @@ import com.moneymanager.service.ledger.CategoryReadService;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.fixture.entity.CategoryFixture;
+import com.moneymanager.support.fixture.entity.CategoryHierarchyFixture;
+import com.moneymanager.support.fixture.entity.IncomeCategoryFixture;
+import com.moneymanager.support.fixture.entity.OutlayCategoryFixture;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +27,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -77,13 +82,17 @@ public class CategoryReadServiceTest {
 			@DisplayName("최상위 카테고리만 반환된다.")
 			void returnsRootCategories_whenRootCategoriesExist() {
 				//given: 캐시에서 카테고리 정보가 반환되도록 동작이 정의되어 있다.
-				Map<String, Category> categoryMap = new java.util.HashMap<>(CategoryFixture.hierarchyMap());
-				categoryMap.put(
-						CategoryTestData.OUTLAY_CODE,
-						CategoryFixture.builder().code(CategoryTestData.OUTLAY_CODE).name("지출").build()
-				);
+				Category income = CategoryFixture.income();
+				Category outlay = CategoryFixture.outlay();
 
-				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
+
+				when(categoryCacheService.getCategoryMap())
+						.thenReturn(
+								Map.of(
+										income.getCode(), income,
+										outlay.getCode(), outlay
+								)
+						);
 				
 				//when: 최상위 카테고리를 조회한다.
 				List<CategoryItem> result = target.getRootCategories();
@@ -102,7 +111,7 @@ public class CategoryReadServiceTest {
 			@DisplayName("최상위 카테고리가 한 개만 있어도 반환된다.")
 			void returnsRootCategories_whenSingleRootCategoryExists() {
 				//given: 캐시에서 한 개의 카테고리만 반환되도록 동작이 정의되어 있다.
-				Category category = CategoryFixture.top();
+				Category category = CategoryFixture.income();
 
 				when(categoryCacheService.getCategoryMap())
 						.thenReturn(Map.of(
@@ -128,11 +137,12 @@ public class CategoryReadServiceTest {
 			@DisplayName("카테고리 코드 오름차순으로 정렬된다.")
 			void sortsCategoriesByCodeAscending_whenCategoriesExist() {
 				//given: 캐시에서 카테고리 정보가 반환되도록 동작이 정의되어 있다.
-				Map<String, Category> categoryMap = new java.util.HashMap<>(CategoryFixture.hierarchyMap());
-				categoryMap.put(
-						CategoryTestData.OUTLAY_CODE,
-						CategoryFixture.builder().code(CategoryTestData.OUTLAY_CODE).name("지출").build()
-				);
+				Category income = CategoryFixture.income();
+				Category outlay = CategoryFixture.outlay();
+
+				Map<String, Category> categoryMap = new LinkedHashMap<>();
+				categoryMap.put(outlay.getCode(), outlay);
+				categoryMap.put(income.getCode(), income);
 
 				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
 
@@ -148,40 +158,14 @@ public class CategoryReadServiceTest {
 			}
 
 			@Test
-			@DisplayName("캐시의 저장된 순서와 관계없이 코드 기준으로 정렬하여 반환된다.")
-			void validatesSortDiscrepancy_whenCacheSortIsDifferent() {
-				//given: 정렬되지 않은 카테고리 정보가 반환되도록 동작이 정의되어 있다.
-				Map<String, Category> categoryMap = new LinkedHashMap<>();
-
-				categoryMap.put(
-						CategoryTestData.OUTLAY_CODE,
-						CategoryFixture.builder().code(CategoryTestData.OUTLAY_CODE).name("지출").build()
-				);
-				categoryMap.put(
-						CategoryTestData.INCOME_CODE,
-						CategoryFixture.top()
-				);
-
-				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
-
-				//when: 최상위 카테고리를 조회한다.
-				List<CategoryItem> result = target.getRootCategories();
-				
-				//then: 캐시에 정렬된 순서와 리스트에 정렬된 순서는 다르다.
-				assertThat(result)
-						.extracting(CategoryItem::getCode)
-						.containsExactly(
-								CategoryTestData.INCOME_CODE,
-								CategoryTestData.OUTLAY_CODE
-						);
-			}
-
-			@Test
 			@DisplayName("최상위 카테고리가 없으면 빈 리스트가 반환된다.")
 			void returnsEmptyList_whenRootCategoryDoesNotExist() {
 				//given: 캐시에서 최상위 카테고리 정보가 저장되어 있지 않다.
-				Map<String, Category> categoryMap = new java.util.HashMap<>(CategoryFixture.hierarchyMap());
-				categoryMap.remove(CategoryTestData.INCOME_CODE);
+				Category snack = CategoryFixture.snack();
+
+				Map<String, Category> categoryMap = new HashMap<>();
+
+				categoryMap.put(snack.getCode(), snack);
 
 				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
 
@@ -209,12 +193,17 @@ public class CategoryReadServiceTest {
 			@DisplayName("캐시 서비스는 한 번만 호출된다.")
 			void validatesCacheServiceCallCount_whenDataIsRequested() {
 				//given: 캐시에서 카테고리 정보가 반환되도록 동작이 정의되어 있다.
-				Map<String, Category> categoryMap = new java.util.HashMap<>(CategoryFixture.hierarchyMap());
+				Category income = CategoryFixture.income();
+				Category outlay = CategoryFixture.outlay();
+
+				Map<String, Category> categoryMap = new HashMap<>();
+				categoryMap.put(income.getCode(), income);
+				categoryMap.put(outlay.getCode(), outlay);
 
 				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
 
 				//when: 최상위 카테고리를 조회한다.
-				List<CategoryItem> result = target.getRootCategories();
+				target.getRootCategories();
 				
 				//then: 캐시 서비스는 한 번만 호출된다.
 				verify(categoryCacheService, times(1)).getCategoryMap();
@@ -233,20 +222,19 @@ public class CategoryReadServiceTest {
 
 		@BeforeEach
 		void setUp() {
-			Category top1 = CategoryFixture.builder().code("010000").name("수입").build();
-			Category top2 = CategoryFixture.builder().code("020000").name("지출").build();
-
-			Category middle1 = CategoryFixture.builder().code("010100").name("월급").parentCode(top1.getCode()).build();
-			Category middle2 = CategoryFixture.builder().code("020100").name("간식").parentCode(top2.getCode()).build();
-			Category middle3 = CategoryFixture.builder().code("020200").name("영화").parentCode(top2.getCode()).build();
-
 			categoryMap = new LinkedHashMap<>();
 
-			categoryMap.put(top1.getCode(), top1);
-			categoryMap.put(middle1.getCode(), middle1);
-			categoryMap.put(middle2.getCode(), middle2);
-			categoryMap.put(top2.getCode(), top2);
-			categoryMap.put(middle3.getCode(), middle3);
+			Category income = CategoryFixture.income();
+			categoryMap.put(income.getCode(), income);
+
+			IncomeCategoryFixture.createMiddleAll()
+					.forEach(c -> categoryMap.put(c.getCode(), c));
+
+			Category outlay = CategoryFixture.outlay();
+			categoryMap.put(outlay.getCode(), outlay);
+
+			OutlayCategoryFixture.createMiddleAll()
+							.forEach(c -> categoryMap.put(c.getCode(), c));
 		}
 
 		@Nested
@@ -317,18 +305,10 @@ public class CategoryReadServiceTest {
 				//given: 정렬되지 않은 카테고리 정보가 반환되도록 동작이 정의되어 있다.
 				Map<String, Category> categoryMap = new LinkedHashMap<>();
 
-				categoryMap.put(
-						"010300",
-						CategoryFixture.builder().code("010300").name("이름A").parentCode("010000").build()
-				);
-				categoryMap.put(
-						"010100",
-						CategoryFixture.builder().code("010100").name("이름C").parentCode("010000").build()
-				);
-				categoryMap.put(
-						"010200",
-						CategoryFixture.builder().code("010200").name("이름B").parentCode("010000").build()
-				);
+				List<Category> categories = new ArrayList<>(IncomeCategoryFixture.createMiddleAll());
+				Collections.shuffle(categories);
+
+				categories.forEach(c -> categoryMap.put(c.getCode(), c));
 
 				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
 
@@ -403,33 +383,17 @@ public class CategoryReadServiceTest {
 
 		@BeforeEach
 		void setUp() {
-			Category top1 = CategoryFixture.builder().code("010000").name("수입").build();
-			Category top2 = CategoryFixture.builder().code("020000").name("지출").build();
+			List<Category> categories = Stream.of(
+					List.of(CategoryFixture.income(), CategoryFixture.outlay()),
+					IncomeCategoryFixture.createMiddleAll(), IncomeCategoryFixture.createLowAll(),
+					OutlayCategoryFixture.createMiddleAll(), OutlayCategoryFixture.createLowAll()
+			)
+					.flatMap(List::stream)
+					.collect(Collectors.toCollection(ArrayList::new));
 
-			Category middle1 = CategoryFixture.builder().code("010100").name("월급").parentCode(top1.getCode()).build();
-			Category middle2 = CategoryFixture.builder().code("020100").name("간식").parentCode(top2.getCode()).build();
-			Category middle3 = CategoryFixture.builder().code("020200").name("영화").parentCode(top2.getCode()).build();
+			Collections.shuffle(categories);
 
-			Category low1 = CategoryFixture.builder().code("010101").name("월급A").parentCode(middle1.getCode()).build();
-			Category low2 = CategoryFixture.builder().code("010102").name("월급B").parentCode(middle1.getCode()).build();
-			Category low3 = CategoryFixture.builder().code("020101").name("간식A").parentCode(middle2.getCode()).build();
-			Category low4 = CategoryFixture.builder().code("020102").name("간식B").parentCode(middle2.getCode()).build();
-			Category low5 = CategoryFixture.builder().code("020103").name("간식C").parentCode(middle2.getCode()).build();
-			Category low6 = CategoryFixture.builder().code("020201").name("영화A").parentCode(middle3.getCode()).build();
-
-			categoryMap = new LinkedHashMap<>();
-
-			categoryMap.put(low6.getCode(), low6);
-			categoryMap.put(top1.getCode(), top1);
-			categoryMap.put(low4.getCode(), low4);
-			categoryMap.put(middle1.getCode(), middle1);
-			categoryMap.put(low1.getCode(), low1);
-			categoryMap.put(low2.getCode(), low2);
-			categoryMap.put(middle2.getCode(), middle2);
-			categoryMap.put(top2.getCode(), top2);
-			categoryMap.put(low5.getCode(), low5);
-			categoryMap.put(middle3.getCode(), middle3);
-			categoryMap.put(low3.getCode(), low3);
+			categories.forEach(c -> categoryMap.put(c.getCode(), c));
 		}
 
 		@Nested
@@ -503,21 +467,6 @@ public class CategoryReadServiceTest {
 			@DisplayName("캐시의 저장된 순서와 관계없이 코드 기준으로 정렬하여 반환된다.")
 			void validatesSortDiscrepancy_whenCacheSortIsDifferent() {
 				//given: 정렬되지 않은 카테고리 정보가 반환되도록 동작이 정의되어 있다.
-				Map<String, Category> categoryMap = new LinkedHashMap<>();
-
-				categoryMap.put(
-						"020102",
-						CategoryFixture.builder().code("020102").name("이름A").parentCode("020100").build()
-				);
-				categoryMap.put(
-						"020103",
-						CategoryFixture.builder().code("020103").name("이름C").parentCode("020100").build()
-				);
-				categoryMap.put(
-						"020101",
-						CategoryFixture.builder().code("020101").name("이름B").parentCode("020100").build()
-				);
-
 				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
 
 				//when: 하위 카테고리를 조회한다.
@@ -595,8 +544,16 @@ public class CategoryReadServiceTest {
 			@DisplayName("코드에 해당하는 카테고리가 있으면 Category가 반환된다.")
 			void returnsCategory_whenCategoryExists() {
 				//given: 캐시에 저장된 카테고리를 반환하도록 동작이 정의되어 있다.
+				List<Category> categories = new ArrayList<>(CategoryHierarchyFixture.incomeHierarchy());
+
+				Collections.shuffle(categories);
+
+				Map<String, Category> categoryMap = new LinkedHashMap<>();
+
+				categories.forEach(c -> categoryMap.put(c.getCode(), c));
+
 				when(categoryCacheService.getCategoryMap())
-						.thenReturn(CategoryFixture.hierarchyMap());
+						.thenReturn(categoryMap);
 				
 				//when: 카테고리를 조회한다.
 				Category result = target.getCategory(CategoryTestData.SALARY_CODE);
@@ -670,6 +627,20 @@ public class CategoryReadServiceTest {
 	@DisplayName("카테고리 계층 조회")
 	class GetCategoryHierarchy {
 
+		private Map<String, Category> categoryMap;
+
+		@BeforeEach
+		void setUp() {
+			List<Category> categories = new ArrayList<>(CategoryHierarchyFixture.incomeHierarchy());
+
+			Collections.shuffle(categories);
+
+			categories.forEach(c -> categoryMap.put(c.getCode(), c));
+
+			when(categoryCacheService.getCategoryMap())
+					.thenReturn(categoryMap);
+		}
+
 		@Nested
 		@DisplayName("성공 케이스")
 		class Success {
@@ -677,13 +648,8 @@ public class CategoryReadServiceTest {
 			@Test
 			@DisplayName("하위 카테고리 코드면 전체 카테고리 계층이 반환된다.")
 			void returnsAllCategories_whenSubCategoryCodeIsGiven() {
-				//given: 하위 카테고리 코드가 주어진다.
-				String code = CategoryTestData.SALARY_CODE;
-
-				when(categoryCacheService.getCategoryMap()).thenReturn(CategoryFixture.hierarchyMap());
-				
 				//when: 카테고리 계층을 조회한다.
-				List<CategoryItem> result = target.findCategoryHierarchy(code);
+				List<CategoryItem> result = target.findCategoryHierarchy(CategoryTestData.SALARY_CODE);
 				
 				//then: 최상위 계층까지 카테고리가 반환된다.
 				assertThat(result)
@@ -702,13 +668,8 @@ public class CategoryReadServiceTest {
 			@Test
 			@DisplayName("중간 카테고리 코드면 일부 카테고리 계층이 반환된다.")
 			void returnsPartialCategories_whenMiddleCategoryCodeIsGiven() {
-				//given: 중간 카테고리 코드가 주어진다.
-				String code = CategoryTestData.EARNED_CODE;
-
-				when(categoryCacheService.getCategoryMap()).thenReturn(CategoryFixture.hierarchyMap());
-
 				//when: 카테고리 계층을 조회한다.
-				List<CategoryItem> result = target.findCategoryHierarchy(code);
+				List<CategoryItem> result = target.findCategoryHierarchy(CategoryTestData.EARNED_CODE);
 
 				//then: 최상위 계층까지 카테고리가 반환된다.
 				assertThat(result)
@@ -726,13 +687,8 @@ public class CategoryReadServiceTest {
 			@Test
 			@DisplayName("최상위 카테고리 코드면 자기 자신만 담은 리스트가 반환된다.")
 			void returnsOnlySelf_whenRootCategoryCodeIsGiven() {
-				//given: 최상위 카테고리 코드가 주어진다.
-				String code = CategoryTestData.INCOME_CODE;
-
-				when(categoryCacheService.getCategoryMap()).thenReturn(CategoryFixture.hierarchyMap());
-
 				//when: 카테고리 계층을 조회한다.
-				List<CategoryItem> result = target.findCategoryHierarchy(code);
+				List<CategoryItem> result = target.findCategoryHierarchy(CategoryTestData.INCOME_CODE);
 
 				//then: 최상위 계층까지 카테고리가 반환된다.
 				assertThat(result)
@@ -752,8 +708,6 @@ public class CategoryReadServiceTest {
 				//given: 저장되지 않은 카테고리 코드가 주어진다.
 				String code = "019999";
 
-				when(categoryCacheService.getCategoryMap()).thenReturn(CategoryFixture.hierarchyMap());
-
 				//when & then: 카테고리 계층을 조회하면 BusinessException가 발생한다.
 				assertThatThrownBy(() -> target.findCategoryHierarchy(code))
 						.isInstanceOf(BusinessException.class);
@@ -762,13 +716,8 @@ public class CategoryReadServiceTest {
 			@Test
 			@DisplayName("최상위 계층부터 현재 계층까지 정렬된 리스트가 반환된다.")
 			void sortsCategoriesByHierarchy_whenCategoriesExist() {
-				//given: 하위 카테고리 코드가 주어진다.
-				String code = CategoryTestData.SALARY_CODE;
-
-				when(categoryCacheService.getCategoryMap()).thenReturn(CategoryFixture.hierarchyMap());
-
 				//when: 카테고리 계층을 조회한다.
-				List<CategoryItem> result = target.findCategoryHierarchy(code);
+				List<CategoryItem> result = target.findCategoryHierarchy(CategoryTestData.SALARY_CODE);
 
 				//then: 최상위 계층부터 하위 계층 순으로 정렬된다.
 				assertThat(result)
@@ -786,10 +735,9 @@ public class CategoryReadServiceTest {
 			@DisplayName("부모가 없는 카테고리 정보에서도 가능한 범위까지 반환된다.")
 			void returnsPartialCategories_whenParentDoesNotExist() {
 				//given: 부모가 없는 카테고리 정보가 반환되도록 동작이 정의되어 있따.
-				Map<String, Category> categoryMap = new HashMap<>(CategoryFixture.hierarchyMap());
 				categoryMap.put(
 						CategoryTestData.EARNED_CODE,
-						CategoryFixture.builder().code(CategoryTestData.EARNED_CODE).name(CategoryTestData.EARNED_NAME).parentCode(null).build()
+						Category.builder().code(CategoryTestData.EARNED_CODE).name(CategoryTestData.EARNED_NAME).parentCode(null).build()
 				);
 
 				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
@@ -814,10 +762,9 @@ public class CategoryReadServiceTest {
 			@DisplayName("중간 부모가 끊어져도 가능한 범위까지 반환된다.")
 			void throwsException_whenMiddleParentDoesNotExist() {
 				//given: 중간 부모가 없는 카테고리 정보가 반환되도록 동작이 정의되어 있따.
-				Map<String, Category> categoryMap = new HashMap<>(CategoryFixture.hierarchyMap());
 				categoryMap.put(
 						CategoryTestData.EARNED_CODE,
-						CategoryFixture.builder().code(CategoryTestData.EARNED_CODE).name(CategoryTestData.EARNED_NAME).parentCode("021000").build()
+						Category.builder().code(CategoryTestData.EARNED_CODE).name(CategoryTestData.EARNED_NAME).parentCode("021000").build()
 				);
 
 				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);

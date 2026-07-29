@@ -5,6 +5,8 @@ import com.moneymanager.support.fixture.entity.CategoryFixture;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.repository.ledger.CategoryRepository;
 import com.moneymanager.service.ledger.CategoryCacheService;
+import com.moneymanager.support.fixture.entity.CategoryHierarchyFixture;
+import com.moneymanager.support.fixture.entity.IncomeCategoryFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -69,15 +71,10 @@ public class CategoryCacheServiceTest {
 			@DisplayName("조회 결과가 데이터가 존재하면 카테고리 정보가 담긴 Map이 반환된다.")
 			void returnsCategoryMap_whenCategoriesExist() {
 				//given: 여러 개의 카테고리 정보가 저장되어 있다.
-				Category top = CategoryFixture.top();
-				Category middle = CategoryFixture.middle(top);
-				Category low = CategoryFixture.low(middle);
+				List<Category> incomeHierarchy = CategoryHierarchyFixture.incomeHierarchy();
 
-				when(repository.findAllCategory()).thenReturn(
-						List.of(
-								top, middle, low
-						)
-				);
+				when(repository.findAllCategory())
+						.thenReturn(incomeHierarchy);
 				
 				//when: 모든 카테고리를 조회한다.
 				Map<String, Category> result = target.getCategoryMap();
@@ -85,16 +82,16 @@ public class CategoryCacheServiceTest {
 				//then: 저장된 모든 카테고리가 반환된다.
 				assertThat(result).hasSize(3);
 
-				assertThat(result.get(CategoryTestData.INCOME_CODE)).isEqualTo(top);
-				assertThat(result.get(CategoryTestData.EARNED_CODE)).isEqualTo(middle);
-				assertThat(result.get(CategoryTestData.SALARY_CODE)).isEqualTo(low);
+				assertThat(result.get(CategoryTestData.INCOME_CODE)).isEqualTo(incomeHierarchy.get(0));
+				assertThat(result.get(CategoryTestData.EARNED_CODE)).isEqualTo(incomeHierarchy.get(1));
+				assertThat(result.get(CategoryTestData.SALARY_CODE)).isEqualTo(incomeHierarchy.get(2));
 			}
 
 			@Test
 			@DisplayName("조회 결과가 1개의 데이터가 존재하면 Map이 반환된다.")
 			void returnsCategoryMap_whenSingleCategoryExists() {
 				//given: 카테고리가 1개 저장되어 있다.
-				Category top = CategoryFixture.top();
+				Category top = CategoryFixture.income();
 
 				when(repository.findAllCategory()).thenReturn(
 						List.of(top)
@@ -108,19 +105,6 @@ public class CategoryCacheServiceTest {
 						.hasSize(1)
 						.containsKeys(CategoryTestData.INCOME_CODE)
 						.containsValue(top);
-			}
-			
-			@Test
-			@DisplayName("조회 결과가 null이면 빈 Map이 반환된다.")
-			void returnsEmptyMap_whenCategoryIsNull() {
-				//given: 조회 결과가 null로 반환되게 동작이 정의되어 있다.
-				when(repository.findAllCategory()).thenReturn(null);
-
-				//when: 모든 카테고리를 조회한다.
-				Map<String, Category> result = target.getCategoryMap();
-				
-				//then: 빈 Map이 반환된다.
-				assertThat(result).isEmpty();
 			}
 			
 			@Test
@@ -141,8 +125,8 @@ public class CategoryCacheServiceTest {
 			@DisplayName("Repository가 정확히 한 번 호출된다.")
 			void validatesRepositoryCallCount_whenDataIsRequested() {
 				//given: 여러 개의 카테고리 정보가 저장되어 있다.
-				Category top = CategoryFixture.top();
-				Category middle = CategoryFixture.middle(top);
+				Category top = CategoryFixture.income();
+				Category middle = IncomeCategoryFixture.createMiddleAll().get(0);
 
 				when(repository.findAllCategory()).thenReturn(
 						List.of(
@@ -167,7 +151,7 @@ public class CategoryCacheServiceTest {
 			@DisplayName("카테고리 코드가 중복되면 예외가 발생한다.")
 			void throwsException_whenCategoryCodeIsDuplicate() {
 				//given: 동일한 카테고리 코드가 2개가 저장되어 있다.
-				Category category = CategoryFixture.top();
+				Category category = CategoryFixture.income();
 
 				when(repository.findAllCategory())
 						.thenReturn(

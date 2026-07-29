@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 public final class LedgerTestData {
 
 	public static final String CODE = "ABCDE-abcde-1234567890cOdE";
-	public static final String DATE = "20260520";
+	public static final String DATE = "20260101";
 	public static final Long AMOUNT = 10000L;
 	public static final String PAYMENT_TYPE = "NONE";
 	public static final String FIX_N = "N";

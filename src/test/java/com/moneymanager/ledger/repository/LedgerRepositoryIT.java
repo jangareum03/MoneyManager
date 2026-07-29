@@ -243,14 +243,14 @@ public class LedgerRepositoryIT {
 			@DisplayName("가게부 정보가 데이터베이스에 수정된다.")
 			void updatesLedger_whenRequestIsValid() {
 				//given: 카테고리 코드와 메모가 수정된 상태이다.
-				savedLedger.changeCategory(CategoryTestData.FOOD_CODE);
+				savedLedger.changeCategory(CategoryTestData.SNACK_CODE);
 				savedLedger.changeMemo("수정 완료");
 				
 				//when: 가계부 수정한다.
 				target.update(savedLedger);
 
 				//then: 수정된 값이 저장된다.
-				assertThat(savedLedger.getCategory()).isEqualTo(CategoryTestData.FOOD_CODE);
+				assertThat(savedLedger.getCategory()).isEqualTo(CategoryTestData.SNACK_CODE);
 				assertThat(savedLedger.getMemo()).isEqualTo("수정 완료");
 
 				assertThat(savedLedger.getUpdatedAt()).isNotNull();

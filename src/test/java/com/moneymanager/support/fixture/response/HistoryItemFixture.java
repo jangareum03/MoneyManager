@@ -14,7 +14,7 @@ public class HistoryItemFixture {
 	}
 
 	public static HistoryItem outlay() {
-		return create(10000L, "메모", CategoryTestData.FOOD_NAME, CategoryTestData.FOOD_CODE);
+		return create(10000L, "메모", CategoryTestData.SNACK_NAME, CategoryTestData.SNACK_CODE);
 	}
 
 	public static HistoryItem create(Long amount, String memo, String categoryName, String categoryCode) {

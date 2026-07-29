@@ -33,7 +33,8 @@ public final class MemberFixture {
 	public static MemberInfo.MemberInfoBuilder createMemberInfo(String memberId) {
 		return MemberInfo.builder()
 				.memberId(memberId)
-				.gender(MemberTestData.GENDER);
+				.gender(MemberTestData.GENDER)
+				.imageLimit(1);
 	}
 
 	private static String generateMemberId() {

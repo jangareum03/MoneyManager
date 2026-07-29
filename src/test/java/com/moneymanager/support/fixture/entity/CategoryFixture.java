@@ -1,40 +1,40 @@
 package com.moneymanager.support.fixture.entity;
 
-import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.support.data.CategoryTestData;
 
-import java.util.Map;
+public final class CategoryFixture {
 
-public class CategoryFixture {
-
-	public static Category top() {
-		return Category.topCategory(CategoryTestData.INCOME_CODE, CategoryTestData.INCOME_NAME);
+	public static Category income() {
+		return create(CategoryTestData.INCOME_CODE, CategoryTestData.INCOME_NAME, null);
 	}
 
-	public static Category middle(Category parent) {
-		return Category.childCategory(CategoryTestData.EARNED_CODE, CategoryTestData.EARNED_NAME, parent);
+	public static Category outlay() {
+		return create(CategoryTestData.OUTLAY_CODE, CategoryTestData.OUTLAY_NAME, null);
 	}
 
-	public static Category low(Category parent) {
-		return Category.childCategory(CategoryTestData.SALARY_CODE, CategoryTestData.SALARY_NAME, parent);
-	}
-
-	public static Category.CategoryBuilder builder() {
-		return Category.builder()
-				.code(CategoryTestData.INCOME_CODE)
-				.name(CategoryTestData.INCOME_NAME);
-	}
-
-	public static Map<String, Category> hierarchyMap() {
-		Category top = top();
-		Category middle = middle(top);
-		Category low = low(middle);
-
-		return Map.of(
-				top.getCode(), top,
-				middle.getCode(), middle,
-				low.getCode(), low
+	public static Category salary() {
+		return create(
+				CategoryTestData.SALARY_CODE,
+				CategoryTestData.SALARY_NAME,
+				income()
 		);
+	}
+
+	public static Category snack() {
+		return create(
+				CategoryTestData.SNACK_CODE,
+				CategoryTestData.SNACK_NAME,
+				outlay()
+		);
+	}
+
+	static Category create(String code, String name, Category parent) {
+		if(parent == null) {
+			return Category.topCategory(code, name);
+		}
+
+		return Category.childCategory(code, name, parent);
 	}
 
 }

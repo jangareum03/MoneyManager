@@ -10,7 +10,10 @@ public final class CategoryTestData {
 	public static final String SALARY_NAME = "월급";
 
 	public static final String OUTLAY_CODE = "020000";
-	public static final String FOOD_CODE = "020101";
-	public static final String FOOD_NAME = "식재료";
+	public static final String OUTLAY_NAME = "지출";
+	public static final String FOOD_CODE = "020100";
+	public static final String FOOD_NAME = "식비";
+	public static final String SNACK_CODE = "020101";
+	public static final String SNACK_NAME = "간식";
 
 }

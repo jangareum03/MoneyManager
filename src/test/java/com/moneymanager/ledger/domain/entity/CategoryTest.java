@@ -131,9 +131,9 @@ public class CategoryTest {
 			@DisplayName("자식 카테고리를 생성한다.")
 			void createsSubCategory_whenRequestIsValid() {
 				//given: 유효한 카테고리 코드와 이름이 주어진다.
-				String code = "code";
-				String name = "자식";
-				Category parent = CategoryFixture.top();
+				Category parent = CategoryFixture.income();
+				String code = CategoryTestData.SALARY_CODE;
+				String name = CategoryTestData.SALARY_NAME;
 
 				//when: 자식 카테고리를 생성한다.
 				Category result = Category.childCategory(code, name, parent);
@@ -143,7 +143,7 @@ public class CategoryTest {
 				assertThat(result.getName()).isEqualTo(name);
 
 				//then: 부모 카테고리 코드가 parentCode로 저장된다.
-				assertThat(result.getParentCode()).isEqualTo(CategoryTestData.SALARY_CODE);
+				assertThat(result.getParentCode()).isEqualTo(parent.getCode());
 			}
 
 		}
@@ -157,8 +157,8 @@ public class CategoryTest {
 			@DisplayName("부모 카테고리가 null이면 생성에 실패한다.")
 			void throwsException_whenParentCategoryIsNull(Category parent) {
 				//given: 유효한 카테고리 코드와 이름을 주어진다.
-				String code = CategoryTestData.FOOD_CODE;
-				String name = CategoryTestData.FOOD_NAME;
+				String code = CategoryTestData.SNACK_CODE;
+				String name = CategoryTestData.SNACK_NAME;
 
 				//when: 부모 카테고리가 null인 자식 카테고리를 생성한다.
 				Throwable throwable = catchThrowable(() -> Category.childCategory(code, name, parent));

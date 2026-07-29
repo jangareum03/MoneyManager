@@ -21,9 +21,9 @@ public final class LedgerWriteStep2ResponseFixture {
 
 	private static List<CategoryItem> createCategoryItems() {
 		return List.of(
-				CategoryItem.from(CategoryFixture.top()),
-				CategoryItem.from(CategoryFixture.top()),
-				CategoryItem.from(CategoryFixture.top())
+				CategoryItem.from(CategoryFixture.income()),
+				CategoryItem.from(CategoryFixture.snack()),
+				CategoryItem.from(CategoryFixture.salary())
 		);
 	}
 

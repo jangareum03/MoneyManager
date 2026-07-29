@@ -1,24 +1,26 @@
 package com.moneymanager.ledger.service;
 
+import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.repository.ledger.CategoryRepository;
 import com.moneymanager.service.ledger.CategoryCacheService;
+import com.moneymanager.support.IntegrationTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.interceptor.SimpleKey;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.jdbc.Sql;
 
-import java.util.Collections;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * <p>
@@ -47,10 +49,8 @@ import static org.mockito.Mockito.*;
  * 		</tbody>
  * </table>
  */
-@SpringBootTest
 @EnableCaching
-@ActiveProfiles("test")
-public class CategoryCacheServiceIT {
+public class CategoryCacheServiceIT extends IntegrationTestSupport {
 
 	@Autowired
 	private CategoryCacheService target;
@@ -60,6 +60,10 @@ public class CategoryCacheServiceIT {
 
 	@Autowired
 	private CacheManager manager;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+
 
 	@BeforeEach
 	void setUp() {
@@ -80,82 +84,58 @@ public class CategoryCacheServiceIT {
 		class Success {
 			
 			@Test
-			@DisplayName("첫번째 호출은 Repository를 조회한다.")
-			void fetchesFromRepository_whenFirstCallIsMade() {
-				//when: 캐시에서 카테고리 정보를 조회한다.
-				target.getCategoryMap();
+			@DisplayName("저장된 카테고리가 있으면 Map이 반환된다.")
+			void returnsCategoryMap_whenCategoriesExist() {
+				//when: 모든 카테고리 정보를 조회한다.
+				Map<String, Category> result = target.getCategoryMap();
 				
-				//then: Repository에서 카테고리 정보를 한 번 조회가 요청된다.
-				verify(categoryRepository, times(1)).findAllCategory();
+				//then: 카테고리 코드를 key로 하는 Map이 반환된다.
+				assertThat(result).hasSize(64);
+				assertThat(result).containsKeys("010000");
+				assertThat(result).containsKeys("020000");
 			}
 			
 			@Test
-			@DisplayName("두번째 호출은 캐시를 사용한다.")
-			void fetchesFromCache_whenSecondCallIsMade() {
-				//when: 카테고리 정보를 두 번 호출한다.
+			@Sql(statements = "DELETE FROM ledger_category", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+			@DisplayName("저장된 카테고리가 없으면 빈 Map이 반환된다.")
+			void returnsEmptyMap_whenCategoriesDoNotExist() {
+				//when: 모든 카테고리 정보를 조회한다.
+				Map<String, Category> result = target.getCategoryMap();
+				
+				//then: 빈 Map이 반환된다.
+				assertThat(result).isEmpty();
+			}
+			
+			@Test
+			@DisplayName("같은 요청을 두 번 호출하면 캐시를 사용한다.")
+			void returnsCachedData_whenCalledTwiceWithSameRequest() {
+				//when: 같은 요청을 두 번 조회한다.
 				target.getCategoryMap();
 				target.getCategoryMap();
 
-				//then: Repository에서 카테고리 정보를 한 번 조회가 요청된다.
+				//then: CategoryRepository는 한 번만 호출된다.
 				verify(categoryRepository, times(1)).findAllCategory();
 			}
 			
 			@Test
+			@Sql(statements = "DELETE FROM ledger_category", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 			@DisplayName("빈 Map은 캐시에 저장되지 않는다.")
-			void doesNothingToCache_whenMapIsEmpty() {
-				//given: 조회 결과가 빈 List가 반환되도록 정의되어 있다.
-				when(categoryRepository.findAllCategory()).thenReturn(Collections.emptyList());
-
-				//when: 캐시에서 카테고리 정보를 조회한다.
-				target.getCategoryMap();
+			void doesNotCache_whenMapIsEmpty() {
+				//given: 카테고리 테이블이 비어있다.
 				target.getCategoryMap();
 
-				//then: 캐시에 카테고리가 저장되지 않는다.
-				verify(categoryRepository, times(2)).findAllCategory();
-			}
+				jdbcTemplate.update(
+						"INSERT INTO ledger_category(code, name) VALUES (?, ?)",
+						"010000",
+						"수입"
+				);
 
-			
-			@Test
-			@DisplayName("CacheManager에 실제 캐시가 생성된다.")
-			void createsCacheSuccessfully_whenCacheManagerLoads() {
-				//given: 캐시가 저장된 상태이다.
-				target.getCategoryMap();
-
-				//when: 캐시가 저장된다.
-				Cache cache = manager.getCache("category");
+				//when: DB에 카테고리를 추가한 후 다시 조회한다.
+				Map<String, Category> result = target.getCategoryMap();
 				
-				//then: 캐시에 카테고리가 저장된다.
-				assertThat(cache).isNotNull();
-			}
-			
-			@Test
-			@DisplayName("캐시가 삭제되면 다시 Repository를 조회한다.")
-			void fetchesFromRepository_whenCacheIsEvicted() {
-				//given: 저장된 캐시를 삭제된 상태이다.
-				target.getCategoryMap();
-
-				Cache cache = manager.getCache("category");
-				cache.clear();
-
-				//when: 캐시에서 카테고리 정보를 조회한다.
-				target.getCategoryMap();
-				
-				//then: Repository가 한 번 호출된다.
+				//then: DB에서 조회한 데이터가 반환된다.
+				assertThat(result).isNotEmpty();
 				verify(categoryRepository, times(2)).findAllCategory();
-			}
-			
-			@Test
-			@DisplayName("캐시 키가 올바르게 저장된다.")
-			void validatesCacheKey_whenRequestIsValid() {
-				//given: 캐시가 저장된 상태이다.
-				target.getCategoryMap();
-
-				//when: 캐시가 저장된다.
-				Cache cache = manager.getCache("category");
-
-				//then: 캐시에 카테고리가 저장된다.
-				assertThat(cache).isNotNull();
-				assertThat(cache.get(SimpleKey.EMPTY)).isNotNull();
 			}
 
 		}

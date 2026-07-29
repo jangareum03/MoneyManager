@@ -2,10 +2,7 @@ package com.moneymanager.ledger.controller;
 
 import com.moneymanager.config.MutableClock;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
-import com.moneymanager.domain.ledger.dto.response.HistoryDashboardResponse;
-import com.moneymanager.domain.ledger.dto.response.HistoryItem;
-import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
-import com.moneymanager.domain.ledger.dto.response.MenuItem;
+import com.moneymanager.domain.ledger.dto.response.*;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryMenuType;
@@ -18,6 +15,7 @@ import com.moneymanager.repository.member.MemberRepository;
 import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.validation.LedgerValidator;
+import com.moneymanager.support.IntegrationTestSupport;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
@@ -34,13 +32,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.time.LocalDate;
@@ -83,11 +78,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 		</tbody>
  * </table>
  */
-@SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
-@Transactional
-public class LedgerControllerIT {
+public class LedgerControllerIT extends IntegrationTestSupport {
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -347,12 +339,6 @@ public class LedgerControllerIT {
 	@WithMockCustomUser
 	class GetHistories {
 
-		@Autowired
-		MemberRepository memberRepository;
-
-		@Autowired
-		LedgerRepository ledgerRepository;
-
 		private Member member;
 
 		private final String URI = "/ledgers";
@@ -390,7 +376,7 @@ public class LedgerControllerIT {
 							.code(code)
 							.date(date)
 							.money(Money.of((long) amount, PaymentType.NONE))
-							.category(CategoryTestData.FOOD_CODE)
+							.category(CategoryTestData.SNACK_CODE)
 							.build()
 			);
 		}
@@ -544,6 +530,74 @@ public class LedgerControllerIT {
 
 		}
 
+	}
+
+
+	@Nested
+	@DisplayName("가계부 상세 조회")
+	@WithMockCustomUser
+	class GetDetail {
+
+		private Ledger ledger;
+
+		private final String URI = "/ledgers/{code}";
+
+		@BeforeEach
+		void setUp() {
+			Member member = memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
+
+			Long id = ledgerRepository.insert(LedgerFixture.newLedger().memberId(member.getId()).build());
+			ledger = ledgerRepository.findById(id);
+		}
+		
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+		
+			@Test
+			@DisplayName("가계부 상세 조회를 요청하면 상세 페이지와 가계부 정보를 반환한다.")
+			void returnsLedgerDetailAndPage_whenLedgerDetailIsRequested() throws Exception {
+				//given: 가계부가 저장된다.
+				String code = ledger.getCode();
+				
+				//when: 가계부 상세 정보를 조회한다.
+				MvcResult result = mockMvc.perform(
+						get(URI, code)
+				)
+						.andExpect(status().isOk())
+						.andExpect(model().attributeExists("ledger"))
+						.andExpect(view().name("/ledger/ledger_detail"))
+						.andReturn();
+
+				//then: model에 전달된 객체 값을 확인한다.
+				LedgerDetailResponse response = (LedgerDetailResponse) result.getModelAndView().getModel().get("ledger");
+
+				assertThat(response.getCategory().getCode()).isEqualTo(ledger.getCategory());
+				assertThat(response.getAmount()).isEqualTo(ledger.getMoney().getAmount());
+				assertThat(response.getImages()).containsOnlyOnce("/image/ledger/slot-unlock.svg");
+			}
+
+		}
+
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+			
+			@Test
+			@DisplayName("존재하지 않는 가계부를 조회하면 상태코드와 응답을 반환한다.")
+			void returnsStatusAndResponse_whenLedgerDoesNotExist() throws Exception {
+				//given: 가계부 코드가 주어진다.
+				String code = "error";
+
+				//when: 가계부 상세 정보를 조회한다.
+				mockMvc.perform(
+						get(URI, code)
+				)
+						.andExpect(status().is3xxRedirection());
+			}
+
+		}
+		
 	}
 
 }

@@ -2,14 +2,17 @@ package com.moneymanager.repository.member;
 
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.domain.member.MemberInfo;
+import com.moneymanager.domain.member.enums.MemberGender;
 import com.moneymanager.domain.member.enums.MemberStatus;
 import com.moneymanager.domain.member.enums.MemberType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.sql.PreparedStatement;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -46,6 +49,42 @@ public class MemberRepository {
 	public MemberRepository(DataSource dataSource) {
 		 jdbcTemplate = new JdbcTemplate(dataSource);
 	}
+
+	private final RowMapper<Member> memberRowMapper = (rs, rowNum) -> {
+		MemberType type = MemberType.match(rs.getString("type").charAt(0));
+		MemberStatus status = MemberStatus.fromCode(rs.getString("status").charAt(0));
+		MemberGender gender = MemberGender.match(rs.getString("gender").charAt(0));
+
+		LocalDateTime loginDate = rs.getTimestamp("login_at") == null ? null : rs.getTimestamp("login_at").toLocalDateTime();
+
+		MemberInfo memberInfo = MemberInfo.builder()
+				.memberId(rs.getString("id"))
+				.imageLimit(rs.getInt("image_limit"))
+				.profile(rs.getString("profile"))
+				.point(rs.getLong("point"))
+				.consecutiveDays(rs.getLong("consecutive_days"))
+				.failureCount(rs.getInt("failure_count"))
+				.loginAt(loginDate)
+				.gender(gender)
+				.build();
+
+		return Member.builder()
+				.id(rs.getString("id"))
+				.type(type)
+				.status(status)
+				.role(rs.getString("role"))
+				.userName(rs.getString("username"))
+				.password(rs.getString("password"))
+				.name(rs.getString("name"))
+				.birthDate(rs.getString("birthdate"))
+				.nickName(rs.getString("nickname"))
+				.email(rs.getString("email"))
+				.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+				.deletedAt(rs.getTimestamp("deleted_at") == null ? null : rs.getTimestamp("deleted_at").toLocalDateTime())
+				.memberInfo(memberInfo)
+				.build();
+	};
+
 
 
 	@Transactional
@@ -136,33 +175,16 @@ public class MemberRepository {
 
 	public Member findById(String id) {
 		String query = """
-				SELECT *
-				FROM member
-				WHERE id = ?
+				SELECT m.*, mi.gender, mi.profile, mi.point, mi.consecutive_days, mi.image_limit, mi.login_at, mi.failure_count
+				FROM member m
+				JOIN member_info mi
+				ON m.id = mi.id
+				WHERE m.id = ?
 				""";
 
 		return jdbcTemplate.queryForObject(
 				query,
-				(rs, rowNum) -> {
-
-					MemberType type = MemberType.match(rs.getString("type").charAt(0));
-					MemberStatus status = MemberStatus.fromCode(rs.getString("status").charAt(0));
-
-					return Member.builder()
-							.id(rs.getString("id"))
-							.type(type)
-							.status(status)
-							.role(rs.getString("role"))
-							.userName(rs.getString("username"))
-							.password(rs.getString("password"))
-							.name(rs.getString("name"))
-							.birthDate(rs.getString("birthdate"))
-							.nickName(rs.getString("nickname"))
-							.email(rs.getString("email"))
-							.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-							.deletedAt(rs.getTimestamp("deleted_at") == null ? null : rs.getTimestamp("deleted_at").toLocalDateTime())
-							.build();
-				},
+				memberRowMapper,
 				id
 		);
 

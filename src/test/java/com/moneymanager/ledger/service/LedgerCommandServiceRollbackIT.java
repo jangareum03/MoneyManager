@@ -1,32 +1,29 @@
 package com.moneymanager.ledger.service;
 
-import com.moneymanager.support.data.CategoryTestData;
-import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.repository.ledger.LedgerImageRepository;
+import com.moneymanager.security.utils.SecurityUtil;
+import com.moneymanager.service.ledger.LedgerCommandService;
+import com.moneymanager.service.ledger.LedgerImageCommandService;
+import com.moneymanager.support.IntegrationTestSupport;
+import com.moneymanager.support.data.CategoryTestData;
+import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerFixture;
 import com.moneymanager.support.fixture.entity.MemberFixture;
 import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
-import com.moneymanager.repository.ledger.LedgerImageRepository;
-import com.moneymanager.repository.ledger.LedgerRepository;
-import com.moneymanager.repository.member.MemberRepository;
-import com.moneymanager.security.utils.SecurityUtil;
-import com.moneymanager.service.ledger.LedgerCommandService;
-import com.moneymanager.service.ledger.LedgerImageCommandService;
+import com.moneymanager.support.security.WithMockCustomUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.context.ActiveProfiles;
-import com.moneymanager.support.security.WithMockCustomUser;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -61,25 +58,16 @@ import static org.mockito.Mockito.when;
  * 		</tbody>
  * </table>
  */
-@SpringBootTest
-@ActiveProfiles("test")
-public class LedgerCommandServiceRollbackIT {
+public class LedgerCommandServiceRollbackIT extends IntegrationTestSupport {
 
 	@Autowired
 	private LedgerCommandService target;
 
-	@Autowired
-	private LedgerRepository ledgerRepository;
-
 	@SpyBean
 	private LedgerImageCommandService imageCommandService;
 
-
 	@MockBean
 	private SecurityUtil securityUtil;
-
-	@Autowired
-	private MemberRepository memberRepository;
 
 	@Autowired
 	private LedgerImageRepository imageRepository;
@@ -134,7 +122,7 @@ public class LedgerCommandServiceRollbackIT {
 
 			LedgerUpdateRequest request = LedgerUpdateRequestFixture.withImages(2)
 							.memo("수정된 메모")
-							.categoryCode(CategoryTestData.FOOD_CODE)
+							.categoryCode(CategoryTestData.SNACK_CODE)
 							.build();
 
 			doThrow(

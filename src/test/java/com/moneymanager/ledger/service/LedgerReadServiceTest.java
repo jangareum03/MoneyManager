@@ -3,18 +3,26 @@ package com.moneymanager.ledger.service;
 import com.moneymanager.config.MutableClock;
 import com.moneymanager.domain.global.vo.DateRange;
 import com.moneymanager.domain.ledger.dto.response.*;
+import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
 import com.moneymanager.exception.exception.BusinessException;
 import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.mapper.LedgerMapper;
 import com.moneymanager.repository.ledger.LedgerRepository;
 import com.moneymanager.security.utils.SecurityUtil;
 import com.moneymanager.service.ledger.CategoryReadService;
 import com.moneymanager.service.ledger.LedgerImageReadService;
 import com.moneymanager.service.ledger.LedgerReadService;
+import com.moneymanager.support.ApplicationExceptionAssert;
+import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.CategoryFixture;
+import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.response.LedgerDetailResponseFixture;
 import com.moneymanager.support.fixture.response.LedgerHistoryQueryFixture;
+import com.moneymanager.support.security.WithMockCustomUser;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,14 +35,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.moneymanager.exception.code.LedgerErrorCode.NOT_FOUND_DATA;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -86,8 +95,18 @@ public class LedgerReadServiceTest {
 	@Mock
 	private LedgerRepository ledgerRepository;
 
+	@Mock
+	private LedgerMapper mapper;
+
 	@Spy
 	private MutableClock clock = new MutableClock();
+
+
+	@BeforeEach
+	void setUp() {
+		when(securityUtil.getMemberId())
+				.thenReturn(MemberTestData.MEMBER_ID);
+	}
 
 
 	@Nested
@@ -170,7 +189,7 @@ public class LedgerReadServiceTest {
 
 				when(categoryReadService.getMiddleCategories(type))
 						.thenReturn(List.of(
-								CategoryItem.from(CategoryFixture.top())
+								CategoryItem.from(CategoryFixture.income())
 						));
 				
 				//when: 가계부 작성 2단계에 필요한 데이터를 요청한다.
@@ -211,7 +230,7 @@ public class LedgerReadServiceTest {
 
 				when(categoryReadService.getMiddleCategories(type))
 						.thenReturn(List.of(
-								CategoryItem.from(CategoryFixture.top())
+								CategoryItem.from(CategoryFixture.outlay())
 						));
 
 				//when: 가계부 작성 2단계에 필요한 데이터를 요청한다.
@@ -523,6 +542,217 @@ public class LedgerReadServiceTest {
 				verify(ledgerRepository, never()).findHistoriesByMemberAndDateBetween(any(), any(), any());
 			}
 
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("가계부 조회")
+	class GetLedgerTest {
+
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+
+			@Test
+			@DisplayName("회원의 가계부를 반환한다.")
+			void returnsLedger_whenRepositoryReturnsLedger() {
+				//given: 가계부가 저장되어 있다.
+				String memberId = MemberTestData.MEMBER_ID;
+				String code = LedgerTestData.CODE;
+
+				Ledger ledger = LedgerFixture.savedLedger(1L)
+						.memberId(memberId)
+						.code(code)
+						.build();
+
+				when(ledgerRepository.findByCode(memberId, code))
+						.thenReturn(ledger);
+				
+				//when: 회원의 가계부를 조회한다.
+				Ledger result = target.getLedger(memberId, code);
+
+				//then: 가계부가 반환된다.
+				assertThat(result).isEqualTo(ledger);
+			}
+
+		}
+
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+			
+			@Test
+			@DisplayName("존재하지 않은 가계부면 예외가 발생한다.")
+			void throwsBusinessException_whenEmptyResultDataAccessExceptionOccurs() {
+				//given: Repository 조회 결과가 없다.
+				String memberId = MemberTestData.MEMBER_ID;
+				String code = LedgerTestData.CODE;
+
+				when(ledgerRepository.findByCode(memberId, code))
+						.thenThrow(new EmptyResultDataAccessException(1));
+				
+				//when: 회원의 가계부를 조회한다.
+				Throwable throwable = catchThrowable(() -> target.getLedger(memberId, code));
+
+				//then: NOT_FOUND_DATA 예외가 발생한다.
+				ApplicationExceptionAssert.assertThatApplicationException(throwable)
+						.hasErrorCode(NOT_FOUND_DATA)
+						.hasWork("가계부 조회")
+						.hasCauseMessage("데이터 없음")
+						.hasTarget(Ledger.class)
+						.hasValue(memberId)
+						.hasValue(code)
+						.hasUserMessage("않은 가계부");
+			}
+
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("가계부 상세 조회")
+	@WithMockCustomUser
+	class GetDetailTest {
+
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+			
+			@Test
+			@DisplayName("가계부 이미지가 없어도 상세정보가 조회된다.")
+			void returnsLedgerDetail_whenLedgerImageDoesNotExist() {
+				//given: 상제 정보가 조회되도록 동작이 정의되어 있다.
+				String memberId = MemberTestData.MEMBER_ID;
+				String code = LedgerTestData.CODE;
+
+				Ledger ledger = LedgerFixture.savedLedger(1L).build();
+				Category category = CategoryFixture.salary();
+				List<String> images = List.of(
+						"/image/ledger/slot-unlock.svg",
+						"/image/ledger/slot-unlock.svg",
+						"/image/ledger/slot-unlock.svg"
+				);
+
+				LedgerDetailResponse response = LedgerDetailResponseFixture.create();
+
+				when(ledgerRepository.findByCode(memberId, code))
+						.thenReturn(ledger);
+
+				when(categoryReadService.getCategory(ledger.getCategory()))
+						.thenReturn(category);
+
+				when(imageReadService.resolveImageSlots(ledger.getId()))
+						.thenReturn(List.of(
+								ImageSlot.ofEmptySlot(), ImageSlot.ofEmptySlot(), ImageSlot.ofEmptySlot()
+						));
+
+				when(mapper.toDetailDto(ledger, category, images))
+						.thenReturn(response);
+
+				//when: 가계부 상세 조회를 요청한다.
+				LedgerDetailResponse result = target.getDetailData(ledger.getCode());
+
+				//then: 상세 정보를 반환한다.
+				assertThat(result)
+						.isNotNull()
+						.usingRecursiveComparison()
+						.isEqualTo(response);
+			}
+			
+			@Test
+			@DisplayName("가계부 이미지가 있으면 파일경로 리스트가 반환된다.")
+			void returnsImageFilePaths_whenLedgerImageExists() {
+				//given: 상제 정보가 조회되도록 동작이 정의되어 있다.
+				String memberId = MemberTestData.MEMBER_ID;
+				String code = LedgerTestData.CODE;
+
+				Ledger ledger = LedgerFixture.savedLedger(1L).build();
+				Category category = CategoryFixture.salary();
+				List<String> images = List.of(
+						"/uploads/ledger/파일이름",
+						"/image/ledger/slot-unlock.svg",
+						"/image/ledger/slot-lock.svg"
+				);
+
+				LedgerDetailResponse response = LedgerDetailResponseFixture.create();
+
+				when(ledgerRepository.findByCode(memberId, code))
+						.thenReturn(ledger);
+
+				when(categoryReadService.getCategory(ledger.getCategory()))
+						.thenReturn(category);
+
+				when(imageReadService.resolveImageSlots(ledger.getId()))
+						.thenReturn(List.of(
+								ImageSlot.ofFilledSlot("파일이름"), ImageSlot.ofEmptySlot(), ImageSlot.ofLockedSlot()
+						));
+
+				when(mapper.toDetailDto(ledger, category, images))
+						.thenReturn(response);
+
+				//when: 가계부 상세 조회를 요청한다.
+				LedgerDetailResponse result = target.getDetailData(ledger.getCode());
+
+				//then: 상세 정보를 반환한다.
+				assertThat(result)
+						.isNotNull()
+						.usingRecursiveComparison()
+						.isEqualTo(response);
+			}
+			
+		}
+
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+
+			@Test
+			@DisplayName("가계부 조회가 실패하면 예외가 발생한다.")
+			void throwsBusinessException_whenLedgerSearchFails() {
+				//given: 가계부 조회가 실패하도록 동작이 정의되어 있다.
+				String memberId = MemberTestData.MEMBER_ID;
+				String code = LedgerTestData.CODE;
+
+				when(ledgerRepository.findByCode(memberId, code))
+						.thenThrow(new EmptyResultDataAccessException(1));
+
+				//when & then: 가계부 상세 조회를 요청하면 예외가 발생한다.
+				assertThatThrownBy(() -> target.getDetailData(code))
+						.isInstanceOf(BusinessException.class);
+				
+				//then: 카테고리와 이미지 서비스가 호출되지 않는다.
+				verify(categoryReadService, never()).getCategory(any());
+				verify(imageReadService, never()).resolveImageSlots(any());
+				verify(mapper, never()).toDetailDto(any(), any(), any());
+			}
+			
+			@Test
+			@DisplayName("카테고리 조회가 실패하면 예외가 발생한다.")
+			void throwsBusinessException_whenCategorySearchFails() {
+				//given: 카테고리 조회가 실패하도록 동작이 정의되어 있다.
+				String memberId = MemberTestData.MEMBER_ID;
+				String code = LedgerTestData.CODE;
+
+				Ledger ledger = LedgerFixture.savedLedger(1L).build();
+
+				when(ledgerRepository.findByCode(memberId, code))
+						.thenReturn(ledger);
+
+				when(categoryReadService.getCategory(ledger.getCategory()))
+						.thenThrow(BusinessException.class);
+
+				//when & then: 가계부 상세 조회를 요청하면 예외가 발생한다.
+				assertThatThrownBy(() -> target.getDetailData(code))
+						.isInstanceOf(BusinessException.class);
+
+				//then: 카테고리와 이미지 서비스가 호출되지 않는다.
+				verify(imageReadService, never()).resolveImageSlots(any());
+				verify(mapper, never()).toDetailDto(any(), any(), any());
+			}
+			
 		}
 
 	}

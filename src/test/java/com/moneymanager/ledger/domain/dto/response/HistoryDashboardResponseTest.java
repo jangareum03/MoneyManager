@@ -126,7 +126,7 @@ public class HistoryDashboardResponseTest {
 								HistoryItem::getCategoryName
 						).containsExactly(
 								Tuple.tuple(50000L, CategoryType.INCOME, CategoryTestData.SALARY_NAME),
-								Tuple.tuple(10000L, CategoryType.OUTLAY, CategoryTestData.FOOD_NAME)
+								Tuple.tuple(10000L, CategoryType.OUTLAY, CategoryTestData.SNACK_NAME)
 						);
 			}
 			

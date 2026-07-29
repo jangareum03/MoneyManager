@@ -1,9 +1,6 @@
 package com.moneymanager.ledger.service;
 
 
-import com.moneymanager.support.data.CategoryTestData;
-import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.entity.Ledger;
@@ -13,26 +10,25 @@ import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.ledger.vo.Place;
 import com.moneymanager.domain.member.Member;
 import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.repository.ledger.LedgerImageRepository;
+import com.moneymanager.security.utils.SecurityUtil;
+import com.moneymanager.service.ledger.LedgerCommandService;
+import com.moneymanager.support.IntegrationTestSupport;
+import com.moneymanager.support.data.CategoryTestData;
+import com.moneymanager.support.data.LedgerTestData;
+import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerFixture;
 import com.moneymanager.support.fixture.entity.MemberFixture;
 import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
-import com.moneymanager.repository.ledger.LedgerImageRepository;
-import com.moneymanager.repository.ledger.LedgerRepository;
-import com.moneymanager.repository.member.MemberRepository;
-import com.moneymanager.security.utils.SecurityUtil;
-import com.moneymanager.service.ledger.LedgerCommandService;
+import com.moneymanager.support.security.WithMockCustomUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
-import com.moneymanager.support.security.WithMockCustomUser;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,22 +67,13 @@ import static org.mockito.Mockito.when;
  * 		</tbody>
  * </table>
  */
-@SpringBootTest
-@Transactional
-@ActiveProfiles("test")
-public class LedgerCommandServiceIT {
+public class LedgerCommandServiceIT extends IntegrationTestSupport {
 
 	@Autowired
 	private LedgerCommandService target;
 
-	@Autowired
-	private LedgerRepository ledgerRepository;
-
 	@MockBean
 	private SecurityUtil securityUtil;
-
-	@Autowired
-	private MemberRepository memberRepository;
 
 	@Autowired
 	private LedgerImageRepository imageRepository;

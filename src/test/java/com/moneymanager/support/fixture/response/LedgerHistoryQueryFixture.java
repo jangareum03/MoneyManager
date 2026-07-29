@@ -13,7 +13,7 @@ public class LedgerHistoryQueryFixture {
 	}
 
 	public static LedgerHistoryQuery outlayHistory(LocalDate date, int amount) {
-		return create(date, (long) amount, CategoryTestData.FOOD_NAME, CategoryTestData.FOOD_CODE);
+		return create(date, (long) amount, CategoryTestData.SNACK_NAME, CategoryTestData.SNACK_CODE);
 	}
 
 	public static LedgerHistoryQuery create() {

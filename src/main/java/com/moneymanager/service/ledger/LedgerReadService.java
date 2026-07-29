@@ -12,7 +12,6 @@ import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryMenuType;
 import com.moneymanager.domain.ledger.enums.HistoryType;
 import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
-import com.moneymanager.exception.ServiceAction;
 import com.moneymanager.exception.exception.BusinessException;
 import com.moneymanager.exception.log.DeveloperLogInfo;
 import com.moneymanager.mapper.LedgerMapper;
@@ -31,7 +30,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.moneymanager.exception.code.LedgerErrorCode.NOT_FOUND_DATA;
@@ -227,49 +225,40 @@ public class LedgerReadService {
 
 
 	public LedgerDetailResponse getDetailData(String code) {
-		ServiceAction action = ServiceAction.LEDGER_DETAIL;
+		//1. 인증된 사용자 조회
+		String memberId = securityUtil.getMemberId();
 
-		return executeWithLog(action, code, () -> {
-			//1. 인증된 사용자 조회
-			String memberId = securityUtil.getMemberId();
+		//2. 가계부 조회
+		Ledger ledger = getLedger(memberId, code);
 
-			//2. 가계부 조회
-			Ledger ledger = getLedger(memberId, code);
+		//3. 카테고리 조회
+		Category category = categoryReadService.getCategory(ledger.getCategory());
 
-			//3. 카테고리 조회
-			Category category = categoryReadService.getCategory(ledger.getCategory());
+		//4. 정책에 맞춰 가계부 이미지 리스트 조회
+		List<String> images
+				= imageReadService.resolveImageSlots(ledger.getId())
+				.stream()
+				.map(ImageSlot::getFilePath)
+				.toList();
 
-			//4. 정책에 맞춰 가계부 이미지 리스트 조회
-			List<String> images
-					= imageReadService.resolveImageSlots(ledger.getId())
-						.stream()
-						.map(ImageSlot::getFilePath)
-						.toList();
-
-			return ledgerMapper.toDetailDto(ledger, category, images);
-		});
+		return ledgerMapper.toDetailDto(ledger, category, images);
 	}
 
 
 	public LedgerEditResponse getEditData(String code) {
-		ServiceAction action = ServiceAction.LEDGER_EDIT_VIEW;
+		//1. 인증된 사용자 조회
+		String memberId = securityUtil.getMemberId();
 
-		return executeWithLog(action, code, () -> {
-			//1. 인증된 사용자 조회
-			String memberId = securityUtil.getMemberId();
+		//2. 가계부 조회
+		Ledger ledger = getLedger(memberId, code);
 
-			//2. 가계부 조회
-			Ledger ledger = getLedger(memberId, code);
+		//3. 카테고리 조회
+		CategoryEditInfo categoryEditInfo = buildCategoryInfoForUpdate(ledger);
 
-			//3. 카테고리 조회
-			CategoryEditInfo categoryEditInfo = buildCategoryInfoForUpdate(ledger);
+		//4. 정책에 맞춰 가계부 이미지 리스트 조회
+		List<ImageSlot> images = imageReadService.resolveImageSlots(ledger.getId());
 
-			//4. 정책에 맞춰 가계부 이미지 리스트 조회
-			List<ImageSlot> images = imageReadService.resolveImageSlots(ledger.getId());
-
-			return ledgerMapper.toEditDto(ledger, images, categoryEditInfo);
-		});
-
+		return ledgerMapper.toEditDto(ledger, images, categoryEditInfo);
 	}
 
 	private CategoryEditInfo buildCategoryInfoForUpdate(Ledger ledger) {
@@ -291,27 +280,13 @@ public class LedgerReadService {
 				.toList();
 	}
 
-	private <T> T executeWithLog(ServiceAction action, String code, Supplier<T> supplier) {
-		String memberId = "UNKNOWN";
-
-		try{
-			T result = supplier.get();
-
-			log.info("{} 성공   |   memberId={}   |   result=success   |   ledger={}", action.getTitle(), memberId, code);
-
-			return result;
-		}catch (BusinessException e) {
-			throw e;
-		}
-	}
-
 	public Ledger getLedger(String memberId, String code) {
 		try{
 			return ledgerRepository.findByCode(memberId, code);
 		}catch (EmptyResultDataAccessException e) {
 			throw BusinessException.of(
 					NOT_FOUND_DATA,
-					DeveloperLogInfo.of("가계부 조회", "조회 결과 없음", Ledger.class, DeveloperLogInfo.valueOf("memberId", memberId, "ledgerCode", code)),
+					DeveloperLogInfo.of("가계부 조회", "데이터 없음", Ledger.class, DeveloperLogInfo.valueOf("memberId", memberId, "ledgerCode", code)),
 					"존재하지 않은 가계부입니다."
 			);
 		}

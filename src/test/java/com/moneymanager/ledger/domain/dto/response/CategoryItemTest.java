@@ -4,6 +4,8 @@ import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.domain.ledger.dto.response.CategoryItem;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.support.fixture.entity.CategoryFixture;
+import com.moneymanager.support.fixture.entity.CategoryHierarchyFixture;
+import com.moneymanager.support.fixture.entity.IncomeCategoryFixture;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -61,17 +63,8 @@ public class CategoryItemTest {
 			@Test
 			@DisplayName("Category 리스트는 CategoryItem 리스트로 변환한다.")
 			void returnsCategoryItems_whenCategoriesExist() {
-				//given: 변환할 카테고리 리스트를 준비한다.
-				Category top = CategoryFixture.top();
-				Category middle = CategoryFixture.middle(top);
-				Category low = CategoryFixture.low(middle);
-
-				List<Category> categories = List.of(
-						top, middle, low
-				);
-
 				//when: CategoryItem으로 변환한다.
-				List<CategoryItem> result = CategoryItem.from(categories);
+				List<CategoryItem> result = CategoryItem.from(CategoryHierarchyFixture.incomeHierarchy());
 				
 				//then: 요청한 카테고리 이름과 코드가 일치한다.
 				assertThat(result)
@@ -106,9 +99,9 @@ public class CategoryItemTest {
 			}
 
 			private static Stream<Arguments> provideValidCategories() {
-				Category top = CategoryFixture.top();
-				Category middle = CategoryFixture.middle(top);
-				Category low = CategoryFixture.low(middle);
+				Category top = CategoryFixture.income();
+				Category middle = IncomeCategoryFixture.createMiddleAll().get(0);
+				Category low = IncomeCategoryFixture.createLowAll().get(0);
 
 				return Stream.of(
 						Arguments.of(named("상위 카테고리인 경우", top)),
@@ -121,7 +114,7 @@ public class CategoryItemTest {
 			@DisplayName("부모 카테고리가 null이여도 CategoryItem으로 변환한다.")
 			void returnsCategoryItem_whenParentCategoryIsNull() {
 				//given: 부모 카테고리가 null인 Category를 준비한다.
-				Category category = CategoryFixture.top();
+				Category category = CategoryFixture.income();
 
 				//when: CategoryItem으로 변환한다.
 				CategoryItem result = CategoryItem.from(category);
@@ -151,7 +144,7 @@ public class CategoryItemTest {
 				//given: null을 포함하는 Category 리스트를 준비한다.
 				List<Category> categories = new ArrayList<>();
 
-				categories.add(CategoryFixture.top());
+				categories.add(CategoryFixture.income());
 				categories.add(null);
 
 				//when & then: CategoryItem으로 변환 중 예외가 발생한다.

@@ -57,7 +57,7 @@ public class CategoryCacheService {
 	public Map<String, Category> getCategoryMap() {
 		List<Category> categoryList = categoryRepository.findAllCategory();
 
-		if(categoryList == null || categoryList.isEmpty()) {
+		if(categoryList.isEmpty()) {
 			return Collections.emptyMap();
 		}
 

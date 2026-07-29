@@ -1,6 +1,10 @@
 package com.moneymanager.service.member;
 
 import com.moneymanager.domain.global.Policy;
+import com.moneymanager.domain.member.Member;
+import com.moneymanager.exception.code.MemberErrorCode;
+import com.moneymanager.exception.exception.BusinessException;
+import com.moneymanager.exception.log.DeveloperLogInfo;
 import com.moneymanager.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -56,7 +60,13 @@ public class MemberReadService {
 
 			return Math.min(hasImage, maxImage);
 		}catch (EmptyResultDataAccessException e) {
-			return 0;
+			throw BusinessException.of(
+					MemberErrorCode.NOT_FOUND_DATA,
+					DeveloperLogInfo.of(
+							"회원 정보 조회", "데이터 없음", Member.class, "id", memberId
+					)
+			);
 		}
 	}
+
 }

@@ -499,7 +499,7 @@ public class LedgerTest {
 			@DisplayName("카테고리가 변경되면 수정된다.")
 			void updatesCategory_whenCategoryIsChanged() {
 				//given: 기존 가계부와 다른 카테고리 코드가 준비되어 있다.
-				String category = CategoryTestData.FOOD_CODE;
+				String category = CategoryTestData.SNACK_CODE;
 				LocalDateTime beforeUpdatedAt = incomeLedger.getUpdatedAt();
 
 				//when: 지출 카테고리로 가계부를 수정한다.

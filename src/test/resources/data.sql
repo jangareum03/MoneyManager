@@ -1,14 +1,14 @@
--- 수입 카테고리
+-- 수입 카테고리 (10)
 
--- 1단계
+-- 1단계 (1)
 INSERT INTO ledger_category VALUES('010000', NULL, '수입');
 
--- 2단계
+-- 2단계 (3)
 INSERT INTO ledger_category VALUES('010100', '010000', '소득');
 INSERT INTO ledger_category VALUES('010200', '010000', '저축');
 INSERT INTO ledger_category VALUES('010300', '010000', '차입');
 
--- 3단계
+-- 3단계 (6)
 INSERT INTO ledger_category VALUES('010101', '010100', '월급');
 INSERT INTO ledger_category VALUES('010102', '010100', '용돈');
 INSERT INTO ledger_category VALUES('010103', '010100', '알바');
@@ -17,12 +17,12 @@ INSERT INTO ledger_category VALUES('010202', '010200', '적금만기');
 INSERT INTO ledger_category VALUES('010301', '010300', '빌린돈');
 
 
--- 지출 카테고리
+-- 지출 카테고리 (54)
 
--- 1단계
+-- 1단계 (1)
 INSERT INTO ledger_category VALUES('020000', NULL, '지출');
 
--- 2단계
+-- 2단계 (9)
 INSERT INTO ledger_category VALUES('020100', '020000', '식비');
 INSERT INTO ledger_category VALUES('020200', '020000', '교통');
 INSERT INTO ledger_category VALUES('020300', '020000', '문화생활');
@@ -33,7 +33,7 @@ INSERT INTO ledger_category VALUES('020700', '020000', '통신');
 INSERT INTO ledger_category VALUES('020800', '020000', '의료');
 INSERT INTO ledger_category VALUES('020900', '020000', '저축');
 
--- 3단계
+-- 3단계 (44)
 INSERT INTO ledger_category VALUES('020101', '020100', '식재료');
 INSERT INTO ledger_category VALUES('020102', '020100', '외식');
 INSERT INTO ledger_category VALUES('020103', '020100', '간식');

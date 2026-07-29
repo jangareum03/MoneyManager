@@ -1,14 +1,15 @@
 package com.moneymanager.ledger.service;
 
+import com.moneymanager.domain.ledger.dto.response.CategoryItem;
 import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.exception.code.CategoryErrorCode;
 import com.moneymanager.exception.exception.BusinessException;
-import com.moneymanager.support.ApplicationExceptionAssert;
-import com.moneymanager.support.data.CategoryTestData;
-import com.moneymanager.domain.ledger.dto.response.CategoryItem;
-import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.service.ledger.CategoryCacheService;
 import com.moneymanager.service.ledger.CategoryReadService;
+import com.moneymanager.support.ApplicationExceptionAssert;
+import com.moneymanager.support.IntegrationTestSupport;
+import com.moneymanager.support.data.CategoryTestData;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,10 +19,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -56,18 +54,14 @@ import static org.junit.jupiter.api.Named.named;
  * 		</tbody>
  * </table>
  */
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-public class CategoryReadServiceIT {
+public class CategoryReadServiceIT extends IntegrationTestSupport {
 
 	@Autowired
 	private CategoryReadService target;
 
 	@Autowired
 	private CategoryCacheService categoryCacheService;
-
-
+	
 	@Nested
 	@DisplayName("최상위 카테고리 조회")
 	class GetRootCategory {

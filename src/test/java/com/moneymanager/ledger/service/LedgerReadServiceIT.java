@@ -3,16 +3,20 @@ package com.moneymanager.ledger.service;
 import com.moneymanager.config.MutableClock;
 import com.moneymanager.config.TimeConfig;
 import com.moneymanager.domain.ledger.dto.response.*;
+import com.moneymanager.domain.ledger.entity.Ledger;
 import com.moneymanager.domain.ledger.enums.*;
 import com.moneymanager.domain.ledger.vo.Money;
 import com.moneymanager.domain.member.Member;
+import com.moneymanager.exception.exception.BusinessException;
 import com.moneymanager.repository.ledger.LedgerImageRepository;
-import com.moneymanager.repository.ledger.LedgerRepository;
-import com.moneymanager.repository.member.MemberRepository;
 import com.moneymanager.service.ledger.LedgerReadService;
+import com.moneymanager.support.ApplicationExceptionAssert;
+import com.moneymanager.support.IntegrationTestSupport;
 import com.moneymanager.support.data.CategoryTestData;
+import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.entity.LedgerImageFixture;
 import com.moneymanager.support.fixture.entity.MemberFixture;
 import com.moneymanager.support.security.WithMockCustomUser;
 import org.assertj.core.groups.Tuple;
@@ -24,16 +28,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.moneymanager.exception.code.LedgerErrorCode.NOT_FOUND_DATA;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Named.named;
 
 /**
@@ -63,20 +66,11 @@ import static org.junit.jupiter.api.Named.named;
  * 		</tbody>
  * </table>
  */
-@SpringBootTest
-@ActiveProfiles("test")
 @Import(TimeConfig.class)
-@Transactional
-public class LedgerReadServiceIT {
+public class LedgerReadServiceIT extends IntegrationTestSupport {
 
 	@Autowired
 	private LedgerReadService target;
-
-	@Autowired
-	private MemberRepository memberRepository;
-
-	@Autowired
-	private LedgerRepository ledgerRepository;
 
 	@Autowired
 	private LedgerImageRepository imageRepository;
@@ -246,7 +240,7 @@ public class LedgerReadServiceIT {
 								.code(code)
 								.date(date)
 								.money(Money.of(amount, type))
-								.category(CategoryTestData.FOOD_CODE)
+								.category(CategoryTestData.SNACK_CODE)
 								.build()
 				);
 			}
@@ -375,6 +369,220 @@ public class LedgerReadServiceIT {
 			
 		}
 
+	}
+
+
+	@Nested
+	@DisplayName("가계부 조회")
+	@WithMockCustomUser
+	class GetLedgerTest {
+
+		@BeforeEach
+		void setUp() {
+		ledgerRepository.insert(
+					LedgerFixture.newLedger()
+							.memberId(member.getId())
+							.code(LedgerTestData.CODE)
+							.build()
+			);
+		}
+
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+			
+			@Test
+			@DisplayName("자신이 작성한 가계부를 조회할 수 있다.")
+			void returnsLedger_whenUserIsOwner() {
+				//given: 저장된 회원번호와 가계부가 주어진다.
+				String memberId = member.getId();
+				String code = LedgerTestData.CODE;
+				
+				//when: 가계부를 조회한다.
+				Ledger result = target.getLedger(memberId, code);
+				
+				//then: 가계부가 반환된다.
+				assertThat(result).isNotNull();
+				assertThat(result)
+						.extracting(
+								Ledger::getMemberId,
+								Ledger::getCode
+						)
+						.containsExactly(
+								memberId,
+								code
+						);
+			}
+
+		}
+
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+			
+			@Test
+			@DisplayName("존재하지 않은 가계부를 조회하면 BusinessException이 발생한다.")
+			void throwsBusinessException_whenLedgerDoesNotExist() {
+				//given: 존재하지 않은 가계부 코드가 주어진다.
+				String memberId = member.getId();
+				String code = "error";
+				
+				//when: 가계부를 조회한다.
+				Throwable throwable = catchThrowable(() -> target.getLedger(memberId, code));
+
+				//then: NOT_FOUND_DATA 예외가 발생한다.
+				ApplicationExceptionAssert.assertThatApplicationException(throwable)
+						.hasErrorCode(NOT_FOUND_DATA)
+						.hasWork("가계부 조회")
+						.hasCauseMessage("데이터 없음")
+						.hasTarget(Ledger.class)
+						.hasValue(memberId)
+						.hasValue(code)
+						.hasUserMessage("존재하지 않은 가계부");
+			}
+			
+			@Test
+			@DisplayName("다른 회원의 가계부를 조회하면 BusinessException이 발생한다.")
+			void throwsBusinessException_whenUserIsNotOwner() {
+				//given: 다른 회원의 가계부가 저장되어 있다.
+				String memberId = member.getId();
+				String code = "code1";
+
+				Member otherMember = MemberFixture.builder().build();
+
+				memberRepository.save(otherMember);
+
+				ledgerRepository.insert(
+						LedgerFixture.newLedger()
+								.memberId(otherMember.getId())
+								.code(code)
+								.build()
+				);
+				
+				//when & then: 가계부를 조회 중 예외가 발생한다.
+				assertThatThrownBy(() -> target.getLedger(memberId, code))
+						.isInstanceOf(BusinessException.class);
+			}
+
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("가계부 상세 조회")
+	@WithMockCustomUser
+	class GetDetailTest {
+
+		private Ledger ledger;
+
+		@BeforeEach
+		void setUp() {
+			Long id = ledgerRepository.insert(
+					LedgerFixture.newLedger().memberId(member.getId()).build()
+			);
+
+			ledger = ledgerRepository.findById(id);
+		}
+
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+
+			@Test
+			@DisplayName("이미지가 없는 가계부를 조회하면 상세 정보가 조회된다.")
+			void returnsLedgerDetail_whenLedgerHasNoImage() {
+				//given: 가계부 코드가 주어진다.
+				String code = ledger.getCode();
+				
+				//when: 가계부 상세 정보를 조회한다.
+				LedgerDetailResponse result = target.getDetailData(code);
+				
+				//then: 상세 정보를 반환한다.
+				assertThat(result).isNotNull();
+
+				assertThat(result.getDate()).isEqualTo("2026. 01. 01 (목)");
+
+				assertThat(result.getType()).isEqualTo(CategoryType.INCOME);
+				assertThat(result.getCategory())
+						.extracting(
+								CategoryItem::getCode,
+								CategoryItem::getName
+						)
+						.containsExactly(
+								CategoryTestData.SALARY_CODE,
+								CategoryTestData.SALARY_NAME
+						);
+
+				assertThat(result.getImages())
+						.hasSize(3)
+						.containsOnlyOnce(
+								"/image/ledger/slot-unlock.svg"
+						);
+			}
+
+			@Test
+			@DisplayName("이미지가 있는 가계부를 조회하면 상세 정보에 이미지 정보가 반환된다.")
+			void returnsLedgerDetailWithImages_whenLedgerImageExists() {
+				//given: 가계부 이미지가 저장되어 있다.
+				String code = ledger.getCode();
+
+				imageRepository.saveAll(
+						List.of(
+								LedgerImageFixture.newImage(ledger.getId(), 1)
+						)
+				);
+
+				//when: 가계부 상세 정보를 조회한다.
+				LedgerDetailResponse result = target.getDetailData(code);
+
+				//then: 이미지 정보가 저장된다.
+				assertThat(result.getImages())
+						.containsExactly(
+								"/uploads/ledger/" + member.getId() + "/image1.jpg",
+								"/image/ledger/slot-lock.svg",
+								"/image/ledger/slot-lock.svg"
+						);
+			}
+
+		}
+		
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+			
+			@Test
+			@DisplayName("존재하지 않은 가계부를 조회하면 예외가 발생한다.")
+			void throwsBusinessException_whenLedgerDoesNotExist() {
+				//given: 가계부 코드가 주어진다.
+				String code = "error";
+				
+				//when & then: 가계부 상세 정보를 조회하면 예외가 발생한다.
+				assertThatThrownBy(() ->target.getDetailData(code))
+						.isInstanceOf(BusinessException.class);
+			}
+			
+			@Test
+			@DisplayName("다른 회원의 가계부를 조회하면 예외가 발생한다.")
+			void throwsBusinessException_whenLedgerBelongsToAnotherMember() {
+				//given: 다른 회원의 가계부 코드가 주어진다.
+				Member member = memberRepository.save(
+						MemberFixture.builder("abc").build()
+				);
+
+				Long id = ledgerRepository.insert(
+						LedgerFixture.newLedger().memberId(member.getId()).code("code1").build()
+				);
+
+				String code = ledgerRepository.findById(id).getCode();
+
+				//when & then: 가계부 상세 정보를 조회하면 예외가 발생한다.
+				assertThatThrownBy(() ->target.getDetailData(code))
+						.isInstanceOf(BusinessException.class);
+			}
+		
+		}
+		
 	}
 
 }

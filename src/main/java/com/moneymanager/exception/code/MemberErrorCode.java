@@ -29,6 +29,8 @@ package com.moneymanager.exception.code;
  */
 public enum MemberErrorCode implements ErrorCode{
 
+	NOT_FOUND_DATA("MBR-100", "존재하지 않은 회원입니다."),
+
 	MBR_INVALID_CREDENTIALS("MBR-203", "아이디 또는 비밀번호를 다시 입력해주세요."),
 	MBR_LIMIT_EXCEEDED("MBR-402", "로그인 횟수 초과로 로그인이 불가능합니다."),
 	MBR_ACCOUNT_LOCKED("MBR-205", "로그인이 불가능한 계정입니다."),

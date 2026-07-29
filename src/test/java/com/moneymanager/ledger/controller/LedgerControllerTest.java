@@ -3,6 +3,7 @@ package com.moneymanager.ledger.controller;
 import com.moneymanager.controller.ledger.LedgerController;
 import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
 import com.moneymanager.domain.ledger.dto.response.HistoryDashboardResponse;
+import com.moneymanager.domain.ledger.dto.response.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.HistoryMenuType;
@@ -13,8 +14,10 @@ import com.moneymanager.service.ledger.LedgerCommandService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.service.validation.LedgerValidator;
 import com.moneymanager.support.ControllerTestSupport;
+import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
 import com.moneymanager.support.fixture.response.HistoryDashboardResponseFixture;
+import com.moneymanager.support.fixture.response.LedgerDetailResponseFixture;
 import com.moneymanager.support.fixture.response.LedgerWriteStep1ResponseFixture;
 import com.moneymanager.support.fixture.response.LedgerWriteStep2ResponseFixture;
 import com.moneymanager.support.security.WithMockCustomUser;
@@ -590,6 +593,68 @@ public class LedgerControllerTest extends ControllerTestSupport {
 						);
 			}
 		
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("가계부 상세 조회")
+	@WithMockCustomUser
+	class GetDetail {
+
+		private final String URI = "/ledgers/{code}";
+
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+
+			@Test
+			@DisplayName("가계부 상세 조회를 요청하면 상세 페이지를 반환한다.")
+			void returnsLedgerDetailPage_whenLedgerDetailIsRequested() throws Exception {
+				//given: 정상적인 응답 객체가 반환되도록 Service의 동작이 정의되어 있다.
+				String code = LedgerTestData.CODE;
+				LedgerDetailResponse response = LedgerDetailResponseFixture.create();
+
+				when(readService.getDetailData(code))
+						.thenReturn(response);
+				
+				//when: 가계부 상세 조회를 요청한다.
+				mockMvc.perform(
+						get(URI, code)
+				)
+					.andExpect(status().isOk())
+					.andExpect(model().attribute("ledger", response))
+					.andExpect(view().name("/ledger/ledger_detail"));
+				
+				//then:
+				verify(readService).getDetailData(eq(code));
+			}
+
+		}
+
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+
+			@Test
+			@DisplayName("가계부 상세 조회 중 예외가 발생하면 예외를 전달한다.")
+			void throwsBusinessException_whenLedgerDetailSearchFails() throws Exception {
+				//given: 상세 조회 중 예외가 발생하도록 동작이 정의되어 있다.
+				String code = LedgerTestData.CODE;
+
+				when(readService.getDetailData(code))
+						.thenThrow(BusinessException.class);
+
+				//when: 가계부 상세 조회를 요청한다.
+				mockMvc.perform(
+						get(URI, code)
+				)
+						.andExpect(result -> {
+							assertThat(result.getResolvedException()).isInstanceOf(BusinessException.class);
+						});
+			}
+			
 		}
 
 	}
