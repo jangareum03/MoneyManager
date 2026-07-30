@@ -5,7 +5,7 @@ import com.moneymanager.domain.ledger.dto.response.LedgerDetailResponse;
 import com.moneymanager.domain.ledger.enums.CategoryType;
 import com.moneymanager.domain.ledger.enums.PaymentType;
 import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.support.fixture.entity.CategoryFixture;
+import com.moneymanager.support.fixture.entity.category.CategoryFixture;
 
 import java.util.Collections;
 import java.util.List;

@@ -1,7 +1,7 @@
 package com.moneymanager.ledger.domain.entity;
 
 import com.moneymanager.support.data.CategoryTestData;
-import com.moneymanager.support.fixture.entity.CategoryFixture;
+import com.moneymanager.support.fixture.entity.category.CategoryFixture;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.domain.ledger.entity.Category;
 import org.junit.jupiter.api.DisplayName;

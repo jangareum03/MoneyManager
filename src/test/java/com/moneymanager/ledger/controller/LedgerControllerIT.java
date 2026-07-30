@@ -243,7 +243,7 @@ public class LedgerControllerIT extends IntegrationTestSupport {
 	@Nested
 	@DisplayName("가계부 등록")
 	@WithMockCustomUser
-	class Create {
+	class CreateTest {
 
 		@Autowired
 		private LedgerRepository ledgerRepository;
@@ -337,7 +337,7 @@ public class LedgerControllerIT extends IntegrationTestSupport {
 	@Nested
 	@DisplayName("가계부 내역 조회")
 	@WithMockCustomUser
-	class GetHistories {
+	class GetHistoriesTest {
 
 		private Member member;
 
@@ -536,7 +536,7 @@ public class LedgerControllerIT extends IntegrationTestSupport {
 	@Nested
 	@DisplayName("가계부 상세 조회")
 	@WithMockCustomUser
-	class GetDetail {
+	class GetDetailTest {
 
 		private Ledger ledger;
 
@@ -596,6 +596,46 @@ public class LedgerControllerIT extends IntegrationTestSupport {
 						.andExpect(status().is3xxRedirection());
 			}
 
+		}
+		
+	}
+
+
+	@Nested
+	@DisplayName("수정 화면 요청")
+	@WithMockCustomUser
+	class EditViewTest {
+
+		private final String URI = "/ledgers/{code}/edit";
+
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+		
+			@Test
+			@DisplayName("존재하는 가계부 코드로 요청하면 가계부 수정 페이지를 반환한다.")
+			void returnsLedgerModifyPage_whenLedgerCodeExists() throws Exception {
+				//given: 가계부가 저장되어 있다.
+				Member member = memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
+
+				Long id = ledgerRepository.insert(LedgerFixture.newLedger().memberId(member.getId()).build());
+				Ledger ledger = ledgerRepository.findById(id);
+
+				//when: 가계부 조회를 요청한다.
+				mockMvc.perform(
+						get(URI, ledger.getCode())
+				)
+						.andExpect(status().isOk())
+						.andExpect(model().attributeExists("ledger"))
+						.andExpect(model().attributeExists("fixes"))
+						.andExpect(model().attributeExists("fixCycles"))
+						.andExpect(model().attributeExists("paymentTypes"))
+						.andExpect(view().name("/ledger/ledger_edit"));
+
+				//then:
+				
+			}	
+			
 		}
 		
 	}

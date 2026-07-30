@@ -9,10 +9,10 @@ import com.moneymanager.service.ledger.CategoryCacheService;
 import com.moneymanager.service.ledger.CategoryReadService;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.CategoryTestData;
-import com.moneymanager.support.fixture.entity.CategoryFixture;
-import com.moneymanager.support.fixture.entity.CategoryHierarchyFixture;
-import com.moneymanager.support.fixture.entity.IncomeCategoryFixture;
-import com.moneymanager.support.fixture.entity.OutlayCategoryFixture;
+import com.moneymanager.support.fixture.entity.category.CategoryFixture;
+import com.moneymanager.support.fixture.entity.category.CategoryHierarchyFixture;
+import com.moneymanager.support.fixture.entity.category.IncomeCategoryFixture;
+import com.moneymanager.support.fixture.entity.category.OutlayCategoryFixture;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -84,7 +84,6 @@ public class CategoryReadServiceTest {
 				//given: 캐시에서 카테고리 정보가 반환되도록 동작이 정의되어 있다.
 				Category income = CategoryFixture.income();
 				Category outlay = CategoryFixture.outlay();
-
 
 				when(categoryCacheService.getCategoryMap())
 						.thenReturn(
@@ -218,23 +217,20 @@ public class CategoryReadServiceTest {
 	@DisplayName("중간 카테고리 조회")
 	class GetMiddleCategory {
 
-		Map<String, Category> categoryMap;
+		private final Map<String, Category> categoryMap = Stream.of(
+						List.of(CategoryFixture.income(), CategoryFixture.outlay()),
+						IncomeCategoryFixture.createMiddleAll(), OutlayCategoryFixture.createMiddleAll()
+				)
+				.flatMap(List::stream)
+				.collect(Collectors.toMap(
+						Category::getCode,
+						c -> c
+				));
 
 		@BeforeEach
 		void setUp() {
-			categoryMap = new LinkedHashMap<>();
-
-			Category income = CategoryFixture.income();
-			categoryMap.put(income.getCode(), income);
-
-			IncomeCategoryFixture.createMiddleAll()
-					.forEach(c -> categoryMap.put(c.getCode(), c));
-
-			Category outlay = CategoryFixture.outlay();
-			categoryMap.put(outlay.getCode(), outlay);
-
-			OutlayCategoryFixture.createMiddleAll()
-							.forEach(c -> categoryMap.put(c.getCode(), c));
+			when(categoryCacheService.getCategoryMap())
+					.thenReturn(categoryMap);
 		}
 
 		@Nested
@@ -247,17 +243,17 @@ public class CategoryReadServiceTest {
 				//given: 수입 유형과 캐시에서 카테고리 정보가 반환되도록 동작이 정의되어 있다.
 				CategoryType type = CategoryType.INCOME;
 
-				when(categoryCacheService.getCategoryMap())
-						.thenReturn(categoryMap);
-
 				//when: 중간 카테고리를 조회한다.
 				List<CategoryItem> result = target.getMiddleCategories(type);
 				
 				//then: 수입 유형의 중간 카테고리만 반환된다.
 				assertThat(result)
-						.hasSize(1)
+						.hasSize(2)
 						.extracting(CategoryItem::getCode, CategoryItem::getName)
-						.containsExactly(tuple("010100", "월급"));
+						.containsExactly(
+								tuple("010100", "중간1"),
+								tuple("010200", "중간2")
+						);
 			}
 			
 			@Test
@@ -266,28 +262,23 @@ public class CategoryReadServiceTest {
 				//given: 지출 유형과 캐시에서 카테고리 정보가 반환되도록 동작이 정의되어 있다.
 				CategoryType type = CategoryType.OUTLAY;
 
-				when(categoryCacheService.getCategoryMap())
-						.thenReturn(categoryMap);
-
 				//when: 중간 카테고리를 조회한다.
 				List<CategoryItem> result = target.getMiddleCategories(type);
 
 				//then: 지출 유형의 중간 카테고리만 반환된다.
 				assertThat(result)
-						.hasSize(2)
+						.hasSize(3)
 						.extracting(CategoryItem::getCode, CategoryItem::getName)
 						.containsExactly(
-								tuple("020100", "간식"),
-								tuple("020200", "영화")
+								tuple("020100", "중간1"),
+								tuple("020200", "중간2"),
+								tuple("020300", "중간3")
 						);
 			}
 
 			@Test
 			@DisplayName("카테고리 코드 오름차순으로 정렬된다.")
 			void sortsCategoriesByCodeAscending_whenCategoriesExist() {
-				//given: 캐시에서 카테고리 정보가 반환되도록 동작이 정의되어 있다.
-				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
-
 				//when: 중간 카테고리를 조회한다.
 				List<CategoryItem> result = target.getMiddleCategories(CategoryType.OUTLAY);
 
@@ -295,23 +286,13 @@ public class CategoryReadServiceTest {
 				assertThat(result)
 						.extracting(CategoryItem::getCode)
 						.containsExactly(
-								"020100", "020200"
+								"020100", "020200", "020300"
 						);
 			}
 
 			@Test
 			@DisplayName("캐시의 저장된 순서와 관계없이 코드 기준으로 정렬하여 반환된다.")
 			void validatesSortDiscrepancy_whenCacheSortIsDifferent() {
-				//given: 정렬되지 않은 카테고리 정보가 반환되도록 동작이 정의되어 있다.
-				Map<String, Category> categoryMap = new LinkedHashMap<>();
-
-				List<Category> categories = new ArrayList<>(IncomeCategoryFixture.createMiddleAll());
-				Collections.shuffle(categories);
-
-				categories.forEach(c -> categoryMap.put(c.getCode(), c));
-
-				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
-
 				//when: 중간 카테고리를 조회한다.
 				List<CategoryItem> result = target.getMiddleCategories(CategoryType.INCOME);
 
@@ -319,10 +300,7 @@ public class CategoryReadServiceTest {
 				assertThat(result)
 						.extracting(CategoryItem::getCode)
 						.containsExactly(
-								"010100",
-								"010200",
-								"010300"
-						);
+								"010100", "010200");
 			}
 
 			@Test
@@ -335,7 +313,8 @@ public class CategoryReadServiceTest {
 					return code.matches("\\d{4}00") && !code.endsWith("0000");
 				});
 
-				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
+				when(categoryCacheService.getCategoryMap())
+						.thenReturn(categoryMap);
 
 				//when: 중간 카테고리를 조회한다.
 				List<CategoryItem> result = target.getMiddleCategories(CategoryType.INCOME);
@@ -348,7 +327,7 @@ public class CategoryReadServiceTest {
 			@DisplayName("캐시가 비어있으면 빈 리스트를 반환된다.")
 			void returnsEmptyList_whenCacheIsEmpty() {
 				//given: 캐시 조회 시 빈 Map이 반환되도록 동작이 정의되어 있다.
-				when(categoryCacheService.getCategoryMap()).thenReturn(Collections.emptyMap());
+				categoryMap.clear();
 
 				//when: 중간 카테고리를 조회한다.
 				List<CategoryItem> result = target.getMiddleCategories(CategoryType.OUTLAY);
@@ -379,26 +358,27 @@ public class CategoryReadServiceTest {
 	@DisplayName("하위 카테고리 조회")
 	class GetLowCategory {
 
-		Map<String, Category> categoryMap;
+		private final Map<String, Category> categoryMap = Stream.of(
+				List.of(CategoryFixture.income(), CategoryFixture.outlay()),
+				IncomeCategoryFixture.createMiddleAll(), IncomeCategoryFixture.createLowAll(),
+				OutlayCategoryFixture.createMiddleAll(), OutlayCategoryFixture.createLowAll()
+		)
+				.flatMap(List::stream)
+				.collect(Collectors.toMap(
+						Category::getCode,
+						c -> c
+				));
 
-		@BeforeEach
-		void setUp() {
-			List<Category> categories = Stream.of(
-					List.of(CategoryFixture.income(), CategoryFixture.outlay()),
-					IncomeCategoryFixture.createMiddleAll(), IncomeCategoryFixture.createLowAll(),
-					OutlayCategoryFixture.createMiddleAll(), OutlayCategoryFixture.createLowAll()
-			)
-					.flatMap(List::stream)
-					.collect(Collectors.toCollection(ArrayList::new));
-
-			Collections.shuffle(categories);
-
-			categories.forEach(c -> categoryMap.put(c.getCode(), c));
-		}
 
 		@Nested
 		@DisplayName("성공 케이스")
 		class Success {
+
+			@BeforeEach
+			void setUp() {
+				when(categoryCacheService.getCategoryMap())
+						.thenReturn(categoryMap);
+			}
 
 			@Test
 			@DisplayName("수입 유형이면 수입 카테고리만 반환된다.")
@@ -406,19 +386,17 @@ public class CategoryReadServiceTest {
 				//given: 수입 유형과 캐시에서 카테고리 정보가 반환되도록 동작이 정의되어 있다.
 				CategoryType type = CategoryType.INCOME;
 
-				when(categoryCacheService.getCategoryMap())
-						.thenReturn(categoryMap);
-
 				//when: 하위 카테고리를 조회한다.
 				List<CategoryItem> result = target.getLowCategories(type);
 
 				//then: 수입 유형의 하위 카테고리만 반환된다.
 				assertThat(result)
-						.hasSize(2)
+						.hasSize(3)
 						.extracting(CategoryItem::getCode, CategoryItem::getName)
 						.containsExactly(
-								tuple("010101", "월급A"),
-								tuple("010102", "월급B")
+								tuple("010101", "하위1"),
+								tuple("010201", "하위2"),
+								tuple("010202", "하위3")
 						);
 			}
 
@@ -428,30 +406,26 @@ public class CategoryReadServiceTest {
 				//given: 지출 유형과 캐시에서 카테고리 정보가 반환되도록 동작이 정의되어 있다.
 				CategoryType type = CategoryType.OUTLAY;
 
-				when(categoryCacheService.getCategoryMap())
-						.thenReturn(categoryMap);
-
 				//when: 하위 카테고리를 조회한다.
 				List<CategoryItem> result = target.getLowCategories(type);
 
 				//then: 지출 유형의 하위 카테고리만 반환된다.
 				assertThat(result)
-						.hasSize(4)
+						.hasSize(6)
 						.extracting(CategoryItem::getCode, CategoryItem::getName)
 						.containsExactly(
-								tuple("020101", "간식A"),
-								tuple("020102", "간식B"),
-								tuple("020103", "간식C"),
-								tuple("020201", "영화A")
+								tuple("020101", "하위1"),
+								tuple("020201", "하위2"),
+								tuple("020202", "하위3"),
+								tuple("020301", "하위4"),
+								tuple("020302", "하위5"),
+								tuple("020303", "하위6")
 						);
 			}
 
 			@Test
 			@DisplayName("카테고리 코드 오름차순으로 정렬된다.")
 			void sortsCategoriesByCodeAscending_whenCategoriesExist() {
-				//given: 캐시에서 카테고리 정보가 반환되도록 동작이 정의되어 있다.
-				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
-
 				//when: 하위 카테고리를 조회한다.
 				List<CategoryItem> result = target.getLowCategories(CategoryType.INCOME);
 
@@ -459,7 +433,7 @@ public class CategoryReadServiceTest {
 				assertThat(result)
 						.extracting(CategoryItem::getCode)
 						.containsExactly(
-								"010101", "010102"
+								"010101", "010201", "010202"
 						);
 			}
 
@@ -467,7 +441,8 @@ public class CategoryReadServiceTest {
 			@DisplayName("캐시의 저장된 순서와 관계없이 코드 기준으로 정렬하여 반환된다.")
 			void validatesSortDiscrepancy_whenCacheSortIsDifferent() {
 				//given: 정렬되지 않은 카테고리 정보가 반환되도록 동작이 정의되어 있다.
-				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
+				when(categoryCacheService.getCategoryMap())
+						.thenReturn(categoryMap);
 
 				//when: 하위 카테고리를 조회한다.
 				List<CategoryItem> result = target.getLowCategories(CategoryType.OUTLAY);
@@ -477,8 +452,11 @@ public class CategoryReadServiceTest {
 						.extracting(CategoryItem::getCode)
 						.containsExactly(
 								"020101",
-								"020102",
-								"020103"
+								"020201",
+								"020202",
+								"020301",
+								"020302",
+								"020303"
 						);
 			}
 
@@ -492,7 +470,8 @@ public class CategoryReadServiceTest {
 					return !code.endsWith("0000") && !code.endsWith("00");
 				});
 
-				when(categoryCacheService.getCategoryMap()).thenReturn(categoryMap);
+				when(categoryCacheService.getCategoryMap())
+						.thenReturn(categoryMap);
 
 				//when: 하위 카테고리를 조회한다.
 				List<CategoryItem> result = target.getLowCategories(CategoryType.INCOME);
@@ -505,7 +484,10 @@ public class CategoryReadServiceTest {
 			@DisplayName("캐시가 비어있으면 빈 리스트를 반환된다.")
 			void returnsEmptyList_whenCacheIsEmpty() {
 				//given: 캐시 조회 시 빈 Map이 반환되도록 동작이 정의되어 있다.
-				when(categoryCacheService.getCategoryMap()).thenReturn(Collections.emptyMap());
+				categoryMap.clear();
+
+				when(categoryCacheService.getCategoryMap())
+						.thenReturn(categoryMap);
 
 				//when: 하위 카테고리를 조회한다.
 				List<CategoryItem> result = target.getLowCategories(CategoryType.OUTLAY);

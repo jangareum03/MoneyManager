@@ -90,12 +90,12 @@
 
                         <!-- 금액 유형 -->
                         <div class="form__input-box form__input-box--type">
-                            <label th:each="payType : ${paymentTypes}">
+                            <label th:each="type : ${paymentTypes}">
                                 <input class="form__input form__input--radio" name="paymentType" type="radio"
-                                            th:value="${payType.value}"
-                                            th:checked="${ledger.paymentType == payType}">
+                                            th:value="${type}"
+                                            th:checked="${ledger.paymentType == type}">
 
-                                <span th:utext="${payType.svg}"></span>
+                                <span th:utext="${type.svg}"></span>
                             </label>
                         </div>
                     </div>

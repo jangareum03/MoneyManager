@@ -1,4 +1,4 @@
-package com.moneymanager.support.fixture.entity;
+package com.moneymanager.support.fixture.entity.category;
 
 import com.moneymanager.domain.ledger.entity.Category;
 
@@ -11,7 +11,8 @@ public class OutlayCategoryFixture {
 
 		return List.of(
 				CategoryFixture.create("020100", "중간1", root),
-				CategoryFixture.create("020200", "중간2", root)
+				CategoryFixture.create("020200", "중간2", root),
+				CategoryFixture.create("020300", "중간3", root)
 		);
 	}
 
@@ -30,8 +31,6 @@ public class OutlayCategoryFixture {
 		Category low6 = CategoryFixture.create("020303", "하위6", mid3);
 
 		return List.of(
-				root,
-				mid1, mid2,
 				low1, low2, low3, low4, low5, low6
 		);
 	}

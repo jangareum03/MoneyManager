@@ -16,13 +16,17 @@ import com.moneymanager.service.ledger.CategoryReadService;
 import com.moneymanager.service.ledger.LedgerImageReadService;
 import com.moneymanager.service.ledger.LedgerReadService;
 import com.moneymanager.support.ApplicationExceptionAssert;
+import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.entity.CategoryFixture;
 import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.entity.category.CategoryFixture;
+import com.moneymanager.support.fixture.entity.category.CategoryHierarchyFixture;
+import com.moneymanager.support.fixture.entity.category.IncomeCategoryFixture;
+import com.moneymanager.support.fixture.entity.category.OutlayCategoryFixture;
 import com.moneymanager.support.fixture.response.LedgerDetailResponseFixture;
 import com.moneymanager.support.fixture.response.LedgerHistoryQueryFixture;
-import com.moneymanager.support.security.WithMockCustomUser;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +35,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -74,6 +80,7 @@ import static org.mockito.Mockito.*;
  * 		</tbody>
  * </table>
  */
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 public class LedgerReadServiceTest {
 
@@ -95,12 +102,11 @@ public class LedgerReadServiceTest {
 	@Mock
 	private LedgerRepository ledgerRepository;
 
-	@Mock
+	@Spy
 	private LedgerMapper mapper;
 
 	@Spy
 	private MutableClock clock = new MutableClock();
-
 
 	@BeforeEach
 	void setUp() {
@@ -169,10 +175,12 @@ public class LedgerReadServiceTest {
 		@DisplayName("성공 케이스")
 		class Success {
 
-			private final LocalDate date = LocalDate.now(clock);
+			LocalDate date = LocalDate.now(clock);
 
 			@BeforeEach
 			void setUp() {
+				clock.set(LocalDate.of(2026, 1, 15));
+
 				when(imageReadService.resolveImageSlots())
 						.thenReturn(List.of(
 								ImageSlot.ofEmptySlot(),
@@ -614,7 +622,6 @@ public class LedgerReadServiceTest {
 
 	@Nested
 	@DisplayName("가계부 상세 조회")
-	@WithMockCustomUser
 	class GetDetailTest {
 
 		@Nested
@@ -751,6 +758,335 @@ public class LedgerReadServiceTest {
 				//then: 카테고리와 이미지 서비스가 호출되지 않는다.
 				verify(imageReadService, never()).resolveImageSlots(any());
 				verify(mapper, never()).toDetailDto(any(), any(), any());
+			}
+			
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("가계부 수정 정보 조회")
+	class GetEditTest {
+		
+		@Nested
+		@DisplayName("성공 케이스")
+		class Success {
+
+			private Ledger ledger  = LedgerFixture.savedLedger(1L)
+					.memberId(MemberTestData.MEMBER_ID)
+					.build();
+
+			@BeforeEach
+			void setUp() {
+				when(ledgerRepository.findByCode(MemberTestData.MEMBER_ID, ledger.getCode()))
+						.thenReturn(ledger);
+			}
+		
+			@Test
+			@DisplayName("존재하는 가계부 코드로 수정 데이터를 조회한다.")
+			void returnsUpdateData_whenLedgerCodeExists() {
+				//given: 수정 데이터를 반환하도록 동작이 정의되어 있다.
+				String code = ledger.getCode();
+
+				CategoryEditInfo categoryEditInfo = createCategoryEdit(CategoryType.INCOME);
+				List<ImageSlot> images = createImageSlots();
+
+				mockCategory(categoryEditInfo);
+				mockSlots(images);
+				
+				//when: 가계부 수정 정보를 조회한다.
+				LedgerEditResponse result = target.getEditData(code);
+				
+				//then: 저장된 가계부 정보가 반환된다.
+				assertThat(result.getDate()).isEqualTo("2026년 01월 01일 목요일");
+				assertThat(result.getAmount()).isEqualTo(ledger.getMoney().getAmount());
+				assertThat(result.getPaymentType()).isEqualTo(ledger.getMoney().getPaymentType());
+				assertThat(result.getMemo()).isEqualTo(ledger.getMemo());
+
+				assertThat(result.getPlaceName()).isNull();
+				assertThat(result.getRoadAddress()).isNull();
+				assertThat(result.getDetailAddress()).isNull();
+
+				assertThat(result.getFixed())
+						.extracting(
+								LedgerFixed::getFix,
+								LedgerFixed::getCycle
+						)
+						.containsExactly(
+								ledger.getFix(),
+								ledger.getFixCycle()
+						);
+			}
+			
+			@Test
+			@DisplayName("가계부 코드와 부모 카테고리가 포함한 선택된 카테고리 목록이 반환된다.")
+			void returnsSelectedCategories_whenLedgerCodeAndParentCategoryAreGiven() {
+				//given: 수정 데이터를 반환하도록 동작이 정의되어 있다.
+				String code = ledger.getCode();
+
+				CategoryEditInfo categoryEditInfo = createCategoryEdit(CategoryType.INCOME);
+				List<ImageSlot> images = createImageSlots();
+
+				mockCategory(categoryEditInfo);
+				mockSlots(images);
+
+				when(categoryReadService.findCategoryHierarchy(ledger.getCategory()))
+						.thenReturn(hierarchyItems(CategoryType.INCOME));
+
+				//when: 가계부 수정 정보를 조회한다.
+				LedgerEditResponse result = target.getEditData(code);
+				
+				//then: 선택된 카테고리 목록이 포함된다.
+				CategoryEditInfo resultCategoryEditInfo = result.getCategoryEditInfo();
+
+				assertThat(resultCategoryEditInfo).isNotNull();
+				assertThat(resultCategoryEditInfo.getSelected())
+						.hasSize(2)
+						.containsExactly("010100", ledger.getCategory());
+			}
+
+			@Test
+			@DisplayName("가계부 카테고리가 01로 시작하면 수입 카테고리 목록이 반환된다.")
+			void returnsIncomeCategories_whenCategoryCodeStartsWith01() {
+				//given: 수입 카테고리 코드가 주어진다.
+				ledger.changeCategory(CategoryTestData.SALARY_CODE);
+
+				String code = ledger.getCode();
+				CategoryType type = CategoryType.INCOME;
+
+				CategoryEditInfo categoryEditInfo = createCategoryEdit(type);
+				List<ImageSlot> images = createImageSlots();
+
+				mockCategory(categoryEditInfo);
+				mockSlots(images);
+
+				when(categoryReadService.findCategoryHierarchy(ledger.getCategory()))
+						.thenReturn(hierarchyItems(type));
+
+				//when: 가계부 수정 정보를 조회한다.
+				LedgerEditResponse result = target.getEditData(code);
+
+				//then: 수입 카테고리 목록이 반환된다.
+				CategoryEditInfo resultCategoryEditInfo = result.getCategoryEditInfo();
+
+				assertThat(resultCategoryEditInfo).isNotNull();
+
+				assertThat(resultCategoryEditInfo.getMiddleOptions()).isEqualTo(categoryEditInfo.getMiddleOptions());
+				assertThat(resultCategoryEditInfo.getLowOptions()).isEqualTo(categoryEditInfo.getLowOptions());
+
+				verify(categoryReadService).getMiddleCategories(type);
+				verify(categoryReadService).getLowCategories(type);
+			}
+			
+			@Test
+			@DisplayName("가계부 코드가 02로 시작하면 지출 카테고리 목록이 반환된다.")
+			void returnsExpenseCategories_whenLedgerCodeStartsWith02() {
+				//given: 지출 카테고리 코드가 주어진다.
+				ledger.changeCategory(CategoryTestData.FOOD_CODE);
+
+				String code = ledger.getCode();
+				CategoryType type = CategoryType.OUTLAY;
+
+				CategoryEditInfo categoryEditInfo = createCategoryEdit(type);
+				List<ImageSlot> images = createImageSlots();
+
+				mockCategory(categoryEditInfo);
+				mockSlots(images);
+
+				when(categoryReadService.findCategoryHierarchy(ledger.getCategory()))
+						.thenReturn(hierarchyItems(type));
+
+				//when: 가계부 수정 정보를 조회한다.
+				LedgerEditResponse result = target.getEditData(code);
+
+				//then: 지출 카테고리 목록이 반환된다.
+				CategoryEditInfo resultCategoryEditInfo = result.getCategoryEditInfo();
+
+				assertThat(resultCategoryEditInfo).isNotNull();
+
+				assertThat(resultCategoryEditInfo.getMiddleOptions()).isEqualTo(categoryEditInfo.getMiddleOptions());
+				assertThat(resultCategoryEditInfo.getLowOptions()).isEqualTo(categoryEditInfo.getLowOptions());
+
+				verify(categoryReadService).getMiddleCategories(type);
+				verify(categoryReadService).getLowCategories(type);
+			}
+
+			@Test
+			@DisplayName("가계부에 이미지가 없으면 Empty 슬롯이 포함된다.")
+			void returnsEmptySlot_whenLedgerHasNoImage() {
+				//given: 수정 데이터를 반환하도록 동작이 정의되어 있다.
+				String code = ledger.getCode();
+
+				CategoryEditInfo categoryEditInfo = createCategoryEdit(CategoryType.INCOME);
+				List<ImageSlot> images = createImageSlots();
+
+				mockCategory(categoryEditInfo);
+				mockSlots(images);
+
+				when(categoryReadService.findCategoryHierarchy(ledger.getCategory()))
+						.thenReturn(hierarchyItems(CategoryType.INCOME));
+
+				//when: 가계부 수정 정보를 조회한다.
+				LedgerEditResponse result = target.getEditData(code);
+
+				//then: Empty 슬롯이 포함된다.
+				List<ImageSlot> imageSlots = result.getImages();
+
+				assertThat(imageSlots)
+						.hasSize(3)
+						.extracting(
+								ImageSlot::getStatus
+						)
+						.doesNotContain(SlotStatus.FILLED);
+			}
+			
+			@Test
+			@DisplayName("가계부에 이미지가 있으면 Filled 슬롯이 포함된다.")
+			void returnsFilledSlot_whenLedgerHasImage() {
+				//given: 수정 데이터를 반환하도록 동작이 정의되어 있다.
+				String code = ledger.getCode();
+
+				CategoryEditInfo categoryEditInfo = createCategoryEdit(CategoryType.INCOME);
+				List<ImageSlot> images = List.of(
+						ImageSlot.ofFilledSlot("이미지"),
+						ImageSlot.ofEmptySlot(),
+						ImageSlot.ofLockedSlot()
+				);
+
+				mockCategory(categoryEditInfo);
+				mockSlots(images);
+
+				when(categoryReadService.findCategoryHierarchy(ledger.getCategory()))
+						.thenReturn(hierarchyItems(CategoryType.INCOME));
+
+				//when: 가계부 수정 정보를 조회한다.
+				LedgerEditResponse result = target.getEditData(code);
+
+				//then: Empty 슬롯이 포함된다.
+				List<ImageSlot> imageSlots = result.getImages();
+
+				assertThat(imageSlots)
+						.hasSize(3)
+						.extracting(
+								ImageSlot::getStatus
+						)
+						.contains(SlotStatus.FILLED);
+			}
+
+			private void mockCategory(CategoryEditInfo categoryEditInfo) {
+				when(categoryReadService.getMiddleCategories(any(CategoryType.class)))
+						.thenReturn(categoryEditInfo.getMiddleOptions());
+
+				when(categoryReadService.getLowCategories(any(CategoryType.class)))
+						.thenReturn(categoryEditInfo.getLowOptions());
+			}
+
+			private void mockSlots(List<ImageSlot> slots) {
+				when(imageReadService.resolveImageSlots(ledger.getId()))
+						.thenReturn(slots);
+			}
+
+			private CategoryEditInfo createCategoryEdit(CategoryType type) {
+				return switch (type) {
+					case INCOME -> CategoryEditInfo.builder()
+							.selected(List.of(CategoryTestData.EARNED_CODE, CategoryTestData.SALARY_CODE))
+							.middleOptions(CategoryItem.from(IncomeCategoryFixture.createMiddleAll()))
+							.lowOptions(CategoryItem.from(IncomeCategoryFixture.createLowAll()))
+							.build();
+					case OUTLAY -> CategoryEditInfo.builder()
+							.selected(List.of(CategoryTestData.FOOD_CODE, CategoryTestData.SNACK_CODE))
+							.middleOptions(CategoryItem.from(OutlayCategoryFixture.createMiddleAll()))
+							.lowOptions(CategoryItem.from(OutlayCategoryFixture.createLowAll()))
+							.build();
+				};
+			}
+
+			private List<ImageSlot> createImageSlots() {
+				return List.of(
+						ImageSlot.ofEmptySlot(),
+						ImageSlot.ofEmptySlot(),
+						ImageSlot.ofLockedSlot()
+				);
+			}
+
+			private List<CategoryItem> hierarchyItems(CategoryType type) {
+				return switch (type) {
+					case INCOME ->
+							CategoryHierarchyFixture.incomeHierarchy()
+									.stream()
+									.map(CategoryItem::from)
+									.toList();
+					case OUTLAY -> CategoryHierarchyFixture.outlayHierarchy()
+							.stream()
+							.map(CategoryItem::from)
+							.toList();
+				};
+			}
+
+		}
+		
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+
+			@Test
+			@DisplayName("다른 회원의 가계부 코드면 예외가 발생한다.")
+			void throwsException_whenLedgerCodeBelongsToAnotherMember() {
+				//given: 다른 회원의 가계부가 존재한다.
+				String code = "otherCode";
+
+				when(ledgerRepository.findByCode(MemberTestData.MEMBER_ID, code))
+						.thenThrow(BusinessException.class);
+
+				//when & then: 가계부 수정 정보를 조회하면 예외가 발생한다.
+				assertThatThrownBy(() -> target.getEditData(code))
+						.isInstanceOf(BusinessException.class);
+
+				//then: 메서드 호출 검증한다.
+				verify(categoryReadService, never()).getMiddleCategories(any());
+				verify(categoryReadService, never()).getLowCategories(any());
+
+				verify(imageReadService, never()).resolveImageSlots(any());
+				verify(mapper, never()).toEditDto(any(), any(), any());
+			}
+		
+			@Test
+			@DisplayName("존재하지 않은 가계부 코드는 예외가 발생한다.")
+			void throwsBusinessException_whenLedgerCodeDoesNotExist() {
+				//given: 가계부 코드가 주어진다.
+				String code = "none";
+
+				when(ledgerRepository.findByCode(MemberTestData.MEMBER_ID, code))
+						.thenThrow(BusinessException.class);
+
+				//when & then: 가계부 수정 정보를 조회하면 예외가 발생한다.
+				assertThatThrownBy(() -> target.getEditData(code))
+						.isInstanceOf(BusinessException.class);
+			}
+			
+			@ParameterizedTest
+			@NullSource
+			@DisplayName("가계부 코드가 null이면 예외가 발생한다.")
+			void throwsException_whenLedgerCodeIsNull(String code) {
+				when(ledgerRepository.findByCode(MemberTestData.MEMBER_ID, code))
+						.thenThrow(BusinessException.class);
+
+				//when & then: 가계부 수정 정보를 조회하면 예외가 발생한다.
+				assertThatThrownBy(() -> target.getEditData(code))
+						.isInstanceOf(BusinessException.class);
+			}
+			
+			@ParameterizedTest
+			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@DisplayName("가계부 코드가 비어있으면 예외가 발생한다.")
+			void throwsException_whenLedgerCodeIsEmpty(String code) {
+				when(ledgerRepository.findByCode(MemberTestData.MEMBER_ID, code))
+						.thenThrow(BusinessException.class);
+
+				//when & then: 가계부 수정 정보를 조회하면 예외가 발생한다.
+				assertThatThrownBy(() -> target.getEditData(code))
+						.isInstanceOf(BusinessException.class);
 			}
 			
 		}

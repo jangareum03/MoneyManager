@@ -1,12 +1,12 @@
 package com.moneymanager.ledger.service;
 
 import com.moneymanager.support.data.CategoryTestData;
-import com.moneymanager.support.fixture.entity.CategoryFixture;
+import com.moneymanager.support.fixture.entity.category.CategoryFixture;
 import com.moneymanager.domain.ledger.entity.Category;
 import com.moneymanager.repository.ledger.CategoryRepository;
 import com.moneymanager.service.ledger.CategoryCacheService;
-import com.moneymanager.support.fixture.entity.CategoryHierarchyFixture;
-import com.moneymanager.support.fixture.entity.IncomeCategoryFixture;
+import com.moneymanager.support.fixture.entity.category.CategoryHierarchyFixture;
+import com.moneymanager.support.fixture.entity.category.IncomeCategoryFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

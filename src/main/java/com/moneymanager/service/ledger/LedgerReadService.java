@@ -253,7 +253,7 @@ public class LedgerReadService {
 		Ledger ledger = getLedger(memberId, code);
 
 		//3. 카테고리 조회
-		CategoryEditInfo categoryEditInfo = buildCategoryInfoForUpdate(ledger);
+		CategoryEditInfo categoryEditInfo = buildCategoryInfo(ledger);
 
 		//4. 정책에 맞춰 가계부 이미지 리스트 조회
 		List<ImageSlot> images = imageReadService.resolveImageSlots(ledger.getId());
@@ -261,7 +261,7 @@ public class LedgerReadService {
 		return ledgerMapper.toEditDto(ledger, images, categoryEditInfo);
 	}
 
-	private CategoryEditInfo buildCategoryInfoForUpdate(Ledger ledger) {
+	private CategoryEditInfo buildCategoryInfo(Ledger ledger) {
 		String categoryCode = ledger.getCategory();
 		CategoryType type = CategoryType.fromCode(categoryCode);
 
@@ -276,7 +276,7 @@ public class LedgerReadService {
 		return categoryReadService.findCategoryHierarchy(categoryCode)
 				.stream()
 				.map(CategoryItem::getCode)
-				.skip(1)
+				.skip(1)	//대분류는 수정 화면에서 선택 대상이 아니므로 제외
 				.toList();
 	}
 

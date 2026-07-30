@@ -1,4 +1,4 @@
-package com.moneymanager.support.fixture.entity;
+package com.moneymanager.support.fixture.entity.category;
 
 import com.moneymanager.domain.ledger.entity.Category;
 
@@ -26,8 +26,6 @@ public final class IncomeCategoryFixture {
 		Category low3 = CategoryFixture.create("010202", "하위3", mid2);
 
 		return List.of(
-				root,
-				mid1, mid2,
 				low1, low2, low3
 		);
 	}

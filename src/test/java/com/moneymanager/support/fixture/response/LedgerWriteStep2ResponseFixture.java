@@ -3,7 +3,7 @@ package com.moneymanager.support.fixture.response;
 import com.moneymanager.domain.ledger.dto.response.CategoryItem;
 import com.moneymanager.domain.ledger.dto.response.ImageSlot;
 import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep2Response;
-import com.moneymanager.support.fixture.entity.CategoryFixture;
+import com.moneymanager.support.fixture.entity.category.CategoryFixture;
 
 import java.util.List;
 
