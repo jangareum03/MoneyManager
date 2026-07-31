@@ -1,7 +1,7 @@
 package com.moneymanager.support;
 
-import com.moneymanager.security.jwt.JwtAuthenticationFilter;
-import com.moneymanager.security.jwt.JwtTokenProvider;
+import com.moneymanager.global.security.jwt.JwtAuthenticationFilter;
+import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 public abstract class ControllerTestSupport {

@@ -1,10 +1,10 @@
 package com.moneymanager.ledger.service.validation;
 
-import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
-import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
-import com.moneymanager.exception.code.CommonErrorCode;
-import com.moneymanager.exception.exception.ValidationException;
-import com.moneymanager.service.validation.LedgerValidator;
+import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
+import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
+import com.moneymanager.global.exception.code.CommonErrorCode;
+import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.ledger.service.validator.LedgerValidator;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;

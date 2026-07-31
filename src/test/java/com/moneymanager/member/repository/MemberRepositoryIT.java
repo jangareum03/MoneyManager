@@ -1,7 +1,7 @@
 package com.moneymanager.member.repository;
 
-import com.moneymanager.domain.member.Member;
-import com.moneymanager.repository.member.MemberRepository;
+import com.moneymanager.delete.domain.member.Member;
+import com.moneymanager.delete.repository.member.MemberRepository;
 import com.moneymanager.support.fixture.entity.MemberFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,8 +1,8 @@
 package com.moneymanager.member.service;
 
-import com.moneymanager.domain.member.Member;
-import com.moneymanager.repository.member.MemberRepository;
-import com.moneymanager.service.member.MemberReadService;
+import com.moneymanager.delete.domain.member.Member;
+import com.moneymanager.delete.repository.member.MemberRepository;
+import com.moneymanager.delete.service.member.MemberReadService;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.fixture.entity.MemberFixture;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.moneymanager.exception.code.MemberErrorCode.NOT_FOUND_DATA;
+import static com.moneymanager.global.exception.code.MemberErrorCode.NOT_FOUND_DATA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 

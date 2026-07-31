@@ -1,7 +1,6 @@
 package com.moneymanager.ledger.repository;
 
-import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.repository.ledger.CategoryRepository;
+import com.moneymanager.ledger.domain.entity.Category;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

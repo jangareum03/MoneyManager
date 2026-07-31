@@ -1,9 +1,9 @@
 package com.moneymanager.support.fixture.response;
 
-import com.moneymanager.domain.ledger.dto.response.CategoryItem;
-import com.moneymanager.domain.ledger.dto.response.LedgerDetailResponse;
-import com.moneymanager.domain.ledger.enums.CategoryType;
-import com.moneymanager.domain.ledger.enums.PaymentType;
+import com.moneymanager.ledger.domain.dto.response.CategoryItem;
+import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
+import com.moneymanager.ledger.domain.enums.CategoryType;
+import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.fixture.entity.category.CategoryFixture;
 

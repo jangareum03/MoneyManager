@@ -1,6 +1,6 @@
 package com.moneymanager.support.fixture.response;
 
-import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
+import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
 

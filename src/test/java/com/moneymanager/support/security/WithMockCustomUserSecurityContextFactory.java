@@ -2,9 +2,9 @@ package com.moneymanager.support.security;
 
 
 import com.moneymanager.support.fixture.entity.MemberFixture;
-import com.moneymanager.domain.member.Member;
-import com.moneymanager.domain.member.MemberInfo;
-import com.moneymanager.security.CustomUserDetails;
+import com.moneymanager.delete.domain.member.Member;
+import com.moneymanager.delete.domain.member.MemberInfo;
+import com.moneymanager.global.security.CustomUserDetails;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;

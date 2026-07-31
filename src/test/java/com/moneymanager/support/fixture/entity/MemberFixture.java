@@ -1,9 +1,9 @@
 package com.moneymanager.support.fixture.entity;
 
 import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.domain.member.Member;
-import com.moneymanager.domain.member.MemberInfo;
-import com.moneymanager.domain.member.enums.MemberType;
+import com.moneymanager.delete.domain.member.Member;
+import com.moneymanager.delete.domain.member.MemberInfo;
+import com.moneymanager.delete.domain.member.enums.MemberType;
 
 public final class MemberFixture {
 

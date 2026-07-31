@@ -1,6 +1,5 @@
 package com.moneymanager.ledger.domain.entity;
 
-import com.moneymanager.domain.ledger.entity.LedgerImage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Nested;
@@ -14,7 +13,8 @@ import com.moneymanager.support.ApplicationExceptionAssert;
 
 import java.util.stream.Stream;
 
-import static com.moneymanager.exception.code.CommonErrorCode.*;
+import static com.moneymanager.global.exception.code.CommonErrorCode.*;
+import static com.moneymanager.global.exception.code.LedgerErrorCode.INVALID_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 

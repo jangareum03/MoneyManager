@@ -2,7 +2,7 @@ package com.moneymanager.support.fixture.request;
 
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.domain.ledger.dto.request.LedgerWriteRequest;
+import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import org.springframework.web.multipart.MultipartFile;
 

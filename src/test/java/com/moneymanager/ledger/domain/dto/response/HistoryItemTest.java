@@ -1,9 +1,8 @@
 package com.moneymanager.ledger.domain.dto.response;
 
-import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
-import com.moneymanager.domain.ledger.dto.response.HistoryItem;
-import com.moneymanager.domain.ledger.enums.CategoryType;
-import com.moneymanager.exception.exception.ValidationException;
+import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
+import com.moneymanager.ledger.domain.enums.CategoryType;
+import com.moneymanager.global.exception.exception.ValidationException;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.fixture.response.LedgerHistoryQueryFixture;

@@ -1,7 +1,6 @@
 package com.moneymanager.ledger.domain.enums;
 
-import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.domain.ledger.enums.CategoryType;
+import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -11,8 +10,8 @@ import org.junit.jupiter.params.provider.*;
 
 import java.util.stream.Stream;
 
-import static com.moneymanager.exception.code.CommonErrorCode.INVALID_VALUE;
-import static com.moneymanager.exception.code.CommonErrorCode.REQUIRED_VALUE;
+import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
+import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Named.named;

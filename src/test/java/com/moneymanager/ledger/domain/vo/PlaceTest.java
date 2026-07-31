@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.domain.vo;
 
-import com.moneymanager.domain.ledger.vo.Place;
+import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.StringTestData;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +14,7 @@ import com.moneymanager.support.ApplicationExceptionAssert;
 
 import java.util.stream.Stream;
 
-import static com.moneymanager.exception.code.CommonErrorCode.*;
+import static com.moneymanager.global.exception.code.CommonErrorCode.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Named.named;

@@ -1,9 +1,9 @@
 package com.moneymanager.ledger.domain.policy;
 
-import com.moneymanager.domain.global.Policy;
-import com.moneymanager.domain.global.vo.DateRange;
-import com.moneymanager.domain.ledger.enums.HistoryType;
-import com.moneymanager.domain.ledger.policy.LedgerHistoryPolicy;
+import com.moneymanager.ledger.service.policy.Policy;
+import com.moneymanager.global.domain.DateRange;
+import com.moneymanager.ledger.domain.enums.HistoryType;
+import com.moneymanager.ledger.service.policy.LedgerHistoryPolicy;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,9 +19,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.stream.Stream;
 
-import static com.moneymanager.exception.code.CommonErrorCode.OUT_OF_RANGE;
-import static com.moneymanager.exception.code.CommonErrorCode.REQUIRED_VALUE;
-import static com.moneymanager.exception.log.DeveloperLogInfo.valueOf;
+import static com.moneymanager.global.exception.code.CommonErrorCode.OUT_OF_RANGE;
+import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
+import static com.moneymanager.global.exception.log.DeveloperLogInfo.valueOf;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Named.named;
 

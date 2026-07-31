@@ -1,11 +1,7 @@
 package com.moneymanager.ledger.domain.dto.response;
 
 import com.moneymanager.support.data.CategoryTestData;
-import com.moneymanager.domain.ledger.dto.response.HistoryDashboardResponse;
-import com.moneymanager.domain.ledger.dto.response.HistoryItem;
-import com.moneymanager.domain.ledger.dto.response.LedgerStatistics;
-import com.moneymanager.domain.ledger.dto.response.MenuItem;
-import com.moneymanager.domain.ledger.enums.CategoryType;
+import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.support.fixture.response.HistoryItemFixture;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;

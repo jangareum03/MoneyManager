@@ -1,8 +1,8 @@
 package com.moneymanager.member.service;
 
-import com.moneymanager.exception.exception.BusinessException;
-import com.moneymanager.repository.member.MemberRepository;
-import com.moneymanager.service.member.MemberReadService;
+import com.moneymanager.global.exception.exception.BusinessException;
+import com.moneymanager.delete.repository.member.MemberRepository;
+import com.moneymanager.delete.service.member.MemberReadService;
 import com.moneymanager.support.data.MemberTestData;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

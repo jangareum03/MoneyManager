@@ -3,7 +3,6 @@ package com.moneymanager.ledger.domain.entity;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.fixture.entity.category.CategoryFixture;
 import com.moneymanager.support.ApplicationExceptionAssert;
-import com.moneymanager.domain.ledger.entity.Category;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -12,8 +11,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 
-import static com.moneymanager.exception.code.CommonErrorCode.REQUIRED_VALUE;
-import static com.moneymanager.exception.code.LedgerErrorCode.DATA_INTEGRITY_ERROR;
+import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
+import static com.moneymanager.global.exception.code.LedgerErrorCode.DATA_INTEGRITY_ERROR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 

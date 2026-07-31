@@ -1,7 +1,7 @@
 package com.moneymanager.support;
 
-import com.moneymanager.exception.code.ErrorCode;
-import com.moneymanager.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.code.ErrorCode;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import org.assertj.core.api.AbstractAssert;
 
 import static org.assertj.core.api.Assertions.assertThat;

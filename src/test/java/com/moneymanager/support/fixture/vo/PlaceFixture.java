@@ -1,7 +1,7 @@
 package com.moneymanager.support.fixture.vo;
 
-import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
-import com.moneymanager.domain.ledger.vo.Place;
+import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
+import com.moneymanager.ledger.domain.dto.vo.Place;
 
 public final class PlaceFixture {
 

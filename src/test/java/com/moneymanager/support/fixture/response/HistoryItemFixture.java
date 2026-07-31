@@ -2,8 +2,8 @@ package com.moneymanager.support.fixture.response;
 
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.domain.ledger.dto.query.LedgerHistoryQuery;
-import com.moneymanager.domain.ledger.dto.response.HistoryItem;
+import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
+import com.moneymanager.ledger.domain.dto.response.HistoryItem;
 
 import java.time.LocalDate;
 

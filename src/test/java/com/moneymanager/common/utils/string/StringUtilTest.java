@@ -1,6 +1,6 @@
 package com.moneymanager.common.utils.string;
 
-import com.moneymanager.utils.string.StringUtil;
+import com.moneymanager.global.util.string.StringUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

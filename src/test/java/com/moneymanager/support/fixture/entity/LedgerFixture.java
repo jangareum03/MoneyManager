@@ -1,9 +1,9 @@
 package com.moneymanager.support.fixture.entity;
 
-import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.FixedYN;
-import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.domain.ledger.vo.Money;
+import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.enums.FixedYN;
+import com.moneymanager.ledger.domain.enums.PaymentType;
+import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;

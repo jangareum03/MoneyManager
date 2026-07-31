@@ -1,15 +1,15 @@
 package com.moneymanager.ledger.service;
 
 import com.moneymanager.config.MutableClock;
-import com.moneymanager.config.TimeConfig;
-import com.moneymanager.domain.ledger.dto.response.*;
-import com.moneymanager.domain.ledger.entity.Ledger;
-import com.moneymanager.domain.ledger.enums.*;
-import com.moneymanager.domain.ledger.vo.Money;
-import com.moneymanager.domain.member.Member;
-import com.moneymanager.exception.exception.BusinessException;
-import com.moneymanager.repository.ledger.LedgerImageRepository;
-import com.moneymanager.service.ledger.LedgerReadService;
+import com.moneymanager.global.config.TimeConfig;
+import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.dto.vo.Money;
+import com.moneymanager.delete.domain.member.Member;
+import com.moneymanager.global.exception.exception.BusinessException;
+import com.moneymanager.ledger.domain.dto.response.*;
+import com.moneymanager.ledger.domain.enums.*;
+import com.moneymanager.ledger.repository.LedgerImageRepository;
+import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTestSupport;
 import com.moneymanager.support.data.CategoryTestData;
@@ -35,7 +35,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.moneymanager.exception.code.LedgerErrorCode.NOT_FOUND_DATA;
+import static com.moneymanager.global.exception.code.LedgerErrorCode.NOT_FOUND_DATA;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Named.named;
 

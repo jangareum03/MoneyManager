@@ -1,6 +1,6 @@
 package com.moneymanager.support.data;
 
-import com.moneymanager.domain.member.enums.MemberGender;
+import com.moneymanager.delete.domain.member.enums.MemberGender;
 
 import java.time.LocalDateTime;
 

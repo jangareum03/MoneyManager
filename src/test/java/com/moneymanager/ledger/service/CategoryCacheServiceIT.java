@@ -1,8 +1,8 @@
 package com.moneymanager.ledger.service;
 
-import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.repository.ledger.CategoryRepository;
-import com.moneymanager.service.ledger.CategoryCacheService;
+import com.moneymanager.ledger.domain.entity.Category;
+import com.moneymanager.ledger.repository.CategoryRepository;
+import com.moneymanager.ledger.service.cache.CategoryCacheService;
 import com.moneymanager.support.IntegrationTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

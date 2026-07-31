@@ -1,7 +1,7 @@
 package com.moneymanager.support.fixture.entity;
 
 import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.domain.ledger.entity.LedgerImage;
+import com.moneymanager.ledger.domain.entity.LedgerImage;
 
 public final class LedgerImageFixture {
 

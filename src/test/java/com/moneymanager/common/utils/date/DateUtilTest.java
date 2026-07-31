@@ -1,6 +1,6 @@
 package com.moneymanager.common.utils.date;
 
-import com.moneymanager.utils.date.DateUtils;
+import com.moneymanager.global.util.date.DateUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

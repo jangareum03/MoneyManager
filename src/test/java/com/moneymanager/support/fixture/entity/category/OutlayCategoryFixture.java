@@ -1,6 +1,6 @@
 package com.moneymanager.support.fixture.entity.category;
 
-import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.ledger.domain.entity.Category;
 
 import java.util.List;
 

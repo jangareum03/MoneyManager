@@ -1,12 +1,12 @@
 package com.moneymanager.ledger.service;
 
-import com.moneymanager.domain.ledger.dto.response.CategoryItem;
-import com.moneymanager.domain.ledger.entity.Category;
-import com.moneymanager.domain.ledger.enums.CategoryType;
-import com.moneymanager.exception.code.CategoryErrorCode;
-import com.moneymanager.exception.exception.BusinessException;
-import com.moneymanager.service.ledger.CategoryCacheService;
-import com.moneymanager.service.ledger.CategoryReadService;
+import com.moneymanager.ledger.domain.dto.response.CategoryItem;
+import com.moneymanager.ledger.domain.entity.Category;
+import com.moneymanager.ledger.domain.enums.CategoryType;
+import com.moneymanager.global.exception.code.CategoryErrorCode;
+import com.moneymanager.global.exception.exception.BusinessException;
+import com.moneymanager.ledger.service.cache.CategoryCacheService;
+import com.moneymanager.ledger.service.read.CategoryReadService;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.fixture.entity.category.CategoryFixture;

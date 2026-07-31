@@ -1,8 +1,7 @@
 package com.moneymanager.ledger.domain.dto.response;
 
 import com.moneymanager.support.data.CategoryTestData;
-import com.moneymanager.domain.ledger.dto.response.CategoryItem;
-import com.moneymanager.domain.ledger.entity.Category;
+import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.support.fixture.entity.category.CategoryFixture;
 import com.moneymanager.support.fixture.entity.category.CategoryHierarchyFixture;
 import com.moneymanager.support.fixture.entity.category.IncomeCategoryFixture;

@@ -1,7 +1,7 @@
 package com.moneymanager.support.fixture.response;
 
-import com.moneymanager.domain.ledger.dto.response.LedgerTypeResponse;
-import com.moneymanager.domain.ledger.dto.response.LedgerWriteStep1Response;
+import com.moneymanager.ledger.domain.dto.response.LedgerTypeResponse;
+import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
 
 import java.util.List;
 import java.util.stream.IntStream;

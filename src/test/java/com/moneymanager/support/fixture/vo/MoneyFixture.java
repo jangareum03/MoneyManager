@@ -1,8 +1,8 @@
 package com.moneymanager.support.fixture.vo;
 
-import com.moneymanager.domain.ledger.dto.request.LedgerUpdateRequest;
-import com.moneymanager.domain.ledger.enums.PaymentType;
-import com.moneymanager.domain.ledger.vo.Money;
+import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
+import com.moneymanager.ledger.domain.enums.PaymentType;
+import com.moneymanager.ledger.domain.dto.vo.Money;
 
 public final class MoneyFixture {
 
