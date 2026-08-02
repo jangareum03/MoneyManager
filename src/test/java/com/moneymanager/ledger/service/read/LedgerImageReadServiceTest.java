@@ -1,11 +1,10 @@
-package com.moneymanager.ledger.service;
+package com.moneymanager.ledger.service.read;
 
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
 import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.global.security.utils.SecurityUtil;
-import com.moneymanager.ledger.service.read.LedgerImageReadService;
 import com.moneymanager.delete.service.member.MemberReadService;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerImageFixture;

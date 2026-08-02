@@ -1,5 +1,6 @@
 package com.moneymanager.ledger.controller;
 
+import com.moneymanager.global.exception.exception.ValidationException;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.HistoryDashboardResponse;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
@@ -137,8 +138,6 @@ public class LedgerController {
 	 */
 	@GetMapping("/new/step2")
 	public String showWriteStep2Form(@RequestParam String type, @RequestParam String date, Model model) {
-		LocalDate defaultDate = LocalDate.now();
-
 		//입력값 확인
 		CategoryType ledgerType = parseCategoryTypeOrDefault(type);
 		LocalDate localDate = DateTimeUtil.parseDateFromYyyyMMdd(date);
@@ -153,7 +152,7 @@ public class LedgerController {
 	private CategoryType parseCategoryTypeOrDefault(String type) {
 		try{
 			return CategoryType.from(type);
-		}catch (IllegalArgumentException e) {
+		}catch (ValidationException e) {
 			return CategoryType.INCOME;
 		}
 	}

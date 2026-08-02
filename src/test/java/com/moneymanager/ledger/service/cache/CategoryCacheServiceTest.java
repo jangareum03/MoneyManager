@@ -1,6 +1,5 @@
-package com.moneymanager.ledger.service;
+package com.moneymanager.ledger.service.cache;
 
-import com.moneymanager.ledger.service.cache.CategoryCacheService;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.fixture.entity.category.CategoryFixture;
 import com.moneymanager.ledger.domain.entity.Category;

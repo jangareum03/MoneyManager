@@ -35,7 +35,7 @@ import java.util.List;
  * 		</tbody>
  * </table>
  */
-@Builder
+@Builder(toBuilder = true)
 @Getter
 public class LedgerDetailResponse {
 	private String date;										//가계부 날짜

@@ -49,7 +49,7 @@ public final class LedgerDetailResponseFixture {
 				.category(CategoryItem.from(CategoryFixture.salary()))
 				.memo(null)
 				.images(List.of(
-						"이미지", "비어있음", "잠김"
+						"이미지"
 				))
 				.amount(1L)
 				.paymentType(PaymentType.NONE)

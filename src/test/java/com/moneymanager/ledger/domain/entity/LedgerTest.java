@@ -1,25 +1,28 @@
 package com.moneymanager.ledger.domain.entity;
 
-import com.moneymanager.support.data.CategoryTestData;
-import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.global.domain.DatePatterns;
+import com.moneymanager.global.domain.enums.DatePatterns;
+import com.moneymanager.global.exception.code.CommonErrorCode;
+import com.moneymanager.global.exception.exception.BusinessException;
+import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.util.date.DateTimeUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
+import com.moneymanager.ledger.domain.dto.vo.Money;
+import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.enums.FixCycle;
 import com.moneymanager.ledger.domain.enums.FixedYN;
 import com.moneymanager.ledger.domain.enums.PaymentType;
-import com.moneymanager.ledger.domain.dto.vo.Money;
-import com.moneymanager.ledger.domain.dto.vo.Place;
-import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.support.ApplicationExceptionAssert;
+import com.moneymanager.support.data.CategoryTestData;
+import com.moneymanager.support.data.LedgerTestData;
+import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
-import com.moneymanager.global.util.date.DateTimeUtil;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import com.moneymanager.support.ApplicationExceptionAssert;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -385,6 +388,30 @@ public class LedgerTest {
 				assertThat(throwable).isInstanceOf(ValidationException.class);
 			}
 
+			@ParameterizedTest
+			@MethodSource("com.moneymanager.ledger.service.validation.LedgerValidatorTest#invalidMemoLengths")
+			@DisplayName("메모가 150자 초과하면 예외가 발생한다.")
+			void throwsException_whenMemoExceedsLimit(String memo) {
+				//given: 메모 길이가 150자 초과된 가게부 생성 요청이 준비되어 있다.
+				LedgerWriteRequest request = LedgerWriteRequestFixture.builder()
+						.memo(memo)
+						.build();
+
+				//when & then: 수정 요청 데이터를 검증하면 ValidationException이 발생한다.
+				ApplicationExceptionAssert.assertThatApplicationException(
+								AssertionsForClassTypes.catchThrowable(() -> Ledger.create(memberId, request))
+						)
+						.isInstanceOf(BusinessException.class)
+						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						.hasWork("가계부 검증")
+						.hasCauseMessage("길이 초과")
+						.hasField("memo")
+						.hasValue(String.valueOf(memo.length()))
+						.hasOption("min", "0")
+						.hasOption("max", "150")
+						.hasUserMessage("메모", "최대 150");
+			}
+
 		}
 
 	}
@@ -598,6 +625,31 @@ public class LedgerTest {
 				assertThat(ledger.getMemo()).isNull();
 			}
 			
+		}
+
+		@Nested
+		@DisplayName("실패 케이스")
+		class Failure {
+
+			@ParameterizedTest
+			@MethodSource("com.moneymanager.ledger.service.validation.LedgerValidatorTest#invalidMemoLengths")
+			@DisplayName("메모가 150자 초과하면 예외가 발생한다.")
+			void throwsException_whenMemoExceedsLimit(String memo) {
+				//when & then: 가계부 수정을 진행하면 BusinessException이 발생한다.
+				ApplicationExceptionAssert.assertThatApplicationException(
+								AssertionsForClassTypes.catchThrowable(() -> ledger.changeMemo(memo))
+						)
+						.isInstanceOf(BusinessException.class)
+						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						.hasWork("가계부 검증")
+						.hasCauseMessage("길이 초과")
+						.hasField("memo")
+						.hasValue(String.valueOf(memo.length()))
+						.hasOption("min", "0")
+						.hasOption("max", "150")
+						.hasUserMessage("메모", "최대 150");
+			}
+
 		}
 		
 	}

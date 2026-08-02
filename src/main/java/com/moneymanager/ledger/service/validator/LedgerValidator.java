@@ -1,18 +1,18 @@
 package com.moneymanager.ledger.service.validator;
 
-import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
-import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
-import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.global.exception.exception.ValidationException;
 import com.moneymanager.global.exception.log.DeveloperLogInfo;
 import com.moneymanager.global.validation.BaseImageValidator;
 import com.moneymanager.global.validation.DateValidator;
+import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
+import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.*;
+import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_FORMAT;
+import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 import static com.moneymanager.global.util.string.StringUtil.matchesPattern;
 
@@ -22,7 +22,7 @@ import static com.moneymanager.global.util.string.StringUtil.matchesPattern;
  * 파일이름       : LedgerValidator<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 1. 22<br>
- * 설명              : 가계부 관련 검증 로직을 처리하는 클래스
+ * 설명              : 가계부 요청 관련 검증 로직을 처리하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -46,25 +46,8 @@ import static com.moneymanager.global.util.string.StringUtil.matchesPattern;
 @Component
 public class LedgerValidator extends BaseImageValidator {
 
-	private final String work = "가계부 검증";
+	private final String work = "가계부 요청 검증";
 
-	/**
-	 * 가계부 등록 요청 시 입력된 데이터가 정상적인지 검증합니다.
-	 * <p>
-	 *     입력값이 없거나 형식이 올바르지 않으면, {@link BusinessException}이 발생합니다.
-	 *     <ul>
-	 *         검증 항목
-	 *         <li>
-	 *             필수정보:	거래날짜, 카테고리 코드, 금액, 금액유형
-	 *         </li>
-	 *         <li>
-	 *             선택정보:	고정주기, 메모, 장소
-	 *         </li>
-	 *     </ul>
-	 * </p>
-	 *
-	 * @param request	가계부 작성 요청 데이터
-	 */
 	public void register(LedgerWriteRequest request) {
 		if(request == null) {
 			throw ValidationException.of(
@@ -82,12 +65,10 @@ public class LedgerValidator extends BaseImageValidator {
 
 		//선택정보 검증
 		validateFixCycle(request.getFixCycle());
-		validateMemo(request.getMemo());
 	}
 
-
 	public void update(LedgerUpdateRequest request) {
-		//1. 객체 null 검증
+		//1. 객체 검증
 		if(request == null) {
 			throw ValidationException.of(
 					REQUIRED_VALUE,
@@ -103,7 +84,6 @@ public class LedgerValidator extends BaseImageValidator {
 
 		//3. 선택정보 검증
 		validateFixCycle(request.getFixCycle());
-		validateMemo(request.getMemo());
 	}
 
 	//가계부 카테고리 검증
@@ -159,20 +139,6 @@ public class LedgerValidator extends BaseImageValidator {
 		}
 	}
 
-	//가계부 메모 내용 검증
-	private void validateMemo(String memo) {
-		if(!isNullOrBlank(memo) && memo.length() > 150) {
-			throw BusinessException.of(
-					OUT_OF_RANGE,
-					DeveloperLogInfo.of(work, "최대 길이 초과", "memo", String.valueOf(memo.length()))
-							.addOption("min", 0)
-							.addOption("max", 150),
-					"메모는 최대 150자까지 입력해주세요."
-			);
-		}
-	}
-
-
 	@Override
 	public void validateImage(MultipartFile file) {
 		checkSize(file.getSize());
@@ -180,4 +146,5 @@ public class LedgerValidator extends BaseImageValidator {
 		checkIsImage(file.getContentType());
 		checkHeader(file, List.of("89504E47", "FFD8FFE0"));	//png(89504E47), jpg(FFD8FFE0)
 	}
+
 }

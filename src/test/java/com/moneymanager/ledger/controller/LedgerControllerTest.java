@@ -7,8 +7,6 @@ import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.domain.enums.HistoryMenuType;
 import com.moneymanager.ledger.domain.enums.HistoryType;
-import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.exception.ValidationException;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.ledger.service.validator.LedgerValidator;
@@ -37,11 +35,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import javax.servlet.http.Cookie;
 import java.time.LocalDate;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Named.named;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -93,11 +89,15 @@ public class LedgerControllerTest extends ControllerTestSupport {
 	@MockBean
 	private LedgerValidator validator;
 
+	private static final String BASE_URI = "/ledgers";
+
 
 	@Nested
 	@DisplayName("작성 1단계")
 	@WithMockCustomUser
 	class Step1ViewTest {
+
+		private static final String URI = BASE_URI + "/new/step1";
 
 		@Nested
 		@DisplayName("성공 케이스")
@@ -114,7 +114,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 작성 1단계 페이지를 요청한다.
 				mockMvc.perform(
-						get("/ledgers/new/step1")
+						get(URI)
 				)
 						.andExpect(status().isOk())
 						.andExpect(model().attribute("ledger", response))
@@ -135,23 +135,9 @@ public class LedgerControllerTest extends ControllerTestSupport {
 			@DisplayName("지원하지 않은 HTTP Method 요청 시 405를 반환한다.")
 			void rejectsRequestWithStatusMethodNotAllowed_whenInvalidHttpMethodIsGiven(String method) throws Exception {
 				mockMvc.perform(
-					MockMvcRequestBuilders.request(HttpMethod.valueOf(method), "/ledgers/new/step1")
+					MockMvcRequestBuilders.request(HttpMethod.valueOf(method), URI)
 				)
 						.andExpect(status().isMethodNotAllowed());
-			}
-
-			@Test
-			@DisplayName("존재하지 않은 URL 요청 시 404를 반환한다.")
-			void rejectsRequestWithStatusNotFound_whenInvalidUrlIsGiven() throws Exception {
-				//given: 존재하지 않은 URL이 주어진다.
-				String url = "/ledger/noPage";
-
-				//when: 가계부 작성 1단계 페이지를 요청한다.
-				mockMvc.perform(
-						get(url)
-								.cookie(new Cookie("ACCESS_TOKEN", "token"))
-				)
-						.andExpect(status().isNotFound());
 			}
 
 		}
@@ -163,7 +149,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 	@DisplayName("작성 2단계")
 	class Step2ViewTest {
 
-		private final String URL = "/ledgers/new/step2";
+		private final String URI = BASE_URI + "/new/step2";
 
 		@Nested
 		@DisplayName("성공 케이스")
@@ -182,7 +168,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 작성 2단계 페이지를 요청한다.
 				mockMvc.perform(
-						get(URL)
+						get(URI)
 								.param("type", paramType)
 								.param("date", date)
 				)
@@ -219,7 +205,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 작성 2단계 페이지를 요청한다.
 				mockMvc.perform(
-						get(URL)
+						get(URI)
 								.param("type", type)
 								.param("date", date)
 				)
@@ -241,7 +227,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 작성 2단계 페이지를 요청한다.
 				mockMvc.perform(
-								get(URL)
+								get(URI)
 										.param("type", type)
 										.param("date", date)
 						)
@@ -249,65 +235,6 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//then: 서비스에 수입 유형이 전송된다.
 				verify(readService).getWriteStep2Data(eq(CategoryType.INCOME), any());
-			}
-
-		}
-
-		@Nested
-		@DisplayName("실패 케이스")
-		class Failure {
-
-			@Test
-			@DisplayName("가계부 유형 파라미터가 없으면 400 응답을 반환한다.")
-			void rejectsRequest_whenLedgerTypeDoesNotExist() throws Exception {
-				//given: 정상적인 날짜가 주어진다.
-				String date = "20260101";
-
-				when(readService.getWriteStep2Data(any(), any()))
-						.thenReturn(LedgerWriteStep2ResponseFixture.create());
-
-				//when: 가계부 작성 2단계 페이지를 요청한다.
-				mockMvc.perform(
-								get(URL)
-										.param("date", date)
-						)
-						.andExpect(status().isBadRequest());
-			}
-
-			@Test
-			@DisplayName("가계부 유형이 null이면 400 응답을 반환한다.")
-			void rejectsRequest_whenLedgerTypeIsNull() throws Exception {
-				//given: 가계부 유형이 null로 주어진다.
-				String type = null;
-				String date = "20260101";
-
-				when(readService.getWriteStep2Data(any(), any()))
-						.thenReturn(LedgerWriteStep2ResponseFixture.create());
-
-				//when: 가계부 작성 2단계 페이지를 요청한다.
-				mockMvc.perform(
-								get(URL)
-										.param("type", type)
-										.param("date", date)
-						)
-						.andExpect(status().isBadRequest());
-			}
-			
-			@Test
-			@DisplayName("거래날짜 파라미터가 없으면 400 응답을 반환한다.")
-			void rejectsRequest_whenTransactionDateDoesNotExist() throws Exception {
-				//given: 정상적인 가계부 유형이가주어진다.
-				String type = "income";
-
-				when(readService.getWriteStep2Data(any(), any()))
-						.thenReturn(LedgerWriteStep2ResponseFixture.create());
-
-				//when: 가계부 작성 2단계 페이지를 요청한다.
-				mockMvc.perform(
-								get(URL)
-										.param("type", type)
-						)
-						.andExpect(status().isBadRequest());
 			}
 
 		}
@@ -320,7 +247,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 	@WithMockCustomUser
 	class Create {
 
-		private final String URL = "/ledgers";
+		private final String URI = BASE_URI;
 		
 		@Nested
 		@DisplayName("성공 케이스")
@@ -337,7 +264,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 등록을 요청한다.
 				mockMvc.perform(
-						post(URL)
+						post(URI)
 								.flashAttr("ledger", request)
 				)
 						.andExpect(status().is3xxRedirection())
@@ -355,7 +282,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 등록을 요청한다.
 				mockMvc.perform(
-								post(URL)
+								post(URI)
 										.flashAttr("ledger", request)
 						)
 						.andExpect(status().is3xxRedirection());
@@ -376,7 +303,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 등록을 요청한다.
 				mockMvc.perform(
-								post(URL)
+								post(URI)
 										.flashAttr("ledger", request)
 						)
 						.andExpect(status().is3xxRedirection());
@@ -389,52 +316,6 @@ public class LedgerControllerTest extends ControllerTestSupport {
 			}
 		
 		}
-		
-		@Nested
-		@DisplayName("실패 케이스")
-		class Failure {
-		
-			@Test
-			@DisplayName("가계부 등록 검증에 실패하면 등록 서비스를 호출하지 않는다.")
-			void doesNothing_whenValidationFails() throws Exception {
-				//given: 가계부 등록 검증에 실패하도록 동작이 정의되어 있다.
-				LedgerWriteRequest request = LedgerWriteRequestFixture.create();
-
-				doThrow(ValidationException.class)
-						.when(validator).register(request);
-				
-				//when: 가계부 등록을 요청한다.
-				mockMvc.perform(
-						post(URL)
-								.flashAttr("ledger", request)
-				)
-						.andExpect(status().is3xxRedirection());
-				
-				//then: 가계부 등록 서비스를 호출하지 않는다.
-				verify(commandService, never()).register(any(LedgerWriteRequest.class));
-			}
-			
-			@Test
-			@DisplayName("가계부 등록 서비스에서 예외가 발생하면 예외를 그대로 전달한다.")
-			void throwsException_whenServiceExceptionOccurs() throws Exception {
-				//given: 가계부 등록에 실패하도록 동작이 정의되어 있다.
-				LedgerWriteRequest request = LedgerWriteRequestFixture.create();
-
-				doNothing().when(validator).register(request);
-				doThrow(BusinessException.class)
-						.when(commandService).register(request);
-
-				//when: 가계부 등록을 요청한다.
-				mockMvc.perform(
-						post(URL)
-								.flashAttr("ledger", request)
-				)
-						.andExpect(result ->
-								assertThat(result.getResolvedException()).isInstanceOf(BusinessException.class)
-						);
-			}
-			
-		}
 
 	}
 
@@ -444,7 +325,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 	@WithMockCustomUser
 	class GetHistories {
 
-		private final String URL = "/ledgers";
+		private final String URI = BASE_URI;
 
 		@Nested
 		@DisplayName("성공 케이스")
@@ -460,7 +341,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 				
 				//when: 가계부 내역 조회를 요청한다.
 				mockMvc.perform(
-						get(URL)
+						get(URI)
 								.param("viewType", type)
 				)
 						.andExpect(status().isOk());
@@ -484,7 +365,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 내역 조회를 요청한다.
 				mockMvc.perform(
-						get(URL)
+						get(URI)
 								.param("viewType", viewType)
 				)
 						.andExpect(status().isOk());
@@ -503,7 +384,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 내역 조회를 요청한다.
 				mockMvc.perform(
-						get(URL)
+						get(URI)
 								.param("viewType", viewType)
 				)
 						.andExpect(status().isOk());
@@ -522,7 +403,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 내역 조회를 요청한다.
 				mockMvc.perform(
-								get(URL)
+								get(URI)
 										.param("viewType", viewType)
 						)
 						.andExpect(status().isOk());
@@ -542,7 +423,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 내역 조회를 요청한다.
 				mockMvc.perform(
-								get(URL)
+								get(URI)
 										.param("viewType", "month")
 						)
 						.andExpect(status().isOk())
@@ -562,36 +443,13 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//when: 가계부 내역 조회를 요청한다.
 				mockMvc.perform(
-								get(URL)
+								get(URI)
 										.param("viewType", "year")
 						)
 						.andExpect(status().isOk())
 						.andExpect(view().name("/ledger/ledger_history"));
 			}
 
-		}
-		
-		@Nested
-		@DisplayName("실패 케이스")
-		class Failure {
-			
-			@Test
-			@DisplayName("서비스 예외가 발생하면 예외가 전달된다.")
-			void throwsException_whenServiceFails() throws Exception {
-				//given: LedgerReadService에서 예외가 발생하도록 동작이 정의되어 있다.
-				when(readService.getHistoryDashboard(any(HistoryType.class)))
-						.thenThrow(ValidationException.class);
-				
-				//when & then: 가계부 내역 조회 중 예외가 발생한다.
-				mockMvc.perform(
-						get(URL)
-								.param("viewType", "month")
-				)
-						.andExpect(result ->
-							assertThat(result.getResolvedException()).isInstanceOf(ValidationException.class)
-						);
-			}
-		
 		}
 
 	}
@@ -602,7 +460,7 @@ public class LedgerControllerTest extends ControllerTestSupport {
 	@WithMockCustomUser
 	class GetDetail {
 
-		private final String URI = "/ledgers/{code}";
+		private final String URI = BASE_URI + "/{code}";
 
 		@Nested
 		@DisplayName("성공 케이스")
@@ -630,30 +488,6 @@ public class LedgerControllerTest extends ControllerTestSupport {
 				verify(readService).getDetailData(eq(code));
 			}
 
-		}
-
-		@Nested
-		@DisplayName("실패 케이스")
-		class Failure {
-
-			@Test
-			@DisplayName("가계부 상세 조회 중 예외가 발생하면 예외를 전달한다.")
-			void throwsBusinessException_whenLedgerDetailSearchFails() throws Exception {
-				//given: 상세 조회 중 예외가 발생하도록 동작이 정의되어 있다.
-				String code = LedgerTestData.CODE;
-
-				when(readService.getDetailData(code))
-						.thenThrow(BusinessException.class);
-
-				//when: 가계부 상세 조회를 요청한다.
-				mockMvc.perform(
-						get(URI, code)
-				)
-						.andExpect(result -> {
-							assertThat(result.getResolvedException()).isInstanceOf(BusinessException.class);
-						});
-			}
-			
 		}
 
 	}

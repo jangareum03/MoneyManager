@@ -2,6 +2,7 @@ package com.moneymanager.ledger.service.command;
 
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
+import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.domain.dto.vo.Money;
@@ -75,7 +76,7 @@ public class LedgerCommandService {
 	}
 
 	@Transactional
-	public void update(String code, LedgerUpdateRequest request) {
+	public LedgerDetailResponse update(String code, LedgerUpdateRequest request) {
 		//1. 인증된 회원 조회
 		String memberId = securityUtil.getMemberId();
 
@@ -90,6 +91,9 @@ public class LedgerCommandService {
 
 		//5. 이미지 삭제 및 추가
 		imageCommandService.processImages(ledger, request);
+
+		//6. 가계부 조회 후 반환
+		return ledgerReadService.getDetailData(code);
 	}
 
 	private void updateLedgerFields(Ledger ledger, LedgerUpdateRequest updateRequest) {

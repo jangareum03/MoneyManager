@@ -1,10 +1,11 @@
 package com.moneymanager.ledger.controller;
 
+import com.moneymanager.global.domain.response.ApiResponse;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
+import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.validator.LedgerValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,21 +43,23 @@ import java.util.List;
 @RequestMapping("/api/ledgers")
 public class LedgerApiController {
 
-	private final LedgerCommandService ledgerCommandService;
+	private final LedgerCommandService commandService;
 
 	private final LedgerValidator validator;
 
 	@PatchMapping("/{code}")
-	public ResponseEntity<Void> update(@PathVariable String code, @RequestPart("ledger") LedgerUpdateRequest request, @RequestPart(value = "images", required = false) List<MultipartFile> fileList) {
+	public ApiResponse<LedgerDetailResponse> update(@PathVariable String code, @RequestPart("ledger") LedgerUpdateRequest request, @RequestPart(value = "images", required = false) List<MultipartFile> fileList) {
 		//1. 요청 검증
 		validator.update(request);
 
-		//2. 가계부 정보 수정
+		//2. 가계부 이미지 반영
 		request.attachImages(fileList);
-		ledgerCommandService.update(code, request);
 
-		//3. 200 상태 반환
-		return ResponseEntity.ok().build();
+		//3. 가계부 수정 후 반환
+		LedgerDetailResponse response = commandService.update(code, request);
+
+		//4. 수정된 가계부 객체 반환
+		return ApiResponse.success("가계부 수정 완료했습니다.", response);
 	}
 
 }

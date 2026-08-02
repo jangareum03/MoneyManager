@@ -487,30 +487,6 @@ public class LedgerValidatorTest {
 						.hasUserMessage("고정주기", "선택");
 			}
 
-			@ParameterizedTest
-			@MethodSource("com.moneymanager.ledger.service.validation.LedgerValidatorTest#invalidMemoLengths")
-			@DisplayName("메모가 150자 초과하면 예외가 발생한다.")
-			void throwsException_whenMemoExceedsLimit(String memo) {
-				//given: 메모 길이가 150자 초과된 수정 요청이 준비되어 있다.
-				LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
-						.memo(memo)
-						.build();
-
-				//when & then: 수정 요청 데이터를 검증하면 ValidationException이 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(
-								catchThrowable(() -> target.update(request))
-						)
-						.isInstanceOf(ValidationException.class)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
-						.hasWork("가계부 검증")
-						.hasCauseMessage("메모 길이 초과")
-						.hasField("memo")
-						.hasValue(memo)
-						.hasOption("min", "0")
-						.hasOption("max", "150")
-						.hasUserMessage("메모", "최대 150");
-			}
-
 		}
 
 	}

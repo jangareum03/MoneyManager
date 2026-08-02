@@ -1,4 +1,4 @@
-package com.moneymanager.global.domain;
+package com.moneymanager.global.domain.enums;
 
 import lombok.Getter;
 

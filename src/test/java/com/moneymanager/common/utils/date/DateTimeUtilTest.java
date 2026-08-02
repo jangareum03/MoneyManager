@@ -1,7 +1,7 @@
 package com.moneymanager.common.utils.date;
 
 import com.moneymanager.support.ApplicationExceptionAssert;
-import com.moneymanager.global.domain.DatePatterns;
+import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.global.util.date.DateTimeUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

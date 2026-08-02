@@ -1,4 +1,4 @@
-package com.moneymanager.ledger.service;
+package com.moneymanager.ledger.service.read;
 
 import com.moneymanager.config.MutableClock;
 import com.moneymanager.global.config.TimeConfig;
@@ -9,7 +9,6 @@ import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.ledger.domain.dto.response.*;
 import com.moneymanager.ledger.domain.enums.*;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
-import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTestSupport;
 import com.moneymanager.support.data.CategoryTestData;

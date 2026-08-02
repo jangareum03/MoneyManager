@@ -1,7 +1,7 @@
 package com.moneymanager.delete.service.validation;
 
 
-import com.moneymanager.global.domain.RegexPattern;
+import com.moneymanager.global.domain.enums.RegexPattern;
 import com.moneymanager.global.exception.exception.ValidationException;
 import com.moneymanager.global.exception.log.DeveloperLogInfo;
 import com.moneymanager.global.util.string.StringUtil;

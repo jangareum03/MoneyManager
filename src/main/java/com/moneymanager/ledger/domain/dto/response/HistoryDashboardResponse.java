@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.domain.dto.response;
 
-import com.moneymanager.global.domain.DatePatterns;
+import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.global.util.date.DateTimeUtil;
 import lombok.Getter;
 

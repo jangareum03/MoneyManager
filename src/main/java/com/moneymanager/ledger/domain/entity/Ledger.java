@@ -1,8 +1,9 @@
 package com.moneymanager.ledger.domain.entity;
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import com.moneymanager.global.exception.code.CommonErrorCode;
 import com.moneymanager.ledger.service.policy.Policy;
-import com.moneymanager.global.domain.DatePatterns;
+import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.enums.FixCycle;
 import com.moneymanager.ledger.domain.enums.FixedYN;
@@ -23,6 +24,7 @@ import java.util.Objects;
 import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
 import static com.moneymanager.global.exception.code.LedgerErrorCode.OUT_OF_RANGE;
 import static com.moneymanager.global.exception.code.LedgerErrorCode.POLICY_VIOLATION;
+import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 
 
 /**
@@ -78,29 +80,16 @@ public class Ledger {
     private LocalDateTime updatedAt;			//수정일
 
 
-	/**
-	 *	 가계부 생성 요청 데이터를 검증한 뒤 Ledger 객체를 생성합니다.
-	 *
-	 *<p>검증 규칙: </p>
-	 * <ul>
-	 *     <li>거래 날짜 범위 확인</li>
-	 *     <li>카테고리 코드 유효성 확인</li>
-	 *     <li>금액 및 금액유형 검증</li>
-	 *     <li>고정 주기 및 장소 정책 검증</li>
-	 * </ul>
-	 *
-	 * @param memberId	가계부 작성한 회원번호
-	 * @param request		가계부 작성 요청 데이터
-	 * @return 검증된 정보를 기반으로 생성된 {@link Ledger} 객체
-	 * @throws BusinessException   검증 실패 시 발생
-	 */
 	public static Ledger create(String memberId, LedgerWriteRequest request){
 		String code = UlidCreator.getUlid().toString();
 
-		//필수값
+		//필수값 검증
 		validateDate(request.getDate());
 		validateCategory(request.getCategoryCode());
 		validateFixInfo(request.getFixed(), request.getFixCycle());
+
+		//선택값 검증
+		validateMemo(request.getMemo());
 
 		return Ledger.builder()
 				.code(code)
@@ -140,6 +129,8 @@ public class Ledger {
 	}
 
 	public void changeMemo(String memo) {
+		validateMemo(memo);
+
 		if(!Objects.equals(this.memo, memo)) {
 			this.memo = memo;
 			this.updatedAt = LocalDateTime.now();
@@ -163,7 +154,7 @@ public class Ledger {
 	}
 
 
-	// ===== 비즈니스 규칙 검증 =====
+	// ===== 필수값 검증 =====
 	private static void validateDate(String date) {
 		String format = DatePatterns.DATE.getPattern();
 
@@ -210,6 +201,19 @@ public class Ledger {
 					DeveloperLogInfo.of("가계부 검증", "고정 여부와 주기 불일치", "fixCycle", cycle)
 							.addOption("policy", "고정이 아닌 경우 주기 설정 불가"),
 					"고정이 아닌 경우에는 주기를 설정할 수 없습니다. 고정 여부를 확인해주세요."
+			);
+		}
+	}
+
+	// ===== 선택값 검증 =====
+	private static void validateMemo(String memo) {
+		if(!isNullOrBlank(memo) && memo.length() > 150) {
+			throw BusinessException.of(
+					CommonErrorCode.OUT_OF_RANGE,
+					DeveloperLogInfo.of("가계부 검증", "길이 초과", "memo", String.valueOf(memo.length()))
+							.addOption("min", 0)
+							.addOption("max", 150),
+					"메모는 최대 150자까지 입력해주세요."
 			);
 		}
 	}

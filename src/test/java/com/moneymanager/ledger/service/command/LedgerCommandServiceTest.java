@@ -1,7 +1,5 @@
-package com.moneymanager.ledger.service;
+package com.moneymanager.ledger.service.command;
 
-import com.moneymanager.ledger.service.command.LedgerCommandService;
-import com.moneymanager.ledger.service.command.LedgerImageCommandService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
@@ -289,6 +287,7 @@ public class LedgerCommandServiceTest {
 				//then: 가계부 조회 및 수정이 요청된다.
 				verify(ledgerReadService).getLedger(eq(MemberTestData.MEMBER_ID), eq(code));
 				verify(ledgerRepository).update(eq(ledger));
+				verify(ledgerReadService).getDetailData(eq(code));
 			}
 			
 			@Test
@@ -303,7 +302,7 @@ public class LedgerCommandServiceTest {
 				when(ledgerRepository.update(ledger))
 						.thenReturn(1);
 
-				LedgerUpdateRequest request = LedgerUpdateRequestFixture.from(ledger);
+				LedgerUpdateRequest request = LedgerUpdateRequestFixture.from(ledger).build();
 
 				//when: 가계부 수정을 요청한다.
 				target.update(code, request);

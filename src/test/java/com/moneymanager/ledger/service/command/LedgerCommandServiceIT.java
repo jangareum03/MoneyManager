@@ -1,4 +1,4 @@
-package com.moneymanager.ledger.service;
+package com.moneymanager.ledger.service.command;
 
 
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
@@ -12,7 +12,6 @@ import com.moneymanager.delete.domain.member.Member;
 import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.global.security.utils.SecurityUtil;
-import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.support.IntegrationTestSupport;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;

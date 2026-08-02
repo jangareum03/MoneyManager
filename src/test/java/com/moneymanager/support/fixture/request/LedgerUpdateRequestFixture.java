@@ -14,7 +14,7 @@ public final class LedgerUpdateRequestFixture {
 
 	private LedgerUpdateRequestFixture() {}
 
-	public static LedgerUpdateRequest from(Ledger ledger) {
+	public static LedgerUpdateRequest.LedgerUpdateRequestBuilder from(Ledger ledger) {
 		return LedgerUpdateRequest.builder()
 				.categoryCode(ledger.getCategory())
 				.memo(ledger.getMemo())
@@ -40,8 +40,7 @@ public final class LedgerUpdateRequestFixture {
 						ledger.getPlace() == null
 								? null
 								: ledger.getPlace().getDetailAddress()
-				)
-				.build();
+				);
 	}
 
 	public static LedgerUpdateRequest.LedgerUpdateRequestBuilder builder() {
