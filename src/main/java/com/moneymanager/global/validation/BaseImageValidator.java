@@ -3,7 +3,7 @@ package com.moneymanager.global.validation;
 import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.global.exception.exception.ExternalException;
 import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

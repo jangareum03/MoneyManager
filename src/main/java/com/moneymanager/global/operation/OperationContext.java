@@ -1,6 +1,6 @@
-package com.moneymanager.global.exception.log;
+package com.moneymanager.global.operation;
 
-import com.moneymanager.global.exception.ServiceAction;
+import com.moneymanager.global.operation.enums.ServiceAction;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -39,7 +39,6 @@ import java.util.Map;
 public class OperationContext {
 
 	private ServiceAction action;					//요청 기능
-	private Class<?> resource;							//요청정보가 담긴 클래스
 
 	@Builder.Default
 	private Map<String, Object> options = new LinkedHashMap<>();		//옵션

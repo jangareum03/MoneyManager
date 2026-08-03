@@ -15,7 +15,7 @@ import com.moneymanager.global.exception.code.LedgerErrorCode;
 import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.global.exception.exception.ExternalException;
 import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.support.fixture.entity.LedgerFixture;
 import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;

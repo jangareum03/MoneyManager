@@ -2,7 +2,7 @@ package com.moneymanager.global.security.utils;
 
 import com.moneymanager.delete.domain.member.Member;
 import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.global.security.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,11 +42,6 @@ public class SecurityUtil {
 
 	private final String work = "회원 인증";
 
-	/**
-	 * 인증 성공한 현재 사용자의 회원번호를 반환합니다.
-	 *
-	 * @return	현재 사용자의 회원번호
-	 */
 	public String getMemberId() {
 		String memberId = getCurrentUser().getId();
 

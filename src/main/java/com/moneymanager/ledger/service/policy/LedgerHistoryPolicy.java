@@ -4,7 +4,7 @@ import com.moneymanager.global.domain.DateRange;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.global.util.date.DateTimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import static com.moneymanager.ledger.service.policy.Policy.LEDGER_END_WEEK;
 import static com.moneymanager.ledger.service.policy.Policy.LEDGER_START_WEEK;
 import static com.moneymanager.global.exception.code.CommonErrorCode.OUT_OF_RANGE;
 import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
-import static com.moneymanager.global.exception.log.DeveloperLogInfo.valueOf;
+import static com.moneymanager.global.log.DeveloperLogInfo.valueOf;
 import static com.moneymanager.global.util.date.DateTimeUtil.isDateInRange;
 
 /**

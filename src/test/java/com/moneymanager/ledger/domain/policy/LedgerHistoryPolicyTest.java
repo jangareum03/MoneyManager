@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 import static com.moneymanager.global.exception.code.CommonErrorCode.OUT_OF_RANGE;
 import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
-import static com.moneymanager.global.exception.log.DeveloperLogInfo.valueOf;
+import static com.moneymanager.global.log.DeveloperLogInfo.valueOf;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Named.named;
 

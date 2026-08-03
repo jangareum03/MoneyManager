@@ -2,7 +2,7 @@ package com.moneymanager.global.security;
 
 import com.moneymanager.delete.domain.member.Member;
 import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.delete.service.validation.MemberValidator;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.authentication.AuthenticationProvider;

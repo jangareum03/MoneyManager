@@ -1,4 +1,4 @@
-package com.moneymanager.global.exception.log;
+package com.moneymanager.global.operation.enums;
 
 import lombok.Getter;
 

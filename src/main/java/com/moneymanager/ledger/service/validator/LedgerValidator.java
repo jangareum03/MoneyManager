@@ -1,7 +1,7 @@
 package com.moneymanager.ledger.service.validator;
 
 import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.global.validation.BaseImageValidator;
 import com.moneymanager.global.validation.DateValidator;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;

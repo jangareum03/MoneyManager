@@ -4,7 +4,7 @@ package com.moneymanager.global.validation;
 import com.moneymanager.global.domain.DateRange;
 import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.global.util.string.StringUtil;
 import org.springframework.stereotype.Component;
 

@@ -12,7 +12,7 @@ import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.global.util.date.DateTimeUtil;
 import lombok.Builder;
 import lombok.Getter;

@@ -2,7 +2,7 @@ package com.moneymanager.ledger.domain.enums;
 
 
 import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.Getter;
 
 import java.util.Arrays;

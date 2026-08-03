@@ -1,4 +1,4 @@
-package com.moneymanager.global.exception.log;
+package com.moneymanager.global.log;
 
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;

@@ -1,7 +1,10 @@
-package com.moneymanager.global.exception;
+package com.moneymanager.global.exception.handler;
 
 import com.moneymanager.global.exception.exception.ApplicationException;
-import lombok.extern.slf4j.Slf4j;
+import com.moneymanager.global.operation.OperationContext;
+import com.moneymanager.global.operation.holder.OperationContextHolder;
+import com.moneymanager.global.operation.logger.OperationLogger;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -33,13 +36,19 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
  * </table>
  */
 @ControllerAdvice
-@Slf4j
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+	private final OperationLogger logger;
 
 	@ExceptionHandler(ApplicationException.class)
 	public String handle(ApplicationException e) {
-		//TODO: ServiceAction에서 페이지 정의하기(RedirectUrl)
-		return "/";
+
+		OperationContext context = OperationContextHolder.get();
+
+		logger.fail(context, e);
+
+		return context.getAction().getView();
 	}
 
 }

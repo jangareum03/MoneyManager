@@ -1,7 +1,7 @@
 package com.moneymanager.global.file;
 
 import com.moneymanager.global.exception.exception.ExternalException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

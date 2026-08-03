@@ -1,6 +1,6 @@
 package com.moneymanager.global.config;
 
-import com.moneymanager.global.exception.log.TraceIdFilter;
+import com.moneymanager.global.log.TraceIdFilter;
 import com.moneymanager.global.security.CustomAuthFailureHandler;
 import com.moneymanager.global.security.CustomAuthSuccessHandler;
 import com.moneymanager.global.security.CustomAuthenticationProvider;
@@ -57,7 +57,7 @@ public class SecurityConfig {
 	private final CustomAuthSuccessHandler successHandler;
 	private final CustomAuthFailureHandler failureHandler;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
-	private final TraceIdFilter traceIdFillter;
+	private final TraceIdFilter traceIdFilter;
 
 
 	@Bean
@@ -118,7 +118,7 @@ public class SecurityConfig {
 						.permitAll()
 				)
 				.addFilterBefore(
-						traceIdFillter,
+						traceIdFilter,
 						SecurityContextHolderFilter.class
 				)
 				.addFilterBefore(

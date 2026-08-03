@@ -1,4 +1,4 @@
-package com.moneymanager.global.exception.log;
+package com.moneymanager.global.log;
 
 import java.util.Map;
 

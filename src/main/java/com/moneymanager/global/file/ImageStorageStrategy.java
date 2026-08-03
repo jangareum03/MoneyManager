@@ -3,7 +3,7 @@ package com.moneymanager.global.file;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.delete.domain.global.dto.StoredFile;
 import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

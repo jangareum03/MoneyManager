@@ -8,7 +8,7 @@ import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.global.security.utils.SecurityUtil;
 import com.moneymanager.ledger.service.read.LedgerReadService;

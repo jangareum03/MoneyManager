@@ -11,7 +11,7 @@ import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.domain.enums.HistoryMenuType;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.ledger.domain.dto.response.*;
 import com.moneymanager.ledger.mapper.LedgerMapper;
 import com.moneymanager.ledger.repository.LedgerRepository;

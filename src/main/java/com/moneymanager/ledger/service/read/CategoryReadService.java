@@ -4,7 +4,7 @@ import com.moneymanager.ledger.domain.dto.response.CategoryItem;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.ledger.service.cache.CategoryCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

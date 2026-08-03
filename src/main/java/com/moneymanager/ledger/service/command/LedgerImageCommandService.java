@@ -6,7 +6,7 @@ import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.global.exception.exception.ExternalException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.global.file.FileCommandService;
 import com.moneymanager.ledger.service.strategy.LedgerImageStorageStrategy;
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.moneymanager.global.exception.code.CommonErrorCode.DATABASE_ERROR;
-import static com.moneymanager.global.exception.log.DeveloperLogInfo.valueOf;
+import static com.moneymanager.global.log.DeveloperLogInfo.valueOf;
 
 /**
  * <p>

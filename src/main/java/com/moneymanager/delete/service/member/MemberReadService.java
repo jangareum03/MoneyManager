@@ -4,7 +4,7 @@ import com.moneymanager.ledger.service.policy.Policy;
 import com.moneymanager.delete.domain.member.Member;
 import com.moneymanager.global.exception.code.MemberErrorCode;
 import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.delete.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;

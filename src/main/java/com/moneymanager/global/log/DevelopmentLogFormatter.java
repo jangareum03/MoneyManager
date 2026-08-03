@@ -1,8 +1,8 @@
-package com.moneymanager.global.exception.log;
+package com.moneymanager.global.log;
 
 import com.moneymanager.global.exception.exception.ApplicationException;
 
-import static com.moneymanager.global.exception.log.LogFormatterSupport.append;
+import static com.moneymanager.global.log.LogFormatterSupport.append;
 
 /**
  * <p>

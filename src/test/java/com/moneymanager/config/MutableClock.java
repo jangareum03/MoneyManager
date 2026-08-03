@@ -1,10 +1,13 @@
 package com.moneymanager.config;
 
+import org.springframework.stereotype.Component;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
+@Component
 public class MutableClock extends Clock {
 
 	private Instant instant;

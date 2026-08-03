@@ -3,7 +3,7 @@ package com.moneymanager.ledger.service.validation;
 import com.moneymanager.global.domain.DateRange;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.global.validation.DateValidator;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.DisplayName;

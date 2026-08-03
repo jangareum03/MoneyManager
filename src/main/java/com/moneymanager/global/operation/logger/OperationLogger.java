@@ -1,14 +1,19 @@
-package com.moneymanager.global.exception.log;
+package com.moneymanager.global.operation.logger;
 
 import com.moneymanager.global.exception.code.ErrorCode;
 import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.operation.enums.OperationResult;
+import com.moneymanager.global.operation.OperationContext;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
+import org.springframework.stereotype.Component;
 
-import static com.moneymanager.global.exception.log.LogFormatterSupport.append;
+import static com.moneymanager.global.log.LogFormatterSupport.append;
 
 /**
  * <p>
  * 패키지이름    : com.moneymanager.exception<br>
- * 파일이름       : OperationLogFormatter<br>
+ * 파일이름       : OperationLogger<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 6. 26<br>
  * 설명              : 운영 로그 형식을 지정하는 클래스
@@ -32,17 +37,31 @@ import static com.moneymanager.global.exception.log.LogFormatterSupport.append;
  * 		</tbody>
  * </table>
  */
-public final class OperationLogFormatter {
+@Slf4j
+@Component
+public final class OperationLogger {
 
-	public static String success(OperationContext context) {
-		return build(OperationResult.SUCCESS, context, null);
+	public void success(OperationContext context) {
+		String message = build(OperationResult.SUCCESS, context, null);
+
+		log.info(
+				"[{}] {}",
+				MDC.get("traceId"),
+				message
+		);
 	}
 
-	public static String fail(OperationContext context, ApplicationException e) {
-		return build(OperationResult.FAIL, context, e.getErrorCode());
+	public void fail(OperationContext context, ApplicationException e) {
+		String message = build(OperationResult.FAIL, context, e.getErrorCode());
+
+		log.error(
+				"[{}] {}",
+				MDC.get("traceId"),
+				message
+		);
 	}
 
-	private static String build(OperationResult result,OperationContext context, ErrorCode errorCode) {
+	private String build(OperationResult result,OperationContext context, ErrorCode errorCode) {
 		StringBuilder sb = new StringBuilder();
 
 		String action = context.getAction().getTitle();

@@ -1,7 +1,7 @@
 package com.moneymanager.global.exception.exception;
 
 import com.moneymanager.global.exception.code.ErrorCode;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 
 /**
  * <p>

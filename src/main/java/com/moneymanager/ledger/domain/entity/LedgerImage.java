@@ -2,7 +2,7 @@ package com.moneymanager.ledger.domain.entity;
 
 import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.Builder;
 import lombok.Getter;
 

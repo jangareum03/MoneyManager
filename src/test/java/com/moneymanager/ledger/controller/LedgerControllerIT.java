@@ -77,7 +77,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 		</tbody>
  * </table>
  */
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 public class LedgerControllerIT extends IntegrationTestSupport {
 
 	@Autowired

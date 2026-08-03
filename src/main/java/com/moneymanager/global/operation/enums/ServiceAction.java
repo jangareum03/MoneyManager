@@ -1,4 +1,4 @@
-package com.moneymanager.global.exception;
+package com.moneymanager.global.operation.enums;
 
 import lombok.Getter;
 
@@ -31,17 +31,18 @@ import lombok.Getter;
  */
 @Getter
 public enum ServiceAction {
-	LOGIN("로그인", "로그인 중 문제가 발생했습니다."),
+	LOGIN("로그인", "/"),
+	LEDGER_REGISTER_STEP1_VIEW("가계부 작성 1단계 화면 조회", "/ledgers"),
 	LEDGER_REGISTER("가계부 등록", "가계부 등록 중 문제가 발생했습니다. 다시 시도해주세요."),
 	LEDGER_DETAIL("가계부 상세 조회", "가계부 정보를 불러오는 중 문제가 발생했습니다."),
 	LEDGER_EDIT_VIEW("가계부 수정 화면 조회", "가계부 정보를 불러오는 중 문제가 발생했습니다."),
 	LEDGER_EDIT("가계부 수정", "가계부 수정 중 문제가 발생했습니다.");
 
 	private final String title;
-	private final String message;
+	private final String view;
 
-	ServiceAction(String title, String message) {
+	ServiceAction(String title, String view) {
 		this.title = title;
-		this.message = message;
+		this.view = view;
 	}
 }

@@ -39,6 +39,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'      //Security
     implementation 'org.springframework.boot:spring-boot-starter-mail'          //SMTP
     implementation 'org.springframework.boot:spring-boot-starter-validation'    //valid
+    implementation 'org.aspectj:aspectjweaver'  //aspect
+    implementation 'org.springframework.boot:spring-boot-starter-aop' //aop
 
     implementation ('org.springframework.boot:spring-boot-starter-web') {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'

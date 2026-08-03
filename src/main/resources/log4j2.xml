@@ -102,17 +102,15 @@
             <AppenderRef ref="main" />
         </logger>
 
-        <logger name="com.moneymanager.controller" level="info" additivity="false" >
+        <logger name="com.moneymanager.global.operation" level="info" additivity="false" >
             <AppenderRef ref="console" />
+            <AppenderRef ref="system-info" />
         </logger>
 
-        <logger name="com.moneymanager.service" level="info" additivity="false" >
+        <logger name="com.moneymanager.global.exception" level="error" additivity="false" >
             <AppenderRef ref="console" />
-        </logger>
-
-        <Logger name="org.springframework.web" level="error" additivity="false">
             <AppenderRef ref="error" />
-        </Logger>
+        </logger>
 
         <!-- ROOT logger-->
         <Root level="info">

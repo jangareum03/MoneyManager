@@ -2,7 +2,7 @@ package com.moneymanager.ledger.domain.dto.vo;
 
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.exception.log.DeveloperLogInfo;
+import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.Value;
 
 import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
