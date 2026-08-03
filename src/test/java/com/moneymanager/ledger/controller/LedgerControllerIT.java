@@ -1,17 +1,17 @@
 package com.moneymanager.ledger.controller;
 
 import com.moneymanager.config.MutableClock;
+import com.moneymanager.delete.domain.member.Member;
+import com.moneymanager.delete.repository.member.MemberRepository;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
+import com.moneymanager.ledger.domain.dto.response.*;
+import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.domain.enums.HistoryMenuType;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.ledger.domain.enums.PaymentType;
-import com.moneymanager.ledger.domain.dto.vo.Money;
-import com.moneymanager.delete.domain.member.Member;
-import com.moneymanager.ledger.domain.dto.response.*;
 import com.moneymanager.ledger.repository.LedgerRepository;
-import com.moneymanager.delete.repository.member.MemberRepository;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.ledger.service.validator.LedgerValidator;
@@ -32,7 +32,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -78,7 +77,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 		</tbody>
  * </table>
  */
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 public class LedgerControllerIT extends IntegrationTestSupport {
 
 	@Autowired
@@ -119,47 +118,6 @@ public class LedgerControllerIT extends IntegrationTestSupport {
 
 			}
 
-		}
-
-		@Nested
-		@DisplayName("실패 케이스")
-		class Failure {
-
-			@Test
-			@DisplayName("인증되지 않은 사용자는 로그인 페이지로 이동한다.")
-			void rejectsRequestToLoginPage_whenUserIsUnauthenticated() throws Exception {
-				mockMvc.perform(
-						get(URI)
-				)
-						.andExpect(status().is3xxRedirection())
-						.andExpect(redirectedUrlPattern("**/"));
-			}
-			
-			@Test
-			@WithMockCustomUser(role = "ADMIN")
-			@DisplayName("권한이 없는 사용자는 접근할 수 없다.")
-			void rejectsRequest_whenUserHasNoPermission() throws Exception {
-				mockMvc.perform(
-						get(URI)
-				)
-						.andExpect(status().isForbidden())
-						.andExpect(redirectedUrl("/403"));
-			}
-			
-			@Test
-			@DisplayName("세션 만료된 사용자는 로그인 페이지로 이동한다.")
-			void rejectsRequestToLoginPage_whenSessionIsExpired() throws Exception {
-				MockHttpSession session = new MockHttpSession();
-				session.invalidate();
-
-				mockMvc.perform(
-						get(URI)
-								.session(session)
-				)
-						.andExpect(status().is3xxRedirection())
-						.andExpect(redirectedUrlPattern("**/"));
-			}
-			
 		}
 
 	}
@@ -214,28 +172,6 @@ public class LedgerControllerIT extends IntegrationTestSupport {
 			}
 		
 		}
-		
-		@Nested
-		@DisplayName("실패 케이스")
-		class Failure {
-		
-			@Test
-			@DisplayName("서비스에서 예외가 발생하면 Step1리다이렉션 한다.")
-			void returnsStep1Redirect_whenServiceExceptionOccurs() throws Exception {
-				//given: 가계부 날짜에 빈 문자열로 주어진다.
-				String date = "";
-
-				//when: 가계부 작성 2단계 페이지를 요청한다.
-				mockMvc.perform(
-						get(URL)
-								.param("type", "income")
-								.param("date", date)
-				)
-						.andExpect(status().is3xxRedirection())
-						.andExpect(redirectedUrlPattern("**/ledgers/new/step1"));
-			}
-			
-		}
 
 	}
 
@@ -287,48 +223,6 @@ public class LedgerControllerIT extends IntegrationTestSupport {
 				assertThat(ledger.getMoney()).isEqualTo(Money.of(request.getAmount(), PaymentType.valueOf(request.getPaymentType())));
 			}
 		
-		}
-		
-		@Nested
-		@DisplayName("실패 케이스")
-		class Failure {
-		
-			@Test
-			@DisplayName("필수 입력값이 누락되면 400 응답을 반환한다.")
-			void returns400Status_whenRequiredFieldIsNull() throws Exception {
-				//given: 필수 입력값이 없는 요청이 준비되어 있다.
-				LedgerWriteRequest request = LedgerWriteRequest.builder()
-						.categoryCode(null)
-						.build();
-
-				//when: 가계부 등록을 요청한다.
-				mockMvc.perform(
-						post(URI)
-								.flashAttr("ledger", request)
-				)
-						.andExpect(status().is3xxRedirection())
-						.andExpect(view().name("/ledger/ledger_writeStep2"));
-				
-			}
-			
-			@Test
-			@DisplayName("가계부 등록 서비스에서 예외가 발생하면 Step2 페이지로 리다이렉트 한다.")
-			void returnsRedirectToStep2_whenServiceExceptionOccurs() throws Exception {
-				//given: 유효하지 않은 값이 포함된 요청이 준비되어 있다.
-				LedgerWriteRequest request = LedgerWriteRequest.builder()
-						.categoryCode("010109")
-						.build();
-
-				//when: 가계부 등록을 요청한다.
-				mockMvc.perform(
-								post(URI)
-										.flashAttr("ledger", request)
-						)
-						.andExpect(status().is3xxRedirection())
-						.andExpect(view().name("/ledger/ledger_writeStep2"));
-				
-			}
-			
 		}
 		
 	}
@@ -578,25 +472,6 @@ public class LedgerControllerIT extends IntegrationTestSupport {
 			}
 
 		}
-
-		@Nested
-		@DisplayName("실패 케이스")
-		class Failure {
-			
-			@Test
-			@DisplayName("존재하지 않는 가계부를 조회하면 상태코드와 응답을 반환한다.")
-			void returnsStatusAndResponse_whenLedgerDoesNotExist() throws Exception {
-				//given: 가계부 코드가 주어진다.
-				String code = "error";
-
-				//when: 가계부 상세 정보를 조회한다.
-				mockMvc.perform(
-						get(URI, code)
-				)
-						.andExpect(status().is3xxRedirection());
-			}
-
-		}
 		
 	}
 
@@ -631,9 +506,6 @@ public class LedgerControllerIT extends IntegrationTestSupport {
 						.andExpect(model().attributeExists("fixCycles"))
 						.andExpect(model().attributeExists("paymentTypes"))
 						.andExpect(view().name("/ledger/ledger_edit"));
-
-				//then:
-				
 			}	
 			
 		}

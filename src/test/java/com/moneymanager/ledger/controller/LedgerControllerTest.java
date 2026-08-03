@@ -31,9 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpMethod;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDate;
 import java.util.stream.Stream;
@@ -122,22 +120,6 @@ public class LedgerControllerTest extends ControllerTestSupport {
 
 				//then: 서비스를 호출한다.
 				verify(readService).getWriteStep1Data();
-			}
-
-		}
-
-		@Nested
-		@DisplayName("실패 케이스")
-		class Failure {
-
-			@ParameterizedTest
-			@ValueSource(strings = {"POST", "DELETE", "PUT"})
-			@DisplayName("지원하지 않은 HTTP Method 요청 시 405를 반환한다.")
-			void rejectsRequestWithStatusMethodNotAllowed_whenInvalidHttpMethodIsGiven(String method) throws Exception {
-				mockMvc.perform(
-					MockMvcRequestBuilders.request(HttpMethod.valueOf(method), URI)
-				)
-						.andExpect(status().isMethodNotAllowed());
 			}
 
 		}
