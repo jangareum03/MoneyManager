@@ -4,7 +4,7 @@ import com.moneymanager.global.domain.response.ApiResponse;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
-import com.moneymanager.ledger.service.validator.LedgerValidator;
+import com.moneymanager.ledger.service.validation.LedgerValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

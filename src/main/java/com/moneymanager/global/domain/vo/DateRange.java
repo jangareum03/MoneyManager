@@ -1,4 +1,4 @@
-package com.moneymanager.global.domain;
+package com.moneymanager.global.domain.vo;
 
 import com.moneymanager.global.validation.DateValidator;
 import lombok.Value;

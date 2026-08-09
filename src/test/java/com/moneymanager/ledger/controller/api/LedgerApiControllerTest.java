@@ -7,7 +7,7 @@ import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
-import com.moneymanager.ledger.service.validator.LedgerValidator;
+import com.moneymanager.ledger.service.validation.LedgerValidator;
 import com.moneymanager.support.ControllerTestSupport;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerFixture;

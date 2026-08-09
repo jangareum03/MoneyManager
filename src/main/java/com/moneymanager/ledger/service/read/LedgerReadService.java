@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.global.domain.DateRange;
+import com.moneymanager.global.domain.vo.DateRange;
 import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.global.security.utils.SecurityUtil;
 import com.moneymanager.global.util.date.DateTimeUtil;
@@ -13,7 +13,7 @@ import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.domain.enums.HistoryMenuType;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
-import com.moneymanager.ledger.mapper.LedgerMapper;
+import com.moneymanager.ledger.service.mapper.LedgerMapper;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.ledger.service.policy.LedgerHistoryPolicy;
 import com.moneymanager.ledger.service.policy.Policy;

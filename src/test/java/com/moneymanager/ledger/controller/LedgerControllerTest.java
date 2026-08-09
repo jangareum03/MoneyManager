@@ -9,7 +9,7 @@ import com.moneymanager.ledger.domain.enums.HistoryMenuType;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
-import com.moneymanager.ledger.service.validator.LedgerValidator;
+import com.moneymanager.ledger.service.validation.LedgerValidator;
 import com.moneymanager.support.ControllerTestSupport;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;

@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.service.validation;
 
-import com.moneymanager.global.domain.DateRange;
+import com.moneymanager.global.domain.vo.DateRange;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.global.exception.code.CommonErrorCode;
 import com.moneymanager.global.log.DeveloperLogInfo;

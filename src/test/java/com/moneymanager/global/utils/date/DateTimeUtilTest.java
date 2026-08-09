@@ -1,4 +1,4 @@
-package com.moneymanager.common.utils.date;
+package com.moneymanager.global.utils.date;
 
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.global.domain.enums.DatePatterns;

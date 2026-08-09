@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.controller;
 
-import com.moneymanager.config.MutableClock;
+import com.moneymanager.global.config.MutableClock;
 import com.moneymanager.delete.domain.member.Member;
 import com.moneymanager.delete.repository.member.MemberRepository;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
@@ -14,7 +14,7 @@ import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
-import com.moneymanager.ledger.service.validator.LedgerValidator;
+import com.moneymanager.ledger.service.validation.LedgerValidator;
 import com.moneymanager.support.IntegrationTestSupport;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;

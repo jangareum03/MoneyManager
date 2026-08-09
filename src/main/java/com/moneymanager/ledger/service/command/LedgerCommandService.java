@@ -51,7 +51,6 @@ public class LedgerCommandService {
 	private final SecurityUtil securityUtil;
 
 	private final LedgerReadService ledgerReadService;
-	private final LedgerImageCommandService imageCommandService;
 
 	private final LedgerRepository ledgerRepository;
 
@@ -63,8 +62,6 @@ public class LedgerCommandService {
 		Ledger ledger = createLedger(memberId, request);
 
 		Ledger savedLedger = save(ledger);
-
-		imageCommandService.processImages(savedLedger, request);
 	}
 
 	private Ledger createLedger(String memberId, LedgerWriteRequest request) {
@@ -86,7 +83,6 @@ public class LedgerCommandService {
 		save(ledger);
 
 		//5. 이미지 삭제 및 추가
-		imageCommandService.processImages(ledger, request);
 
 		//6. 가계부 조회 후 반환
 		return ledgerReadService.getDetailData(code);

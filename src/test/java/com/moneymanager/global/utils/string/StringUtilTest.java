@@ -1,4 +1,4 @@
-package com.moneymanager.common.utils.string;
+package com.moneymanager.global.utils.string;
 
 import com.moneymanager.global.util.string.StringUtil;
 import org.junit.jupiter.api.DisplayName;

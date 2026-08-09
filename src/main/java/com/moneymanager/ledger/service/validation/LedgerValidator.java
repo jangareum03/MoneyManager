@@ -1,4 +1,4 @@
-package com.moneymanager.ledger.service.validator;
+package com.moneymanager.ledger.service.validation;
 
 import com.moneymanager.global.validation.BaseImageValidator;
 import com.moneymanager.global.validation.DateValidator;

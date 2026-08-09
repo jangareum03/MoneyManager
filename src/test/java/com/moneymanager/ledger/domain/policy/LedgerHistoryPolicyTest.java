@@ -1,7 +1,7 @@
 package com.moneymanager.ledger.domain.policy;
 
 import com.moneymanager.ledger.service.policy.Policy;
-import com.moneymanager.global.domain.DateRange;
+import com.moneymanager.global.domain.vo.DateRange;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.ledger.service.policy.LedgerHistoryPolicy;
 import com.moneymanager.support.ApplicationExceptionAssert;

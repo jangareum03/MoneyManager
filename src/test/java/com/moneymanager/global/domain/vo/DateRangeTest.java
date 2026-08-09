@@ -1,6 +1,5 @@
-package com.moneymanager.common.vo;
+package com.moneymanager.global.domain.vo;
 
-import com.moneymanager.global.domain.DateRange;
 import com.moneymanager.global.exception.exception.ValidationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

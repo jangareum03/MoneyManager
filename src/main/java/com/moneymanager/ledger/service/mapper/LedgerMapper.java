@@ -1,4 +1,4 @@
-package com.moneymanager.ledger.mapper;
+package com.moneymanager.ledger.service.mapper;
 
 import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.ledger.domain.entity.Category;

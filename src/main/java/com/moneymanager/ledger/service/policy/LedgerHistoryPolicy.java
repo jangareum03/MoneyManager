@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.service.policy;
 
-import com.moneymanager.global.domain.DateRange;
+import com.moneymanager.global.domain.vo.DateRange;
 import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.global.util.date.DateTimeUtil;
 import com.moneymanager.ledger.domain.enums.HistoryType;

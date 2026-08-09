@@ -1,4 +1,4 @@
-package com.moneymanager.config;
+package com.moneymanager.global.config;
 
 import org.springframework.stereotype.Component;
 

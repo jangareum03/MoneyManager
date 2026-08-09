@@ -9,7 +9,7 @@ import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.ledger.domain.enums.*;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
-import com.moneymanager.ledger.service.validator.LedgerValidator;
+import com.moneymanager.ledger.service.validation.LedgerValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

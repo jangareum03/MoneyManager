@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.config.MutableClock;
+import com.moneymanager.global.config.MutableClock;
 import com.moneymanager.global.config.TimeConfig;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.dto.vo.Money;
