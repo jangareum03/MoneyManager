@@ -5,8 +5,6 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
@@ -65,18 +63,10 @@ public enum HistoryType {
 	 * @throws IllegalArgumentException	필수값이 없거나 허용되지 않은 값인 경우 발생
 	 */
 	public static HistoryType from(String type) {
-		if(isNullOrBlank(type)) {
-			throw new IllegalArgumentException(
-					"reason=필수값누락   |   object=HistoryType   |   value=" + type
-			);
-		}
-
 		return Arrays.stream(values())
 				.filter(t -> t.name().equalsIgnoreCase(type))
 				.findFirst()
-				.orElseThrow(() -> new IllegalArgumentException(
-						"reason=허용값 아님   |   object=HistoryType   |   allowedValues=" + getAllowedValues() + "   |   value=" + type
-				));
+				.get();
 	}
 
 	private static String getAllowedValues() {

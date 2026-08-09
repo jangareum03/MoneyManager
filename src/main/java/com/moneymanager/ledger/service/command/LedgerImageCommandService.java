@@ -1,26 +1,19 @@
 package com.moneymanager.ledger.service.command;
 
 import com.moneymanager.delete.domain.global.dto.StoredFile;
+import com.moneymanager.global.file.FileCommandService;
 import com.moneymanager.ledger.domain.dto.request.LedgerImageRequest;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
-import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.exception.ExternalException;
-import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
-import com.moneymanager.global.file.FileCommandService;
 import com.moneymanager.ledger.service.strategy.LedgerImageStorageStrategy;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.moneymanager.global.exception.code.CommonErrorCode.DATABASE_ERROR;
-import static com.moneymanager.global.log.DeveloperLogInfo.valueOf;
 
 /**
  * <p>
@@ -90,40 +83,23 @@ public class LedgerImageCommandService {
 		List<Path> successSaved = new ArrayList<>();
 		List<LedgerImage> ledgerImages = new ArrayList<>();
 
-		try{
-			int index = 0;
+		int index = 0;
 
-			for(MultipartFile file : request.getImages()) {
-				StoredFile storedFile = imageStorageStrategy.createStoredFile(ledger, file.getOriginalFilename());
+		for(MultipartFile file : request.getImages()) {
+			StoredFile storedFile = imageStorageStrategy.createStoredFile(ledger, file.getOriginalFilename());
 
-				fileCommandService.createDirectory(storedFile.getFullPath().getParent());
-				fileCommandService.upload(file, storedFile.getFullPath());
+			fileCommandService.createDirectory(storedFile.getFullPath().getParent());
+			fileCommandService.upload(file, storedFile.getFullPath());
 
-				successSaved.add(storedFile.getFullPath());
-				ledgerImages.add(LedgerImage.create(ledger.getId(), storedFile.getRelativePath(), ++index));
-			}
-
-			save(ledger, ledgerImages);
-		}catch (BusinessException e) {
-			for(Path path : successSaved) {
-				fileCommandService.delete(path);
-			}
-
-			throw e.withUserMessage("이미지 저장 중 문제가 발생했습니다. 다시 시도해주세요.");
+			successSaved.add(storedFile.getFullPath());
+			ledgerImages.add(LedgerImage.create(ledger.getId(), storedFile.getRelativePath(), ++index));
 		}
+
+		save(ledger, ledgerImages);
 	}
 
 	private void save(Ledger ledger, List<LedgerImage> ledgerImages) {
-		try{
-			imageRepository.saveAll(ledgerImages);
-		}catch (DataAccessException e) {
-			throw ExternalException.of(
-							DATABASE_ERROR,
-							DeveloperLogInfo.of("이미지 저장", "DB 저장 문제", LedgerImage.class, valueOf("memberId", ledger.getMemberId(), "ledgerId", ledger.getId())),
-					"이미지 저장 중 문제가 발생했습니다.",
-					e
-					);
-		}
+		imageRepository.saveAll(ledgerImages);
 	}
 
 	private void updateFiles(Ledger ledger, LedgerImageRequest request, List<LedgerImage> imageList) {
@@ -132,29 +108,17 @@ public class LedgerImageCommandService {
 	}
 
 	private void deleteFiles(Ledger ledger, List<LedgerImage> imageList) {
-		try{
-			delete(ledger, imageList.size());
+		delete(ledger, imageList.size());
 
-			imageList.stream()
-					.map(image ->
-							imageStorageStrategy.generateAbsolutePath(image.getImagePath())
-					)
-					.forEach(fileCommandService::delete);
-		}catch (BusinessException e) {
-			throw e.withUserMessage("이미지 삭제 중 문제가 발생했습니다. 다시 시도해주세요.");
-		}
+		imageList.stream()
+				.map(image ->
+						imageStorageStrategy.generateAbsolutePath(image.getImagePath())
+				)
+				.forEach(fileCommandService::delete);
 	}
 
 	private void delete(Ledger ledger, int imageSize) {
 		int deleted  = imageRepository.deleteByLedgerId(ledger.getId());
-
-		if(deleted != imageSize) {
-			throw ExternalException.of(
-					DATABASE_ERROR,
-					DeveloperLogInfo.of("이미지 삭제", "DB 삭제 실패", "ledgerId", String.valueOf(ledger.getId())),
-					"이미지 삭제 중 문제가 발생했습니다."
-			);
-		}
 	}
 
 }

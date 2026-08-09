@@ -1,15 +1,10 @@
 package com.moneymanager.ledger.domain.entity;
 
 import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-
-import static com.moneymanager.global.exception.code.CommonErrorCode.*;
-import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 
 /**
  * <p>
@@ -89,44 +84,15 @@ public class LedgerImage {
 	}
 
 	private static void validateLedgerId(Long id) {
-		if(id == null) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of("가계부 이미지 검증", "가계부 ID 없음", LedgerImage.class, "ledgerId", null),
-					"가계부 번호는 필수입니다."
-			);
-		}
 
-		if(id < 1) {
-			throw ValidationException.of(
-					INVALID_VALUE,
-					DeveloperLogInfo.of("가계부 이미지 검증", "허용 범위 미만", LedgerImage.class, "ledgerId", String.valueOf(id))
-							.addOption("min", 1),
-					"허용하지 않은 가계부 번호입니다."
-			);
-		}
 	}
 
 	private static void validatePath(String path) {
-		if(isNullOrBlank(path)) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of("가계부 이미지 검증", "경로 없음", "imagePath", path),
-					"저장할 수 없는 이미지 경로입니다."
-			);
-		}
+
 	}
 
 	private static void validateOrder(int order) {
-		if(!(0 < order && order < 4)) {
-			throw ValidationException.of(
-					OUT_OF_RANGE,
-					DeveloperLogInfo.of("가계부 이미지 검증", "순서 허용 범위 초과", "sortOrder", String.valueOf(order))
-							.addOption("min", 1)
-							.addOption("max", 3),
-					"허용하지 않은 정렬 순서 입니다."
-			);
-		}
+
 	}
 
 }

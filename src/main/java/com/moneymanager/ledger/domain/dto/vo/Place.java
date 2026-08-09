@@ -1,13 +1,8 @@
 package com.moneymanager.ledger.domain.dto.vo;
 
-import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.Value;
 
-import static com.moneymanager.global.domain.enums.RegexPattern.*;
-import static com.moneymanager.global.exception.code.CommonErrorCode.*;
 import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
-import static com.moneymanager.global.util.string.StringUtil.matchesPattern;
 
 /**
  * <p>
@@ -56,10 +51,6 @@ public class Place {
 	}
 
 	public static Place of(String placeName, String roadAddress, String detailAddress) {
-		if(isNullOrBlank(placeName) || isNullOrBlank(roadAddress)) {
-			return null;
-		}
-
 		return new Place(placeName, roadAddress, detailAddress);
 	}
 
@@ -79,93 +70,15 @@ public class Place {
 	}
 
 	private void validatePlaceName(String placeName) {
-		String message = "장소명이 올바르지 않습니다. 다시 선택해 주세요.";
 
-		//1. null 검증
-		if(isNullOrBlank(placeName)) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of("장소 검증", "장소명 없음", "placeName", placeName),
-					message
-			);
-		}
-
-		//2. 길이 검증
-		if(placeName.length() > 100) {
-			throw ValidationException.of(
-					OUT_OF_RANGE,
-					DeveloperLogInfo.of("장소 검증", "장소명 길이 초과", "placeName", String.valueOf(placeName.length()))
-							.addOption("maxLength", 100),
-					message
-			);
-		}
-
-		//3. 형식 검증
-		if(!matchesPattern(placeName, ADDRESS_PLACE_NAME.getPattern())) {
-			throw ValidationException.of(
-					INVALID_FORMAT,
-					DeveloperLogInfo.of("장소 검증", "장소명 형식 불일치", "placeName", placeName)
-							.addOption("format", "한글, 영문, 숫자, 공백, 괄호, 하이픈, 점 (예: CGV 강남점)"),
-					message
-			);
-		}
 	}
 
 	private void validateRoadAddress(String roadAddress) {
-		String message = "주소가 올바르지 않습니다. 다시 선택해 주세요.";
 
-		//1. null 검증
-		if(isNullOrBlank(roadAddress)) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of("장소 검증", "도로명 주소 없음", "roadAddress", roadAddress),
-					message
-			);
-		}
-
-		//2. 길이 검증
-		if(roadAddress.length() > 300) {
-			throw ValidationException.of(
-					OUT_OF_RANGE,
-					DeveloperLogInfo.of("장소 검증", "도로명 주소 길이 초과", "roadAddress", String.valueOf(roadAddress.length()))
-							.addOption("min", 1)
-							.addOption("max", 300),
-					message
-			);
-		}
-
-		//3.. 형식 검증
-		if(!matchesPattern(roadAddress, ADDRESS_ROAD_NAME.getPattern())) {
-			throw ValidationException.of(
-					INVALID_FORMAT,
-					DeveloperLogInfo.of("장소 검증", "도로명 주소 형식 불일치", "roadAddress", roadAddress)
-							.addOption("format", "한글, 영문, 숫자, 공백, 하이픈"),
-					message
-			);
-		}
 	}
 
 	private void validateDetailAddress(String detailAddress) {
-		//1. 길이 검증
-		if(detailAddress.length() > 500) {
-			throw ValidationException.of(
-					OUT_OF_RANGE,
-					DeveloperLogInfo.of("장소 검증", "상세 주소 길이 초과", "detailAddress", String.valueOf(detailAddress.length()))
-							.addOption("min", 0)
-							.addOption("max", 500),
-					"상세 주소는 최대 500자까지만 입력 가능합니다."
-			);
-		}
 
-		//2. 형식 검증
-		if(!matchesPattern(detailAddress, ADDRESS_DETAIL_NAME.getPattern())) {
-			throw ValidationException.of(
-					INVALID_FORMAT,
-					DeveloperLogInfo.of("장소 검증", "상세 주소 형식 불일치", "detailAddress", detailAddress)
-							.addOption("format", "한글, 영문, 숫자, 공백, 하이픈, 괄호, 쉼표, 슬래시, 점, #"),
-					"상세 주소는 한글, 영문, 숫자, 공백, 하이픈, 괄호, 쉼표, 슬래시, 점, #만 입력 가능합니다."
-			);
-		}
 	}
 
 }

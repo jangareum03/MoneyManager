@@ -1,15 +1,11 @@
 package com.moneymanager.global.file;
 
-import com.moneymanager.global.exception.exception.ExternalException;
-import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
-
-import static com.moneymanager.global.exception.code.CommonErrorCode.FILE_UPLOAD_FAILED;
 
 /**
  * <p>
@@ -46,12 +42,7 @@ public class FileCommandService {
 		try{
 			Files.createDirectories(directory);
 		}catch (IOException e) {
-			throw ExternalException.of(
-					FILE_UPLOAD_FAILED,
-					DeveloperLogInfo.of("폴더 생성", getCause(e), Path.class, directory.toString()),
-					"폴더 생성 중 문제가 발생했습니다.",
-					e
-			);
+
 		}
 	}
 
@@ -59,12 +50,7 @@ public class FileCommandService {
 		try{
 			source.transferTo(target);
 		}catch (IOException e) {
-			throw ExternalException.of(
-					FILE_UPLOAD_FAILED,
-					DeveloperLogInfo.of("파일 저장", getCause(e), Path.class, target.toString()),
-					"파일 저장 중 문제가 발생했습니다.",
-					e
-			);
+
 		}
 	}
 
@@ -72,12 +58,7 @@ public class FileCommandService {
 		try {
 			Files.deleteIfExists(path);
 		}catch (IOException e) {
-			throw ExternalException.of(
-					FILE_UPLOAD_FAILED,
-					DeveloperLogInfo.of("파일 삭제", getCause(e), Path.class, path.toString()),
-					"파일 삭제 중 문제가 발생했습니다.",
-					e
-			);
+
 		}
 	}
 

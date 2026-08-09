@@ -1,16 +1,10 @@
 package com.moneymanager.ledger.domain.enums;
 
 
-import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
-import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 
 
 /**
@@ -55,24 +49,10 @@ public enum FixCycle {
 	}
 
 	public static FixCycle from(String cycle) {
-		if(isNullOrBlank(cycle)) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of("고정주기 생성", "고정 주기 없음", "fixCycle", cycle),
-					"고정 주기를 선택해주세요."
-			);
-		}
-
 		return Arrays.stream(values())
 				.filter(c -> c.value.equalsIgnoreCase(cycle))
 				.findFirst()
-				.orElseThrow(() -> ValidationException.of(
-						INVALID_VALUE,
-						DeveloperLogInfo.of("고정주기 생성", "허용되지 않은 고정 주기", "fixCycle", cycle)
-						.addOption("allowed", getAllowedValues()),
-						"허용하지 않은 고정 주기입니다."
-				)
-		);
+				.get();
 	}
 
 	private static String getAllowedValues() {

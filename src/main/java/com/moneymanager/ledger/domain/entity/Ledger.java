@@ -1,30 +1,21 @@
 package com.moneymanager.ledger.domain.entity;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.ledger.service.policy.Policy;
 import com.moneymanager.global.domain.enums.DatePatterns;
+import com.moneymanager.global.util.date.DateTimeUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
+import com.moneymanager.ledger.domain.dto.vo.Money;
+import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.enums.FixCycle;
 import com.moneymanager.ledger.domain.enums.FixedYN;
 import com.moneymanager.ledger.domain.enums.PaymentType;
-import com.moneymanager.ledger.domain.dto.vo.Money;
-import com.moneymanager.ledger.domain.dto.vo.Place;
-import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.log.DeveloperLogInfo;
-import com.moneymanager.global.util.date.DateTimeUtil;
+import com.moneymanager.ledger.service.policy.Policy;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
-
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
-import static com.moneymanager.global.exception.code.LedgerErrorCode.OUT_OF_RANGE;
-import static com.moneymanager.global.exception.code.LedgerErrorCode.POLICY_VIOLATION;
-import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 
 
 /**
@@ -162,28 +153,10 @@ public class Ledger {
 		LocalDate today = LocalDate.now();	//오늘날짜
 
 		LocalDate fiveYearsAgo = today.minusYears(Policy.LEDGER_MAX_YEAR);	//오늘 기준 5년 전
-		if(!DateTimeUtil.isDateInRange(transDate, fiveYearsAgo, today)) {
-			throw BusinessException.of(
-					OUT_OF_RANGE,
-					DeveloperLogInfo.of("가계부 검증", "거래날짜 허용 범위 초과", "date", date)
-							.addOption("min", DateTimeUtil.formatDate(fiveYearsAgo, format))
-							.addOption("max", DateTimeUtil.formatDate(today, format)),
-					String.format("최근 %d년 이내 날짜만 가능합니다.", Policy.LEDGER_MAX_YEAR)
-			);
-		}
 	}
 
 	private static void validateCategory(String code) {
-		if(!(code.startsWith("01") || code.startsWith("02"))) {
-			throw ValidationException.of(
-					INVALID_VALUE,
-					DeveloperLogInfo.of("가계부 검증", "허용되지 않은 카테고리 코드", "category", code)
-							.addOption("allowedPrefix", "01, 02"),
-					"사용할 수 없는 카테고리 입니다."
-			);
-		}
 
-		//TODO: 범위 검증 추가
 	}
 
 	private static void validateFixInfo(String fix, String cycle) {
@@ -194,28 +167,11 @@ public class Ledger {
 
 			return;
 		}
-
-		if(cycle != null) {
-			throw ValidationException.of(
-					POLICY_VIOLATION,
-					DeveloperLogInfo.of("가계부 검증", "고정 여부와 주기 불일치", "fixCycle", cycle)
-							.addOption("policy", "고정이 아닌 경우 주기 설정 불가"),
-					"고정이 아닌 경우에는 주기를 설정할 수 없습니다. 고정 여부를 확인해주세요."
-			);
-		}
 	}
 
 	// ===== 선택값 검증 =====
 	private static void validateMemo(String memo) {
-		if(!isNullOrBlank(memo) && memo.length() > 150) {
-			throw BusinessException.of(
-					CommonErrorCode.OUT_OF_RANGE,
-					DeveloperLogInfo.of("가계부 검증", "길이 초과", "memo", String.valueOf(memo.length()))
-							.addOption("min", 0)
-							.addOption("max", 150),
-					"메모는 최대 150자까지 입력해주세요."
-			);
-		}
+
 	}
 
 }

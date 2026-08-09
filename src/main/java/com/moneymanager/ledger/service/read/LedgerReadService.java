@@ -1,27 +1,24 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.ledger.service.policy.Policy;
-import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.global.domain.DateRange;
-import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
+import com.moneymanager.global.domain.enums.DatePatterns;
+import com.moneymanager.global.security.utils.SecurityUtil;
+import com.moneymanager.global.util.date.DateTimeUtil;
+import com.moneymanager.global.util.date.DateUtils;
+import com.moneymanager.ledger.domain.dto.response.*;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.CategoryLevel;
 import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.domain.enums.HistoryMenuType;
 import com.moneymanager.ledger.domain.enums.HistoryType;
-import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.log.DeveloperLogInfo;
-import com.moneymanager.ledger.domain.dto.response.*;
+import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.ledger.mapper.LedgerMapper;
 import com.moneymanager.ledger.repository.LedgerRepository;
-import com.moneymanager.global.security.utils.SecurityUtil;
-import com.moneymanager.global.util.date.DateTimeUtil;
-import com.moneymanager.global.util.date.DateUtils;
 import com.moneymanager.ledger.service.policy.LedgerHistoryPolicy;
+import com.moneymanager.ledger.service.policy.Policy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -31,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
-import static com.moneymanager.global.exception.code.LedgerErrorCode.NOT_FOUND_DATA;
 
 /**
  * <p>
@@ -281,15 +276,7 @@ public class LedgerReadService {
 	}
 
 	public Ledger getLedger(String memberId, String code) {
-		try{
-			return ledgerRepository.findByCode(memberId, code);
-		}catch (EmptyResultDataAccessException e) {
-			throw BusinessException.of(
-					NOT_FOUND_DATA,
-					DeveloperLogInfo.of("가계부 조회", "데이터 없음", Ledger.class, DeveloperLogInfo.valueOf("memberId", memberId, "ledgerCode", code)),
-					"존재하지 않은 가계부입니다."
-			);
-		}
+		return ledgerRepository.findByCode(memberId, code);
 	}
 
 }
