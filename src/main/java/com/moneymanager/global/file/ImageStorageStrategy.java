@@ -2,15 +2,11 @@ package com.moneymanager.global.file;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.delete.domain.global.dto.StoredFile;
-import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
 import java.time.Clock;
-
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_FORMAT;
 
 /**
  * <p>
@@ -69,11 +65,7 @@ public abstract class ImageStorageStrategy<T> implements FileStorageStrategy<T> 
 
 		//점 없음, 맨 앞쪽에 있음, 맨 끝에 있는 경우
 		if(dotIndex <= 0 || dotIndex == (file.length() - 1)) {
-			throw ValidationException.of(
-					INVALID_FORMAT,
-					DeveloperLogInfo.of("이미지 검증", "확장자 형식 불일치", "file", file),
-					"파일 형식이 올바르지 않습니다."
-			);
+
 		}
 
 		return file.substring(dotIndex+1).toLowerCase();

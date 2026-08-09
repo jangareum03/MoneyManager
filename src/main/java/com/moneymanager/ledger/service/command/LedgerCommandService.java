@@ -1,23 +1,19 @@
 package com.moneymanager.ledger.service.command;
 
+import com.moneymanager.global.security.utils.SecurityUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
-import com.moneymanager.ledger.domain.entity.Ledger;
-import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
-import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.log.DeveloperLogInfo;
+import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.repository.LedgerRepository;
-import com.moneymanager.global.security.utils.SecurityUtil;
 import com.moneymanager.ledger.service.read.LedgerReadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.moneymanager.global.exception.code.LedgerErrorCode.NOT_FOUND_DATA;
 
 
 /**
@@ -118,14 +114,6 @@ public class LedgerCommandService {
 			id = ledgerRepository.insert(ledger);
 		}else {
 			int updatedRow = ledgerRepository.update(ledger);
-
-			if(updatedRow != 1) {
-				throw BusinessException.of(
-						NOT_FOUND_DATA,
-						DeveloperLogInfo.of("가계부 수정", "수정 대상 없음", Ledger.class, DeveloperLogInfo.valueOf("memberId", ledger.getMemberId(), "ledgerId", ledger.getId())),
-						"가계부를 수정할 수 없습니다. 잠시 후 다시 시도해주세요."
-				);
-			}
 
 			id = ledger.getId();
 		}

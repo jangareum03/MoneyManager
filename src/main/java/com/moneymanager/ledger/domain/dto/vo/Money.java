@@ -1,11 +1,7 @@
 package com.moneymanager.ledger.domain.dto.vo;
 
 import com.moneymanager.ledger.domain.enums.PaymentType;
-import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.Value;
-
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
 
 /**
  * <p>
@@ -52,18 +48,7 @@ public class Money {
 	}
 
 	private void validateAmount(Long amount) {
-		if(amount < 1) {
-			throw ValidationException.of(
-					INVALID_VALUE,
-					DeveloperLogInfo.builder()
-							.work("가계부 금액 검증")
-							.cause("범위 오류")
-							.field("amount")
-							.value(String.valueOf(amount))
-							.build()
-							.addOption("min", 1)
-			);
-		}
+
 	}
 
 }

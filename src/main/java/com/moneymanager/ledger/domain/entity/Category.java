@@ -1,14 +1,7 @@
 package com.moneymanager.ledger.domain.entity;
 
-import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.log.DeveloperLogInfo;
 import lombok.Builder;
 import lombok.Getter;
-
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
-import static com.moneymanager.global.exception.code.LedgerErrorCode.DATA_INTEGRITY_ERROR;
-import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 
 
 /**
@@ -63,31 +56,11 @@ public class Category {
 	}
 
 	public static Category childCategory(String code, String name, Category parent) {
-		//부모 카테고리 검증
-		if(parent == null) {
-			throw BusinessException.of(
-					DATA_INTEGRITY_ERROR,
-					DeveloperLogInfo.of("객체 생성", "부모 카테고리 없음", "parent", null)
-			);
-		}
-
 		return new Category(code, name, parent.code);
 	}
 
 	private static void validate(String code, String name) {
-		if(isNullOrBlank(code)) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of("카테고리 검증", "카테고리 코드 없음", "code", code)
-			);
-		}
 
-		if(isNullOrBlank(name)) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of("카테고리 검증", "카테고리 이름 없음", "name", name)
-			);
-		}
 	}
 
 }

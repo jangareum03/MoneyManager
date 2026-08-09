@@ -1,11 +1,9 @@
 package com.moneymanager.ledger.service.policy;
 
 import com.moneymanager.global.domain.DateRange;
-import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.global.util.date.DateTimeUtil;
+import com.moneymanager.ledger.domain.enums.HistoryType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,10 +13,6 @@ import java.time.temporal.TemporalAdjusters;
 
 import static com.moneymanager.ledger.service.policy.Policy.LEDGER_END_WEEK;
 import static com.moneymanager.ledger.service.policy.Policy.LEDGER_START_WEEK;
-import static com.moneymanager.global.exception.code.CommonErrorCode.OUT_OF_RANGE;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
-import static com.moneymanager.global.log.DeveloperLogInfo.valueOf;
-import static com.moneymanager.global.util.date.DateTimeUtil.isDateInRange;
 
 /**
  * <p>
@@ -54,22 +48,6 @@ public class LedgerHistoryPolicy {
 	private final Clock clock;
 
 	public DateRange calculateDateRange(HistoryType historyType, LocalDate date) {
-		if(historyType == null) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of("날짜 계산", "필수값 누락", HistoryType.class, null),
-					"내역 유형은 필수입니다."
-			);
-		}
-
-		if(date == null) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of("날짜 계산", "필수값 누락", LocalDate.class, null),
-					"날짜는 필수입니다."
-			);
-		}
-
 		return switch (historyType) {
 			case YEAR -> calculateYearRange(date);
 			case MONTH -> calculateMonthRange(date);
@@ -129,16 +107,6 @@ public class LedgerHistoryPolicy {
 
 		LocalDate from = dateRange.getFrom();
 		LocalDate to = dateRange.getTo();
-
-		if( !(isDateInRange(from, fiveYearsAgo, now) && isDateInRange(to, fiveYearsAgo, now)) ) {
-			throw BusinessException.of(
-					OUT_OF_RANGE,
-					DeveloperLogInfo.of("기간 검증", "범위 오류", DateRange.class, valueOf("from", from, "to", to))
-							.addOption("min", fiveYearsAgo)
-							.addOption("max", now),
-					"가계부 내역은 최근 5년 이내만 가능합니다."
-			);
-		}
 	}
 
 

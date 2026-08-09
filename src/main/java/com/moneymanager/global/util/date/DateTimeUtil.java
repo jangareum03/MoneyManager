@@ -1,18 +1,12 @@
 package com.moneymanager.global.util.date;
 
 
-import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.log.DeveloperLogInfo;
-
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_FORMAT;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 
 
@@ -54,21 +48,10 @@ public class DateTimeUtil {
 
 	public static LocalDate parseDateFromYyyyMMdd(String date) {
 		if(isNullOrBlank(date)) {
-			throw ValidationException.of(
-						REQUIRED_VALUE,
-						DeveloperLogInfo.of("날짜 변환", "날짜 형식 없음", "date", date)
-					);
+
 		}
 
-		try{
-			return LocalDate.parse(date, DateTimeFormatter.ofPattern(DATE_FORMAT));
-		}catch (DateTimeParseException e) {
-			throw ValidationException.of(
-					INVALID_FORMAT,
-					DeveloperLogInfo.of("날짜 변환", "날짜 형식 불일치", "date", date)
-							.addOption("format", DATE_FORMAT + " (예: 20260101)")
-			);
-		}
+		return LocalDate.parse(date, DateTimeFormatter.ofPattern(DATE_FORMAT));
 	}
 
 

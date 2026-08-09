@@ -1,7 +1,5 @@
 package com.moneymanager.ledger.service.validator;
 
-import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.global.validation.BaseImageValidator;
 import com.moneymanager.global.validation.DateValidator;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
@@ -10,11 +8,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_FORMAT;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
-import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
-import static com.moneymanager.global.util.string.StringUtil.matchesPattern;
 
 /**
  * <p>
@@ -49,14 +42,6 @@ public class LedgerValidator extends BaseImageValidator {
 	private final String work = "가계부 요청 검증";
 
 	public void register(LedgerWriteRequest request) {
-		if(request == null) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of(work, "요청 객체 없음", LedgerWriteRequest.class, null),
-					"가계부를 등록할 수 없습니다."
-			);
-		}
-
 		//필수정보 검증
 		DateValidator.validateLedgerDate(request.getDate());
 		validateCategory(request.getCategoryCode());
@@ -68,15 +53,6 @@ public class LedgerValidator extends BaseImageValidator {
 	}
 
 	public void update(LedgerUpdateRequest request) {
-		//1. 객체 검증
-		if(request == null) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of(work,  "요청 객체 없음", LedgerUpdateRequest.class, null),
-					"가계부를 수정할 수 없습니다."
-			);
-		}
-
 		//2. 필수정보 검증
 		validateCategory(request.getCategoryCode());
 		validateAmount(request.getAmount());
@@ -88,55 +64,20 @@ public class LedgerValidator extends BaseImageValidator {
 
 	//가계부 카테고리 검증
 	private void validateCategory(String categoryCode) {
-		if(isNullOrBlank(categoryCode)) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of(work, "카테고리 없음", "category", categoryCode),
-					"카테고리를 선택해주세요."
-			);
-		}
-
-		if(!matchesPattern(categoryCode, "\\d{6}")) {
-			throw ValidationException.of(
-					INVALID_FORMAT,
-					DeveloperLogInfo.of(work, "카테고리 형식 불일치", "category", categoryCode)
-							.addOption("format", "6자리 숫자 (예: 123456)"),
-					"허용하지 않은 카테고리입니다."
-			);
-		}
 	}
 
 	//가계부 금액 검증
 	private void validateAmount(Long amount){
-		if(amount == null) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of(work, "금액 없음", "amount", null),
-					"금액을 입력해주세요."
-			);
-		}
+
 	}
 
 	private void validatePaymentType(String paymentType) {
-		if(isNullOrBlank(paymentType)) {
-			throw ValidationException.of(
-					REQUIRED_VALUE,
-					DeveloperLogInfo.of(work, "금액 유형 없음", "paymentType", paymentType),
-					"금액 유형을 선택해주세요."
-			);
-		}
+
 	}
 
 	//가계부 고정주기 검증
 	private void validateFixCycle(String fixCycle) {
-		if(!isNullOrBlank(fixCycle) && !matchesPattern(fixCycle, "^[a-zA-Z]$")) {
-			throw ValidationException.of(
-					INVALID_FORMAT,
-					DeveloperLogInfo.of(work, "고정주기 형식 불일치", "fixCycle", fixCycle)
-							.addOption("format", "영어"),
-					"고정주기를 선택해주세요."
-			);
-		}
+
 	}
 
 	@Override
