@@ -1,8 +1,7 @@
 package com.moneymanager.global.security;
 
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
-import com.moneymanager.delete.service.member.TokenServiceImpl;
-import lombok.extern.slf4j.Slf4j;
+import com.moneymanager.member.repository.MemberTokenRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -40,16 +39,15 @@ import java.io.IOException;
  * 		</tbody>
  * </table>
  */
-@Slf4j
 @Component
 public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-	private final JwtTokenProvider tokenProvider;
-	private final TokenServiceImpl tokenService;
+	private final JwtTokenProvider jwtTokenProvider;
+	private final MemberTokenRepository tokenRepository;
 
-	public CustomAuthSuccessHandler( JwtTokenProvider tokenProvider, TokenServiceImpl tokenService ) {
-		this.tokenService = tokenService;
-		this.tokenProvider = tokenProvider;
+	public CustomAuthSuccessHandler(JwtTokenProvider jwtTokenProvider, MemberTokenRepository tokenRepository) {
+		this.jwtTokenProvider = jwtTokenProvider;
+		this.tokenRepository = tokenRepository;
 	}
 
 	@Override
@@ -57,14 +55,14 @@ public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHand
 		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
 		//토큰 생성
-		String accessToken = tokenProvider.generateAccessToken(authentication);
-		String refreshToken = tokenProvider.generateRefreshToken(authentication);
+		String accessToken = jwtTokenProvider.generateAccessToken(authentication);
+		String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
 		//DB저장
-		tokenService.createMemberToken( userDetails.getUsername(), accessToken, refreshToken );
+		tokenRepository.saveToken(userDetails.getId(), accessToken, refreshToken );
 
 		//쿠키 설정
-		Cookie accessCookie = new Cookie("ACCESS_TOKEN", accessToken);
+		Cookie accessCookie = new Cookie("accessToken", accessToken);
 		accessCookie.setHttpOnly(true);
 		accessCookie.setPath("/");
 		accessCookie.setMaxAge(60 * 60);

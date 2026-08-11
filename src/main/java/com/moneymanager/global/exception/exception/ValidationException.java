@@ -36,10 +36,6 @@ public class ValidationException extends ApplicationException {
 		super(errorCode, logInfo, userMessage);
 	}
 
-	public static ValidationException of(ErrorCode errorCode , LogContent logInfo) {
-		return ValidationException.of(errorCode, logInfo, null);
-	}
-
 	public static ValidationException of(ErrorCode errorCode, LogContent logInfo, String userMessage) {
 		return new ValidationException(errorCode, logInfo, userMessage);
 	}

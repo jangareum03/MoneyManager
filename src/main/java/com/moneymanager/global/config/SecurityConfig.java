@@ -1,11 +1,13 @@
 package com.moneymanager.global.config;
 
-import com.moneymanager.global.log.TraceIdFilter;
+import com.moneymanager.global.fillter.TraceIdFilter;
 import com.moneymanager.global.security.CustomAuthFailureHandler;
 import com.moneymanager.global.security.CustomAuthSuccessHandler;
 import com.moneymanager.global.security.CustomAuthenticationProvider;
 import com.moneymanager.global.security.CustomUserDetailService;
-import com.moneymanager.global.security.jwt.JwtAuthenticationFilter;
+import com.moneymanager.global.fillter.JwtAuthenticationFilter;
+import com.moneymanager.global.security.jwt.JwtTokenProvider;
+import com.moneymanager.member.repository.MemberTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +20,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 
@@ -54,11 +58,8 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final CustomAuthSuccessHandler successHandler;
-	private final CustomAuthFailureHandler failureHandler;
-	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final TraceIdFilter traceIdFilter;
-
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -66,7 +67,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public CustomAuthenticationProvider authenticationProvider(CustomUserDetailService userDetailService ) {
+	public CustomAuthenticationProvider authenticationProvider(CustomUserDetailService userDetailService) {
 		return new CustomAuthenticationProvider(userDetailService, passwordEncoder());
 	}
 
@@ -76,7 +77,17 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+	public SimpleUrlAuthenticationSuccessHandler successHandler(JwtTokenProvider jwtTokenProvider, MemberTokenRepository tokenRepository) {
+		return new CustomAuthSuccessHandler(jwtTokenProvider, tokenRepository);
+	}
+
+	@Bean
+	public AuthenticationFailureHandler failureHandler() {
+		return new CustomAuthFailureHandler();
+	}
+
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager, SimpleUrlAuthenticationSuccessHandler successHandler) throws Exception {
 		http
 				.csrf().disable()
 				.cors(Customizer.withDefaults())
@@ -106,11 +117,8 @@ public class SecurityConfig {
 						.usernameParameter("username")
 						.passwordParameter("password")
 						.successHandler(successHandler)
-						.failureHandler(failureHandler)
+						.failureHandler(failureHandler())
 						.permitAll()
-				)
-				.exceptionHandling(exception -> exception
-						.accessDeniedPage("/403")
 				)
 				.logout(logout -> logout
 						.logoutUrl("/logout")
@@ -125,6 +133,7 @@ public class SecurityConfig {
 						jwtAuthenticationFilter,
 						UsernamePasswordAuthenticationFilter.class
 				);
+
 		return http.build();
 	}
 }

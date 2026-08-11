@@ -1,7 +1,7 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.delete.dao.member.MemberDaoImpl;
-import com.moneymanager.delete.domain.member.Member;
+import com.moneymanager.member.domain.dto.MemberAuth;
+import com.moneymanager.member.repository.MemberRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -37,24 +37,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomUserDetailService implements UserDetailsService {
 
-	private final MemberDaoImpl memberDao;
+	private final MemberRepository memberRepository;
 
-	public CustomUserDetailService( MemberDaoImpl memberDao) {
-		this.memberDao = memberDao;
+	public CustomUserDetailService( MemberRepository memberRepository) {
+		this.memberRepository = memberRepository;
 	}
 
-
-	/**
-	 * 사용자가 로그인한 아이디가 자격이 있는지 증명합니다.
-	 *
-	 * @param username 로그인 시도한 아이디
-	 * @throws UsernameNotFoundException DB 조회 불가 시
-	 * @return 자격증명을 한 사용자 정보
-	 */
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
-		Member member = memberDao.findAuthMemberByUsername(username);
+	public UserDetails loadUserByUsername(String username) {
+		MemberAuth memberAuth = memberRepository.findAuthByUsername(username);
 
-		return new CustomUserDetails(member);
+		if(memberAuth == null) {
+			throw new UsernameNotFoundException(username + " 아이디는 찾을 수 없습니다.");
+		}
+
+		return new CustomUserDetails(memberAuth);
 	}
+
 }

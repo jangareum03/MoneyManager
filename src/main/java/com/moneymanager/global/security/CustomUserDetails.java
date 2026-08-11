@@ -1,13 +1,13 @@
 package com.moneymanager.global.security;
 
 
-import com.moneymanager.delete.domain.member.Member;
-import com.moneymanager.delete.domain.member.enums.MemberStatus;
-import lombok.ToString;
+import com.moneymanager.member.domain.dto.MemberAuth;
+import com.moneymanager.member.domain.enums.MemberStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -38,13 +38,44 @@ import java.util.Collections;
  * 		</tbody>
  * </table>
  */
-@ToString
 public class CustomUserDetails implements UserDetails {
 
-	private final Member member;
+	private final String memberId;
+	private final String username;
+	private final String password;
+	private final String role;
+	private final MemberStatus status;
+	private final int failCount;
+	private final LocalDateTime cancellationDate;
 
-	public CustomUserDetails(Member member) {
-		this.member = member;
+	public CustomUserDetails(MemberAuth memberAuth) {
+		this.memberId = memberAuth.getMemberId();
+		this.username = memberAuth.getUsername();
+		this.password = memberAuth.getPassword();
+		this.role = memberAuth.getRole();
+		this.status = memberAuth.getStatus();
+		this.failCount = memberAuth.getLoginFailCount();
+		this.cancellationDate = memberAuth.getDeletedDate();
+	}
+
+	/**
+	 * 로그인 처리 중인 사용자의 아이디를 반환합니다.
+	 *
+	 * @return 아이디
+	 */
+	@Override
+	public String getUsername() {
+		return username;
+	}
+
+	/**
+	 * 로그인 처리중인 사용자의 암호화된 비밀번호를 반환합니다.
+	 *
+	 * @return 암호화된 비밀번호
+	 */
+	@Override
+	public String getPassword() {
+		return password;
 	}
 
 	/**
@@ -54,121 +85,59 @@ public class CustomUserDetails implements UserDetails {
 	 */
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return Collections.singletonList(new SimpleGrantedAuthority(member.getRole()));
+		return Collections.singletonList(new SimpleGrantedAuthority(role));
 	}
 
-
 	/**
-	 * 로그인 처리중인 사용자의 암호화된 비밀번호를 반환합니다.
+	 * 계정이 활성화 상태인지 확인합니다.
 	 *
-	 * @return 암호화된 비밀번호
+	 * @return 계정 활성화 상태면 {@code ture}, 비활성화면 {@code false} 반환
 	 */
 	@Override
-	public String getPassword() {
-		return member.getPassword();
+	public boolean isEnabled() {
+		return status == MemberStatus.ACTIVE && failCount < 5;
 	}
 
-
 	/**
-	 * 로그인 처리 중인 사용자의 아이디를 반환합니다.
+	 * 계정이 잠겨있는 상태인지 확인합니다.
 	 *
-	 * @return 아이디
-	 */
-	@Override
-	public String getUsername() {
-		return member.getUserName();
-	}
-
-
-	/**
-	 * 로그인 완료된 사용자의 회원번호를 반환합니다.
-	 * @return	회원번호(PK)
-	 */
-	public String getId() {
-		return member.getId();
-	}
-
-	/**
-	 * 로그인 처리 중인 사용자의 닉네임을 반환합니다.
-	 *
-	 * @return	닉네임
-	 */
-	public String getNickname() {
-		return member.getNickName();
-	}
-
-
-	/**
-	 * 사용자의 프로필 이미지를 반환합니다.
-	 *
-	 * @return	프로필 이미지
-	 */
-	public String getProfile() {
-		return member.getMemberInfo().getProfile();
-	}
-
-
-	/**
-	 * 계정이 만료됐는지 확인합니다.
-	 *
-	 * @return 만료되지 않으면 true, 만료되면 false
-	 */
-	@Override
-	public boolean isAccountNonExpired() {
-		return true;
-	}
-
-
-	/**
-	 * 계정이 잠겨있는지 확인합니다.
-	 *
-	 * @return 잠겨있지 않으면 true, 잠겨 있으면 false
+	 * @return 잠겨있지 않으면 {@code ture}, 잠겨있으면 {@code false}
 	 */
 	@Override
 	public boolean isAccountNonLocked() {
-		return !(member.getStatus() == MemberStatus.LOCKED);
+		return !(status == MemberStatus.LOCKED) && failCount < 5;
 	}
 
+	/**
+	 * 계정이 만료되었는지 확인합니다. 만료된 계정은 인증이 불가능합니다.
+	 *
+	 * @return	만료가 되지 않으면 {@code ture}, 만료되면 {@code false}
+	 */
+	@Override
+	public boolean isAccountNonExpired() {
+		LocalDateTime dayAgo = LocalDateTime.now().minusMonths(1);
+
+		return !( (status == MemberStatus.DELETED || status == MemberStatus.REPAIR)
+				&& cancellationDate != null
+				&& (cancellationDate.isBefore(dayAgo)) );
+	}
 
 	/**
-	 * 비밀번호가 만료됐는지 확인합니다.
+	 * 사용자의 자격 증명(비밀번호)이 만료되었는지 확인합니다.
 	 *
-	 * @return 만료되지 않으면 true, 만료되면 false
+	 * @return 만료가 되지 않으면 {@code ture}, 만료되면 {@code false}
 	 */
 	@Override
 	public boolean isCredentialsNonExpired() {
 		return true;
 	}
 
-
 	/**
-	 * 계정이 사용 가능한 상태인지 확인합니다.
-	 *
-	 * @return 사용 가능하면 true, 불가능하면 false
+	 * 로그인 완료된 사용자의 회원번호를 반환합니다.
+	 * @return	회원번호(PK)
 	 */
-	@Override
-	public boolean isEnabled() {
-		return member.getStatus() == MemberStatus.ACTIVE;
-	}
-
-
-	/**
-	 * 계정의 상태를 반환합니다.
-	 *
-	 * @return	회원상태 정보를 담은 Enum
-	 */
-	public MemberStatus getStatus() {
-		return member.getStatus();
-	}
-
-
-	/**
-	 * 계정의 로그인 실패 횟수를 반환합니다.
-	 *
-	 * @return	로그인 실패 횟수
-	 */
-	public int getFailureCount() {
-		return member.getMemberInfo().getFailureCount();
+	public String getId() {
+		return memberId;
 	}
 
 }

@@ -71,12 +71,13 @@ public class JwtTokenProvider {
 	 * @return	사용자 정보를 담은 토큰
 	 */
 	public String generateAccessToken(Authentication authentication) {
-		Claims claims = createClaim(authentication);
+		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
 		Date now = new Date();
 
 		return Jwts.builder()
-				.setSubject(claims.getSubject())															//토큰 제목
-				.setClaims(claims)																					//클레임 설정
+				.setSubject(userDetails.getUsername())												//토큰 제목
+				.claim("role", authentication.getAuthorities())						//클레임 설정
 				.setIssuedAt(now)																					//토큰 생성시간(=현재)
 				.setExpiration( new Date( now.getTime() + accessTokenLimit) )		//토큰 만료시간(=한시간)
 				.signWith(key, SignatureAlgorithm.HS256)											//서버키를 HS256 알고리즘으로 암호화 진행
@@ -104,26 +105,6 @@ public class JwtTokenProvider {
 				.compact();
 	}
 
-
-	/**
-	 * 클레임을 생성 후 반환합니다. <br>
-	 * JWT의 구성요소 중 Payload에 사용될 정보에 대한 내용을 담고 있는 객체입니다.
-	 *
-	 * @param authentication	스프링 시큐리티가 관리하는 사용자 정보
-	 * @return	생성된 Claims
-	 */
-	private Claims createClaim(Authentication authentication) {
-		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-		Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
-		claims.put("nickName", userDetails.getNickname());
-		claims.put("profile", userDetails.getProfile());
-		claims.put("roles", authentication.getAuthorities());
-
-		return claims;
-	}
-
-
 	/**
 	 * Refresh Token 생성합니다.
 	 * <p>
@@ -143,6 +124,16 @@ public class JwtTokenProvider {
 				.setExpiration( new Date(now.getTime() + refreshTokenLimit) )					//토큰 만료시간
 				.signWith(key, SignatureAlgorithm.HS256)														//서버키를 HS256 알고리즘으로 암호화 진행
 				.compact();
+	}
+
+	public String getUserName(String token) {
+		Claims claims = Jwts.parserBuilder()
+				.setSigningKey(key)
+				.build()
+				.parseClaimsJws(token)
+				.getBody();
+
+		return claims.getSubject();
 	}
 
 
@@ -172,72 +163,4 @@ public class JwtTokenProvider {
 		return false;
 	}
 
-
-	/**
-	 * 토큰에서 id 정보를 반환합니다.
-	 *
-	 * @param token	토큰
-	 * @return	사용자 id
-	 */
-	public String getUserName(String token) {
-		Claims claims = getClaims(token);
-
-		return claims.getSubject();
-	}
-
-
-	/**
-	 * 토큰에서 닉네임을 반환합니다.
-	 *
-	 * @param token	토큰
-	 * @return	클레임에 저장된 닉네임
-	 */
-	public String getNickName(String token) {
-		Claims claims = getClaims(token);
-
-		return (String) claims.get("nickName");
-	}
-
-
-	/**
-	 * 토큰에서 프로필 이미지를 반환합니다.
-	 *
-	 * @param token	토큰
-	 * @return	클레임에 저장된 프로필
-	 */
-	public String getProfile(String token) {
-		Claims claims = getClaims(token);
-
-		return (String) claims.get("profile");
-	}
-
-
-	/**
-	 * 토큰에서 토큰 만료일자를 반환합니다.
-	 *
-	 * @param token	토큰
-	 * @return	만료일자
-	 */
-	public Date getExpiration(String token) {
-		return Jwts.parserBuilder()
-				.setSigningKey(key)
-				.build()
-				.parseClaimsJws(token)
-				.getBody()
-				.getExpiration();
-	}
-
-
-	/**
-	 * 토큰에서 클레임을 반환합니다.
-	 *
-	 * @param token	클레임을 얻을 토큰
-	 * @return 클레임
-	 */
-	private Claims getClaims(String token) {
-		return Jwts.parserBuilder()
-				.setSigningKey(key).build()
-				.parseClaimsJws(token)
-				.getBody();
-	}
 }

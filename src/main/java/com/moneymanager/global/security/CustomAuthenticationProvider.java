@@ -1,19 +1,12 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.delete.domain.member.Member;
-import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.log.LogContent;
-import com.moneymanager.delete.service.validation.MemberValidator;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import com.moneymanager.member.service.validation.MemberValidator;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import static com.moneymanager.global.exception.code.MemberErrorCode.*;
 
 /**
  * <p>
@@ -44,11 +37,12 @@ import static com.moneymanager.global.exception.code.MemberErrorCode.*;
  */
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
-	private final PasswordEncoder passwordEncoder;
-	private final UserDetailsService userDetailService;
 
-	public CustomAuthenticationProvider( CustomUserDetailService userDetailService, PasswordEncoder passwordEncoder ) {
-		this.userDetailService = userDetailService;
+	private final UserDetailsService userDetailsService;
+	private final PasswordEncoder passwordEncoder;
+
+	public CustomAuthenticationProvider(CustomUserDetailService userDetailsService, PasswordEncoder passwordEncoder) {
+		this.userDetailsService = userDetailsService;
 		this.passwordEncoder = passwordEncoder;
 	}
 
@@ -57,64 +51,25 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		String username = authentication.getName();
 		String userPassword = authentication.getCredentials().toString();
 
-		String work = "회원 인증";
+		MemberValidator.login(username, userPassword);
 
-		//기본 검증 시작
-		MemberValidator.validateLogin( username, userPassword );
+		CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
 
-		try{
-			CustomUserDetails userDetails = (CustomUserDetails) userDetailService.loadUserByUsername(username);
-
-			return switch (userDetails.getStatus()) {
-				case ACTIVE -> {
-					//비밀번호 불일치인 경우
-					if (!passwordEncoder.matches(userPassword, userDetails.getPassword())) {
-						if (userDetails.getFailureCount() >= 5) {    //로그인 실패를 5번한 경우
-							throw BusinessException.of(
-									MBR_LIMIT_EXCEEDED,
-									LogContent.ofTarget(work, "로그인 횟수 초과", Member.class, "username", username, "password", "********"),
-									"연속적인 로그인 실패로 오늘은 로그인이 불가능합니다. 내일 다시 시도해주세요."
-							);
-						}
-
-						throw BusinessException.of(
-										MBR_INVALID_CREDENTIALS,
-										LogContent.ofTarget(work, "비밀번호 불일치", Member.class, "username", username, "failureCount", userDetails.getFailureCount()),
-										"아이디 또는 비밀번호를 확인해주세요."
-								);
-					}
-
-					yield new UsernamePasswordAuthenticationToken(userDetails, userPassword, userDetails.getAuthorities());
-				}
-				case LOCKED -> throw BusinessException.of(
-						MBR_ACCOUNT_LOCKED,
-						LogContent.ofTarget(work, "잠긴 계정으로 로그인", Member.class, "username", username, "status", userDetails.getStatus().name()),
-						"계정이 잠겨있어 로그인이 불가능합니다. 내일 다시 시도해주세요."
-				);
-				case REPAIR -> throw BusinessException.of(
-						MBR_ACCOUNT_DISABLED,
-						LogContent.ofTarget(work, "탈퇴 계정으로 로그인", Member.class, "username", username, "status", userDetails.getStatus().name()),
-						"해당 계정은 탈퇴된 상태로 로그인이 불가능합니다. 가입하실 때 입력하신 이메일로 임시 비밀번호를 보내드렸으니, 다시 한 번 로그인 부탁드립니다."
-				);
-				case DELETE -> throw BusinessException.of(
-						MBR_ACCOUNT_DELETED,
-						LogContent.ofTarget(work, "탈퇴 계정으로 로그인", Member.class, "username", username, "status", userDetails.getStatus().name()),
-						"회원가입 하지 않는 아이디입니다. 회원가입을 진행해 주세요."
-				);
-				case UNKNOWN -> throw BusinessException.of(
-						MBR_FORBIDDEN,
-						LogContent.ofTarget(work, "권한 없는 계정으로 로그인", Member.class, "username", username, "status", userDetails.getStatus().name()),
-						"알 수 없는 회원 계정 상태입니다. 잠시 후 다시 시도해주세요."
-				);
-			};
-		}catch (EmptyResultDataAccessException e) {
-			throw BusinessException.of(
-					MBR_INVALID_CREDENTIALS,
-					LogContent.ofField(work, "없는 계정으로 로그인", "username", username),
-					"아이디 또는 비밀번호를 확인해주세요."
-			);
+		if(!userDetails.isAccountNonExpired()) {
+			throw new DisabledException("인증을 할 수 없습니다.");
 		}
 
+		if(!userDetails.isAccountNonLocked()) {
+			throw new LockedException("잠긴 계정입니다.");
+		}
+
+		if(userDetails.isEnabled()) {
+			if(!passwordEncoder.matches(userPassword, userDetails.getPassword())) {
+				throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
+			}
+		}
+
+		return new UsernamePasswordAuthenticationToken(userDetails, userPassword, userDetails.getAuthorities());
 	}
 
 	@Override
@@ -123,4 +78,3 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 	}
 
 }
-
