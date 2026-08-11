@@ -2,7 +2,7 @@ package com.moneymanager.global.security.utils;
 
 import com.moneymanager.delete.domain.member.Member;
 import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.log.DeveloperLogInfo;
+import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.security.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -48,7 +48,7 @@ public class SecurityUtil {
 		if(memberId == null) {
 			throw BusinessException.of(
 					UNAUTHORIZED,
-					DeveloperLogInfo.of(work, "회원번호 없음", Member.class, "id", null),
+					LogContent.ofTarget(work, "회원번호 없음", Member.class, "id", null),
 					"인증 실패했습니다. 다시 로그인해주세요."
 			);
 		}
@@ -63,7 +63,7 @@ public class SecurityUtil {
 		if(auth == null) {
 			throw BusinessException.of(
 					UNAUTHORIZED,
-					DeveloperLogInfo.of(work, "인증 객체 없음", Authentication.class, null),
+					LogContent.ofTarget(work, "인증 객체 없음", Authentication.class, null),
 					"인증 실패했습니다. 다시 로그인해주세요."
 			);
 		}
@@ -72,7 +72,7 @@ public class SecurityUtil {
 		if(!(principal instanceof CustomUserDetails)) {
 			throw BusinessException.of(
 					UNAUTHORIZED,
-					DeveloperLogInfo.of(work, "principal 타입 불일치", CustomUserDetails.class, "principal", principal == null ? null : principal.getClass().getSimpleName()),
+					LogContent.ofTarget(work, "principal 타입 불일치", CustomUserDetails.class, "principal", principal == null ? null : principal.getClass().getSimpleName()),
 					"인증 정보가 올바르지 않습니다. 다시 로그인해주세요."
 			);
 		}

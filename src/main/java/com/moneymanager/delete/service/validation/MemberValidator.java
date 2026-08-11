@@ -3,7 +3,7 @@ package com.moneymanager.delete.service.validation;
 
 import com.moneymanager.global.domain.enums.RegexPattern;
 import com.moneymanager.global.exception.exception.ValidationException;
-import com.moneymanager.global.log.DeveloperLogInfo;
+import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
 
 import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_FORMAT;
@@ -51,7 +51,7 @@ public class MemberValidator {
 		if(StringUtil.isNullOrBlank(id)) {
 			throw ValidationException.of(
 					REQUIRED_VALUE,
-					DeveloperLogInfo.of("아이디 검증", "아이디 없음","userName", id),
+					LogContent.ofField("아이디 검증", "아이디 없음","userName", id),
 					"아이디를 입력해주세요."
 			);
 		}
@@ -59,7 +59,7 @@ public class MemberValidator {
 		if(!StringUtil.matchesPattern(id, RegexPattern.MEMBER_ID.getPattern())) {
 			throw ValidationException.of(
 					INVALID_FORMAT,
-					DeveloperLogInfo.of("아이디 검증", "아이디 형식 불일치", "userName", id)
+					LogContent.ofField("아이디 검증", "아이디 형식 불일치", "userName", id)
 							.addOption("format", "영어, 숫자")
 							.addOption("min", 4)
 							.addOption("max", 15),
@@ -72,7 +72,7 @@ public class MemberValidator {
 		if(StringUtil.isNullOrBlank(password)) {
 			throw ValidationException.of(
 					REQUIRED_VALUE,
-					DeveloperLogInfo.of("비밀번호 검증", "비밀번호 없음", "password", MASKED_PASSWORD),
+					LogContent.ofField("비밀번호 검증", "비밀번호 없음", "password", MASKED_PASSWORD),
 					"비밀번호를 입력해주세요."
 			);
 		}
@@ -80,7 +80,7 @@ public class MemberValidator {
 		if(!StringUtil.matchesPattern(password, RegexPattern.MEMBER_PWD.getPattern()) ) {
 			throw ValidationException.of(
 					INVALID_FORMAT,
-					DeveloperLogInfo.of("비밀번호 검증", "비밀번호 형식 불일치", "password", MASKED_PASSWORD)
+					LogContent.ofField("비밀번호 검증", "비밀번호 형식 불일치", "password", MASKED_PASSWORD)
 							.addOption("format", "영어, 숫자, 느낌표, 퍼센트, 별표, #, ^")
 							.addOption("min", 8)
 							.addOption("max", 20),

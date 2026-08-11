@@ -1,9 +1,9 @@
 package com.moneymanager.ledger.domain.policy;
 
-import com.moneymanager.ledger.service.policy.Policy;
 import com.moneymanager.global.domain.vo.DateRange;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.ledger.service.policy.LedgerHistoryPolicy;
+import com.moneymanager.ledger.service.policy.Policy;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 
 import static com.moneymanager.global.exception.code.CommonErrorCode.OUT_OF_RANGE;
 import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
-import static com.moneymanager.global.log.DeveloperLogInfo.valueOf;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Named.named;
 
@@ -308,7 +307,7 @@ public class LedgerHistoryPolicyTest {
 						.hasWork("기간 검증")
 						.hasCauseMessage("범위 오류")
 						.hasTarget(DateRange.class)
-						.hasValue(valueOf("from", dateRange.getFrom(), "to", dateRange.getTo()))
+						.hasValue("from", dateRange.getFrom().toString(), "to", dateRange.getTo().toString())
 						.hasOption("min", String.valueOf(TODAY.minusYears(Policy.LEDGER_MAX_YEAR)))
 						.hasOption("max", String.valueOf(TODAY))
 						.hasUserMessage("내역", "최근 5년 이내");

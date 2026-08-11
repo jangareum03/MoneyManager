@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Named.named;
  * 파일이름       : FixedYnTest<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 6. 1<br>
- * 설명              : FixedYN 클래스 기능을 검증하는 테스트 클래스
+ * 설명              : FixedType 클래스 기능을 검증하는 테스트 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Named.named;
 public class FixedYnTest {
 
 	@Nested
-	@DisplayName("FixedYN 변환")
+	@DisplayName("FixedType 변환")
 	class FromTest {
 
 		@Nested
@@ -58,9 +58,9 @@ public class FixedYnTest {
 			@ParameterizedTest
 			@MethodSource("validFixes")
 			@DisplayName("대문자 값이면 FixedYN으로 변환된다.")
-			void createsFixedYN_whenUpperCaseIsGiven(String value, FixedYN expected) {
+			void createsFixedYN_whenUpperCaseIsGiven(String value, FixedType expected) {
 				//when: 대문자로 FixedYN을 변환한다.
-				FixedYN result = FixedYN.from(value.toUpperCase());
+				FixedType result = FixedType.from(value.toUpperCase());
 
 				//then: FixYN을 반환한다.
 				assertThat(result).isSameAs(expected);
@@ -69,9 +69,9 @@ public class FixedYnTest {
 			@ParameterizedTest
 			@MethodSource("validFixes")
 			@DisplayName("소문자 값이면 FixedYN으로 변환된다.")
-			void createsFixedYN_whenLowerCaseIsValid(String value, FixedYN expected) {
+			void createsFixedYN_whenLowerCaseIsValid(String value, FixedType expected) {
 				//when: 소문자로 FixedYN을 변환한다.
-				FixedYN result = FixedYN.from(value.toLowerCase());
+				FixedType result = FixedType.from(value.toLowerCase());
 
 				//then: FixYN을 반환한다.
 				assertThat(result).isSameAs(expected);
@@ -81,11 +81,11 @@ public class FixedYnTest {
 			    return Stream.of(
 			        Arguments.of(
 							named("y인 경우", "y"),
-							FixedYN.REPEAT
+							FixedType.REPEAT
 					),
 					Arguments.of(
 							named("n인 경우", "n"),
-							FixedYN.VARIABLE
+							FixedType.VARIABLE
 					)
 			    );
 			}
@@ -101,7 +101,7 @@ public class FixedYnTest {
 			@DisplayName("값이 null이면 변환에 실패한다.")
 			void throwsException_whenValueIsNull(String value) {
 				//when: null로 FixYN을 변환한다.
-				Throwable throwable = catchThrowable(() -> FixedYN.from(value));
+				Throwable throwable = catchThrowable(() -> FixedType.from(value));
 				
 				//then: 값 검증에 대한 예외가 발생한다.
 				ApplicationExceptionAssert.assertThatApplicationException(throwable)
@@ -119,7 +119,7 @@ public class FixedYnTest {
 			@DisplayName("값이 비어있으면 변환에 실패한다.")
 			void throwsException_whenValueIsEmpty(String value) {
 				//when: 빈 값으로 FixYN을 변환한다.
-				Throwable throwable = catchThrowable(() -> FixedYN.from(value));
+				Throwable throwable = catchThrowable(() -> FixedType.from(value));
 
 				//then: 값 검증에 대한 예외가 발생한다.
 				ApplicationExceptionAssert.assertThatApplicationException(throwable)
@@ -135,7 +135,7 @@ public class FixedYnTest {
 			@DisplayName("허용되지 않은 값이면 변환에 실패한다.")
 			void throwsException_whenValueIsInvalid() {
 				//when: 허용되지 않은 값으로 FixCycle을 변환한다.
-				Throwable throwable = catchThrowable(() -> FixedYN.from("error"));
+				Throwable throwable = catchThrowable(() -> FixedType.from("error"));
 				
 				//then: 변환 중 에외가 발생한다.
 				ApplicationExceptionAssert.assertThatApplicationException(throwable)

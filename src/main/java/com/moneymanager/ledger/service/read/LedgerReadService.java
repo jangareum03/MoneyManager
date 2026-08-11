@@ -1,10 +1,10 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.global.domain.vo.DateRange;
 import com.moneymanager.global.domain.enums.DatePatterns;
+import com.moneymanager.global.domain.vo.DateRange;
 import com.moneymanager.global.security.utils.SecurityUtil;
+import com.moneymanager.global.util.date.DateRangeUtils;
 import com.moneymanager.global.util.date.DateTimeUtil;
-import com.moneymanager.global.util.date.DateUtils;
 import com.moneymanager.ledger.domain.dto.response.*;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.domain.entity.Ledger;
@@ -13,10 +13,10 @@ import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.domain.enums.HistoryMenuType;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
-import com.moneymanager.ledger.service.mapper.LedgerMapper;
 import com.moneymanager.ledger.repository.LedgerRepository;
+import com.moneymanager.ledger.service.mapper.LedgerMapper;
+import com.moneymanager.ledger.service.policy.LedgerDatePolicy;
 import com.moneymanager.ledger.service.policy.LedgerHistoryPolicy;
-import com.moneymanager.ledger.service.policy.Policy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -66,58 +66,28 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LedgerReadService {
 
-	private final SecurityUtil securityUtil;
-
 	private final CategoryReadService categoryReadService;
 	private final LedgerImageReadService imageReadService;
 
 	private final LedgerRepository ledgerRepository;
-
 	private final LedgerHistoryPolicy ledgerHistoryPolicy;
 	private final LedgerMapper ledgerMapper;
+
+	private final LedgerDatePolicy datePolicy;
+
+	private final SecurityUtil securityUtil;
 	private final Clock clock;
 
 
-
-	/**
-	 *	가계부 작성 1단계 화면에서 사용되는 초기 데이터를 조회합니다.
-	 *<p>
-	 *     오늘 날짜를 기준으로 다음 정보를 생성하여 반환합니다.
-	 *     <ul>
-	 *         <li>선택 가능한 연도 목록 (과거 설정된 연도부터 현재 연도까지)</li>
-	 *         <li>선택 가능한 월 목록 (1월부터 현재 월까지)</li>
-	 *         <li>선택 가능한 일 목록 (1월부터 월의 마지막일까지)</li>
-	 *         <li>화면 제목에 사용될 날짜 문자열</li>
-	 *     </ul>
-	 *</p>
-	 * <p>
-	 *     날짜 계산 과정에서 유효하지 않은 값이 발생할 경우 시스템 로그를 기록하고, 예외가 발생합니다.
-	 * </p>
-	 *
-	 * @return	가계부 작성 1단계에 필요한 초기 데이터를 담은 {@link LedgerWriteStep1Response} 객체
-	 */
 	public LedgerWriteStep1Response getWriteStep1Data() {
-		LocalDate today = LocalDate.now(clock);
-		int pastYear = today.minusYears(Policy.LEDGER_MAX_YEAR).getYear();
+		LocalDate minDate = datePolicy.minimum();
+		LocalDate maxDate = datePolicy.maximum();
 
-		//연도, 월, 일 리스트 구하기
-		List<Integer> years = DateUtils.getYearsInRange( pastYear, today.getYear() );
-		List<Integer> months = DateUtils.getMonthsInRange(1, today.getMonthValue());
-		List<Integer> days = DateUtils.getDaysInRange( 1, today.getDayOfMonth() );
+		List<Integer> years = DateRangeUtils.getYearsInRange( minDate.getYear(), maxDate.getYear() );
+		List<Integer> months = DateRangeUtils.getMonthsInRange(1, maxDate.getMonthValue());
+		List<Integer> days = DateRangeUtils.getDaysInRange( 1, maxDate.getDayOfMonth() );
 
-		//날짜를 문자열로 변환
-		String title = DateTimeUtil.formatDate(today, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
-
-		return LedgerWriteStep1Response.builder()
-				.types(LedgerTypeResponse.fromEnum())
-				.years(years)
-				.months(months)
-				.days(days)
-				.currentYear(today.getYear())
-				.currentMonth(today.getMonthValue())
-				.currentDay(today.getDayOfMonth())
-				.displayDate(title)
-				.build();
+		return LedgerWriteStep1Response.of(years, months, days);
 	}
 
 
@@ -146,7 +116,7 @@ public class LedgerReadService {
 		//회원별로 이미지 슬롯 조회
 		List<ImageSlot> imageSlot = imageReadService.resolveImageSlots();
 
-		return (type == CategoryType.INCOME) ? LedgerWriteStep2Response.ofDataByIncome(title, categories, imageSlot) : LedgerWriteStep2Response.ofDataByOutlay(title, categories, imageSlot);
+		return LedgerWriteStep2Response.of(title, type, categories, imageSlot);
 	}
 
 

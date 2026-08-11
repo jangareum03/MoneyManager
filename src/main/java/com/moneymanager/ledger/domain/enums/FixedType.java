@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
- * 파일이름       : FixedYN<br>
+ * 파일이름       : FixedType<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 12. 19<br>
  * 설명              : 가계부 고정여부를 정의한 클래스
@@ -34,19 +34,19 @@ import java.util.stream.Collectors;
  * </table>
  */
 @Getter
-public enum FixedYN {
+public enum FixedType {
 	REPEAT("반복", "Y"),
 	VARIABLE("일회", "N");
 
 	private final String label;		//화면에 표시될 문구
 	private final String value;		//DB 값
 
-	FixedYN(String label, String value) {
+	FixedType(String label, String value) {
 		this.label = label;
 		this.value = value;
 	}
 
-	public static FixedYN from(String fix) {
+	public static FixedType from(String fix) {
 		return Arrays.stream(values())
 				.filter(f -> f.value.equalsIgnoreCase(fix))
 				.findFirst()
@@ -55,7 +55,7 @@ public enum FixedYN {
 
 	private static String getAllowedValues() {
 		return Arrays.stream(values())
-				.map(FixedYN::getValue)
+				.map(FixedType::getValue)
 				.collect(Collectors.joining(", "));
 	}
 

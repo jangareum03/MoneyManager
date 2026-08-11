@@ -1,6 +1,7 @@
 package com.moneymanager.ledger.repository;
 
 import com.moneymanager.ledger.domain.dto.vo.Place;
+import com.moneymanager.ledger.domain.enums.FixedType;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
@@ -9,7 +10,6 @@ import com.moneymanager.support.fixture.entity.MemberFixture;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.FixCycle;
-import com.moneymanager.ledger.domain.enums.FixedYN;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.delete.domain.member.Member;
@@ -92,7 +92,7 @@ public class LedgerRepositoryIT {
 				//given: 필수 정보와 선택 정보가 모두 있는 Ledger가 준비되어 있다.
 				Ledger newLedger = LedgerFixture.newLedger()
 						.memo("메모")
-						.fix(FixedYN.REPEAT)
+						.fix(FixedType.REPEAT)
 						.fixCycle(FixCycle.YEARLY)
 						.place(Place.of(LedgerTestData.PLACE_NAME, LedgerTestData.ROAD_ADDRESS, LedgerTestData.DETAIL_ADDRESS))
 						.build();
@@ -119,7 +119,7 @@ public class LedgerRepositoryIT {
 				//given: 장소 정보만 없는 Ledger가 준비되어 있다.
 				Ledger newLedger = LedgerFixture.newLedger()
 						.memo("메모")
-						.fix(FixedYN.REPEAT)
+						.fix(FixedType.REPEAT)
 						.fixCycle(FixCycle.YEARLY)
 						.build();
 
@@ -225,7 +225,7 @@ public class LedgerRepositoryIT {
 			Long id = target.insert(
 					LedgerFixture.newLedger()
 							.memo("메모")
-							.fix(FixedYN.REPEAT)
+							.fix(FixedType.REPEAT)
 							.fixCycle(FixCycle.MONTHLY)
 							.place(Place.of(LedgerTestData.PLACE_NAME, LedgerTestData.ROAD_ADDRESS, null))
 							.build()
@@ -278,7 +278,7 @@ public class LedgerRepositoryIT {
 				target.update(savedLedger);
 
 				//then: 가계부 고정주기가 null로 저장된다.
-				assertThat(savedLedger.getFix()).isEqualTo(FixedYN.VARIABLE);
+				assertThat(savedLedger.getFix()).isEqualTo(FixedType.VARIABLE);
 				assertThat(savedLedger.getFixCycle()).isNull();
 			}
 			

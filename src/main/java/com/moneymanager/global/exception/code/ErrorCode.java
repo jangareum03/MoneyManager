@@ -28,8 +28,5 @@ package com.moneymanager.global.exception.code;
  * </table>
  */
 public interface ErrorCode {
-
 	String getCode();
-	String getDefaultMessage();
-
 }

@@ -3,6 +3,7 @@ package com.moneymanager.support.fixture.response;
 import com.moneymanager.ledger.domain.dto.response.CategoryItem;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.support.fixture.entity.category.CategoryFixture;
 
 import java.util.List;
@@ -12,8 +13,9 @@ public final class LedgerWriteStep2ResponseFixture {
 	private LedgerWriteStep2ResponseFixture() {}
 
 	public static LedgerWriteStep2Response create() {
-		return LedgerWriteStep2Response.ofDataByIncome(
+		return LedgerWriteStep2Response.of(
 				"제목",
+				CategoryType.INCOME,
 				createCategoryItems(),
 				createSlots()
 		);

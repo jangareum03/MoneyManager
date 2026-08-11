@@ -4,7 +4,7 @@ import com.moneymanager.ledger.service.policy.Policy;
 import com.moneymanager.delete.domain.member.Member;
 import com.moneymanager.global.exception.code.MemberErrorCode;
 import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.log.DeveloperLogInfo;
+import com.moneymanager.global.log.LogContent;
 import com.moneymanager.delete.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -62,7 +62,7 @@ public class MemberReadService {
 		}catch (EmptyResultDataAccessException e) {
 			throw BusinessException.of(
 					MemberErrorCode.NOT_FOUND_DATA,
-					DeveloperLogInfo.of(
+					LogContent.ofTarget(
 							"회원 정보 조회", "데이터 없음", Member.class, "id", memberId
 					)
 			);

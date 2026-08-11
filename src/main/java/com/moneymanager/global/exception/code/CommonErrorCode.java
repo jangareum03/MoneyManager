@@ -33,6 +33,7 @@ public enum CommonErrorCode implements ErrorCode {
 	INVALID_FORMAT("CM-002", "형식이 올바르지 않습니다."),
 	INVALID_VALUE("CM-003", "허용되지 않은 값입니다."),
 	OUT_OF_RANGE("CM-004", "허용되는 범위나 길이가 아닙니다."),
+	INVALID_REQUEST("CM-009", ""),
 
 	UNAUTHORIZED("CM-200", "로그인을 진행해주세요."),
 
@@ -55,11 +56,6 @@ public enum CommonErrorCode implements ErrorCode {
 	@Override
 	public String getCode() {
 		return code;
-	}
-
-	@Override
-	public String getDefaultMessage() {
-		return defaultMessage;
 	}
 
 }

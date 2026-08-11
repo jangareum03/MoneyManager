@@ -77,22 +77,6 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 		return this;
 	}
 
-	public ApplicationExceptionAssert hasSourceClass(Class<?> sourceClass) {
-		isNotNull();
-
-		assertThat(actual.getDeveloperLog().getSourceClass()).isEqualTo(sourceClass);
-
-		return this;
-	}
-
-	public ApplicationExceptionAssert hasSourceMethod(String sourceMethod) {
-		isNotNull();
-
-		assertThat(actual.getDeveloperLog().getSourceMethod()).isEqualTo(sourceMethod);
-
-		return this;
-	}
-
 	public ApplicationExceptionAssert hasTarget(Class<?> target) {
 		isNotNull();
 
@@ -101,7 +85,7 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 		return this;
 	}
 
-	public ApplicationExceptionAssert hasField(String... field) {
+	public ApplicationExceptionAssert hasField(String field) {
 		isNotNull();
 
 		assertThat(actual.getDeveloperLog().getField()).contains(field);
@@ -109,33 +93,27 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 		return this;
 	}
 
-	public ApplicationExceptionAssert hasValue(String value) {
+	public ApplicationExceptionAssert hasValue(Object... value) {
 		isNotNull();
 
 		if(value == null) {
 			assertThat(actual.getDeveloperLog().getValue()).isNull();
 		}else {
-			assertThat(actual.getDeveloperLog().getValue()).contains(value);
+			for(Object v : value) {
+				assertThat(actual.getDeveloperLog().getValue()).contains(String.valueOf(v));
+			}
 		}
 
 		return this;
 	}
 
-	public ApplicationExceptionAssert hasOption(String key, String value) {
+	public ApplicationExceptionAssert hasOption(Object key, Object value) {
 		isNotNull();
 
-		assertThat(actual.getDeveloperLog().getOptions()).containsKeys(key);
+		assertThat(actual.getDeveloperLog().getOptions()).containsKeys(String.valueOf(key));
 		assertThat(actual.getDeveloperLog().getOptions().get(key))
 				.asString()
-				.contains(value);
-
-		return this;
-	}
-
-	public ApplicationExceptionAssert hasCause(Class<? extends Throwable> cause) {
-		isNotNull();
-
-		assertThat(actual.getCause()).isInstanceOf(cause);
+				.contains(String.valueOf(value));
 
 		return this;
 	}

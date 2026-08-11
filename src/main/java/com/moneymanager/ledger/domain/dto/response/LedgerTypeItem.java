@@ -1,17 +1,15 @@
 package com.moneymanager.ledger.domain.dto.response;
 
 import com.moneymanager.ledger.domain.enums.CategoryType;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.dto.response<br>
- * 파일이름       : LedgerTypeResponse<br>
+ * 파일이름       : LedgerTypeItem<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 1. 5<br>
  * 설명              : 가계부 유형 정보를 클라이언트에게 전달하기 위한 클래스
@@ -36,16 +34,26 @@ import java.util.stream.Collectors;
  * </table>
  */
 @Getter
-@AllArgsConstructor
-public class LedgerTypeResponse {
+public class LedgerTypeItem {
 
 	private final String label;		//사용자 화면 문구
 	private final String value;		//가계부 유형 코드
 
-	public static List<LedgerTypeResponse> fromEnum() {
+	private LedgerTypeItem(String label, String value) {
+		this.label = label;
+		this.value = value.toLowerCase();
+	}
+
+	public static List<LedgerTypeItem> findAll() {
 		return Arrays.stream(CategoryType.values())
-				.map(t -> new LedgerTypeResponse(t.getLabel(), t.getPrefix()))
-				.collect(Collectors.toList());
+				.map(LedgerTypeItem::from)
+				.toList();
+	}
+
+
+	//===== findAll 보조 메서드 ======
+	private static LedgerTypeItem from(CategoryType type) {
+		return new LedgerTypeItem(type.getLabel(), type.name());
 	}
 
 }

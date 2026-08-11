@@ -90,7 +90,7 @@ public class LedgerController {
 	public String showEditForm(@PathVariable String code, Model model) {
 		model.addAttribute("ledger", ledgerReadService.getEditData(code));
 
-		model.addAttribute("fixes", FixedYN.values());
+		model.addAttribute("fixes", FixedType.values());
 		model.addAttribute("fixCycles", FixCycle.values());
 		model.addAttribute("paymentTypes", PaymentType.values());
 

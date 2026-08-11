@@ -43,8 +43,4 @@ public enum CategoryErrorCode implements ErrorCode {
 		return code;
 	}
 
-	@Override
-	public String getDefaultMessage() {
-		return defaultMessage;
-	}
 }

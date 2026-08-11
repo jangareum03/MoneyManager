@@ -110,8 +110,8 @@ public class LedgerReadServiceIT extends IntegrationTestSupport {
 				assertThat(result.getTypes())
 						.hasSize(2)
 						.extracting(
-								LedgerTypeResponse::getLabel,
-								LedgerTypeResponse::getValue
+								LedgerTypeItem::getLabel,
+								LedgerTypeItem::getValue
 						)
 						.containsExactly(
 								Tuple.tuple("수입", "01"),

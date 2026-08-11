@@ -1,9 +1,11 @@
 package com.moneymanager.ledger.domain.dto.response;
 
 
-import lombok.Builder;
+import com.moneymanager.global.domain.enums.DatePatterns;
+import com.moneymanager.global.util.date.DateTimeUtil;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -34,16 +36,36 @@ import java.util.List;
  * </table>
  */
 @Getter
-@Builder
 public class LedgerWriteStep1Response {
-	private final List<LedgerTypeResponse> types;						//가계부 유형
+	private final List<LedgerTypeItem> types;								//가계부 유형
 	private final List<Integer> years;												//연도 목록
 	private final List<Integer> months;											//월 목록
 	private final List<Integer> days;												//일 목록
 
-	private final int currentYear;													//현재 연도
-	private final int currentMonth;												//현재 월
-	private final int currentDay;														//현재 일
+	private final Integer currentYear;											//현재 연도
+	private final Integer currentMonth;										//현재 월
+	private final Integer currentDay;												//현재 일
 
 	private final String displayDate;												//날짜를 문자열로 표현
+
+	private LedgerWriteStep1Response(List<Integer> years, List<Integer> months, List<Integer> days) {
+		this.types = LedgerTypeItem.findAll();
+
+		this.years = years;
+		this.months = months;
+		this.days = days;
+
+		LocalDate today = LocalDate.now();
+
+		this.currentYear = today.getYear();
+		this.currentMonth = today.getMonthValue();
+		this.currentDay = today.getDayOfMonth();
+
+		this.displayDate = DateTimeUtil.formatDate(today, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
+	}
+
+	public static LedgerWriteStep1Response of(List<Integer> years, List<Integer> months, List<Integer> days) {
+		return new LedgerWriteStep1Response(years, months, days);
+	}
+
 }

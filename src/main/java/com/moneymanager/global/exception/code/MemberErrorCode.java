@@ -51,8 +51,4 @@ public enum MemberErrorCode implements ErrorCode{
 		return code;
 	}
 
-	@Override
-	public String getDefaultMessage() {
-		return defaultMessage;
-	}
 }

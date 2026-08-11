@@ -9,7 +9,7 @@ import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.enums.FixCycle;
-import com.moneymanager.ledger.domain.enums.FixedYN;
+import com.moneymanager.ledger.domain.enums.FixedType;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.CategoryTestData;
@@ -166,9 +166,9 @@ public class LedgerTest {
 				Ledger result = Ledger.create(memberId, request);
 				
 				//then:
-				FixedYN expectedFix = request.getFixed() == null
+				FixedType expectedFix = request.getFixed() == null
 						? null
-						: FixedYN.from(request.getFixed());
+						: FixedType.from(request.getFixed());
 
 				FixCycle expectedCycle = request.getFixCycle() == null
 						? null
@@ -426,7 +426,7 @@ public class LedgerTest {
 		@BeforeEach
 		void setUp() {
 			ledger = LedgerFixture.savedLedger(1L)
-					.fix(FixedYN.REPEAT)
+					.fix(FixedType.REPEAT)
 					.fixCycle(FixCycle.YEARLY)
 					.build();
 		}
@@ -446,7 +446,7 @@ public class LedgerTest {
 				ledger.changeFixInfo(fix, null);
 
 				//then: 고정주기가 변경된다.
-				assertThat(ledger.getFix()).isEqualTo(FixedYN.VARIABLE);
+				assertThat(ledger.getFix()).isEqualTo(FixedType.VARIABLE);
 				assertThat(ledger.getFixCycle()).isNull();
 
 				assertThat(ledger.getUpdatedAt()).isNotNull();
@@ -456,7 +456,7 @@ public class LedgerTest {
 			@DisplayName("기존값과 동일하면 아무것도 수정하지 않는다.")
 			void doesNothing_whenValueIsEqual() {
 				//given: 기존 가계부에 포함된 fix, fixCycle 이 준비되어 있다.
-				FixedYN beforeFix = ledger.getFix();
+				FixedType beforeFix = ledger.getFix();
 				FixCycle beforeCycle = ledger.getFixCycle();
 				LocalDateTime beforeUpdateAt = ledger.getUpdatedAt();
 
@@ -477,7 +477,7 @@ public class LedgerTest {
 				ledger.changeFixInfo("y", "m");
 				
 				//then: 고정주기만 변경된다.
-				assertThat(ledger.getFix()).isEqualTo(FixedYN.REPEAT);
+				assertThat(ledger.getFix()).isEqualTo(FixedType.REPEAT);
 				assertThat(ledger.getFixCycle()).isEqualTo(FixCycle.MONTHLY);
 			}
 

@@ -2,7 +2,7 @@ package com.moneymanager.global.security;
 
 import com.moneymanager.delete.domain.member.Member;
 import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.log.DeveloperLogInfo;
+import com.moneymanager.global.log.LogContent;
 import com.moneymanager.delete.service.validation.MemberValidator;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -72,14 +72,14 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 						if (userDetails.getFailureCount() >= 5) {    //로그인 실패를 5번한 경우
 							throw BusinessException.of(
 									MBR_LIMIT_EXCEEDED,
-									DeveloperLogInfo.of(work, "로그인 횟수 초과", Member.class, DeveloperLogInfo.valueOf("username", username, "password", "********")),
+									LogContent.ofTarget(work, "로그인 횟수 초과", Member.class, "username", username, "password", "********"),
 									"연속적인 로그인 실패로 오늘은 로그인이 불가능합니다. 내일 다시 시도해주세요."
 							);
 						}
 
 						throw BusinessException.of(
 										MBR_INVALID_CREDENTIALS,
-										DeveloperLogInfo.of(work, "비밀번호 불일치", Member.class, DeveloperLogInfo.valueOf("username", username, "failureCount", userDetails.getFailureCount())),
+										LogContent.ofTarget(work, "비밀번호 불일치", Member.class, "username", username, "failureCount", userDetails.getFailureCount()),
 										"아이디 또는 비밀번호를 확인해주세요."
 								);
 					}
@@ -88,29 +88,29 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 				}
 				case LOCKED -> throw BusinessException.of(
 						MBR_ACCOUNT_LOCKED,
-						DeveloperLogInfo.of(work, "잠긴 계정으로 로그인", Member.class, DeveloperLogInfo.valueOf("username", username, "status", userDetails.getStatus().name())),
+						LogContent.ofTarget(work, "잠긴 계정으로 로그인", Member.class, "username", username, "status", userDetails.getStatus().name()),
 						"계정이 잠겨있어 로그인이 불가능합니다. 내일 다시 시도해주세요."
 				);
 				case REPAIR -> throw BusinessException.of(
 						MBR_ACCOUNT_DISABLED,
-						DeveloperLogInfo.of(work, "탈퇴 계정으로 로그인", Member.class, DeveloperLogInfo.valueOf("username", username, "status", userDetails.getStatus().name())),
+						LogContent.ofTarget(work, "탈퇴 계정으로 로그인", Member.class, "username", username, "status", userDetails.getStatus().name()),
 						"해당 계정은 탈퇴된 상태로 로그인이 불가능합니다. 가입하실 때 입력하신 이메일로 임시 비밀번호를 보내드렸으니, 다시 한 번 로그인 부탁드립니다."
 				);
 				case DELETE -> throw BusinessException.of(
 						MBR_ACCOUNT_DELETED,
-						DeveloperLogInfo.of(work, "탈퇴 계정으로 로그인", Member.class, DeveloperLogInfo.valueOf("username", username, "status", userDetails.getStatus().name())),
+						LogContent.ofTarget(work, "탈퇴 계정으로 로그인", Member.class, "username", username, "status", userDetails.getStatus().name()),
 						"회원가입 하지 않는 아이디입니다. 회원가입을 진행해 주세요."
 				);
 				case UNKNOWN -> throw BusinessException.of(
 						MBR_FORBIDDEN,
-						DeveloperLogInfo.of(work, "권한 없는 계정으로 로그인", Member.class, DeveloperLogInfo.valueOf("username", username, "status", userDetails.getStatus().name())),
+						LogContent.ofTarget(work, "권한 없는 계정으로 로그인", Member.class, "username", username, "status", userDetails.getStatus().name()),
 						"알 수 없는 회원 계정 상태입니다. 잠시 후 다시 시도해주세요."
 				);
 			};
 		}catch (EmptyResultDataAccessException e) {
 			throw BusinessException.of(
 					MBR_INVALID_CREDENTIALS,
-					DeveloperLogInfo.of(work, "없는 계정으로 로그인", "username", username),
+					LogContent.ofField(work, "없는 계정으로 로그인", "username", username),
 					"아이디 또는 비밀번호를 확인해주세요."
 			);
 		}

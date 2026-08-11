@@ -1,7 +1,7 @@
 package com.moneymanager.global.exception.exception;
 
 import com.moneymanager.global.exception.code.ErrorCode;
-import com.moneymanager.global.log.DeveloperLogInfo;
+import com.moneymanager.global.log.LogContent;
 
 /**
  * <p>
@@ -34,24 +34,24 @@ public class ExternalException extends ApplicationException {
 
 	private Throwable throwable;
 
-	private ExternalException(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
+	private ExternalException(ErrorCode errorCode, LogContent logInfo, String userMessage) {
 		super(errorCode, logInfo, userMessage);
 	}
 
-	private ExternalException(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage, Throwable throwable) {
+	private ExternalException(ErrorCode errorCode, LogContent logInfo, String userMessage, Throwable throwable) {
 		super(errorCode, logInfo, userMessage, throwable);
 	}
 
-	public static ExternalException of(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
+	public static ExternalException of(ErrorCode errorCode, LogContent logInfo, String userMessage) {
 		return new ExternalException(errorCode, logInfo, userMessage);
 	}
 
-	public static ExternalException of(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage, Throwable throwable) {
+	public static ExternalException of(ErrorCode errorCode, LogContent logInfo, String userMessage, Throwable throwable) {
 		return new ExternalException(errorCode, logInfo, userMessage, throwable);
 	}
 
 	@Override
-	protected ExternalException newInstance(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
+	protected ExternalException newInstance(ErrorCode errorCode, LogContent logInfo, String userMessage) {
 		return new ExternalException(errorCode, logInfo, userMessage);
 	}
 

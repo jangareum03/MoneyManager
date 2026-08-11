@@ -1,7 +1,7 @@
 package com.moneymanager.support.fixture.entity;
 
 import com.moneymanager.ledger.domain.entity.Ledger;
-import com.moneymanager.ledger.domain.enums.FixedYN;
+import com.moneymanager.ledger.domain.enums.FixedType;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.support.data.CategoryTestData;
@@ -26,7 +26,7 @@ public final class LedgerFixture {
 				.memberId(MemberTestData.MEMBER_ID)
 				.date(LedgerTestData.LOCAL_DATE)
 				.category(CategoryTestData.SALARY_CODE)
-				.fix(FixedYN.from(LedgerTestData.FIX_N))
+				.fix(FixedType.from(LedgerTestData.FIX_N))
 				.money(Money.of(LedgerTestData.AMOUNT, PaymentType.from(LedgerTestData.PAYMENT_TYPE)));
 	}
 

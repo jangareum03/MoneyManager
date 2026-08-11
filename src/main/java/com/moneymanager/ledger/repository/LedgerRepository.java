@@ -1,9 +1,9 @@
 package com.moneymanager.ledger.repository;
 
+import com.moneymanager.ledger.domain.enums.FixedType;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.FixCycle;
-import com.moneymanager.ledger.domain.enums.FixedYN;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
@@ -60,10 +60,10 @@ public class LedgerRepository {
 		String fixed = rs.getString("fix");
 		String fixCycle = rs.getString("fix_cycle");
 
-		FixedYN fixedYN = FixedYN.from(fixed);
+		FixedType fixedYN = FixedType.from(fixed);
 
 		FixCycle cycleType = null;
-		if( fixedYN == FixedYN.REPEAT ) {
+		if( fixedYN == FixedType.REPEAT ) {
 			cycleType = FixCycle.from(fixCycle);
 		}
 

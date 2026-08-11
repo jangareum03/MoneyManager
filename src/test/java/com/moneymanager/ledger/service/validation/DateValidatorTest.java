@@ -1,10 +1,9 @@
 package com.moneymanager.ledger.service.validation;
 
 import com.moneymanager.global.domain.vo.DateRange;
-import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.log.DeveloperLogInfo;
 import com.moneymanager.global.validation.DateValidator;
+import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -316,9 +315,7 @@ public class DateValidatorTest {
 						.hasWork("기간 검증")
 						.hasCauseMessage("시작일 > 종료일")
 						.hasTarget(DateRange.class)
-						.hasValue(
-								DeveloperLogInfo.valueOf("from", start, "to", end)
-						)
+						.hasValue("from", start, "to", end)
 						.hasUserMessage("종료일", "yyyyMMdd 형식");
 			}
 

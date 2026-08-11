@@ -49,9 +49,4 @@ public enum LedgerErrorCode implements ErrorCode {
 		return code;
 	}
 
-	@Override
-	public String getDefaultMessage() {
-		return defaultMessage;
-	}
-
 }

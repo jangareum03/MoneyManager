@@ -7,7 +7,7 @@ import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.enums.FixCycle;
-import com.moneymanager.ledger.domain.enums.FixedYN;
+import com.moneymanager.ledger.domain.enums.FixedType;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.service.policy.Policy;
 import lombok.Builder;
@@ -64,7 +64,7 @@ public class Ledger {
 	private Money money;								//금액정보
 	private Place place;									//장소
 
-	private FixedYN fix;									//고정여부
+	private FixedType fix;									//고정여부
 	private FixCycle fixCycle;							//고정주기
 
 	private final LocalDateTime createdAt;			//등록일
@@ -86,7 +86,7 @@ public class Ledger {
 				.code(code)
 				.memberId(memberId)
 				.date(DateTimeUtil.parseDateFromYyyyMMdd(request.getDate()))
-				.fix(FixedYN.from(request.getFixed()))
+				.fix(FixedType.from(request.getFixed()))
 				.fixCycle(request.getFixCycle() != null ? FixCycle.from(request.getFixCycle()) : null)
 				.category(request.getCategoryCode())
 				.memo(request.getMemo())
@@ -98,7 +98,7 @@ public class Ledger {
 	public void changeFixInfo(String fixed, String fixCycle) {
 		validateFixInfo(fixed, fixCycle);
 
-		FixedYN newFix = FixedYN.from(fixed);
+		FixedType newFix = FixedType.from(fixed);
 		FixCycle newCycle = fixCycle == null ? null : FixCycle.from(fixCycle);
 
 		if(Objects.equals(this.fix, newFix) && Objects.equals(this.fixCycle, newCycle)) {
@@ -160,9 +160,9 @@ public class Ledger {
 	}
 
 	private static void validateFixInfo(String fix, String cycle) {
-		FixedYN fixedYN = FixedYN.from(fix);
+		FixedType fixedYN = FixedType.from(fix);
 
-		if(fixedYN == FixedYN.REPEAT) {
+		if(fixedYN == FixedType.REPEAT) {
 			FixCycle.from(cycle);
 
 			return;

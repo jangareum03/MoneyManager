@@ -2,7 +2,7 @@ package com.moneymanager.ledger.domain.dto.response;
 
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.FixCycle;
-import com.moneymanager.ledger.domain.enums.FixedYN;
+import com.moneymanager.ledger.domain.enums.FixedType;
 import lombok.Getter;
 
 /**
@@ -34,10 +34,10 @@ import lombok.Getter;
  */
 @Getter
 public class LedgerFixed {
-	private final FixedYN fix;			//고정적으로 가계부 작성할지 여부
+	private final FixedType fix;			//고정적으로 가계부 작성할지 여부
 	private final FixCycle cycle;		//일회성이면 null, 반복이면 선택한 주기
 
-	private LedgerFixed(FixedYN fix, FixCycle cycle) {
+	private LedgerFixed(FixedType fix, FixCycle cycle) {
 		this.fix = fix;
 		this.cycle = cycle;
 	}
@@ -45,7 +45,7 @@ public class LedgerFixed {
 	public static LedgerFixed from(Ledger ledger) {
 		FixCycle period = null;
 
-		if( ledger.getFix() == FixedYN.REPEAT && ledger.getFixCycle() != null ) {
+		if( ledger.getFix() == FixedType.REPEAT && ledger.getFixCycle() != null ) {
 			period = ledger.getFixCycle();
 		}
 

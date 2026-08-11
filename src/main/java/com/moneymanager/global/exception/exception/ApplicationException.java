@@ -1,7 +1,7 @@
 package com.moneymanager.global.exception.exception;
 
 import com.moneymanager.global.exception.code.ErrorCode;
-import com.moneymanager.global.log.DeveloperLogInfo;
+import com.moneymanager.global.log.LogContent;
 import lombok.Getter;
 
 /**
@@ -35,14 +35,14 @@ import lombok.Getter;
 public abstract class ApplicationException extends RuntimeException {
 
 	private final ErrorCode errorCode;							//에러코드
-	private final DeveloperLogInfo developerLog;		//개발 로그정보
+	private final LogContent developerLog;		//개발 로그정보
 	private final String userMessage;								//안내 메시지
 
-	protected ApplicationException(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage) {
+	protected ApplicationException(ErrorCode errorCode, LogContent logInfo, String userMessage) {
 		this(errorCode, logInfo, userMessage, null);
 	}
 
-	protected ApplicationException(ErrorCode errorCode, DeveloperLogInfo logInfo, String userMessage, Throwable throwable) {
+	protected ApplicationException(ErrorCode errorCode, LogContent logInfo, String userMessage, Throwable throwable) {
 		super(throwable);
 
 		this.errorCode = errorCode;
@@ -56,7 +56,7 @@ public abstract class ApplicationException extends RuntimeException {
 
 	protected abstract ApplicationException newInstance(
 			ErrorCode errorCode,
-			DeveloperLogInfo logInfo,
+			LogContent logInfo,
 			String userMessage
 	);
 
