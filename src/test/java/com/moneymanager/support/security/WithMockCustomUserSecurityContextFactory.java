@@ -1,10 +1,10 @@
 package com.moneymanager.support.security;
 
 
-import com.moneymanager.support.fixture.entity.MemberFixture;
-import com.moneymanager.delete.domain.member.Member;
-import com.moneymanager.delete.domain.member.MemberInfo;
 import com.moneymanager.global.security.CustomUserDetails;
+import com.moneymanager.member.domain.dto.MemberAuth;
+import com.moneymanager.member.domain.enums.MemberStatus;
+import com.moneymanager.support.data.MemberTestData;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -19,23 +19,23 @@ final class WithMockCustomUserSecurityContextFactory implements WithSecurityCont
 	public SecurityContext createSecurityContext(WithMockCustomUser withMockCustomUser) {
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
 
-		MemberInfo memberInfo = MemberFixture.createMemberInfo(withMockCustomUser.memberId()).build();
+		MemberAuth memberAuth = MemberAuth.builder()
+															.memberId(MemberTestData.MEMBER_ID)
+															.username(MemberTestData.USERNAME)
+															.password(MemberTestData.PASSWORD)
+															.role("ROLE_USER")
+															.status(MemberStatus.ACTIVE)
+															.loginFailCount(1)
+															.deletedDate(null)
+															.build();
 
-		Member member = Member.builder()
-				.id(withMockCustomUser.memberId())
-				.userName(withMockCustomUser.username())
-				.password(withMockCustomUser.password())
-				.role("ROLE_" + withMockCustomUser.role())
-				.memberInfo(memberInfo)
-				.build();
-
-		CustomUserDetails principal = new CustomUserDetails(member);
+		CustomUserDetails principal = new CustomUserDetails(memberAuth);
 
 		UsernamePasswordAuthenticationToken authenticationToken =
 				new UsernamePasswordAuthenticationToken(
 						principal,
 						principal.getPassword(),
-						List.of(new SimpleGrantedAuthority(member.getRole()))
+						List.of(new SimpleGrantedAuthority(memberAuth.getRole()))
 				);
 
 		context.setAuthentication(authenticationToken);
