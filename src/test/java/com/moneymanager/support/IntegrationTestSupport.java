@@ -12,6 +12,8 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 public abstract class IntegrationTestSupport {
 
+	protected String token;
+
 	@Autowired
 	protected MemberRepository memberRepository;
 

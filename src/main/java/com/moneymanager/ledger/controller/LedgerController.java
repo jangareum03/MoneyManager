@@ -52,9 +52,7 @@ public class LedgerController {
 
 	private final LedgerReadService ledgerReadService;
 	private final LedgerCommandService ledgerCommandService;
-
 	private final LedgerValidator ledgerValidator;
-
 
 	@GetMapping
 	public String getHistories(@RequestParam(required = false) String viewType, Model model) {
@@ -77,14 +75,12 @@ public class LedgerController {
 		}
 	}
 
-
 	@GetMapping("/{code}")
 	public String getLedgerDetail(@PathVariable String code, Model model) {
 		model.addAttribute("ledger", ledgerReadService.getDetailData(code));
 
 		return "/ledger/ledger_detail";
 	}
-
 
 	@GetMapping("/{code}/edit")
 	public String showEditForm(@PathVariable String code, Model model) {
@@ -97,16 +93,6 @@ public class LedgerController {
 		return "/ledger/ledger_edit";
 	}
 
-
-	/**
-	 * 가계부 초기 작성에 필요한 정보를 조회 후 가계부 작성 1단계 페이지를 반환합니다.
-	 * <p>
-	 *     가계부 신규 작성 흐름의 첫 번째 단계로, 현재 날짜 정보를 포함한 작성에 필요한 초기 데이터를 전달합니다.
-	 * </p>
-	 *
-	 * @param  model		뷰에 전달할 객체
-	 * @return 가계부 작성 1단계 화면의 경로
-	 */
 	@GetMapping("/new/step1")
 	public String showWriteStep1Form(Model model){
 		LedgerWriteStep1Response response = ledgerReadService.getWriteStep1Data();
@@ -116,26 +102,6 @@ public class LedgerController {
 		return "/ledger/ledger_writeStep1";
 	}
 
-
-	/**
-	 * 가계부 2단계 작성에 필요한 정보와 가계부 작성 2단계 페이지를 반환합니다.
-	 * <p>
-	 *		가계부 유형과 거래날짜를 이용해 필요한 데이터를 조회합니다.
-	 *		유형과 거래날짜가 올바르지 않으면, 기본값으로 대체하여 진행합니다.
-	 * </p>
-	 * <p>
-	 *     기본값은 아래와 같습니다.
-	 *     <ul>
-	 *         <li>가계부 유형({@code type}): {@link CategoryType#INCOME}</li>
-	 *         <li>가계부 거래날짜({@code date}): {@link LocalDate#now()}</li>
-	 *     </ul>
-	 * </p>
-	 *
-	 * @param type		가계부 유형 문자열(예: {@code income})
-	 * @param date		가계부 거래 날짜(형식: {@code yyyyMMdd})
-	 * @param model	뷰에 전달할 데이터를 담은 객체
-	 * @return 가계부 작성 2단계 화면의 경로
-	 */
 	@GetMapping("/new/step2")
 	public String showWriteStep2Form(@RequestParam String type, @RequestParam String date, Model model) {
 		//입력값 확인
@@ -157,15 +123,6 @@ public class LedgerController {
 		}
 	}
 
-	/**
-	 * 가계부 등록 요청을 처리합니다.
-	 * <p>
-	 *    사용자로부터 전달받은 가계부 작성 데이터를 통해 가계부를 생성하고 목록 페이지로 리다이렉트합니다.
-	 * </p>
-	 *
-	 * @param request	가계부 작성 요청 데이터
-	 * @return	가계부 목록 페이지로의 리다이렉트 경로
-	 */
 	@PostMapping
 	public String createLedger(@ModelAttribute("ledger") LedgerWriteRequest request) {
 		ledgerValidator.register(request);
@@ -174,4 +131,5 @@ public class LedgerController {
 
 		return "redirect:/ledgers";
 	}
+
 }

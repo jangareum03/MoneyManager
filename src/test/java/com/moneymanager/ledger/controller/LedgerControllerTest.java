@@ -51,7 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(LedgerController.class)
 @AutoConfigureMockMvc(addFilters = false)
-public class LedgerControllerTest extends ControllerTestSupport {
+class LedgerControllerTest extends ControllerTestSupport {
 
 	private static final String BASE_URI = "/ledgers";
 

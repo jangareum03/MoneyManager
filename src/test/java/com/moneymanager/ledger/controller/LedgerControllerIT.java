@@ -6,8 +6,8 @@ import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.ledger.service.validation.LedgerValidator;
+import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTestSupport;
-import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberFixture;
 import com.moneymanager.support.security.WithMockCustomUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,7 +79,12 @@ public class LedgerControllerIT extends IntegrationTestSupport {
 		clock = new MutableClock();
 		clock.set(LocalDate.of(2026, 3, 10));
 
-		memberRepository.save(MemberFixture.member(passwordEncoder).build());
+		//회원 저장
+		Member member = MemberFixture.member(passwordEncoder).build();
+
+		memberRepository.save(member);
+
+		token = tokenProvider.createAccessToken(member.getUserName(), List.of(member.getRole()));
 	}
 
 	@Nested
@@ -96,9 +101,6 @@ public class LedgerControllerIT extends IntegrationTestSupport {
 			@Test
 			@DisplayName("현재 날짜 기준 가계부 작성 페이지를 조회한다.")
 			void returnsLedgerWritePage_whenCurrentDateIsGiven() throws Exception {
-				//given
-				String token = tokenProvider.createAccessToken(MemberTestData.USERNAME, List.of(MemberTestData.ROLE));
-
 				//when & then
 				mockMvc.perform(
 						get(URI)
