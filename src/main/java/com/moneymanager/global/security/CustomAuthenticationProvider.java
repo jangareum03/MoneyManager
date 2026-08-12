@@ -63,13 +63,15 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 			throw new LockedException("잠긴 계정입니다.");
 		}
 
-		if(userDetails.isEnabled()) {
-			if(!passwordEncoder.matches(userPassword, userDetails.getPassword())) {
-				throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
-			}
+		if(!userDetails.isEnabled()) {
+			throw new DisabledException("비활성화 계정입니다.");
 		}
 
-		return new UsernamePasswordAuthenticationToken(userDetails, userPassword, userDetails.getAuthorities());
+		if(!passwordEncoder.matches(userPassword, userDetails.getPassword())) {
+			throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
+		}
+
+		return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 	}
 
 	@Override

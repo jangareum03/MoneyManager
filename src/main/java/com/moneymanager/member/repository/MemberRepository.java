@@ -101,7 +101,7 @@ public class MemberRepository {
 
 	public MemberAuth findAuthByUsername(String username) {
 		String query = """
-				SELECT m.id, m.username, m.password, m.role, m.status, m.deleted_at, mi.failure_count
+				SELECT m.id, m.username, m.password, m.nickname, m.role, m.status, m.deleted_at, mi.profile, mi.failure_count
 				FROM member m JOIN member_info mi
 					ON m.id = mi.id
 				WHERE username=?
@@ -116,6 +116,8 @@ public class MemberRepository {
 							.memberId(rs.getString("id"))
 							.username(rs.getString("username"))
 							.password(rs.getString("password"))
+							.nickname(rs.getString("nickname"))
+							.profile(rs.getString("profile"))
 							.role(rs.getString("role"))
 							.status(status)
 							.loginFailCount(rs.getInt("failure_count"))

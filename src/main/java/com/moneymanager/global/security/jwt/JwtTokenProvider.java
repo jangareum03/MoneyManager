@@ -5,7 +5,6 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -62,17 +61,7 @@ public class JwtTokenProvider {
 	}
 
 
-	/**
-	 * Access Token 생성합니다.
-	 * <p>
-	 *     클라이언트가 가지고 있는 정보가 담긴 토큰입니다.
-	 * </p>
-	 *
-	 * @param authentication	스프링 시큐리티가 관리하는 사용자 정보
-	 * @return	사용자 정보를 담은 토큰
-	 */
-	public String generateAccessToken(Authentication authentication) {
-		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+	public String generateAccessToken(CustomUserDetails userDetails) {
 		List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
 		Date now = new Date();
@@ -82,7 +71,9 @@ public class JwtTokenProvider {
 
 		return Jwts.builder()
 				.subject(userDetails.getUsername())													//토큰 제목
-				.claim("role", roles)																//클레임 설정
+				.claim("nickname", userDetails.getNickname())					//클레임 설정
+				.claim("profile", userDetails.getProfile())
+				.claim("role", roles)
 				.issuedAt(now)																					//토큰 발급시간
 				.expiration(new Date(now.getTime() + accessTokenLimit))			//토큰 만료시간
 				.signWith(key)																					//서버키를 암호화
@@ -97,16 +88,7 @@ public class JwtTokenProvider {
 				.compact();
 	}
 
-	/**
-	 * Refresh Token 생성합니다.
-	 * <p>
-	 *     Access Token 만료시간이 되면 새로운 토큰을 발급해주기 위한 토큰입니다.
-	 * </p>
-	 *
-	 * @param authentication	스프링 시큐리티가 관리하는 사용자 정보
-	 * @return	토큰
-	 */
-	public String generateRefreshToken(Authentication authentication) {
+	public String generateRefreshToken(CustomUserDetails userDetails) {
 		Date now = new Date();
 
 		long refreshTokenLimit = 1000 * 60 * 60 * 24;	// 1일(=24시간)

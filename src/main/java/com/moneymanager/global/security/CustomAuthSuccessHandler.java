@@ -55,8 +55,8 @@ public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHand
 		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
 		//토큰 생성
-		String accessToken = jwtTokenProvider.generateAccessToken(authentication);
-		String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+		String accessToken = jwtTokenProvider.generateAccessToken(userDetails);
+		String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
 
 		//DB저장
 		tokenRepository.saveToken(userDetails.getId(), accessToken, refreshToken );

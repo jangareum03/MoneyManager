@@ -40,22 +40,10 @@ import java.util.Collections;
  */
 public class CustomUserDetails implements UserDetails {
 
-	private final String memberId;
-	private final String username;
-	private final String password;
-	private final String role;
-	private final MemberStatus status;
-	private final int failCount;
-	private final LocalDateTime cancellationDate;
+	private final MemberAuth memberAuth;
 
 	public CustomUserDetails(MemberAuth memberAuth) {
-		this.memberId = memberAuth.getMemberId();
-		this.username = memberAuth.getUsername();
-		this.password = memberAuth.getPassword();
-		this.role = memberAuth.getRole();
-		this.status = memberAuth.getStatus();
-		this.failCount = memberAuth.getLoginFailCount();
-		this.cancellationDate = memberAuth.getDeletedDate();
+		this.memberAuth = memberAuth;
 	}
 
 	/**
@@ -65,7 +53,7 @@ public class CustomUserDetails implements UserDetails {
 	 */
 	@Override
 	public String getUsername() {
-		return username;
+		return memberAuth.getUsername();
 	}
 
 	/**
@@ -75,7 +63,7 @@ public class CustomUserDetails implements UserDetails {
 	 */
 	@Override
 	public String getPassword() {
-		return password;
+		return memberAuth.getPassword();
 	}
 
 	/**
@@ -85,7 +73,7 @@ public class CustomUserDetails implements UserDetails {
 	 */
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return Collections.singletonList(new SimpleGrantedAuthority(role));
+		return Collections.singletonList(new SimpleGrantedAuthority(memberAuth.getRole()));
 	}
 
 	/**
@@ -95,7 +83,7 @@ public class CustomUserDetails implements UserDetails {
 	 */
 	@Override
 	public boolean isEnabled() {
-		return status == MemberStatus.ACTIVE && failCount < 5;
+		return memberAuth.getStatus() == MemberStatus.ACTIVE && memberAuth.getLoginFailCount() < 5;
 	}
 
 	/**
@@ -105,7 +93,7 @@ public class CustomUserDetails implements UserDetails {
 	 */
 	@Override
 	public boolean isAccountNonLocked() {
-		return !(status == MemberStatus.LOCKED) && failCount < 5;
+		return !(memberAuth.getStatus() == MemberStatus.LOCKED) && memberAuth.getLoginFailCount() < 5;
 	}
 
 	/**
@@ -117,9 +105,9 @@ public class CustomUserDetails implements UserDetails {
 	public boolean isAccountNonExpired() {
 		LocalDateTime dayAgo = LocalDateTime.now().minusMonths(1);
 
-		return !( (status == MemberStatus.DELETED || status == MemberStatus.REPAIR)
-				&& cancellationDate != null
-				&& (cancellationDate.isBefore(dayAgo)) );
+		return !( (memberAuth.getStatus() == MemberStatus.DELETED || memberAuth.getStatus() == MemberStatus.REPAIR)
+				&& memberAuth.getDeletedDate() != null
+				&& (memberAuth.getDeletedDate().isBefore(dayAgo)) );
 	}
 
 	/**
@@ -137,7 +125,15 @@ public class CustomUserDetails implements UserDetails {
 	 * @return	회원번호(PK)
 	 */
 	public String getId() {
-		return memberId;
+		return memberAuth.getMemberId();
+	}
+
+	public String getNickname() {
+		return memberAuth.getNickname();
+	}
+
+	public String getProfile() {
+		return memberAuth.getProfile();
 	}
 
 }

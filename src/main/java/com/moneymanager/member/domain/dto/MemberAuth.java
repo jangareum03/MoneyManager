@@ -40,6 +40,8 @@ public class MemberAuth {
 	private final String memberId;
 	private final String username;
 	private final String password;
+	private final String nickname;
+	private final String profile;
 	private final String role;
 	private final MemberStatus status;
 	private final int loginFailCount;
