@@ -1,11 +1,10 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.ledger.service.policy.Policy;
+import com.moneymanager.global.security.utils.SecurityUtil;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
 import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
-import com.moneymanager.global.security.utils.SecurityUtil;
-import com.moneymanager.delete.service.member.MemberReadService;
+import com.moneymanager.ledger.service.policy.Policy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +48,7 @@ public class LedgerImageReadService {
 
 	private final SecurityUtil securityUtil;
 
-	private final MemberReadService memberReadService;
+	//private final MemberReadService memberReadService;
 	private final LedgerImageRepository imageRepository;
 
 
@@ -58,10 +57,10 @@ public class LedgerImageReadService {
 		String memberId = securityUtil.getMemberId();
 
 		//2. 업로드 가능 개수
-		int allowedCount = memberReadService.getImageLimit(memberId);
+		//int allowedCount = memberReadService.getImageLimit(memberId);
 
 		//3. 슬롯 상태 생성
-		List<SlotStatus> slotStatuses = generateSlotStatuses(allowedCount, 0);
+		List<SlotStatus> slotStatuses = generateSlotStatuses(0, 0);
 
 		return createImageSlots(slotStatuses, Collections.emptyList());
 	}
@@ -72,7 +71,7 @@ public class LedgerImageReadService {
 		String memberId = securityUtil.getMemberId();
 
 		//2. 업로드 가능 개수
-		int allowedCount = memberReadService.getImageLimit(memberId);
+		//int allowedCount = memberReadService.getImageLimit(memberId);
 
 		//3. 저장된 이미지 조회
 		List<String> savedImages =
@@ -83,7 +82,7 @@ public class LedgerImageReadService {
 						.toList();
 
 		//4. 슬롯 상태 생성
-		List<SlotStatus> slotStatuses = generateSlotStatuses(allowedCount, savedImages.size());
+		List<SlotStatus> slotStatuses = generateSlotStatuses(0, savedImages.size());
 
 		//5. 상태 기반 슬롯 생성
 		return createImageSlots(slotStatuses, savedImages);

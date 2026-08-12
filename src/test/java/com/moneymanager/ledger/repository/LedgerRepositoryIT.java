@@ -1,19 +1,17 @@
 package com.moneymanager.ledger.repository;
 
+import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
+import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.enums.FixCycle;
 import com.moneymanager.ledger.domain.enums.FixedType;
+import com.moneymanager.ledger.domain.enums.PaymentType;
+import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
+import com.moneymanager.member.repository.MemberRepository;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerFixture;
-import com.moneymanager.support.fixture.entity.MemberFixture;
-import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
-import com.moneymanager.ledger.domain.entity.Ledger;
-import com.moneymanager.ledger.domain.enums.FixCycle;
-import com.moneymanager.ledger.domain.enums.PaymentType;
-import com.moneymanager.ledger.domain.dto.vo.Money;
-import com.moneymanager.delete.domain.member.Member;
-import com.moneymanager.delete.repository.member.MemberRepository;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -70,13 +68,6 @@ public class LedgerRepositoryIT {
 
 	@Autowired
 	private MemberRepository memberRepository;
-
-	private Member member;
-
-	@BeforeEach
-	void setUp() {
-		member = memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
-	}
 
 	@Nested
 	@DisplayName("가계부 저장")
@@ -453,9 +444,8 @@ public class LedgerRepositoryIT {
 			@DisplayName("다른 회원의 가계부는 조회되지 않는다.")
 			void throwsException_whenMemberIsNotOwnerOfLedger() {
 				//given: 다른 회원과 가계부가 저장된다.
-				Member otherMember = memberRepository.save(MemberFixture.builder().build());
 
-				Long ledgerId = target.insert(LedgerFixture.newLedger().memberId(otherMember.getId()).code("code").build());
+				Long ledgerId = target.insert(LedgerFixture.newLedger().memberId(MemberTestData.MEMBER_ID).code("code").build());
 				Ledger otherLedger = target.findById(ledgerId);
 				
 				//when & then: 가계부를 조회하면 EmptyResultDataAccessException이 발생한다.
@@ -491,9 +481,9 @@ public class LedgerRepositoryIT {
 			@DisplayName("저장된 전체 가계부가 조회한다.")
 			void returnsAllLedger_whenLedgersExist() {
 				//given: 여러 개의 가계부가 저장되어 있다.
-				target.insert(LedgerFixture.newLedger().memberId(member.getId()).code("code1").build());
-				target.insert(LedgerFixture.newLedger().memberId(member.getId()).code("code2").build());
-				target.insert(LedgerFixture.newLedger().memberId(member.getId()).code("code3").build());
+				target.insert(LedgerFixture.newLedger().memberId(MemberTestData.MEMBER_ID).code("code1").build());
+				target.insert(LedgerFixture.newLedger().memberId(MemberTestData.MEMBER_ID).code("code2").build());
+				target.insert(LedgerFixture.newLedger().memberId(MemberTestData.MEMBER_ID).code("code3").build());
 
 				//when: 전체 가계부를 조회한다.
 				List<Ledger> result = target.findAll();
@@ -533,11 +523,10 @@ public class LedgerRepositoryIT {
 			target.insert(LedgerFixture.newLedger().code("code5").date(LocalDate.of(2026, 1,5)).build());
 
 			//다른 회원의 가계부 추가
-			Member otherMember = memberRepository.save(MemberFixture.builder().build());
 
-			target.insert(LedgerFixture.newLedger().memberId(otherMember.getId()).code("code6").date(LocalDate.of(2026, 1,3)).build());
-			target.insert(LedgerFixture.newLedger().memberId(otherMember.getId()).code("code7").date(LocalDate.of(2026, 1,4)).build());
-			target.insert(LedgerFixture.newLedger().memberId(otherMember.getId()).code("code8").date(LocalDate.of(2026, 1,6)).build());
+			target.insert(LedgerFixture.newLedger().memberId("member123").code("code6").date(LocalDate.of(2026, 1,3)).build());
+			target.insert(LedgerFixture.newLedger().memberId("member123").code("code7").date(LocalDate.of(2026, 1,4)).build());
+			target.insert(LedgerFixture.newLedger().memberId("member123").code("code8").date(LocalDate.of(2026, 1,6)).build());
 		}
 
 		@Nested
@@ -548,7 +537,7 @@ public class LedgerRepositoryIT {
 			@DisplayName("시작일과 종료일 사이에 저장된 가계부가 조회된다.")
 			void returnsLedgers_whenDateIsInRange() {
 				//given: 작성한 회원ID, 시작일과 종료일이 주어진다.
-				String memberId = member.getId();
+				String memberId = MemberTestData.MEMBER_ID;
 				LocalDate start = LocalDate.of(2026, 1, 2);
 				LocalDate end = LocalDate.of(2026, 1, 6);
 
@@ -584,7 +573,7 @@ public class LedgerRepositoryIT {
 			@DisplayName("시작일이 포함된 가계부가 조회된다.")
 			void returnsLedgers_whenDateIsEqualToStartDate() {
 				//given: 작성한 회원ID, 시작일과 종료일이 주어진다.
-				String memberId = member.getId();
+				String memberId = MemberTestData.MEMBER_ID;
 				LocalDate start = LocalDate.of(2026, 1, 1);
 				LocalDate end = LocalDate.of(2026, 1, 4);
 
@@ -601,7 +590,7 @@ public class LedgerRepositoryIT {
 			@DisplayName("종료일이 포함된 가계부가 조회된다.")
 			void returnsLedgers_whenDateIsEqualToEndDate() {
 				//given: 작성한 회원ID, 시작일과 종료일이 주어진다.
-				String memberId = member.getId();
+				String memberId = MemberTestData.MEMBER_ID;
 				LocalDate start = LocalDate.of(2026, 1, 2);
 				LocalDate end = LocalDate.of(2026, 1, 3);
 
@@ -618,7 +607,7 @@ public class LedgerRepositoryIT {
 			@DisplayName("가계부 거래날짜와 가계부 ID가 최신순으로 가계부가 조회된다.")
 			void sortsLedgersByDateAndIdDesc() {
 				//given: 작성한 회원ID, 시작일과 종료일이 주어진다.
-				String memberId = member.getId();
+				String memberId = MemberTestData.MEMBER_ID;
 				LocalDate start = LocalDate.of(2026, 1, 1);
 				LocalDate end = LocalDate.of(2026, 1, 5);
 
@@ -644,7 +633,7 @@ public class LedgerRepositoryIT {
 			@DisplayName("시작일과 종료일 사이에 저장된 가계부가 없으면 빈 리스트가 반환된다.")
 			void returnsEmptyList_whenDateIsOutOfRange() {
 				//given: 작성한 회원ID, 시작일과 종료일이 주어진다.
-				String memberId = member.getId();
+				String memberId = MemberTestData.MEMBER_ID;
 				LocalDate start = LocalDate.of(2026, 1, 6);
 				LocalDate end = LocalDate.of(2026, 1, 10);
 

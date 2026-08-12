@@ -1,9 +1,9 @@
 package com.moneymanager.global.security.utils;
 
-import com.moneymanager.delete.domain.member.Member;
 import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.security.CustomUserDetails;
+import com.moneymanager.member.domain.entity.Member;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;

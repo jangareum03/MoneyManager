@@ -1,9 +1,11 @@
 package com.moneymanager.support;
 
+import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.member.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
@@ -15,5 +17,11 @@ public abstract class IntegrationTestSupport {
 
 	@Autowired
 	protected LedgerRepository ledgerRepository;
+
+	@Autowired
+	protected JwtTokenProvider tokenProvider;
+
+	@Autowired
+	protected PasswordEncoder passwordEncoder;
 
 }

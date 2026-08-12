@@ -2,6 +2,7 @@ package com.moneymanager.member.repository;
 
 import com.moneymanager.member.domain.dto.MemberAuth;
 import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.domain.enums.MemberStatus;
 import com.moneymanager.member.domain.enums.MemberType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -70,6 +71,33 @@ public class MemberRepository {
 				.deletedAt(deleted)
 				.build();
 	};
+
+	public void save(Member member) {
+		String query = """
+				INSERT INTO member(id, type, username, password, name, birthdate, nickname, email, created_at)
+					VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+				""";
+
+		jdbcTemplate.update(
+				query,
+				member.getId(), member.getType().getValue(), member.getUserName(), member.getPassword(),
+				member.getName(), member.getBirthDate(), member.getNickName(), member.getEmail(), member.getCreatedAt()
+		);
+
+		save(member.getInfo());
+	}
+
+	private void save(MemberInfo memberInfo) {
+		String query = """
+				INSERT INTO member_info(id, login_at)
+					VALUES (?, ?)
+				""";
+
+		jdbcTemplate.update(
+				query,
+				memberInfo.getId(), memberInfo.getLoginAt()
+		);
+	}
 
 	public MemberAuth findAuthByUsername(String username) {
 		String query = """

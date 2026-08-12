@@ -43,7 +43,7 @@ public class LoggingAspect {
 	private final OperationLogger logFormatter;
 
 	@AfterReturning(
-			pointcut = "execution(* com.moneymanager..service..*(..))",
+			pointcut = "execution(* com.moneymanager..service..*Service(..))",
 			returning = "result"
 	)
 	public void success(Object result) {

@@ -6,11 +6,13 @@ import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.security.Key;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 
 /**
  * <p>
@@ -43,8 +45,7 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-	private final Key key;
-	private final long accessTokenLimit = 1000 * 60 * 60;	//60분
+	private final SecretKey key;
 
 	public JwtTokenProvider(@Value("${secret.key}") String secretKey) {
 		this.key = initKey(secretKey);
@@ -57,7 +58,7 @@ public class JwtTokenProvider {
 	 * @return  HMAC-SHA 암호화된 서버키
 	 */
 	private SecretKey initKey(String secretKey) {
-		return Keys.hmacShaKeyFor(secretKey.getBytes());
+		return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
 	}
 
 
@@ -72,36 +73,27 @@ public class JwtTokenProvider {
 	 */
 	public String generateAccessToken(Authentication authentication) {
 		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+		List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
 		Date now = new Date();
 
+		//60분
+		long accessTokenLimit = 1000 * 60 * 60;
+
 		return Jwts.builder()
-				.setSubject(userDetails.getUsername())												//토큰 제목
-				.claim("role", authentication.getAuthorities())						//클레임 설정
-				.setIssuedAt(now)																					//토큰 생성시간(=현재)
-				.setExpiration( new Date( now.getTime() + accessTokenLimit) )		//토큰 만료시간(=한시간)
-				.signWith(key, SignatureAlgorithm.HS256)											//서버키를 HS256 알고리즘으로 암호화 진행
+				.subject(userDetails.getUsername())													//토큰 제목
+				.claim("role", roles)																//클레임 설정
+				.issuedAt(now)																					//토큰 발급시간
+				.expiration(new Date(now.getTime() + accessTokenLimit))			//토큰 만료시간
+				.signWith(key)																					//서버키를 암호화
 				.compact();
 	}
 
-
-	/**
-	 * 사용자의 아이디(<code>username</code>)로 Access Token을 생성합니다.
-	 * <p>
-	 *     주로, 기존의 Access Token을 재생성할 때 사용됩니다.
-	 * </p>
-	 *
-	 * @param username		로그인 시도한 아이디
-	 * @return	사용자 정보를 담은 토큰
-	 */
-	public String reissueAccessToken(String username) {
-		Date now = new Date();
-
+	public String createAccessToken(String subject, List<String> roles) {
 		return Jwts.builder()
-				.setSubject(username)
-				.setIssuedAt(now)
-				.setExpiration(new Date( now.getTime() + accessTokenLimit ))
-				.signWith( key, SignatureAlgorithm.HS256 )
+				.subject(subject)
+				.claim("role", roles)
+				.signWith(key)
 				.compact();
 	}
 
@@ -120,18 +112,18 @@ public class JwtTokenProvider {
 		long refreshTokenLimit = 1000 * 60 * 60 * 24;	// 1일(=24시간)
 
 		return Jwts.builder()
-				.setIssuedAt(now)																								//토큰 생성시간(=현재)
-				.setExpiration( new Date(now.getTime() + refreshTokenLimit) )					//토큰 만료시간
-				.signWith(key, SignatureAlgorithm.HS256)														//서버키를 HS256 알고리즘으로 암호화 진행
+				.issuedAt(now)																					//토큰 발급시간
+				.expiration(new Date(now.getTime() + refreshTokenLimit))			//토큰 만료시간
+				.signWith(key)																					//서버키를 암호화
 				.compact();
 	}
 
 	public String getUserName(String token) {
-		Claims claims = Jwts.parserBuilder()
-				.setSigningKey(key)
+		Claims claims = Jwts.parser()
+				.verifyWith(key)
 				.build()
-				.parseClaimsJws(token)
-				.getBody();
+				.parseSignedClaims(token)
+				.getPayload();
 
 		return claims.getSubject();
 	}
@@ -145,9 +137,10 @@ public class JwtTokenProvider {
 	 */
 	public boolean validateToken(String token) {
 		try {
-			Jwts.parserBuilder()
-					.setSigningKey(key).build()
-					.parseClaimsJws(token);
+			Jwts	.parser()
+					.verifyWith(key)
+					.build()
+					.parseSignedClaims(token);
 
 			return  true;
 		}catch ( SecurityException | MalformedJwtException e ) {

@@ -2,6 +2,7 @@ package com.moneymanager.member.domain.entity;
 
 import com.moneymanager.member.domain.enums.MemberGender;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
@@ -32,6 +33,7 @@ import java.time.LocalDateTime;
  * 		</tbody>
  * </table>
  */
+@Getter
 public class MemberInfo {
 
 	private final String id;							//회원번호(내부용)
