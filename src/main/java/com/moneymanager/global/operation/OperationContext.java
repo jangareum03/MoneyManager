@@ -1,8 +1,10 @@
 package com.moneymanager.global.operation;
 
+import com.moneymanager.global.operation.enums.OperationResult;
 import com.moneymanager.global.operation.enums.ServiceAction;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,7 +40,12 @@ import java.util.Map;
 @Builder
 public class OperationContext {
 
+	@Setter
+	private OperationResult result;					//요청 결과
 	private ServiceAction action;					//요청 기능
+	private String member;								//요청 회원번호
+	private String className;							//클래스명
+	private String methodName;						//메서드명
 
 	@Builder.Default
 	private Map<String, Object> options = new LinkedHashMap<>();		//옵션

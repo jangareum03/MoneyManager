@@ -1,11 +1,16 @@
 package com.moneymanager.global.operation.aspect;
 
+import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.operation.OperationContext;
 import com.moneymanager.global.operation.annotation.Operation;
+import com.moneymanager.global.operation.enums.OperationResult;
 import com.moneymanager.global.operation.holder.OperationContextHolder;
+import com.moneymanager.global.security.CustomUserDetails;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,17 +45,35 @@ import org.springframework.stereotype.Component;
 public class OperationAspect {
 
 	@Around("@annotation(operation)")
-	public Object around(ProceedingJoinPoint joinPoint, Operation operation) throws Throwable{
+	public Object around(ProceedingJoinPoint joinPoint, Operation operation) throws Throwable {
+		//1. 인증된 사용자 조회
+		CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String memberId =  userDetails.getId();
+
+		//2. 클래스와 메서드 조회
+		MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+		String className = signature.getDeclaringTypeName();
+		String methodName = signature.getMethod().getName();
+
+		//3. 운영정보를 담은 객체 생성
 		OperationContext context = OperationContext.builder()
 				.action(operation.value())
+				.result(OperationResult.SUCCESS)
+				.member(memberId)
+				.className(className)
+				.methodName(methodName)
 				.build();
 
-		try{
+		try {
 			OperationContextHolder.set(context);
 
 			return joinPoint.proceed();
-		}finally {
-			OperationContextHolder.clear();
+		} catch (Throwable e) {
+			context.setResult(OperationResult.FAIL);
+
+			throw e;
+		} finally {
+			AuditLogger.info(context);
 		}
 	}
 

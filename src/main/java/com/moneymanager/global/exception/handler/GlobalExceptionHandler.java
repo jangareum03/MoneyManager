@@ -1,9 +1,10 @@
 package com.moneymanager.global.exception.handler;
 
 import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.log.DevLogger;
 import com.moneymanager.global.operation.OperationContext;
 import com.moneymanager.global.operation.holder.OperationContextHolder;
-import com.moneymanager.global.operation.logger.OperationLogger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -39,16 +40,21 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-	private final OperationLogger logger;
-
-	@ExceptionHandler(ApplicationException.class)
+	@ExceptionHandler(ValidationException.class)
 	public String handle(ApplicationException e) {
+		try{
+			OperationContext context = OperationContextHolder.get();
 
-		OperationContext context = OperationContextHolder.get();
+			context.addOption("error", e.getErrorCode());
+			context.addOption("log", e.getDeveloperLog());
+			context.addOption("message", e.getUserMessage());
 
-		logger.fail(context, e);
+			DevLogger.debug(context);
 
-		return context.getAction().getView();
+			return "redirect://" + context.getAction().getView();
+		}finally {
+			OperationContextHolder.clear();
+		}
 	}
 
 }

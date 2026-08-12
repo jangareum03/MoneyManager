@@ -83,9 +83,9 @@ public class LedgerReadService {
 		LocalDate minDate = datePolicy.minimum();
 		LocalDate maxDate = datePolicy.maximum();
 
-		List<Integer> years = DateRangeUtils.getYearsInRange( minDate.getYear(), maxDate.getYear() );
+		List<Integer> years = DateRangeUtils.getYearsInRange(minDate.getYear(), maxDate.getYear());
 		List<Integer> months = DateRangeUtils.getMonthsInRange(1, maxDate.getMonthValue());
-		List<Integer> days = DateRangeUtils.getDaysInRange( 1, maxDate.getDayOfMonth() );
+		List<Integer> days = DateRangeUtils.getDaysInRange(1, maxDate.getDayOfMonth());
 
 		return LedgerWriteStep1Response.of(years, months, days);
 	}

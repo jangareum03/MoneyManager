@@ -1,6 +1,8 @@
 package com.moneymanager.ledger.controller;
 
 import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.operation.annotation.Operation;
+import com.moneymanager.global.operation.enums.ServiceAction;
 import com.moneymanager.global.util.date.DateTimeUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.HistoryDashboardResponse;
@@ -94,6 +96,7 @@ public class LedgerController {
 	}
 
 	@GetMapping("/new/step1")
+	@Operation(ServiceAction.LEDGER_REGISTER_STEP1_VIEW)
 	public String showWriteStep1Form(Model model){
 		LedgerWriteStep1Response response = ledgerReadService.getWriteStep1Data();
 
