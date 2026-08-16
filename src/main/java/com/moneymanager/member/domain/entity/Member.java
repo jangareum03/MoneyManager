@@ -1,9 +1,11 @@
 package com.moneymanager.member.domain.entity;
 
+import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberStatus;
 import com.moneymanager.member.domain.enums.MemberType;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 
@@ -53,5 +55,27 @@ public class Member {
 	private LocalDateTime deletedAt;						//탈퇴일
 
 	private MemberInfo info;										//상세정보
+
+	public static Member testMember(PasswordEncoder passwordEncoder) {
+		MemberInfo memberInfo = MemberInfo.builder()
+				.id("UCt01001")
+				.gender(MemberGender.MALE)
+				.build();
+
+
+		return Member.builder()
+				.id("UCt01001")
+				.username("test123")
+				.password(passwordEncoder.encode("pw1234!!"))
+				.name("홍길동")
+				.birthdate("19950321")
+				.type(MemberType.COMMON)
+				.status(MemberStatus.ACTIVE)
+				.role("ROLE_USER")
+				.nickname("홍길동전")
+				.email("test@test.com")
+				.info(memberInfo)
+				.build();
+	}
 
 }

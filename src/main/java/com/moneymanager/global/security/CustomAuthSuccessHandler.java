@@ -1,5 +1,6 @@
 package com.moneymanager.global.security;
 
+import com.moneymanager.global.domain.response.AccessToken;
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.member.repository.MemberTokenRepository;
 import org.springframework.security.core.Authentication;
@@ -55,21 +56,21 @@ public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHand
 		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
 		//토큰 생성
-		String accessToken = jwtTokenProvider.generateAccessToken(userDetails);
-		String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
+		AccessToken accessToken = jwtTokenProvider.generateAccessToken(userDetails);
+		AccessToken refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
 
-		//DB저장
 		tokenRepository.saveToken(userDetails.getId(), accessToken, refreshToken );
 
 		//쿠키 설정
-		Cookie accessCookie = new Cookie("accessToken", accessToken);
+		Cookie accessCookie = new Cookie("accessToken", accessToken.getToken());
 		accessCookie.setHttpOnly(true);
 		accessCookie.setPath("/");
 		accessCookie.setMaxAge(60 * 60);
 
 		response.addCookie(accessCookie);
 
-		response.sendRedirect("/attendance");
+		//TODO: 테스트 확인하기 위해 변경함 =>  변경예정
+		response.sendRedirect("/ledgers/new/step1");
 	}
 
 }

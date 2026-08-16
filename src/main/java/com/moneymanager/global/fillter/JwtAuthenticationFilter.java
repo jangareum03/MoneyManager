@@ -65,9 +65,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		if(accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
 			authenticationMember(accessToken);
-		}else {
-			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			return;
 		}
 
 		filterChain.doFilter(request, response);

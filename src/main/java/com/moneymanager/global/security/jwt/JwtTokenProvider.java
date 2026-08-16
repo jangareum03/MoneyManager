@@ -1,5 +1,6 @@
 package com.moneymanager.global.security.jwt;
 
+import com.moneymanager.global.domain.response.AccessToken;
 import com.moneymanager.global.security.CustomUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -61,23 +62,26 @@ public class JwtTokenProvider {
 	}
 
 
-	public String generateAccessToken(CustomUserDetails userDetails) {
+	public AccessToken generateAccessToken(CustomUserDetails userDetails) {
 		List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
 		Date now = new Date();
 
 		//60분
 		long accessTokenLimit = 1000 * 60 * 60;
+		Date expiration = new Date(now.getTime() + accessTokenLimit);
 
-		return Jwts.builder()
+		String token = Jwts.builder()
 				.subject(userDetails.getUsername())													//토큰 제목
 				.claim("nickname", userDetails.getNickname())					//클레임 설정
 				.claim("profile", userDetails.getProfile())
 				.claim("role", roles)
 				.issuedAt(now)																					//토큰 발급시간
-				.expiration(new Date(now.getTime() + accessTokenLimit))			//토큰 만료시간
+				.expiration(expiration)																		//토큰 만료시간
 				.signWith(key)																					//서버키를 암호화
 				.compact();
+
+		return new AccessToken(token, expiration);
 	}
 
 	public String createAccessToken(String subject, List<String> roles) {
@@ -88,16 +92,20 @@ public class JwtTokenProvider {
 				.compact();
 	}
 
-	public String generateRefreshToken(CustomUserDetails userDetails) {
+	public AccessToken generateRefreshToken(CustomUserDetails userDetails) {
 		Date now = new Date();
 
-		long refreshTokenLimit = 1000 * 60 * 60 * 24;	// 1일(=24시간)
+		// 1일(=24시간)
+		long refreshTokenLimit = 1000 * 60 * 60 * 24;
+		Date expiration = new Date(now.getTime() + refreshTokenLimit);
 
-		return Jwts.builder()
+		String token =  Jwts.builder()
 				.issuedAt(now)																					//토큰 발급시간
-				.expiration(new Date(now.getTime() + refreshTokenLimit))			//토큰 만료시간
+				.expiration(expiration)																		//토큰 만료시간
 				.signWith(key)																					//서버키를 암호화
 				.compact();
+
+		return new AccessToken(token, expiration);
 	}
 
 	public String getUserName(String token) {

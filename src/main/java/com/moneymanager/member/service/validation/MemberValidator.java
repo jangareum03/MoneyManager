@@ -54,7 +54,7 @@ public class MemberValidator {
 			);
 		}
 
-		if(StringUtil.matchesPattern(username, RegexPattern.MEMBER_USERNAME.getPattern())) {
+		if(!StringUtil.matchesPattern(username, RegexPattern.MEMBER_USERNAME.getPattern())) {
 			throw ValidationException.of(
 					CommonErrorCode.INVALID_FORMAT,
 					LogContent.of(
@@ -81,7 +81,7 @@ public class MemberValidator {
 			);
 		}
 
-		if(StringUtil.matchesPattern(password, RegexPattern.MEMBER_PWD.getPattern())) {
+		if(!StringUtil.matchesPattern(password, RegexPattern.MEMBER_PWD.getPattern())) {
 			throw ValidationException.of(
 					CommonErrorCode.INVALID_FORMAT,
 					LogContent.of(

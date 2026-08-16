@@ -1,5 +1,6 @@
 package com.moneymanager.member.repository;
 
+import com.moneymanager.global.domain.response.AccessToken;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -41,18 +42,58 @@ public class MemberTokenRepository {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
-	public void saveToken(String memberId, String accessToken, String refreshToken) {
+	public void saveToken(String memberId, AccessToken accessToken, AccessToken refreshToken) {
 		String query = """
-					INSERT INTO member_token (id, access_token, refresh_token, access_expire_at, refresh_expire_at)
+					INSERT INTO member_token (member_id, access_token, refresh_token, access_expire_at, refresh_expire_at)
 						VALUES (?, ?, ?, ?, ?)
 				""";
+
+		if(exists(memberId)) {
+			update(memberId, accessToken, refreshToken);
+			return;
+		}
 
 		jdbcTemplate.update(
 				query,
 				memberId,
-				accessToken,
-				refreshToken
+				accessToken.getToken(),
+				refreshToken.getToken(),
+				accessToken.getExpiration(),
+				refreshToken.getExpiration()
 		);
+	}
+
+	private void update(String memberId, AccessToken accessToken, AccessToken refreshToken) {
+		String query = """
+						UPDATE member_token
+							SET access_token=?, refresh_token=?, access_expire_at=?, refresh_expire_at=?, updated_at=SYSDATE
+							WHERE member_id=?
+					""";
+
+		jdbcTemplate.update(
+				query,
+				accessToken.getToken(),
+				refreshToken.getToken(),
+				accessToken.getExpiration(),
+				refreshToken.getExpiration(),
+				memberId
+		);
+	}
+
+	private boolean exists(String memberId) {
+		String query = """
+					SELECT COUNT(*)
+					FROM member_token
+					WHERE member_id = ?
+		""";
+
+		Integer rows = jdbcTemplate.queryForObject(
+				query,
+				Integer.class,
+				memberId
+		);
+
+		return rows > 0;
 	}
 
 }
