@@ -1,5 +1,9 @@
 package com.moneymanager.ledger.domain.dto.response;
 
+import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
+import com.moneymanager.ledger.domain.dto.response.item.FixCycleItem;
+import com.moneymanager.ledger.domain.dto.response.item.FixedTypeItem;
+import com.moneymanager.ledger.domain.dto.response.item.PaymentTypeItem;
 import com.moneymanager.ledger.domain.enums.CategoryType;
 import lombok.Getter;
 
@@ -37,6 +41,7 @@ public class LedgerWriteStep2Response {
 	private final String title;														//제목
 	private final CategoryType type;											//가계부 유형
 	private final List<FixedTypeItem> fixed;								//고정여부
+	private final List<FixCycleItem> fixCycle;								//고정주기
 	private final List<CategoryItem> categories;						//카테고리 리스트
 	private final List<PaymentTypeItem> paymentTypes;			//결제유형
 	private final List<ImageSlot> imageSlot;								//이미지 슬롯 정보
@@ -47,6 +52,7 @@ public class LedgerWriteStep2Response {
 		this.imageSlot =imageSlot;
 		this.type = type;
 
+		this.fixCycle = FixCycleItem.findAll();
 		this.fixed = FixedTypeItem.findAll();
 		this.paymentTypes = PaymentTypeItem.findAll();
 	}

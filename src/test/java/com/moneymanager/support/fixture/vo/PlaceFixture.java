@@ -8,7 +8,7 @@ public final class PlaceFixture {
 	private PlaceFixture() {}
 
 	public static Place from(LedgerUpdateRequest request) {
-		return Place.of(
+		return Place.ofOrNull(
 				request.getPlaceName(),
 				request.getRoadAddress(),
 				request.getDetailAddress()

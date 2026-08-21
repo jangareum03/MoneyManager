@@ -5,17 +5,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
-import com.moneymanager.support.ApplicationExceptionAssert;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Named.named;
 
 /**
@@ -48,32 +45,32 @@ import static org.junit.jupiter.api.Named.named;
 public class CategoryLevelTest {
 
 	@Nested
-	@DisplayName("객체 생성")
-	class FromTest {
+	@DisplayName("CategoryLevel 생성할 때")
+	class From {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 
 			@ParameterizedTest
 			@MethodSource("validLevels")
-			@DisplayName("유효한 대문자 값이면 카테고리 단계로 변환된다.")
+			@DisplayName("유효한 대문자 값이면 변환한다.")
 			void createsCategoryLevel_whenUpperCaseIsValid(String level, CategoryLevel expected) {
-				//when: 대문자로 카테고리 단계를 변환한다.
+				//when
 				CategoryLevel result = CategoryLevel.from(level.toUpperCase());
 				
-				//then: 카테고리 단계가 반환된다.
+				//then
 				assertThat(result).isSameAs(expected);
 			}
 
 			@ParameterizedTest
 			@MethodSource("validLevels")
-			@DisplayName("유효한 소문자 값이면 카테고리 단계로 변환된다.")
+			@DisplayName("유효한 소문자 값이면 변환한다.")
 			void createsCategoryLevel_whenLowerCaseIsValid(String level, CategoryLevel expected) {
-				//when: 소문자로 카테고리 단계를 변환한다.
+				//when
 				CategoryLevel result = CategoryLevel.from(level.toLowerCase());
 
-				//then: 카테고리 단계가 반환된다.
+				//then
 				assertThat(result).isSameAs(expected);
 			}
 
@@ -97,59 +94,23 @@ public class CategoryLevelTest {
 		}
 		
 		@Nested
-		@DisplayName("실패 케이스")
+		@DisplayName("실패")
 		class Failure {
 		
 			@ParameterizedTest
-			@NullSource
-			@DisplayName("값이 null이면 변환에 실패한다.")
-			void throwsException_whenLevelIsNull(String level) {
-				//when: null로 카테고리 단계를 변환한다.
-				Throwable throwable = catchThrowable(() -> CategoryLevel.from(level));
-				
-				//then: 레벨 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-								.hasErrorCode(REQUIRED_VALUE)
-								.hasWork("카테고리 단계 변환")
-								.hasCauseMessage("필수값 누락")
-								.hasField("level")
-								.hasValue(level);
-			}
-			
-			@ParameterizedTest
-			@EmptySource
+			@NullAndEmptySource
 			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
-			@DisplayName("값이 비어있으면 변환에 실패한다.")
-			void throwsException_whenLevelIsEmpty(String level) {
-				//when: 빈 문자열로 카테고리 단계를 변환한다.
-				Throwable throwable = catchThrowable(() -> CategoryLevel.from(level));
-
-				//then: 레벨 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("카테고리 단계 변환")
-						.hasCauseMessage("필수값 누락")
-						.hasField("level")
-						.hasValue(level);
+			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
+			void throwsNoSuchElementException_whenLevelIsNullOrBlank(String level) {
+				assertThatThrownBy(() -> CategoryLevel.from(level))
+						.isInstanceOf(NoSuchElementException.class);
 			}
-			
+
 			@Test
-			@DisplayName("유효하지 않은 값이면 변환에 실패한다.")
-			void throwsException_whenLevelIsInvalid() {
-				//given: 유효하지 않은 값이 준비되어 있다.
-				String level = "error";
-
-				//when: 유효하지 앟은 값으로 카테고리 단계를 변환한다.
-				Throwable throwable = catchThrowable(() -> CategoryLevel.from(level));
-
-				//then: 변환 중 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(INVALID_VALUE)
-						.hasWork("카테고리 단계 변환")
-						.hasCauseMessage("허용되지 않은 값")
-						.hasField("level")
-						.hasValue(level)
-						.hasOption("allowed", "TOP, MIDDLE, LOW");
+			@DisplayName("유효하지 않은 값이면 예외를 발생시킨다.")
+			void throwsNoSuchElementException_whenLevelIsInvalid() {
+				assertThatThrownBy(() -> CategoryLevel.from("noExist"))
+						.isInstanceOf(NoSuchElementException.class);
 			}
 			
 		}

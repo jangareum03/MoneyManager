@@ -29,4 +29,5 @@ package com.moneymanager.global.exception.code;
  */
 public interface ErrorCode {
 	String getCode();
+	String getReason();
 }

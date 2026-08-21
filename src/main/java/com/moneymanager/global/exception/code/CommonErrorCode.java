@@ -1,5 +1,7 @@
 package com.moneymanager.global.exception.code;
 
+import lombok.Getter;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.exception.code<br>
@@ -27,35 +29,31 @@ package com.moneymanager.global.exception.code;
  * 		</tbody>
  * </table>
  */
+@Getter
 public enum CommonErrorCode implements ErrorCode {
 
-	REQUIRED_VALUE("CM-001", "필수 값입니다."),
-	INVALID_FORMAT("CM-002", "형식이 올바르지 않습니다."),
-	INVALID_VALUE("CM-003", "허용되지 않은 값입니다."),
-	OUT_OF_RANGE("CM-004", "허용되는 범위나 길이가 아닙니다."),
-	INVALID_REQUEST("CM-009", ""),
+	REQUIRED_NOT_EXIST("CM-001", "요청객체 없음"),
+	REQUIRED_VALUE("CM-002", "필수값 누락"),
+	INVALID_FORMAT("CM-003", "형식 불일치"),
+	INVALID_VALUE("CM-004", "허용되지 않은 값"),
+	OUT_OF_RANGE("CM-005", "길이 또는 범위 불일치"),
 
-	UNAUTHORIZED("CM-200", "로그인을 진행해주세요."),
+	UNAUTHORIZED("CM-200", "인증되지 않은 사용자"),
 
-	FILE_UPLOAD_FAILED("CM-501", "업로드가 실패했습니다."),
-	FILE_READ_FAILED("CM-503", "파일을 읽을 수 없습니다."),
-	FILE_TOO_LARGE("CM-505", "파일이 용량 초과되었습니다."),
-	UNSUPPORTED_FILE_TYPE("CM-506", "지원하지 않은 파일입니다."),
-	FILE_CORRUPTED("CM-507", "손상된 파일입니다."),
+	FILE_NOT_FOUND("CM-500", "파일 없음"),
+	FILE_UPLOAD_FAILED("CM-501", "업로드 불가"),
+	FILE_READ_FAILED("CM-503", "파일 읽기 불가"),
+	FILE_TOO_LARGE("CM-505", "파일 용량 초과"),
+	UNSUPPORTED_FILE_TYPE("CM-508", "미지원 파일"),
 
-	DATABASE_ERROR("CM-700", "데이터베이스 문제가 있습니다.");
+	INTERVAL_SERVER_ERROR("CM-900", "내부 오류");
 
 	private final String code;
-	private final String defaultMessage;
+	private final String reason;
 
-	CommonErrorCode(String errorCode, String defaultMessage) {
+	CommonErrorCode(String errorCode, String reason) {
 		this.code = errorCode;
-		this.defaultMessage = defaultMessage;
-	}
-
-	@Override
-	public String getCode() {
-		return code;
+		this.reason = reason;
 	}
 
 }

@@ -32,17 +32,17 @@ import com.moneymanager.global.log.LogContent;
  */
 public class ValidationException extends ApplicationException {
 
-	private ValidationException(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		super(errorCode, logInfo, userMessage);
-	}
-
-	public static ValidationException of(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		return new ValidationException(errorCode, logInfo, userMessage);
+	private ValidationException(ErrorCode errorCode, LogContent logContent, Throwable cause) {
+		super(errorCode, logContent, cause);
 	}
 
 	@Override
-	protected ApplicationException newInstance(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		return of(errorCode, logInfo, userMessage);
+	protected ApplicationException recreate(ErrorCode errorCode, LogContent logContent, String userMessage, Throwable cause) {
+		return new ValidationException(errorCode, logContent, cause);
+	}
+
+	public static ValidationException of(ErrorCode errorCode, LogContent logContent) {
+		return new ValidationException(errorCode, logContent, null);
 	}
 
 }

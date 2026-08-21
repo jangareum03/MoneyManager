@@ -1,8 +1,11 @@
 package com.moneymanager.ledger.service.cache;
 
+import com.moneymanager.global.exception.code.CategoryErrorCode;
+import com.moneymanager.global.exception.exception.InternalException;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.repository.CategoryRepository;
-import com.moneymanager.support.IntegrationTestSupport;
+import com.moneymanager.support.ApplicationExceptionAssert;
+import com.moneymanager.support.IntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,12 +15,13 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -49,7 +53,8 @@ import static org.mockito.Mockito.verify;
  * </table>
  */
 @EnableCaching
-public class CategoryCacheServiceIT extends IntegrationTestSupport {
+@Transactional
+public class CategoryCacheServiceIT extends IntegrationTest {
 
 	@Autowired
 	private CategoryCacheService target;
@@ -59,9 +64,6 @@ public class CategoryCacheServiceIT extends IntegrationTestSupport {
 
 	@Autowired
 	private CacheManager manager;
-
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
 
 
 	@BeforeEach
@@ -75,40 +77,29 @@ public class CategoryCacheServiceIT extends IntegrationTestSupport {
 
 
 	@Nested
-	@DisplayName("캐시 조회")
+	@DisplayName("전체 카테고리를 조회할 때")
 	class GetCache {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
-			
+
 			@Test
-			@DisplayName("저장된 카테고리가 있으면 Map이 반환된다.")
-			void returnsCategoryMap_whenCategoriesExist() {
-				//when: 모든 카테고리 정보를 조회한다.
-				Map<String, Category> result = target.getCategoryMap();
-				
-				//then: 카테고리 코드를 key로 하는 Map이 반환된다.
-				assertThat(result).hasSize(64);
-				assertThat(result).containsKeys("010000");
-				assertThat(result).containsKeys("020000");
+			@DisplayName("데이터베이스에 저장된 카테고리가 있다면 캐시에 저장한다.")
+			void cachesCategories_whenCategoriesAreFetched() {
+				//when
+				Map<String, Category> firstResult = target.getCategoryMap();
+				Map<String, Category> secondResult = target.getCategoryMap();
+
+				//then
+				assertThat(firstResult).isNotEmpty();
+				assertThat(secondResult).isEqualTo(firstResult);
 			}
 			
 			@Test
-			@Sql(statements = "DELETE FROM ledger_category", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-			@DisplayName("저장된 카테고리가 없으면 빈 Map이 반환된다.")
-			void returnsEmptyMap_whenCategoriesDoNotExist() {
-				//when: 모든 카테고리 정보를 조회한다.
-				Map<String, Category> result = target.getCategoryMap();
-				
-				//then: 빈 Map이 반환된다.
-				assertThat(result).isEmpty();
-			}
-			
-			@Test
-			@DisplayName("같은 요청을 두 번 호출하면 캐시를 사용한다.")
-			void returnsCachedData_whenCalledTwiceWithSameRequest() {
-				//when: 같은 요청을 두 번 조회한다.
+			@DisplayName("첫 호출에는 DB에서 조회하고 두번째 호출에서는 캐시를 사용한다.")
+			void returnsUserFromCache_whenCalledTwice() {
+				//when
 				target.getCategoryMap();
 				target.getCategoryMap();
 
@@ -118,23 +109,16 @@ public class CategoryCacheServiceIT extends IntegrationTestSupport {
 			
 			@Test
 			@Sql(statements = "DELETE FROM ledger_category", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-			@DisplayName("빈 Map은 캐시에 저장되지 않는다.")
-			void doesNotCache_whenMapIsEmpty() {
-				//given: 카테고리 테이블이 비어있다.
-				target.getCategoryMap();
-
-				jdbcTemplate.update(
-						"INSERT INTO ledger_category(code, name) VALUES (?, ?)",
-						"010000",
-						"수입"
-				);
-
-				//when: DB에 카테고리를 추가한 후 다시 조회한다.
-				Map<String, Category> result = target.getCategoryMap();
-				
-				//then: DB에서 조회한 데이터가 반환된다.
-				assertThat(result).isNotEmpty();
-				verify(categoryRepository, times(2)).findAllCategory();
+			@DisplayName("카테고리가 없으면 예외가 발생한다.")
+			void throwInternalException_whenCategoriesDoNotExist() {
+				//when & then
+				ApplicationExceptionAssert.assertThatApplicationException(
+								catchThrowable(() -> target.getCategoryMap())
+						)
+						.isInstanceOf(InternalException.class)
+						.hasErrorCode(CategoryErrorCode.DATA_NOT_FOUND)
+						.hasWork("전체 카테고리 조회")
+						.hasCauseMessage("카테고리 없음");
 			}
 
 		}

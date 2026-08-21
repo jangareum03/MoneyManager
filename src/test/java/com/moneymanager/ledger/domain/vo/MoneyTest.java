@@ -1,15 +1,15 @@
 package com.moneymanager.ledger.domain.vo;
 
-import com.moneymanager.support.ApplicationExceptionAssert;
-import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.domain.dto.vo.Money;
+import com.moneymanager.ledger.domain.enums.PaymentType;
+import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
+import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -43,12 +43,12 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 public class MoneyTest {
 
 	@Nested
-	@DisplayName("객체 생성")
+	@DisplayName("Money 생성할 때")
 	class CreateTest {
 
 		@ParameterizedTest
 		@EnumSource(PaymentType.class)
-		@DisplayName("금액과 유형이 정상이면 Money객체를 생성한다.")
+		@DisplayName("금액과 유형이 정상이면 생성한다.")
 		void createsMoney_whenRequestIsValid(PaymentType type) {
 			//given: 정상적인 금액이 준비되어 있다.
 			Long amount = 25000L;
@@ -63,12 +63,12 @@ public class MoneyTest {
 
 
 		@Nested
-		@DisplayName("실패 케이스")
+		@DisplayName("실패")
 		class Failure {
 
-			@ParameterizedTest(name = "[{index}] 금액이 {0}")
+			@ParameterizedTest
 			@ValueSource(longs = {0L, -1000L, -50000L})
-			@DisplayName("금액이 0이하면 ValidationException이 발생한다.")
+			@DisplayName("금액이 0이하면 예외를 발생시킨다.")
 			void throwsException_whenAmountIsZeroOrNegative(Long amount) {
 				//given: 임의의 금지유형을 설정한다.
 				PaymentType type = PaymentType.CASH;
@@ -78,12 +78,11 @@ public class MoneyTest {
 				
 				//then: 0이하에 대한 예외가 발생한다.
 				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(INVALID_VALUE)
-						.hasWork("가계부 금액 검증")
-						.hasCauseMessage("범위 오류")
-						.hasField("amount")
-						.hasValue(String.valueOf(amount))
-						.hasOption("min", String.valueOf(1));
+						.hasErrorCode(REQUIRED_VALUE)
+						.hasWork("Money 생성")
+						.hasCauseMessage("필수값 누락")
+						.hasTarget(Money.class)
+						.hasValue("amount", amount);
 			}
 
 		}

@@ -1,32 +1,32 @@
 package com.moneymanager.ledger.controller;
 
-import com.moneymanager.global.config.MutableClock;
-import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
-import com.moneymanager.ledger.domain.enums.CategoryType;
-import com.moneymanager.ledger.service.command.LedgerCommandService;
+import com.moneymanager.ledger.service.application.LedgerService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
-import com.moneymanager.ledger.service.validation.LedgerValidator;
 import com.moneymanager.member.domain.entity.Member;
-import com.moneymanager.support.IntegrationTestSupport;
-import com.moneymanager.support.fixture.entity.MemberFixture;
-import com.moneymanager.support.security.WithMockCustomUser;
+import com.moneymanager.support.IntegrationTest;
+import com.moneymanager.support.data.CategoryTestData;
+import com.moneymanager.support.data.LedgerTestData;
+import com.moneymanager.support.fixture.file.ImageFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.Cookie;
-import java.time.LocalDate;
-import java.util.List;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -56,454 +56,259 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 		</tbody>
  * </table>
  */
-@AutoConfigureMockMvc
 @Transactional
-public class LedgerControllerIT extends IntegrationTestSupport {
+public class LedgerControllerIT extends IntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
 
 	@Autowired
-	private MockMvc mockMvc;
+	LedgerService ledgerService;
 
 	@Autowired
-	private LedgerReadService readService;
+	LedgerReadService ledgerReadService;
 
-	@Autowired
-	private LedgerCommandService commandService;
-
-	@Autowired
-	private LedgerValidator validator;
-
-	private MutableClock clock;
+    private Member member;
+    private final Path path = Path.of("src/test/resources/temp");
 
 	@BeforeEach
-	void setUp() {
-		clock = new MutableClock();
-		clock.set(LocalDate.of(2026, 3, 10));
+	void setUp() throws IOException {
+		member = saveMember();
 
-		//회원 저장
-		Member member = MemberFixture.member(passwordEncoder).build();
-
-		memberRepository.save(member);
-
-		token = tokenProvider.createAccessToken(member.getUserName(), List.of(member.getRole()));
+        if(Files.exists(path)) {
+            Files.walk(path)
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    });
+        }
 	}
 
-	@Nested
-	@DisplayName("작성 1단계")
-	class Step1ViewTest {
+    @Nested
+    @DisplayName("가계부 작성 1단계 화면 요청할 때")
+    class Step1ViewTest {
 
-		private final String URI = "/ledgers/new/step1";
+        private final String URI = "/ledgers/new/step1";
 
-		@Nested
-		@DisplayName("성공 케이스")
-		@WithMockCustomUser
-		class Success {
-		
-			@Test
-			@DisplayName("현재 날짜 기준 가계부 작성 페이지를 조회한다.")
-			void returnsLedgerWritePage_whenCurrentDateIsGiven() throws Exception {
-				//when & then
-				mockMvc.perform(
-						get(URI)
-								.cookie(new Cookie("accessToken", token))
-				)
-						.andExpect(status().isOk())
-						.andExpect(view().name("/ledger/ledger_writeStep1"))
-						.andExpect(model().attributeExists("ledger"));
+        @Nested
+        @DisplayName("성공 케이스")
+        class Success {
 
-			}
+            @Test
+            @DisplayName("현재 날짜 기준 가계부 작성 페이지를 조회한다.")
+            void returnsLedgerWritePage_whenCurrentDateIsGiven() throws Exception {
+                //when & then
+                mockMvc.perform(
+                                get(URI)
+                                        .cookie(accessTokenCookie(member.getUsername()))
+                        )
+                        .andExpect(status().isOk())
+                        .andExpect(view().name("/ledger/ledger_writeStep1"))
+                        .andExpect(model().attributeExists("ledger"));
 
-		}
+            }
 
-	}
+        }
+
+    }
 
 
-	@Nested
-	@DisplayName("작성 2단계")
-	@WithMockCustomUser
-	class Step2ViewTest {
+    @Nested
+    @DisplayName("가계부 작성 2단계 화면 요청할 때")
+    class Step2ViewTest {
 
-		private final String URL = "/ledgers/new/step2";
+        private final String URI = "/ledgers/new/step2";
 
-		@Nested
-		@DisplayName("성공 케이스")
-		class Success {
-			
-			@Test
-			@DisplayName("유효한 요청 파라미터가 전달되면 Step2 페이지를 반환한다.")
-			void returnsStep2Page_whenRequestIsValid() throws Exception {
-				//given: 정상적인 가계부 유형과 거래날짜가 주어진다.
-				String type = "income";
-				String date = "20260101";
+        @Nested
+        @DisplayName("성공")
+        class Success {
 
-				//when: 가계부 작성 2단계 페이지를 요청한다.
-				MvcResult result = mockMvc.perform(
-						get(URL)
-								.param("type", type)
-								.param("date", date)
-				)
-						.andExpect(status().isOk())
-						.andExpect(model().attributeExists("ledger"))
-						.andExpect(view().name("/ledger/ledger_writeStep2"))
-						.andReturn();
+            @Test
+            @DisplayName("필수인 요청 파라미터가 모두 있으면 모델에 ledger 속성과 Step2 페이지를 반환한다.")
+            void returnsStep2Page_whenRequestIsValid() throws Exception {
+                //given: 정상적인 가계부 유형과 거래날짜가 주어진다.
+                String type = "income";
+                String date = "20260101";
 
-				//then: model에 저장된 데이터가 저장된다.
-				ModelAndView mav = result.getModelAndView();
+                //when: 가계부 작성 2단계 페이지를 요청한다.
+                mockMvc.perform(
+                                get(URI)
+                                        .param("type", type)
+                                        .param("date", date)
+                                        .cookie(accessTokenCookie(member.getUsername()))
+                        )
+                        .andExpect(status().isOk())
+                        .andExpect(model().attributeExists("ledger"))
+                        .andExpect(view().name("/ledger/ledger_writeStep2"))
+                        .andDo(print())
+                        .andReturn();
+            }
 
-				assertThat(mav).isNotNull();
+        }
 
-				LedgerWriteStep2Response ledger = (LedgerWriteStep2Response) mav.getModel().get("ledger");
+        @Nested
+        @DisplayName("실패")
+        class Failure {
 
-				assertThat(ledger).isNotNull();
-				assertThat(ledger.getTitle()).isEqualTo("2026년 01월 01일 목요일");
-				assertThat(ledger.getType()).isEqualTo(CategoryType.INCOME);
-				assertThat(ledger)
-						.extracting(
-								LedgerWriteStep2Response::getFixed,
-								LedgerWriteStep2Response::getCategories,
-								LedgerWriteStep2Response::getPaymentTypes,
-								LedgerWriteStep2Response::getImageSlot
-						).isNotNull();
-			}
-		
-		}
+            @Test
+            @DisplayName("요청 파라미터에 가계부 유형이 누락되면 200 코드 반환하고 에러 페이지를 반환한다.")
+            void returns200AndErrorPage_whenLedgerTypeIsMissing() throws Exception {
+                //when
+                mockMvc.perform(
+                                get(URI)
+                                        .param("date", "20260101")
+                                        .cookie(accessTokenCookie(member.getUsername()))
+                        )
+                        .andExpect(status().isOk())
+                        .andExpect(view().name("error/400"));
+            }
 
-	}
+            @Test
+            @DisplayName("요청 파라미터에 가계부 날짜가 누락되면 200 코드 반환하고 에러 페이지를 반환한다.")
+            void returns200AndErrorPage_whenLedgerDateIsMissing() throws Exception {
+                //when
+                mockMvc.perform(
+                                get(URI)
+                                        .param("type", "income")
+                                        .cookie(accessTokenCookie(member.getUsername()))
+                        )
+                        .andExpect(status().isOk())
+                        .andExpect(view().name("error/400"));
+            }
 
-//
-//	@Nested
-//	@DisplayName("가계부 등록")
-//	@WithMockCustomUser
-//	class CreateTest {
-//
-//		@Autowired
-//		private LedgerRepository ledgerRepository;
-//
-//		@Autowired
-//		private MemberRepository memberRepository;
-//
-//		private final String URI = "/ledgers";
-//
-//		@BeforeEach
-//		void setUp() {
-//			memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
-//		}
-//
-//		@Nested
-//		@DisplayName("성공 케이스")
-//		class Success {
-//
-//			@Test
-//			@DisplayName("유효한 가계부 등록 요청히면 302 리다이렉트 응답을 반환한다.")
-//			void returns302Status_whenRequestIsValid() throws Exception {
-//				//given: 등록 가능한 요청이 준비되어 있다.
-//				LedgerWriteRequest request = LedgerWriteRequestFixture.create();
-//
-//				//when: 가계부 등록을 요청한다.
-//				mockMvc.perform(
-//						post(URI)
-//								.flashAttr("ledger", request)
-//				)
-//						.andExpect(status().is3xxRedirection())
-//						.andExpect(redirectedUrl("/ledgers"));
-//
-//				//then: DB에 신규 가계부가 저장된다.
-//				List<Ledger> ledgers = ledgerRepository.findAll();
-//
-//				assertThat(ledgers).hasSize(1);
-//
-//				Ledger ledger = ledgers.get(0);
-//				assertThat(ledger.getDate()).isEqualTo(LedgerTestData.LOCAL_DATE);
-//				assertThat(ledger.getCategory()).isEqualTo(request.getCategoryCode());
-//				assertThat(ledger.getMoney()).isEqualTo(Money.of(request.getAmount(), PaymentType.valueOf(request.getPaymentType())));
-//			}
-//
-//		}
-//
-//	}
-//
-//
-//	@Nested
-//	@DisplayName("가계부 내역 조회")
-//	@WithMockCustomUser
-//	class GetHistoriesTest {
-//
-//		private Member member;
-//
-//		private final String URI = "/ledgers";
-//
-//		@BeforeEach
-//		void setUp() {
-//			member = memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
-//			clock.set(LocalDate.of(2026, 1, 10));
-//
-//			//수입 내역
-//			savedIncomeLedger(MemberTestData.MEMBER_ID, "code1", LocalDate.of(2026, 1, 5), 20000);
-//			savedIncomeLedger(MemberTestData.MEMBER_ID, "code2", LocalDate.of(2026, 1, 12), 35000);
-//
-//			//지출 내역
-//			savedOutlayLedger(MemberTestData.MEMBER_ID, "code3", LocalDate.of(2026, 1, 3), 5000);
-//			savedOutlayLedger(MemberTestData.MEMBER_ID, "code4", LocalDate.of(2026, 1, 12), 15000);
-//			savedOutlayLedger(MemberTestData.MEMBER_ID, "code5", LocalDate.of(2026, 1, 20), 20000);
-//		}
-//
-//		private void savedIncomeLedger(String memberId, String code, LocalDate date, int amount) {
-//			ledgerRepository.insert(
-//					LedgerFixture.newLedger()
-//							.memberId(memberId)
-//							.code(code)
-//							.date(date)
-//							.money(Money.of((long) amount, PaymentType.NONE))
-//							.build()
-//			);
-//		}
-//
-//		private void savedOutlayLedger(String memberId, String code, LocalDate date, int amount) {
-//			ledgerRepository.insert(
-//					LedgerFixture.newLedger()
-//							.memberId(memberId)
-//							.code(code)
-//							.date(date)
-//							.money(Money.of((long) amount, PaymentType.NONE))
-//							.category(CategoryTestData.SNACK_CODE)
-//							.build()
-//			);
-//		}
-//
-//		@Nested
-//		@DisplayName("성공 케이스")
-//		class Success {
-//
-//			@Test
-//			@DisplayName("저장된 가계부가 있으면 목록 페이지가 정상적으로 렌더링된다.")
-//			void returnsLedgerListPage_whenLedgerExists() throws Exception {
-//				//given: 2월에 등록한 가계부 내역이 1건 저장되어 있다.
-//				savedOutlayLedger(MemberTestData.MEMBER_ID, "code6", LocalDate.of(2026, 2, 1), 10000);
-//
-//				//when: 가계부 내역 조회를 요청한다.
-//				MvcResult result = mockMvc.perform(
-//						get(URI)
-//								.param("viewType", "month")
-//				)
-//						.andExpect(status().isOk())
-//						.andExpect(view().name("/ledger/ledger_history"))
-//						.andExpect(model().attribute("type", HistoryType.MONTH))
-//						.andExpect(model().attribute("activeMenu", HistoryMenuType.ALL.name()))
-//						.andReturn();
-//
-//				//then: 월별 가계부 내역 정보가 모델에 정상적으로 저장된다.
-//				assertThat(result.getModelAndView()).isNotNull();
-//
-//				HistoryDashboardResponse history = (HistoryDashboardResponse) result.getModelAndView()
-//																						.getModel()
-//																						.get("history");
-//
-//				assertThat(history).isNotNull();
-//
-//				assertThat(history.getTitle()).isEqualTo("2026년 01월");
-//
-//				assertThat(history.getMenu())
-//						.extracting(MenuItem::getLabel)
-//						.containsExactly("전체", "수입/지출", "카테고리", "메모", "기간");
-//
-//				assertThat(history.getStatistics())
-//						.satisfies(stat -> {
-//							assertThat(stat.getTotal()).isEqualTo(95000L);
-//							assertThat(stat.getIncome()).isEqualTo(55000L);
-//							assertThat(stat.getOutlay()).isEqualTo(40000L);
-//						});
-//
-//				assertThat(history.getHistoryGroups()).containsKeys("2026. 01. 03 (토)", "2026. 01. 05 (월)", "2026. 01. 12 (월)", "2026. 01. 20 (화)");
-//
-//				assertThat(history.getHistoryGroups().get("2026. 01. 12 (월)"))
-//						.hasSize(2)
-//						.extracting(
-//								HistoryItem::getCode,
-//								HistoryItem::getCategoryType
-//						)
-//						.containsExactly(
-//								tuple("code4", CategoryType.OUTLAY),
-//								tuple("code2", CategoryType.INCOME)
-//						);
-//			}
-//
-//			@Test
-//			@Sql(statements = "DELETE FROM ledger")
-//			@DisplayName("저장된 가계부가 없으면 빈 목록 페이지가 랜더링된다.")
-//			void returnsEmptyLedgerListPage_whenLedgerDoesNotExist() throws Exception {
-//				//given: 날짜가 2월 1일로 설정된 상태이다.
-//				clock.set(LocalDate.of(2026, 2, 1));
-//
-//				//when: 가계부 내역 조회를 요쳥한다.
-//				mockMvc.perform(
-//						get(URI)
-//								.param("viewType", "month")
-//				)
-//						.andExpect(status().isOk())
-//						.andExpect(model().attribute(
-//								"history",
-//								hasProperty("historyGroups", is(Collections.emptyMap()))
-//						));
-//			}
-//
-//			@ParameterizedTest(name = "[{index}] {0}")
-//			@MethodSource("validHistoryTypes")
-//			@DisplayName("정상 viewType으로 요청하면 해당 타입의 데이터가 조회된다.")
-//			void returnsData_whenViewTypeIsValid(String viewType, int size, String key) throws Exception {
-//				//given: 2월에 등록한 가계부 내역이 1건 저장되어 있다.
-//				savedOutlayLedger(MemberTestData.MEMBER_ID, "code6", LocalDate.of(2026, 2, 1), 10000);
-//
-//				//when: 가계부 내역 조회를 요청한다.
-//				mockMvc.perform(
-//						get(URI)
-//								.param("viewType", viewType)
-//				)
-//						.andExpect(status().isOk())
-//						.andExpect(model().attributeExists("history"))
-//						.andExpect(model().attribute(
-//								"history",
-//								hasProperty("historyGroups", allOf(
-//										aMapWithSize(size),
-//										hasKey(key)
-//								))
-//						));
-//			}
-//
-//			static Stream<Arguments> validHistoryTypes() {
-//				return Stream.of(
-//						Arguments.of(
-//								named("YEAR인 경우", "year"),
-//								5,
-//								"2026. 02. 01 (일)"
-//						),
-//						Arguments.of(
-//								named("MONTH인 경우", "month"),
-//								4,
-//								"2026. 01. 20 (화)"
-//						),
-//						Arguments.of(
-//								named("WEEK 경우", "week"),
-//								1,
-//								"2026. 01. 05 (월)"
-//						)
-//				);
-//			}
-//
-//			@Test
-//			@DisplayName("잘못된 viewType이면 기본 타입으로 조회된다.")
-//			void returnsDataWithDefaultType_whenViewTypeIsInvalid() throws Exception {
-//				//given: 잘못된 vieType이 주어진다.
-//				String viewType = "error";
-//
-//				//when: 가계부 내역 조회를 요청한다.
-//				mockMvc.perform(
-//						get(URI)
-//								.param("viewType", viewType)
-//				)
-//						.andExpect(status().isOk())
-//						.andExpect(model().attribute("type", HistoryType.MONTH));
-//			}
-//
-//			@ParameterizedTest
-//			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
-//			@DisplayName("viewType이 없으면 기본 타입으로 조회된다.")
-//			void returnsDataWithDefaultType_whenViewTypeDoesNotExist(String viewType) throws Exception {
-//				//when: 가계부 내역 조회를 요청한다.
-//				mockMvc.perform(
-//								get(URI)
-//										.param("viewType", viewType)
-//						)
-//						.andExpect(status().isOk())
-//						.andExpect(model().attribute("type", HistoryType.MONTH));
-//			}
-//
-//		}
-//
-//	}
-//
-//
-//	@Nested
-//	@DisplayName("가계부 상세 조회")
-//	@WithMockCustomUser
-//	class GetDetailTest {
-//
-//		private Ledger ledger;
-//
-//		private final String URI = "/ledgers/{code}";
-//
-//		@BeforeEach
-//		void setUp() {
-//			Member member = memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
-//
-//			Long id = ledgerRepository.insert(LedgerFixture.newLedger().memberId(MemberTestData.MEMBER_ID).build());
-//			ledger = ledgerRepository.findById(id);
-//		}
-//
-//		@Nested
-//		@DisplayName("성공 케이스")
-//		class Success {
-//
-//			@Test
-//			@DisplayName("가계부 상세 조회를 요청하면 상세 페이지와 가계부 정보를 반환한다.")
-//			void returnsLedgerDetailAndPage_whenLedgerDetailIsRequested() throws Exception {
-//				//given: 가계부가 저장된다.
-//				String code = ledger.getCode();
-//
-//				//when: 가계부 상세 정보를 조회한다.
-//				MvcResult result = mockMvc.perform(
-//						get(URI, code)
-//				)
-//						.andExpect(status().isOk())
-//						.andExpect(model().attributeExists("ledger"))
-//						.andExpect(view().name("/ledger/ledger_detail"))
-//						.andReturn();
-//
-//				//then: model에 전달된 객체 값을 확인한다.
-//				LedgerDetailResponse response = (LedgerDetailResponse) result.getModelAndView().getModel().get("ledger");
-//
-//				assertThat(response.getCategory().getCode()).isEqualTo(ledger.getCategory());
-//				assertThat(response.getAmount()).isEqualTo(ledger.getMoney().getAmount());
-//				assertThat(response.getImages()).containsOnlyOnce("/image/ledger/slot-unlock.svg");
-//			}
-//
-//		}
-//
-//	}
-//
-//
-//	@Nested
-//	@DisplayName("수정 화면 요청")
-//	@WithMockCustomUser
-//	class EditViewTest {
-//
-//		private final String URI = "/ledgers/{code}/edit";
-//
-//		@Nested
-//		@DisplayName("성공 케이스")
-//		class Success {
-//
-//			@Test
-//			@DisplayName("존재하는 가계부 코드로 요청하면 가계부 수정 페이지를 반환한다.")
-//			void returnsLedgerModifyPage_whenLedgerCodeExists() throws Exception {
-//				//given: 가계부가 저장되어 있다.
-//				Member member = memberRepository.save(MemberFixture.builder(MemberTestData.MEMBER_ID).build());
-//
-//				Long id = ledgerRepository.insert(LedgerFixture.newLedger().memberId(MemberTestData.MEMBER_ID).build());
-//				Ledger ledger = ledgerRepository.findById(id);
-//
-//				//when: 가계부 조회를 요청한다.
-//				mockMvc.perform(
-//						get(URI, ledger.getCode())
-//				)
-//						.andExpect(status().isOk())
-//						.andExpect(model().attributeExists("ledger"))
-//						.andExpect(model().attributeExists("fixes"))
-//						.andExpect(model().attributeExists("fixCycles"))
-//						.andExpect(model().attributeExists("paymentTypes"))
-//						.andExpect(view().name("/ledger/ledger_edit"));
-//			}
-//
-//		}
-//
-//	}
+            @Test
+            @DisplayName("요청 파라미터가 모두 누락되면 400 코드 반환하고 에러 페이지를 반환한다.")
+            void returns400AndErrorPage_whenAllParametersAreMissing() throws Exception {
+                //when
+                mockMvc.perform(
+                                get(URI)
+                                        .cookie(accessTokenCookie(member.getUsername()))
+                        )
+                        .andExpect(status().isOk())
+                        .andExpect(view().name("error/400"));
+            }
+
+            @Test
+            @DisplayName("POST로 요청하면 200 코드 반환하고 에러 페이지를 반환한다.")
+            void returns405AndErrorPage_whenRequestMethodIsPost() throws Exception {
+                mockMvc.perform(
+                                post(URI)
+                                        .param("type", "income")
+                                        .param("date", "20260101")
+                                        .cookie(accessTokenCookie(member.getUsername()))
+                        )
+                        .andExpect(status().isOk())
+                        .andExpect(view().name("error/400"));
+            }
+
+            @Test
+            @Sql(statements = "DELETE FROM ledger_category", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+            @DisplayName("요청 중 예외가 발생하면 가계부 2단계 작성 화면으로 리디렉션한다.")
+            void redirectsToLedgerStep2_whenExceptionOccurs() throws Exception {
+                mockMvc.perform(
+                                get(URI)
+                                        .param("type", "income")
+                                        .param("date", "20260101")
+                                        .cookie(accessTokenCookie(member.getUsername()))
+                        )
+                        .andExpect(status().isOk())
+                        .andExpect(view().name("/ledger/ledger_writeStep2"))
+                        .andDo(print());
+            }
+
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("가계부 등록 요청할 때")
+    class Create {
+
+        final String URI = "/ledgers";
+
+        @Test
+        @DisplayName("등록 요청으로 가계부를 저장한다.")
+        void savesLedger_whenRequestIsValid() throws Exception {
+            //given
+            MockMultipartFile file = ImageFixture.jpg("test");
+
+            //when
+            mockMvc.perform(
+                            multipart(URI)
+                                    .file(file)
+                                    .param("date", LedgerTestData.DATE)
+                                    .param("categoryCode", CategoryTestData.SALARY_CODE)
+                                    .param("fixed", LedgerTestData.FIX_N.getValue().toLowerCase())
+                                    .param("amount", LedgerTestData.AMOUNT.toString())
+                                    .param("paymentType", LedgerTestData.PAYMENT_TYPE.name().toLowerCase())
+									.cookie(accessTokenCookie(member.getUsername()))
+                    )
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/ledgers"));
+
+            //then
+            assertThat(ledgerRepository.findAll())
+                    .anyMatch(ledger ->
+                            ledger.getCategory().equals(CategoryTestData.SALARY_CODE)
+                    );
+
+            try(Stream<Path> files = Files.walk(path)) {
+                assertThat(files).anyMatch(p ->
+                        p.getFileName().toString().endsWith(".jpg"));
+            }
+        }
+
+        @Test
+        @DisplayName("카테고리 코드가 없으면 등록하지 않는다.")
+        void rejectsRequest_whenCategoryCodeIsNull() throws Exception {
+            //when
+            mockMvc.perform(
+                            multipart(URI)
+                                    .param("date", LedgerTestData.DATE)
+                                    .param("fixed", LedgerTestData.FIX_N.getValue().toLowerCase())
+                                    .param("amount", LedgerTestData.AMOUNT.toString())
+                                    .param("paymentType", LedgerTestData.PAYMENT_TYPE.name().toLowerCase())
+                                    .cookie(accessTokenCookie(member.getUsername()))
+                    )
+                    .andDo(print())
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/ledgers/new/step2"));
+
+            //then
+            assertThat(ledgerRepository.count()).isEqualTo(0);
+            assertThat(Files.exists(path)).isFalse();
+        }
+
+        @Test
+        @DisplayName("서버에 파일 저장 실패하면 등록하지 않는다.")
+        void doesNotSaveLedger_whenFileUploadFails() throws Exception {
+            //when
+            MockMultipartFile file = ImageFixture.emptyFile();
+
+            //when
+            mockMvc.perform(
+                            multipart(URI)
+                                    .file(file)
+                                    .param("date", LedgerTestData.DATE)
+                                    .param("categoryCode", CategoryTestData.SALARY_CODE)
+                                    .param("fixed", LedgerTestData.FIX_N.getValue().toLowerCase())
+                                    .param("amount", LedgerTestData.AMOUNT.toString())
+                                    .param("paymentType", LedgerTestData.PAYMENT_TYPE.name().toLowerCase())
+                                    .cookie(accessTokenCookie(member.getUsername()))
+                    )
+                    .andDo(print())
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/ledgers/new/step2"));
+
+            //then
+            assertThat(ledgerRepository.count()).isEqualTo(0);
+            assertThat(Files.exists(path)).isFalse();
+        }
+    }
 
 }

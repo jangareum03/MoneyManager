@@ -39,28 +39,9 @@ import lombok.Getter;
 @Getter
 @Builder
 public class Category {
+
     private final String code;						//카테고리 번호(식별자)
 	private final String name;						//카테코리 이름
     private final String parentCode;			//부모 카테고리 코드
-
-	private Category(String code, String name, String parentCode) {
-		validate(code, name);
-
-		this.code = code;
-		this.name = name;
-		this.parentCode = parentCode;
-	}
-
-	public static Category topCategory(String code, String name) {
-		return new Category(code, name, null);
-	}
-
-	public static Category childCategory(String code, String name, Category parent) {
-		return new Category(code, name, parent.code);
-	}
-
-	private static void validate(String code, String name) {
-
-	}
 
 }

@@ -35,64 +35,68 @@ import com.moneymanager.global.util.string.StringUtil;
  */
 public class MemberValidator {
 
-	public static void login(String username, String password) {
-		checkUsername(username);
-		checkPassword(password);
-	}
+    public static void login(String username, String password) {
+        checkUsername(username);
+        checkPassword(password);
+    }
 
-	private static void checkUsername(String username) {
-		if (StringUtil.isNullOrBlank(username)) {
-			throw ValidationException.of(
-					CommonErrorCode.REQUIRED_VALUE,
-					LogContent.of(
-							"로그인 검증",
-							"아이디 누락",
-							"username",
-							username
-					),
-					"아이디를 입력해주세요."
-			);
-		}
+    private static void checkUsername(String username) {
+        if (StringUtil.isNullOrBlank(username)) {
+            throw ValidationException.of(
+                    CommonErrorCode.REQUIRED_VALUE,
+                    LogContent.of(
+                            "로그인 검증",
+                            "username",
+                            username
+                    ).withCause("아이디 누락")
+            );
+        }
 
-		if(!StringUtil.matchesPattern(username, RegexPattern.MEMBER_USERNAME.getPattern())) {
-			throw ValidationException.of(
-					CommonErrorCode.INVALID_FORMAT,
-					LogContent.of(
-							"로그인 검증",
-							"아이디 형식 불일치",
-							"username",
-							username
-					),
-					"아이디는 4~15자 사이의 영어와 숫자만 입력 가능합니다."
-			);
-		}
-	}
-	private static void checkPassword(String password) {
-		if (StringUtil.isNullOrBlank(password)) {
-			throw ValidationException.of(
-					CommonErrorCode.REQUIRED_VALUE,
-					LogContent.of(
-							"로그인 검증",
-							"비밀번호 누락",
-							"password",
-							password
-					),
-					"비밀번호를 입력해주세요."
-			);
-		}
+        if (!StringUtil.matchesPattern(username, RegexPattern.MEMBER_USERNAME.getPattern())) {
+            throw ValidationException
+                    .of(
+                            CommonErrorCode.INVALID_FORMAT,
+                            LogContent.of(
+                                              "로그인 검증",
+                                              "username",
+                                              username
+                                      )
+                                      .withOption("format", "영어, 숫자")
+                                      .withOption("min", 4)
+                                      .withOption("max", 15)
+                    )
+                    .withUserMessage("아이디는 4~15자 사이의 영어와 숫자만 입력 가능합니다.");
+        }
+    }
 
-		if(!StringUtil.matchesPattern(password, RegexPattern.MEMBER_PWD.getPattern())) {
-			throw ValidationException.of(
-					CommonErrorCode.INVALID_FORMAT,
-					LogContent.of(
-							"로그인 검증",
-							"비밀번호 형식 불일치",
-							"password",
-							password
-					),
-					"8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다."
-			);
-		}
-	}
+    private static void checkPassword(String password) {
+        if (StringUtil.isNullOrBlank(password)) {
+            throw ValidationException
+                    .of(
+                            CommonErrorCode.REQUIRED_VALUE,
+                            LogContent.of(
+                                    "로그인 검증",
+                                    "password",
+                                    password
+                            ).withCause("비밀번호 누락")
+                    )
+                    .withUserMessage("비밀번호를 입력해주세요.");
+        }
+
+        if (!StringUtil.matchesPattern(password, RegexPattern.MEMBER_PWD.getPattern())) {
+            throw ValidationException
+                    .of(
+                            CommonErrorCode.INVALID_FORMAT,
+                            LogContent.of(
+                                              "로그인 검증",
+                                              "password",
+                                              password
+                                      ).withOption("format", "영어, 숫자, !, %, #, ^, *")
+                                      .withOption("min", 8)
+                                      .withOption("max", 20)
+                    )
+                    .withUserMessage("8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다.");
+        }
+    }
 
 }

@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.global.security.utils.SecurityUtil;
+import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
 import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
@@ -46,29 +45,15 @@ import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 @RequiredArgsConstructor
 public class LedgerImageReadService {
 
-	private final SecurityUtil securityUtil;
+	private final CurrentUser currentUser;
 
 	//private final MemberReadService memberReadService;
 	private final LedgerImageRepository imageRepository;
 
 
-	public List<ImageSlot> resolveImageSlots() {
-		//1. 인증된 회원 조회
-		String memberId = securityUtil.getMemberId();
-
-		//2. 업로드 가능 개수
-		//int allowedCount = memberReadService.getImageLimit(memberId);
-
-		//3. 슬롯 상태 생성
-		List<SlotStatus> slotStatuses = generateSlotStatuses(0, 0);
-
-		return createImageSlots(slotStatuses, Collections.emptyList());
-	}
-
-
 	public List<ImageSlot> resolveImageSlots(Long ledgerId) {
 		//1. 인증된 회원 조회
-		String memberId = securityUtil.getMemberId();
+		String memberId = currentUser.getMemberId();
 
 		//2. 업로드 가능 개수
 		//int allowedCount = memberReadService.getImageLimit(memberId);

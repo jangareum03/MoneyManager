@@ -1,6 +1,6 @@
 package com.moneymanager.support.fixture.response;
 
-import com.moneymanager.ledger.domain.dto.response.CategoryItem;
+import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.ledger.domain.enums.CategoryType;

@@ -1,24 +1,23 @@
 package com.moneymanager.ledger.repository;
 
-import com.moneymanager.ledger.domain.enums.FixedType;
-import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
+import com.moneymanager.global.exception.code.LedgerErrorCode;
+import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.log.LogContent;
+import com.moneymanager.ledger.domain.dto.vo.Money;
+import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.FixCycle;
 import com.moneymanager.ledger.domain.enums.PaymentType;
-import com.moneymanager.ledger.domain.dto.vo.Money;
-import com.moneymanager.ledger.domain.dto.vo.Place;
+import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.Date;
-import java.sql.PreparedStatement;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * <p>
@@ -56,36 +55,20 @@ public class LedgerRepository {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
-	private final RowMapper<Ledger> ledgerRowMapper = (rs, rowNum) -> {
-		String fixed = rs.getString("fix");
-		String fixCycle = rs.getString("fix_cycle");
-
-		FixedType fixedYN = FixedType.from(fixed);
-
-		FixCycle cycleType = null;
-		if( fixedYN == FixedType.REPEAT ) {
-			cycleType = FixCycle.from(fixCycle);
-		}
-
-		return Ledger.builder()
-				.id(rs.getLong("id"))
-				.code(rs.getString("code"))
-				.memberId(rs.getString("member_id"))
-				.category(rs.getNString("category_id"))
-				.fix(fixedYN)
-				.fixCycle(cycleType)
-				.date(rs.getDate("transaction_date").toLocalDate())
-				.memo(rs.getString("memo"))
-				.money(
-						Money.of(rs.getLong("amount"), PaymentType.from(rs.getString("payment_type")))
-				)
-				.place(
-						Place.of(rs.getString("place_name"),rs.getString("road_address"), rs.getString("detail_address"))
-				)
-				.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-				.updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
-				.build();
-	};
+	private final RowMapper<Ledger> ledgerRowMapper = (rs, rowNum) -> Ledger.create(
+            rs.getLong("id"),
+            rs.getString("code"),
+            rs.getString("member_id"),
+            rs.getDate("transaction_date").toLocalDate(),
+            rs.getNString("category_id"),
+            rs.getString("fix"),
+            rs.getString("fix_cycle"),
+            rs.getString("memo"),
+            Money.of(rs.getLong("amount"), rs.getString("payment_type")),
+            Place.ofOrNull(rs.getString("place_name"),rs.getString("road_address"), rs.getString("detail_address")),
+            rs.getTimestamp("created_at").toLocalDateTime(),
+            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null
+            );
 
 	private final RowMapper<LedgerHistoryQuery> ledgerHistoryQueryRowMapper = (rs, rowNum) -> new LedgerHistoryQuery(
 			rs.getString("code"),
@@ -97,45 +80,14 @@ public class LedgerRepository {
 	);
 
 
-	public Long insert(Ledger ledger) {
-		String query = """
-				INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address)
-				VALUES(ledger_seq.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-				""";
+	public Long save(Ledger ledger) {
+		if(ledger.getId() == null) {
+			return insert(ledger);
+		}else {
+			update(ledger);
+		}
 
-		KeyHolder keyHolder = new GeneratedKeyHolder();
-
-		String fix = ledger.getFix().getValue();
-		String cycle = ledger.getFixCycle() != null ? ledger.getFixCycle().getValue() : null;
-
-		Money money = ledger.getMoney();
-		Place place = ledger.getPlace();
-
-		jdbcTemplate.update(
-				con -> {
-					PreparedStatement ps =
-							con.prepareStatement(query, new String[] {"id"});
-
-					ps.setString(1, ledger.getCode());
-					ps.setString(2, ledger.getMemberId());
-					ps.setString(3, ledger.getCategory());
-					ps.setString(4, fix);
-					ps.setString(5, cycle);
-					ps.setObject(6, ledger.getDate());
-					ps.setString(7, ledger.getMemo());
-					ps.setLong(8, money.getAmount());
-					ps.setString(9, money.getPaymentType().name());
-					ps.setString(10, place != null ? place.getPlaceName() : null);
-					ps.setString(11, place != null ? place.getRoadAddress() : null);
-					ps.setString(12, place != null ? place.getDetailAddress() : null);
-
-					return ps;
-				},
-
-				keyHolder
-		);
-
-		return Objects.requireNonNull(keyHolder.getKey()).longValue();
+		return ledger.getId();
 	}
 
 	public int update(Ledger ledger) {
@@ -192,11 +144,22 @@ public class LedgerRepository {
 				WHERE id = ?
 				""";
 
-		return jdbcTemplate.queryForObject(
-				query,
-				ledgerRowMapper,
-				id
-		);
+		try{
+			return jdbcTemplate.queryForObject(
+					query,
+					ledgerRowMapper,
+					id
+			);
+		} catch (EmptyResultDataAccessException e) {
+            throw InternalException.of(
+					LedgerErrorCode.DATA_NOT_FOUND,
+					LogContent.of(
+							"가계부 번호로 가계부 조회",
+							Ledger.class,
+							"id", id
+					)
+			);
+        }
 	}
 
 
@@ -269,6 +232,44 @@ public class LedgerRepository {
 				""";
 
 		jdbcTemplate.update(query);
+	}
+
+
+	//===== save 보조 메서드 =====
+	private Long insert(Ledger ledger) {
+		String query = """
+				INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address)
+					VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				""";
+
+		Long id = getNextId();
+
+		jdbcTemplate.update(
+				query,
+				id,
+				ledger.getCode(),
+				ledger.getMemberId(),
+				ledger.getCategory(),
+				ledger.getFix().getValue(),
+				Ledger.getValueOrNull(ledger.getFixCycle(), FixCycle::getValue),
+				ledger.getDate(),
+				ledger.getMemo(),
+				ledger.getMoney().getAmount(),
+				Ledger.getValueOrNull(ledger.getMoney().getPaymentType(), PaymentType::name),
+				Ledger.getValueOrNull(ledger.getPlace(), Place::getPlaceName),
+				Ledger.getValueOrNull(ledger.getPlace(), Place::getRoadAddress),
+				Ledger.getValueOrNull(ledger.getPlace(), Place::getDetailAddress)
+		);
+
+		return id;
+	}
+
+
+	//===== 유틸 메서드 =====
+	private Long getNextId() {
+		String query = "SELECT ledger_seq.NEXTVAL FROM dual";
+
+		return jdbcTemplate.queryForObject(query, Long.class);
 	}
 
 }

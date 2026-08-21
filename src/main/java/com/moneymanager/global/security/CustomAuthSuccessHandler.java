@@ -1,6 +1,6 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.global.domain.response.AccessToken;
+import com.moneymanager.global.domain.dto.response.AccessToken;
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.member.repository.MemberTokenRepository;
 import org.springframework.security.core.Authentication;

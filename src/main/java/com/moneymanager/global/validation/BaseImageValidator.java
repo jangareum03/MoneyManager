@@ -1,11 +1,15 @@
 package com.moneymanager.global.validation;
 
+import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.log.LogContent;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
+
+import static com.moneymanager.global.exception.code.CommonErrorCode.*;
+import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 
 /**
  * <p>
@@ -36,25 +40,69 @@ import java.util.List;
  */
 public abstract class BaseImageValidator implements ImageValidator {
 
-	private final String work = "파일 검증";
+	private final String work = "이미지 파일 검증";
 
-	protected void checkIsImage(String contentType) {
-
+	protected void validateContentType(String contentType) {
+		if(contentType == null || !contentType.contains("image")) {
+			throw ValidationException.of(
+					UNSUPPORTED_FILE_TYPE,
+				LogContent.of(
+						work,
+						MultipartFile.class,
+						"contentType",
+						contentType
+				)
+			);
+		}
 	}
 
-	protected void checkExtension(String fileName, List<String> allowedExtensions) {
+	protected void validateExtension(MultipartFile file, List<String> allowedExtensions) {
+		String fileName = file.getOriginalFilename();
+
+		if(isNullOrBlank(fileName)) {
+			throw ValidationException.of(
+					REQUIRED_VALUE,
+					LogContent.of(
+							work,
+							MultipartFile.class,
+							"originalFilename",
+							fileName
+					)
+			);
+		}
+
 		String ext = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+
+		if(!allowedExtensions.contains(ext)) {
+			throw ValidationException.of(
+					UNSUPPORTED_FILE_TYPE,
+					LogContent.of(
+							work,
+							MultipartFile.class,
+							"originalFilename",
+							fileName
+					).withOption("allowed", allowedExtensions)
+			);
+		}
 	}
 
-	protected void checkHeader(MultipartFile file, List<String> allowedHeaders) {
+	protected void validateHeader(MultipartFile file, List<String> allowedHeaders) throws IOException {
 		try(InputStream is = file.getInputStream()){
-			byte[] header = new byte[8];
-			int read = is.read(header);
+			byte[] header = is.readNBytes(4);
 
-			String hex = byteToHex(Arrays.copyOf(header, 4));
+			String hex = byteToHex(header);
 
-		}catch (IOException e) {
-
+			if(!allowedHeaders.contains(hex)) {
+				throw ValidationException.of(
+						UNSUPPORTED_FILE_TYPE,
+						LogContent.of(
+								work,
+								MultipartFile.class,
+								"header",
+								hex
+						)
+				);
+			}
 		}
 	}
 
@@ -69,8 +117,20 @@ public abstract class BaseImageValidator implements ImageValidator {
 		return sb.toString();
 	}
 
-	protected void checkSize(long size) {
+	protected void validateSize(long size) {
 		long max = 5 * 1024 * 1024;
+
+		if(size > max) {
+			throw ValidationException.of(
+					FILE_TOO_LARGE,
+					LogContent.of(
+							work,
+							MultipartFile.class,
+							"size",
+							size
+					).withOption("max", max)
+			);
+		}
 	}
 
 }

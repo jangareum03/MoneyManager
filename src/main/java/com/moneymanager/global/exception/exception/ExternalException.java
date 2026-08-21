@@ -34,25 +34,17 @@ public class ExternalException extends ApplicationException {
 
 	private Throwable throwable;
 
-	private ExternalException(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		super(errorCode, logInfo, userMessage);
-	}
-
-	private ExternalException(ErrorCode errorCode, LogContent logInfo, String userMessage, Throwable throwable) {
-		super(errorCode, logInfo, userMessage, throwable);
-	}
-
-	public static ExternalException of(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		return new ExternalException(errorCode, logInfo, userMessage);
-	}
-
-	public static ExternalException of(ErrorCode errorCode, LogContent logInfo, String userMessage, Throwable throwable) {
-		return new ExternalException(errorCode, logInfo, userMessage, throwable);
+	private ExternalException(ErrorCode errorCode, LogContent logContent, Throwable cause) {
+		super(errorCode, logContent, cause);
 	}
 
 	@Override
-	protected ExternalException newInstance(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		return new ExternalException(errorCode, logInfo, userMessage);
+	protected ApplicationException recreate(ErrorCode errorCode, LogContent logContent, String userMessage, Throwable cause) {
+		return new ExternalException(errorCode, logContent, cause);
+	}
+
+	public static ExternalException of(ErrorCode errorCode, LogContent logContent, Throwable cause) {
+		return new ExternalException(errorCode, logContent, cause);
 	}
 
 }

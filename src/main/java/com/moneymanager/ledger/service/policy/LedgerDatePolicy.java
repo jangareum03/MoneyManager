@@ -1,10 +1,14 @@
 package com.moneymanager.ledger.service.policy;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.Year;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 
 /**
  * <p>
@@ -37,14 +41,39 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public final class LedgerDatePolicy {
 
+	@Getter
+	private static final int MIN_YEAR = 5;
+	public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+
 	private final Clock clock;
 
-	public LocalDate minimum() {
-		return LocalDate.now(clock).minusYears(5);
+	LocalDate minimum() {
+		return LocalDate.now(clock).minusYears(MIN_YEAR);
 	}
 
-	public LocalDate maximum() {
+	LocalDate maximum() {
 		return LocalDate.now(clock);
+	}
+
+	boolean isValidDate(LocalDate date) {
+		LocalDate min = minimum();
+		LocalDate max = maximum();
+
+		return !date.isBefore(min) && !date.isAfter(max);
+	}
+
+	boolean isValidYear(Year year) {
+		Year minYear = Year.of(minimum().getYear());
+		Year maxYear = Year.of(maximum().getYear());
+
+		return !year.isBefore(minYear) && !year.isAfter(maxYear);
+	}
+
+	boolean isValidYearMonth(YearMonth yearMonth) {
+		YearMonth minYearMonth = YearMonth.of(minimum().getYear(), minimum().getMonthValue());
+		YearMonth maxYearMonth = YearMonth.of(maximum().getYear(), maximum().getMonthValue());
+
+		return !yearMonth.isBefore(minYearMonth) && !yearMonth.isAfter(maxYearMonth);
 	}
 
 }

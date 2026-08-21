@@ -1,14 +1,16 @@
 package com.moneymanager.ledger.domain.dto.response;
 
-import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
+import com.moneymanager.ledger.domain.dto.response.item.HistoryItem;
 import com.moneymanager.ledger.domain.enums.CategoryType;
-import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.fixture.response.LedgerHistoryQueryFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,23 +45,23 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class HistoryItemTest {
 
 	@Nested
-	@DisplayName("HistoryItem 변환")
+	@DisplayName("HistoryItem 생성할 때")
 	class FromTest {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 		
 			@Test
-			@DisplayName("LedgerHistoryQuery가 HistoryItem으로 변환한다.")
+			@DisplayName("유효한 값이면 생성한다.")
 			void createsHistoryItem_whenQueryIsValid() {
 				//given
 				LedgerHistoryQuery historyQuery = LedgerHistoryQueryFixture.create();
 				
-				//when: HistoryItem으로 변환한다.
+				//when
 				HistoryItem result = HistoryItem.from(historyQuery);
 				
-				//then: 변환된 값들이 필드에 정확히 저장되어 있다.
+				//then
 				assertThat(result.getCategoryType()).isEqualTo(CategoryType.INCOME);
 				assertThat(result.getAmount()).isEqualTo(historyQuery.getAmount());
 				assertThat(result.getCode()).isEqualTo(historyQuery.getCode());
@@ -68,13 +70,13 @@ public class HistoryItemTest {
 		}
 		
 		@Nested
-		@DisplayName("실패 케이스")
+		@DisplayName("실패")
 		class Failure {
 		
 			@Test
-			@DisplayName("잘못된 categoryCode가 전달되면 예외를 전달한다.")
+			@DisplayName("카테고리 코드가 존재하지 않으면 예외를 전파한다.")
 			void throwsException_whenCategoryCodeIsInvalid() {
-				//given: 유효하지 않은 카테고리 코드가 주어진다.
+				//given
 				String category = "030101";
 
 				LedgerHistoryQuery historyQuery = new LedgerHistoryQuery(
@@ -86,9 +88,9 @@ public class HistoryItemTest {
 						category
 				);
 
-				//when & then: HistoryItem으로 변환 중 ValidationException이 발생한다.
+				//when & then
 				assertThatThrownBy(() -> HistoryItem.from(historyQuery))
-						.isInstanceOf(ValidationException.class);
+						.isInstanceOf(NoSuchElementException.class);
 			}
 			
 		}

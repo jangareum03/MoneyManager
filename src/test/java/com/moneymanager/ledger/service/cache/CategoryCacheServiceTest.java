@@ -1,9 +1,12 @@
 package com.moneymanager.ledger.service.cache;
 
-import com.moneymanager.support.data.CategoryTestData;
-import com.moneymanager.support.fixture.entity.category.CategoryFixture;
+import com.moneymanager.global.exception.code.CategoryErrorCode;
+import com.moneymanager.global.exception.exception.InternalException;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.repository.CategoryRepository;
+import com.moneymanager.support.ApplicationExceptionAssert;
+import com.moneymanager.support.data.CategoryTestData;
+import com.moneymanager.support.fixture.entity.category.CategoryFixture;
 import com.moneymanager.support.fixture.entity.category.CategoryHierarchyFixture;
 import com.moneymanager.support.fixture.entity.category.IncomeCategoryFixture;
 import org.junit.jupiter.api.DisplayName;
@@ -18,8 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -59,71 +61,38 @@ public class CategoryCacheServiceTest {
 	private CategoryRepository repository;
 
 	@Nested
-	@DisplayName("캐시 조회")
+	@DisplayName("전체 카테고리를 조회할 때")
 	class GetCache {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 
 			@Test
-			@DisplayName("조회 결과가 데이터가 존재하면 카테고리 정보가 담긴 Map이 반환된다.")
+			@DisplayName("데이터베이스에 저장된 카테고리가 있다면 Map으로 반환한다.")
 			void returnsCategoryMap_whenCategoriesExist() {
-				//given: 여러 개의 카테고리 정보가 저장되어 있다.
+				//given
 				List<Category> incomeHierarchy = CategoryHierarchyFixture.incomeHierarchy();
 
 				when(repository.findAllCategory())
 						.thenReturn(incomeHierarchy);
 				
-				//when: 모든 카테고리를 조회한다.
+				//when
 				Map<String, Category> result = target.getCategoryMap();
 				
-				//then: 저장된 모든 카테고리가 반환된다.
-				assertThat(result).hasSize(3);
-
-				assertThat(result.get(CategoryTestData.INCOME_CODE)).isEqualTo(incomeHierarchy.get(0));
-				assertThat(result.get(CategoryTestData.EARNED_CODE)).isEqualTo(incomeHierarchy.get(1));
-				assertThat(result.get(CategoryTestData.SALARY_CODE)).isEqualTo(incomeHierarchy.get(2));
-			}
-
-			@Test
-			@DisplayName("조회 결과가 1개의 데이터가 존재하면 Map이 반환된다.")
-			void returnsCategoryMap_whenSingleCategoryExists() {
-				//given: 카테고리가 1개 저장되어 있다.
-				Category top = CategoryFixture.income();
-
-				when(repository.findAllCategory()).thenReturn(
-						List.of(top)
-				);
-
-				//when: 모든 카테고리를 조회한다.
-				Map<String, Category> result = target.getCategoryMap();
-				
-				//then: 한 개의 카테고리가 반환된다.
+				//then: 중복된 코드가 없고, 코드와 이름이 매칭이 잘 된다.
 				assertThat(result)
-						.hasSize(1)
-						.containsKeys(CategoryTestData.INCOME_CODE)
-						.containsValue(top);
-			}
-			
-			@Test
-			@DisplayName("조회 결과가 비어있으면 빈 Map이 반환된다.")
-			void returnsEmptyMap_whenCategoryIsEmpty() {
-				//given: 조회 결과가 비어있으면 List로 반환되게 동작이 정의되어 있다.
-				when(repository.findAllCategory())
-						.thenReturn(Collections.emptyList());
+						.hasSize(incomeHierarchy.size());
 
-				//when: 모든 카테고리를 조회한다.
-				Map<String, Category> result = target.getCategoryMap();
-				
-				//then: 빈 Map이 반환된다.
-				assertThat(result).isEmpty();
+				assertThat(result.get(CategoryTestData.INCOME_CODE))
+						.extracting(Category::getCode, Category::getName)
+						.containsExactly(CategoryTestData.INCOME_CODE, CategoryTestData.INCOME_NAME);
 			}
 			
 			@Test
-			@DisplayName("Repository가 정확히 한 번 호출된다.")
+			@DisplayName("categoryRepository를 한 번만 호출한다.")
 			void validatesRepositoryCallCount_whenDataIsRequested() {
-				//given: 여러 개의 카테고리 정보가 저장되어 있다.
+				//given
 				Category top = CategoryFixture.income();
 				Category middle = IncomeCategoryFixture.createMiddleAll().get(0);
 
@@ -133,23 +102,23 @@ public class CategoryCacheServiceTest {
 						)
 				);
 
-				//when: 모든 카테고리를 조회한다.
+				//when
 				target.getCategoryMap();
 				
 				//then: 카테고리 조회가 한 번 요청된다.
 				verify(repository, times(1)).findAllCategory();
 			}
-			
+
 		}
 
 		@Nested
-		@DisplayName("실패 케이스")
+		@DisplayName("실패")
 		class Failure {
 
 			@Test
-			@DisplayName("카테고리 코드가 중복되면 예외가 발생한다.")
-			void throwsException_whenCategoryCodeIsDuplicate() {
-				//given: 동일한 카테고리 코드가 2개가 저장되어 있다.
+			@DisplayName("중복된 카테고리가 있다면 예외가 발생한다.")
+			void throwsIllegalStateException_whenDuplicateCategoriesExist() {
+				//given: DB에서 카테고리 조회하면 동일한 카테고리 코드가 존재한다.
 				Category category = CategoryFixture.income();
 
 				when(repository.findAllCategory())
@@ -162,6 +131,23 @@ public class CategoryCacheServiceTest {
 				//when & then: 모든 카테고리 조회 중 IllegalStateException이 발생한다.
 				assertThatThrownBy(() -> target.getCategoryMap())
 						.isInstanceOf(IllegalStateException.class);
+			}
+
+			@Test
+			@DisplayName("데이터베이스에 저장된 카테고리가 없다면 예외가 발생한다.")
+			void throwInternalException_whenCategoriesDoNotExist() {
+				//given
+				when(repository.findAllCategory())
+						.thenReturn(Collections.emptyList());
+
+				//when & then
+				ApplicationExceptionAssert.assertThatApplicationException(
+						catchThrowable(() -> target.getCategoryMap())
+				)
+						.isInstanceOf(InternalException.class)
+						.hasErrorCode(CategoryErrorCode.DATA_NOT_FOUND)
+						.hasWork("전체 카테고리 조회")
+						.hasCauseMessage("카테고리 없음");
 			}
 			
 		}

@@ -1,5 +1,9 @@
 package com.moneymanager.support.data;
 
+import com.moneymanager.ledger.domain.enums.FixCycle;
+import com.moneymanager.ledger.domain.enums.FixedType;
+import com.moneymanager.ledger.domain.enums.PaymentType;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -9,10 +13,10 @@ public final class LedgerTestData {
 	public static final String CODE = "ABCDE-abcde-1234567890cOdE";
 	public static final String DATE = "20260101";
 	public static final Long AMOUNT = 10000L;
-	public static final String PAYMENT_TYPE = "NONE";
-	public static final String FIX_N = "N";
-	public static final String FIX_Y = "Y";
-	public static final String FIX_CYCLE = "M";
+	public static final PaymentType PAYMENT_TYPE = PaymentType.NONE;
+	public static final FixedType FIX_N = FixedType.VARIABLE;
+	public static final FixedType FIX_Y = FixedType.REPEAT;
+	public static final FixCycle FIX_CYCLE = FixCycle.MONTHLY;
 
 	public static final String MEMO = "메모";
 

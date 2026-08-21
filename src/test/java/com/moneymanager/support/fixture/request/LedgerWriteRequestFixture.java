@@ -17,10 +17,10 @@ public final class LedgerWriteRequestFixture {
 		return LedgerWriteRequest.builder()
 				.date(LedgerTestData.DATE)
 				.categoryCode(CategoryTestData.SALARY_CODE)
-				.fixed(LedgerTestData.FIX_N)
+				.fixed(LedgerTestData.FIX_N.getValue().toLowerCase())
 				.fixCycle(null)
 				.amount(LedgerTestData.AMOUNT)
-				.paymentType(LedgerTestData.PAYMENT_TYPE);
+				.paymentType(LedgerTestData.PAYMENT_TYPE.name().toLowerCase());
 	}
 
 	public static LedgerWriteRequest.LedgerWriteRequestBuilder withImages(int size) {

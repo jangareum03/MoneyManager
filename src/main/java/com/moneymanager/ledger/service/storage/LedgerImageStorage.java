@@ -1,0 +1,138 @@
+package com.moneymanager.ledger.service.storage;
+
+import com.github.f4b6a3.ulid.UlidCreator;
+import com.moneymanager.global.domain.FileMetadata;
+import com.moneymanager.global.exception.code.CommonErrorCode;
+import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.log.AuditLogger;
+import com.moneymanager.global.log.LogContent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Clock;
+import java.time.LocalDate;
+
+/**
+ * <p>
+ * 패키지이름    : com.moneymanager.ledger.service.storage<br>
+ * 파일이름       : LedgerImageStorage<br>
+ * 작성자          : areum Jang<br>
+ * 생성날짜       : 26. 8. 20<br>
+ * 설명              : 이미지 파일을 서버에 관리하는 클래스
+ * </p>
+ * <br>
+ * <p color='#FFC658'>📢 변경이력</p>
+ * <table border="1" cellpadding="5" cellspacing="0" style="width: 100%">
+ * 		<thead>
+ * 		 	<tr style="border-top: 2px solid; border-bottom: 2px solid">
+ * 		 	  	<td>날짜</td>
+ * 		 	  	<td>작성자</td>
+ * 		 	  	<td>변경내용</td>
+ * 		 	</tr>
+ * 		</thead>
+ * 		<tbody>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>26. 8. 20</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		</tbody>
+ * </table>
+ */
+@Slf4j
+@Component
+public class LedgerImageStorage {
+
+    private final Clock clock;
+    private final Path rootPath;
+
+    public LedgerImageStorage(Clock clock, @Value("${file.root}") String rootPath) {
+        this.clock = clock;
+        this.rootPath = Path.of(rootPath);
+    }
+
+    public FileMetadata store(MultipartFile file, String memberId) throws IOException {
+        if(file == null || file.isEmpty()) {
+            throw InternalException.of(
+                    CommonErrorCode.FILE_NOT_FOUND,
+                    LogContent.of(
+                            "파일 업로드",
+                            MultipartFile.class
+                    )
+            );
+        }
+
+        //파일명 변경
+        String originalFileName = file.getOriginalFilename();
+        String generatedFilename = generateFileName(file);
+
+        //폴더 생성
+        Path directoryPath = resolveDirectory(memberId);
+        Files.createDirectories(directoryPath);
+
+        //서버에 이미지 저장
+        file.transferTo(directoryPath.resolve(generatedFilename));
+
+        return FileMetadata.of(
+                resolveFilePath(memberId, generatedFilename),
+                resolveRelativeFilePath(memberId, generatedFilename),
+                originalFileName,
+                generatedFilename,
+                file.getContentType()
+        );
+    }
+
+    public void delete(Path path) {
+        try{
+            Files.delete(path);
+        }catch (IOException e) {
+            AuditLogger.warn(
+                    "파일 경로가 잘못되거나 존재하지 않은 파일이어서 삭제가 불가능합니다.",
+                    path.toString(),
+                    path +" 파일 삭제"
+            );
+        }
+    }
+
+
+    //===== 유틸 메서드 =====
+    private Path resolveDirectory(String memberId) {
+        return rootPath.resolve(resolveRelativeDirectory(memberId));
+    }
+
+    private Path resolveRelativeDirectory(String memberId) {
+        LocalDate now = LocalDate.now(clock);
+
+        return Path.of(
+                memberId,
+                String.valueOf(now.getYear()),
+                String.format("%02d", now.getMonthValue())
+        );
+    }
+
+    private Path resolveFilePath(String memberId, String fileName) {
+        return resolveDirectory(memberId).resolve(fileName);
+    }
+
+    private Path resolveRelativeFilePath(String memberId, String fileName) {
+        return resolveRelativeDirectory(memberId).resolve(fileName);
+    }
+
+    private String generateFileName(MultipartFile file) {
+        String ext = extractFileExtension(file.getOriginalFilename());
+
+        return UlidCreator.getUlid() + "." + ext;
+    }
+
+    private String extractFileExtension(String originalFilename) {
+        int index = originalFilename.lastIndexOf('.');
+
+        return originalFilename.substring(index + 1);
+    }
+
+}

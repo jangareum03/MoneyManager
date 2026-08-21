@@ -1,8 +1,8 @@
 package com.moneymanager.global.utils.date;
 
-import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.global.util.date.DateTimeUtil;
+import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -13,8 +13,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_FORMAT;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Named.named;
 
@@ -45,67 +43,59 @@ import static org.junit.jupiter.api.Named.named;
  * 		</tbody>
  * </table>
  */
-public class DateTimeUtilTest {
+class DateTimeUtilTest {
 
 	@Nested
-	@DisplayName("문자열 날짜 파싱")
-	class DateParsing {
+	@DisplayName("문자열을 날짜 형식으로 변환할 때")
+	class ParseDate {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 
-			@Test
-			@DisplayName("yyyyMMdd 형식의 문자열이면 LocalDate를 변환한다.")
-			void createsLocalDate_whenDateFormatIsValid() {
-				//given: yyyyMMdd 형식의 문자열이 주어진다.
-				String date = "20260620";
-
-				//when: LocalDate를 생성한다.
-				LocalDate result = DateTimeUtil.parseDateFromYyyyMMdd(date);
+			@ParameterizedTest
+			@MethodSource("com.moneymanager.support.data.DateTestData#validDates")
+			@DisplayName("지정된 날짜로 LocalDate를 반환한다.")
+			void returnsLocalDate_whenDateFormatIsValid(String date) {
+				//when
+				LocalDate result = DateTimeUtil.parseDateOrToday(date);
 				
-				//then: 요청된 값으로 저장된 LocalDate가 반환된다.
-				assertThat(result).isEqualTo(LocalDate.of(2026, 6, 20));
+				//then
+				assertThat(result).isNotEqualTo(LocalDate.now());
 			}
 			
-		}
-		
-		@Nested
-		@DisplayName("실패 케이스")
-		class Failure {
-		
 			@ParameterizedTest
 			@NullAndEmptySource
 			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
-			@DisplayName("날짜가 유효하지 않으면 변환에 실패한다.")
-			void throwsException_whenDateIsInvalid(String date) {
-				//when: 유효하지 않은 날짜로 LocalDate를 생성한다.
-				Throwable throwable = catchThrowable(() -> DateTimeUtil.parseDateFromYyyyMMdd(date));
-				
-				//then: 공백에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("날짜 변환")
-						.hasCauseMessage("날짜 형식 없음")
-						.hasField("date")
-						.hasValue(date);
+			@DisplayName("null 또는 빈 값이면 오늘날짜의 LocalDate를 반환한다.")
+			void returnsToday_whenDateIsNullOrEmpty(String date) {
+				//when
+				LocalDate result = DateTimeUtil.parseDateOrToday(date);
+
+				//then
+				assertThat(result).isToday();
 			}
 			
 			@ParameterizedTest
 			@MethodSource("com.moneymanager.support.data.DateTestData#unsupportedFormats")
-			@DisplayName("날짜 형식이 유효하지 않으면 변환에 실패한다.")
-			void throwsException_whenDateFormatIsInvalid(String date) {
-				//when: 유효하지 않은 형식으로 LocalDate를 생성한다.
-				Throwable throwable = catchThrowable(() -> DateTimeUtil.parseDateFromYyyyMMdd(date));
+			@DisplayName("지원하지 않는 날짜 형식이면 오늘날짜의 LocalDate를 반환한다.")
+			void returnsToday_whenDateFormatIsInvalid(String date) {
+				//when
+				LocalDate result = DateTimeUtil.parseDateOrToday(date);
 
-				//then: 형식 검증 중 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(INVALID_FORMAT)
-						.hasWork("날짜 변환")
-						.hasCauseMessage("날짜 형식 불일치")
-						.hasField("date")
-						.hasValue(date)
-						.hasOption("format", "yyyyMMdd");
+				//then
+				assertThat(result).isToday();
+			}
+			
+			@ParameterizedTest
+			@MethodSource("com.moneymanager.support.data.DateTestData#invalidDates")
+			@DisplayName("유효하지 않은 날짜면 오늘날짜의 LocalDate를 반환한다.")
+			void returnsToday_whenDateIsInvalid(String date) {
+				//when
+				LocalDate result = DateTimeUtil.parseDateOrToday(date);
+
+				//then
+				assertThat(result).isToday();
 			}
 			
 		}

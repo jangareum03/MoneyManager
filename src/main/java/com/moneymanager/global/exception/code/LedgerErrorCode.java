@@ -1,5 +1,7 @@
 package com.moneymanager.global.exception.code;
 
+import lombok.Getter;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.exception.code<br>
@@ -27,26 +29,19 @@ package com.moneymanager.global.exception.code;
  * 		</tbody>
  * </table>
  */
+@Getter
 public enum LedgerErrorCode implements ErrorCode {
 
-	INVALID_VALUE("LGR-003", "입력한 값이 올바르지 않습니다."),
-	OUT_OF_RANGE("LGR-004", "입력한 값의 범위 또는 길이가 허용 범위를 벗어났습니다."),
-	NOT_FOUND_DATA("LGR-100", "존재하지 않은 가계부입니다."),
-	DATA_INTEGRITY_ERROR("LGR-105", "가계부 데이터의 무결성이 손상되어 있습니다."),
-
-	POLICY_VIOLATION("LGR-400", "서비스 정책에 따라 요청을 처리할 수 없습니다.");
+	DATA_NOT_FOUND("LGR-100", "가계부 없음"),
+	POLICY_VIOLATION("LGR-400", "가계부 정책 위반"),
+	DATA_PERSISTENCE_FAILED("LGR-703", "데이터 조작 문제");
 
 	private final String code;
-	private final String defaultMessage;
+	private final String reason;
 
-	LedgerErrorCode(String errorCode, String defaultMessage) {
+	LedgerErrorCode(String errorCode, String reason) {
 		this.code = errorCode;
-		this.defaultMessage = defaultMessage;
-	}
-
-	@Override
-	public String getCode() {
-		return code;
+		this.reason = reason;
 	}
 
 }

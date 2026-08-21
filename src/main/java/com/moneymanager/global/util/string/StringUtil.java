@@ -1,5 +1,9 @@
 package com.moneymanager.global.util.string;
 
+import com.moneymanager.global.exception.code.CommonErrorCode;
+import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.log.LogContent;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.utils.string<br>
@@ -53,8 +57,19 @@ public class StringUtil {
 	 * @return	문자열이 유효한 경우{@code ture}, 아니면 {@code false}
 	 */
 	public static boolean matchesPattern(String value, String pattern) {
-		if( isNullOrBlank(value) || isNullOrBlank(pattern) ) {
+		if(isNullOrBlank(value)) {
 			return true;
+		}
+
+		if(isNullOrBlank(pattern)) {
+			throw InternalException.of(
+					CommonErrorCode.REQUIRED_VALUE,
+					LogContent.of(
+							"패턴 일치 확인",
+							"pattern",
+							pattern
+					).withCause("비교할 패턴 누락")
+			);
 		}
 
 		return value.matches(pattern);

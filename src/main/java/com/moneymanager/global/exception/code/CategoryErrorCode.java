@@ -1,5 +1,7 @@
 package com.moneymanager.global.exception.code;
 
+import lombok.Getter;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.exception.code<br>
@@ -27,20 +29,18 @@ package com.moneymanager.global.exception.code;
  * 		</tbody>
  * </table>
  */
+@Getter
 public enum CategoryErrorCode implements ErrorCode {
-	NOT_FOUND_DATA("CAT-100", "존재하지 않은 카테고리 입니다.");
+
+	REQUIRED_VALUE("CAT-002", "카테고리 누락"),
+	DATA_NOT_FOUND("CAT-100", "카테고리 없음");
 
 	private final String code;
-	private final String defaultMessage;
+	private final String reason;
 
-	CategoryErrorCode(String code, String defaultMessage) {
+	CategoryErrorCode(String code, String reason) {
 		this.code = code;
-		this.defaultMessage = defaultMessage;
-	}
-
-	@Override
-	public String getCode() {
-		return code;
+		this.reason = reason;
 	}
 
 }

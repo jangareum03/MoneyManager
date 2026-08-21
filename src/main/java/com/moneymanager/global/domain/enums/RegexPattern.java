@@ -29,7 +29,6 @@ import lombok.Getter;
  *		</tbody>
  * </table>
  */
-@Getter
 public enum RegexPattern {
 
 	/**
@@ -52,7 +51,7 @@ public enum RegexPattern {
 	 *     <li>상세주소(ADDRESS_DETAIL_NAME) : 한글, 영문, 숫자, 공백, 하이픈, 괄호, 쉼표, 슬래시, 점, #만 입력 가능</li>
 	 * </ul>
 	 */
-	ADDRESS_PLACE_NAME("^[가-힣a-zA-Z0-9\\s()-.]+$"),
+	ADDRESS_PLACE_NAME("^[가-힣a-zA-Z0-9\\s().-]+$"),
 	ADDRESS_ROAD_NAME("^[가-힣a-zA-Z0-9\\s-]+$"),
 	ADDRESS_JIBUN_NAME("^[가-힣0-9\\s-]+$"),
 	ADDRESS_DETAIL_NAME("^[가-힣a-zA-Z0-9\\s-(),/.#]+$"),
@@ -93,6 +92,8 @@ public enum RegexPattern {
 	 */
 	QUESTION_TITLE("^[a-zA-Z0-9가-힣].{0,19}$"),
 	QUESTION_CONTENT("^(?!\\s)[\\s\\S]{1,299}$");
+
+	@Getter
 	private final String pattern;
 
 	RegexPattern( String pattern ) {

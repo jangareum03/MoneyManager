@@ -5,7 +5,7 @@ INSERT INTO ledger_category VALUES('010000', NULL, '수입');
 
 -- 2단계 (3)
 INSERT INTO ledger_category VALUES('010100', '010000', '소득');
-INSERT INTO ledger_category VALUES('010200', '010000', '저축');
+INSERT INTO ledger_category VALUES('010200', '010000', '목돈');
 INSERT INTO ledger_category VALUES('010300', '010000', '차입');
 
 -- 3단계 (6)

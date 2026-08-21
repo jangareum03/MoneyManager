@@ -58,7 +58,6 @@ public enum MemberStatus {
 				CommonErrorCode.INVALID_VALUE,
 				LogContent.of(
 						"회원 상태 조회",
-						"허용하지 않은 상태",
 						MemberStatus.class,
 						value
 				)

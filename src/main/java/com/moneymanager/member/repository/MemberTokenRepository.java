@@ -1,6 +1,6 @@
 package com.moneymanager.member.repository;
 
-import com.moneymanager.global.domain.response.AccessToken;
+import com.moneymanager.global.domain.dto.response.AccessToken;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 

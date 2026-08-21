@@ -1,19 +1,23 @@
 package com.moneymanager.ledger.service.command;
 
-import com.moneymanager.global.security.utils.SecurityUtil;
+import com.github.f4b6a3.ulid.UlidCreator;
+import com.moneymanager.global.exception.code.CategoryErrorCode;
+import com.moneymanager.global.exception.exception.BusinessException;
+import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.entity.Ledger;
-import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.repository.LedgerRepository;
-import com.moneymanager.ledger.service.read.LedgerReadService;
+import com.moneymanager.ledger.service.policy.LedgerDatePolicy;
+import com.moneymanager.ledger.service.read.CategoryReadService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 
 /**
@@ -45,76 +49,44 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class LedgerCommandService {
 
-	private final SecurityUtil securityUtil;
-
-	private final LedgerReadService ledgerReadService;
+	private final CategoryReadService categoryReadService;
 
 	private final LedgerRepository ledgerRepository;
 
 
-	@Transactional
-	public void register(LedgerWriteRequest request) {
-		String memberId = securityUtil.getMemberId();
+	public Ledger create(String memberId, LedgerWriteRequest request) {
+		String code = UlidCreator.getUlid().toString();
+		LocalDate date = LocalDate.parse(request.getDate(), LedgerDatePolicy.DATE_FORMATTER);
 
-		Ledger ledger = createLedger(memberId, request);
+		Money money = Money.of(request.getAmount(), request.getPaymentType());
+		Place place = Place.ofOrNull(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress());
 
-		Ledger savedLedger = save(ledger);
+		if(!categoryReadService.exists(request.getCategoryCode())) {
+			throw BusinessException.of(
+					CategoryErrorCode.DATA_NOT_FOUND,
+					LogContent.of(
+							"Ledger 생성",
+							LedgerWriteRequest.class,
+							"categoryCode", request.getCategoryCode()
+					)
+			);
+		}
+
+		return Ledger.create(
+				code, memberId, date, request.getCategoryCode(), request.getFixed(), request.getFixCycle(), request.getMemo(),
+				money, place
+		);
 	}
 
-	private Ledger createLedger(String memberId, LedgerWriteRequest request) {
-		return Ledger.create(memberId, request);
+	public Long save(Ledger ledger) {
+		return ledgerRepository.save(ledger);
 	}
 
 	@Transactional
 	public LedgerDetailResponse update(String code, LedgerUpdateRequest request) {
-		//1. 인증된 회원 조회
-		String memberId = securityUtil.getMemberId();
-
-		//2. 기존 가계부 조회
-		Ledger ledger = ledgerReadService.getLedger(memberId, code);
-
-		//3. 수정값 반영
-		updateLedgerFields(ledger, request);
-
-		//4. 가계부 저장
-		save(ledger);
-
-		//5. 이미지 삭제 및 추가
-
-		//6. 가계부 조회 후 반환
-		return ledgerReadService.getDetailData(code);
-	}
-
-	private void updateLedgerFields(Ledger ledger, LedgerUpdateRequest updateRequest) {
-		//필수정보
-		ledger.changeCategory(updateRequest.getCategoryCode());
-		ledger.changeFixInfo(updateRequest.getFixed(), updateRequest.getFixCycle());
-
-		Money updateMoney = Money.of(updateRequest.getAmount(), PaymentType.from(updateRequest.getPaymentType()));
-		ledger.changeMoney(updateMoney);
-
-		//선택정보
-		ledger.changeMemo(updateRequest.getMemo());
-
-		Place updatePlace = Place.of(updateRequest.getPlaceName(), updateRequest.getRoadAddress(), updateRequest.getDetailAddress());
-		ledger.changePlace(updatePlace);
-	}
-
-	public Ledger save(Ledger ledger) {
-		Long id;
-
-		if( ledger.getId() == null ) {
-			id = ledgerRepository.insert(ledger);
-		}else {
-			int updatedRow = ledgerRepository.update(ledger);
-
-			id = ledger.getId();
-		}
-
-		return ledgerRepository.findById(id);
+		return null;
 	}
 
 }

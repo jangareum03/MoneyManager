@@ -41,16 +41,16 @@ import java.time.LocalDateTime;
 public class Member {
 
 	private final String id;											//회원번호(내부용)
-	private final String userName;								//아이디
+	private final String username;								//아이디
 	private final String password;								//비밀번호
 	private final String name;										//이름
-	private final String birthDate;								//생년월일
+	private final String birthdate;								//생년월일
 	private final LocalDateTime createdAt;				//가입일
 
 	private MemberType type;										//회원유형
 	private MemberStatus status;								//회원상태
 	private String role;												//회원권한
-	private String nickName;										//닉네임
+	private String nickname;										//닉네임
 	private String email;												//이메일
 	private LocalDateTime deletedAt;						//탈퇴일
 

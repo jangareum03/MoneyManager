@@ -62,4 +62,20 @@ public class AuditLogger {
 		log.info(message.toString());
 	}
 
+	public static void warn(String message, String actual, String expect) {
+		String trace = MDC.get("traceId");
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("[")
+			.append(trace)
+			.append("] ");
+
+		LogFormatterSupport.append(sb, "message", message);
+		LogFormatterSupport.append(sb, "actual", actual);
+		LogFormatterSupport.append(sb, "expect", expect);
+
+		log.warn(sb.toString());
+	}
+
 }

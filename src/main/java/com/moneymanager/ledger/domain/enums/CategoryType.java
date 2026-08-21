@@ -4,7 +4,6 @@ package com.moneymanager.ledger.domain.enums;
 import lombok.Getter;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 
 /**
@@ -37,53 +36,30 @@ import java.util.stream.Collectors;
 @Getter
 public enum CategoryType {
 
-	INCOME("01","수입"),
-	OUTLAY("02", "지출");
+	INCOME("수입", "01"),
+	OUTLAY("지출", "02");
 
-	private final String prefix;			//카테고리 코드 (앞 2자리)
 	private final String label;				//화면 표시용
+	private final String prefix;			//카테고리 코드 (앞 2자리)
 
-	CategoryType(String prefix, String label) {
-		this.prefix= prefix;
+
+	CategoryType(String label, String prefix) {
 		this.label = label;
+		this.prefix= prefix;
 	}
 
-	public static CategoryType from(String type) {
-		validateType(type);
-
+	public static CategoryType from(String name) {
 		return Arrays.stream(values())
-				.filter(t -> t.name().equalsIgnoreCase(type))
+				.filter(t -> t.name().equalsIgnoreCase(name))
 				.findFirst()
-				.get();
+				.orElseThrow();
 	}
 
-	private static void validateType(String type) {
-
-	}
-
-	private static String getAllowedValues() {
+	public static CategoryType fromCode(String prefix) {
 		return Arrays.stream(values())
-				.map(CategoryType::name)
-				.collect(Collectors.joining(", "));
-	}
-
-	public static CategoryType fromCode(String code) {
-		validateCategoryCode(code);
-
-		return Arrays.stream(values())
-				.filter(t -> code.startsWith(t.prefix))
+				.filter(t -> prefix.startsWith(t.prefix))
 				.findFirst()
-				.get();
-	}
-
-	private static void validateCategoryCode(String code) {
-
-	}
-
-	private static String getAllowedPrefixes() {
-		return Arrays.stream(values())
-				.map(CategoryType::getPrefix)
-				.collect(Collectors.joining(", "));
+				.orElseThrow();
 	}
 
 }

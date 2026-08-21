@@ -1,5 +1,7 @@
 package com.moneymanager.global.exception.code;
 
+import lombok.Getter;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.exception.code<br>
@@ -27,28 +29,18 @@ package com.moneymanager.global.exception.code;
  * 		</tbody>
  * </table>
  */
+@Getter
 public enum MemberErrorCode implements ErrorCode{
 
-	NOT_FOUND_DATA("MBR-100", "존재하지 않은 회원입니다."),
-
-	MBR_INVALID_CREDENTIALS("MBR-203", "아이디 또는 비밀번호를 다시 입력해주세요."),
-	MBR_LIMIT_EXCEEDED("MBR-402", "로그인 횟수 초과로 로그인이 불가능합니다."),
-	MBR_ACCOUNT_LOCKED("MBR-205", "로그인이 불가능한 계정입니다."),
-	MBR_ACCOUNT_DISABLED("MBR-206", "비활성화된 계정으로 로그인이 불가능합니다."),
-	MBR_ACCOUNT_DELETED("MBR-207", "탈퇴한 회원으로 로그인이 불가능합니다."),
-	MBR_FORBIDDEN("MBR-300", "권한 부족으로 서비스를 이용할 수 없습니다.");
+	DATA_NOT_FOUND("MBR-100", "회원 없음"),
+	DATA_INTEGRITY_ERROR("MBR-105", "회원 무결성 위반");
 
 	private final String code;
-	private final String defaultMessage;
+	private final String reason;
 
-	MemberErrorCode(String code, String defaultMessage) {
+	MemberErrorCode(String code, String reason) {
 		this.code = code;
-		this.defaultMessage = defaultMessage;
-	}
-
-	@Override
-	public String getCode() {
-		return code;
+		this.reason = reason;
 	}
 
 }

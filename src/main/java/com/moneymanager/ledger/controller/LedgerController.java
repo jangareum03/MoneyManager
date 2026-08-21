@@ -1,23 +1,18 @@
 package com.moneymanager.ledger.controller;
 
-import com.moneymanager.global.exception.exception.ValidationException;
 import com.moneymanager.global.operation.annotation.Operation;
 import com.moneymanager.global.operation.enums.ServiceAction;
-import com.moneymanager.global.util.date.DateTimeUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
-import com.moneymanager.ledger.domain.dto.response.HistoryDashboardResponse;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
 import com.moneymanager.ledger.domain.enums.*;
-import com.moneymanager.ledger.service.command.LedgerCommandService;
+import com.moneymanager.ledger.service.application.LedgerService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
-import com.moneymanager.ledger.service.validation.LedgerValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
 
 
 /**
@@ -52,9 +47,8 @@ import java.time.LocalDate;
 @RequestMapping("/ledgers")
 public class LedgerController {
 
+	private final LedgerService ledgerService;
 	private final LedgerReadService ledgerReadService;
-	private final LedgerCommandService ledgerCommandService;
-	private final LedgerValidator ledgerValidator;
 
 	@GetMapping
 	public String getHistories(@RequestParam(required = false) String viewType, Model model) {
@@ -98,7 +92,7 @@ public class LedgerController {
 	@GetMapping("/new/step1")
 	@Operation(ServiceAction.LEDGER_REGISTER_STEP1_VIEW)
 	public String showWriteStep1Form(Model model){
-		LedgerWriteStep1Response response = ledgerReadService.getWriteStep1Data();
+		LedgerWriteStep1Response response = ledgerService.getStep1();
 
 		model.addAttribute("ledger", response);
 
@@ -106,31 +100,25 @@ public class LedgerController {
 	}
 
 	@GetMapping("/new/step2")
+	@Operation(ServiceAction.LEDGER_REGISTER_STEP2_VIEW)
 	public String showWriteStep2Form(@RequestParam String type, @RequestParam String date, Model model) {
-		//입력값 확인
-		CategoryType ledgerType = parseCategoryTypeOrDefault(type);
-		LocalDate localDate = DateTimeUtil.parseDateFromYyyyMMdd(date);
-
-		LedgerWriteStep2Response response = ledgerReadService.getWriteStep2Data(ledgerType, localDate);
+		LedgerWriteStep2Response response = ledgerService.getStep2(type, date);
 
 		model.addAttribute("ledger", response);
 
 		return "/ledger/ledger_writeStep2";
 	}
 
-	private CategoryType parseCategoryTypeOrDefault(String type) {
-		try{
-			return CategoryType.from(type);
-		}catch (ValidationException e) {
-			return CategoryType.INCOME;
-		}
+	@GetMapping("/map")
+	@Operation(ServiceAction.LEDGER_MAP_VIEW)
+	public String getMapByKakao() {
+		return "/map/kakao_map";
 	}
 
 	@PostMapping
+	@Operation(ServiceAction.LEDGER_REGISTER)
 	public String createLedger(@ModelAttribute("ledger") LedgerWriteRequest request) {
-		ledgerValidator.register(request);
-
-		ledgerCommandService.register(request);
+		ledgerService.processLedgerRegistration(request);
 
 		return "redirect:/ledgers";
 	}

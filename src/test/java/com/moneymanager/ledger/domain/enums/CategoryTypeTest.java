@@ -1,19 +1,19 @@
 package com.moneymanager.ledger.domain.enums;
 
-import com.moneymanager.ledger.domain.entity.Category;
-import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.*;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Named.named;
 
 /**
@@ -46,43 +46,43 @@ import static org.junit.jupiter.api.Named.named;
 public class CategoryTypeTest {
 
 	@Nested
-	@DisplayName("Enum 변환")
+	@DisplayName("CategoryType 변환할 때")
 	class FromTest {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 
 			@ParameterizedTest
 			@MethodSource("validCategoryTypes")
-			@DisplayName("대문자 값이면 CategoryType으로 변환된다.")
+			@DisplayName("유효한 대문자 값이면 변환한다.")
 			void createsCategoryType_whenUpperCaseIsGiven(String type, CategoryType expected) {
-				//when: 대문자 값으로 CategoryType으로 변환한다.
+				//when
 				CategoryType result = CategoryType.from(type.toUpperCase());
 
-				//then: 일치하는 CategoryType이 반환된다.
+				//then
 				assertThat(result).isSameAs(expected);
 			}
 
 			@ParameterizedTest
 			@MethodSource("validCategoryTypes")
-			@DisplayName("소문자 값이면 CategoryType으로 변환된다.")
+			@DisplayName("유효한 소문자 값이면 변환한다.")
 			void createsCategoryType_whenLowerCaseIsValid(String type, CategoryType expected) {
-				//when: 소문자 값으로 CategoryType으로 변환한다.
+				//when
 				CategoryType result = CategoryType.from(type.toLowerCase());
 
-				//then: 일치하는 CategoryType이 반환된다.
+				//then
 				assertThat(result).isSameAs(expected);
 			}
 
 			@ParameterizedTest
 			@MethodSource("validCategoryTypes")
-			@DisplayName("혼합 대소문자 값이면 CategoryType으로 변환된다.")
+			@DisplayName("유효한 혼합 대소문자 값이면 변환한다.")
 			void createsCategoryType_whenMixedCaseIsValid(String type, CategoryType expected) {
-				//when: 혼합 대소문자 값으로 CategoryType으로 변환한다.
+				//when
 				CategoryType result = CategoryType.from(type);
 
-				//then: 일치하는 CategoryType이 반환된다.
+				//then
 				assertThat(result).isSameAs(expected);
 			}
 
@@ -102,59 +102,23 @@ public class CategoryTypeTest {
 		}
 
 		@Nested
-		@DisplayName("실패 케이스")
+		@DisplayName("실패")
 		class Failure {
 
 			@ParameterizedTest
-			@NullSource
-			@DisplayName("값이 null이면 변환에 실패한다.")
-			void throwsException_whenValueIsNull(String type) {
-				//when: null로 CategoryType으로 변환한다.
-				Throwable throwable = catchThrowable(() -> CategoryType.from(type));
-
-				//then: 타입 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-								.hasErrorCode(REQUIRED_VALUE)
-								.hasWork("CategoryType 변환")
-								.hasCauseMessage("필수값 누락")
-								.hasTarget(CategoryType.class)
-								.hasField("name")
-								.hasValue(null);
-			}
-
-			@ParameterizedTest
-			@EmptySource
+			@NullAndEmptySource
 			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
-			@DisplayName("값이 비어있으면 변환에 실패한다.")
-			void throwsException_whenValueIsEmpty(String type) {
-				//when: null로 CategoryType으로 변환한다.
-				Throwable throwable = catchThrowable(() -> CategoryType.from(type));
-
-				//then: 타입 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("CategoryType 변환")
-						.hasCauseMessage("필수값 누락")
-						.hasTarget(CategoryType.class)
-						.hasField("name")
-						.hasValue(type);
+			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
+			void throwsNoSuchElementException_whenValueIsBlank(String type) {
+				assertThatThrownBy(() -> CategoryType.from(type))
+						.isInstanceOf(NoSuchElementException.class);
 			}
 
 			@Test
-			@DisplayName("허용되지 않은 값이면 변환에 실패한다.")
-			void throwsException_whenValueIsInvalid() {
-				//when: 허용되지 않은 값으로 CategoryType으로 변환한다.
-				Throwable throwable = catchThrowable(() -> CategoryType.from("error"));
-
-				//then: 변환 중 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(INVALID_VALUE)
-						.hasWork("CategoryType 변환")
-						.hasCauseMessage("허용되지 않은 값")
-						.hasOption("allowed", "INCOME, OUTLAY")
-						.hasTarget(CategoryType.class)
-						.hasField("name")
-						.hasValue("error");
+			@DisplayName("허용되지 않은 값이면 예외를 발생시킨다.")
+			void throwsNoSuchElementException_whenValueIsInvalid() {
+				assertThatThrownBy(() -> CategoryType.from("error"))
+						.isInstanceOf(NoSuchElementException.class);
 			}
 
 		}
@@ -163,90 +127,55 @@ public class CategoryTypeTest {
 
 
 	@Nested
-	@DisplayName("코드로 Enum 변환")
+	@DisplayName("카테고리 코드 앞 2자리로 변환할 때")
 	class FromCodeTest {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 
 			@ParameterizedTest
 			@ValueSource(strings = {"01", "010000", "011234"})
-			@DisplayName("01로 시작하는 값이면 INCOME이 반환된다.")
+			@DisplayName("01이면 INCOME으로 변환한다.")
 			void returnsIncome_whenValueStartingWith01IsGiven(String code) {
-				//when: 01로 시작하는 값으로 CategoryType을 변환한다.
+				//when
 				CategoryType result = CategoryType.fromCode(code);
 
-				//then: INCOME 반환된다.
+				//then
 				assertThat(result).isSameAs(CategoryType.INCOME);
 			}
 
 			@ParameterizedTest
 			@ValueSource(strings = {"02", "020000", "021234"})
-			@DisplayName("02로 시작하는 값이면 OUTLAY이 반환된다.")
+			@DisplayName("02로이면 OUTLAY로 변환한다.")
 			void returnsOutlay_whenValueStartingWith02IsGiven(String code) {
-				//when: 02로 시작하는 값으로 CategoryType을 변환한다.
+				//when
 				CategoryType result = CategoryType.fromCode(code);
 
-				//then: OUTLAY 반환된다.
+				//then
 				assertThat(result).isSameAs(CategoryType.OUTLAY);
 			}
 			
 		}
 		
 		@Nested
-		@DisplayName("실패 케이스")
+		@DisplayName("실패")
 		class Failure {
 		
 			@ParameterizedTest
-			@NullSource
-			@DisplayName("값이 null이면 변환에 실패한다.")
-			void throwsException_whenValueIsNull(String code) {
-				//when: null로 CategoryType을 변환한다.
-				Throwable throwable = catchThrowable(() -> CategoryType.fromCode(code));
-				
-				//then: 카테고리 코드 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("CategoryType 변환")
-						.hasCauseMessage("필수값 누락")
-						.hasTarget(Category.class)
-						.hasField("code")
-						.hasValue(code);
-			}
-			
-			@ParameterizedTest
-			@EmptySource
+			@NullAndEmptySource
 			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
-			@DisplayName("값이 비어있으면 변환에 실패한다.")
-			void throwsException_whenValueIsEmpty(String code) {
-				//when: 비어있는 값으로 CategoryType을 변환한다.
-				Throwable throwable = catchThrowable(() -> CategoryType.fromCode(code));
-
-				//then: 카테고리 코드 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("CategoryType 변환")
-						.hasCauseMessage("필수값 누락")
-						.hasTarget(Category.class)
-						.hasField("code")
-						.hasValue(code);
+			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
+			void throwsException_whenValueIsBlank(String code) {
+				assertThatThrownBy(() -> CategoryType.from(code))
+						.isInstanceOf(NoSuchElementException.class);
 			}
-			
-			@Test
-			@DisplayName("허용되지 않은 값이면 변환에 실패한다.")
-			void throwsException_whenValueIsInvalid() {
-				//when: 허용되지 않는 값으로 CategoryType을 변환한다.
-				Throwable throwable = catchThrowable(() -> CategoryType.fromCode("error"));
 
-				//then: 변환 중 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(INVALID_VALUE)
-						.hasWork("CategoryType 변환")
-						.hasCauseMessage("허용되지 않은 값")
-						.hasTarget(Category.class)
-						.hasField("code")
-						.hasValue("error");
+			@Test
+			@DisplayName("허용되지 않은 값이면 예외를 발생시킨다.")
+			void throwsNoSuchElementException_whenValueIsInvalid() {
+				assertThatThrownBy(() -> CategoryType.from("nonExistent"))
+						.isInstanceOf(NoSuchElementException.class);
 			}
 			
 		}

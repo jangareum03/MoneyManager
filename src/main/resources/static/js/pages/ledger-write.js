@@ -170,10 +170,14 @@ function handlerChange( event ) {
         container = document.querySelector('.form__input-container--fix');
         const optionMenu = container.querySelector('.form__input-box--option');
 
-        if( target.value === 'y' && !optionMenu ) {
-            renderOptionMenu( container );
-        }else if( target.value === 'n' && optionMenu ){
-            optionMenu.remove(); //옵션 메뉴 삭제
+        if( target.value === 'y') {
+            optionMenu.style.display = 'none';
+            optionMenu.querySelectorAll('input')
+                .forEach(el => el.disabled = true);
+        }else if( target.value === 'n'){
+            optionMenu.style.display = 'block';
+            optionMenu.querySelectorAll('input')
+                .forEach(el => el.disabled = false);
         }
     }
 
@@ -299,30 +303,6 @@ function goToNextStep() {
     const type = document.querySelector('input[name="type"]:checked')?.value;
 
     goToPage(`/ledgers/new/step2?type=${type}&date=${date}`);
-}
-
-
-
-//----------[ ▼ 고정 선택 시에 옵션메뉴가 표시됩니다. ]----------
-function renderOptionMenu( container ) {
-    if( !container ) return;
-
-    const optionBox = document.createElement('section');
-    optionBox.classList.add('form__input-box', 'form__input-box--option');
-    container.appendChild(optionBox);
-
-    const options = [
-        { label: '일년', value: 'y' },
-        { label: '한달', value: 'm', defaultChecked: true },
-        { label: '일주일', value: 'w' }
-    ];
-
-    options.forEach( ({ label, value, defaultChecked }) => {
-        const optionLabel = createLabel({ parent: optionBox, classList: ['form__label'] });
-
-        const optionRadio = createRadio({ parent: optionLabel, name: 'fix.cycle', classList: ['form__input', 'form__input--radio'], value: value, label: label });
-        if( defaultChecked ) optionRadio.checked = true;
-    });
 }
 
 

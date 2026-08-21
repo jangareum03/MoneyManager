@@ -46,9 +46,9 @@ public final class LedgerUpdateRequestFixture {
 	public static LedgerUpdateRequest.LedgerUpdateRequestBuilder builder() {
 		return LedgerUpdateRequest.builder()
 				.categoryCode(CategoryTestData.SALARY_CODE)
-				.fixed(LedgerTestData.FIX_N)
+				.fixed(LedgerTestData.FIX_N.getValue())
 				.amount(LedgerTestData.AMOUNT)
-				.paymentType(LedgerTestData.PAYMENT_TYPE);
+				.paymentType(LedgerTestData.PAYMENT_TYPE.name());
 	}
 
 	public static LedgerUpdateRequest.LedgerUpdateRequestBuilder withImages(int size) {

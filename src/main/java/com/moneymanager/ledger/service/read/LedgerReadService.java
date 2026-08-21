@@ -1,21 +1,22 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.global.domain.vo.DateRange;
-import com.moneymanager.global.security.utils.SecurityUtil;
-import com.moneymanager.global.util.date.DateRangeUtils;
-import com.moneymanager.global.util.date.DateTimeUtil;
+import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.ledger.domain.dto.response.*;
+import com.moneymanager.ledger.domain.dto.response.category.CategoryEditInfo;
+import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
+import com.moneymanager.ledger.domain.dto.response.history.LedgerStatistics;
+import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
+import com.moneymanager.ledger.domain.dto.response.item.HistoryItem;
+import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.domain.entity.Ledger;
-import com.moneymanager.ledger.domain.enums.CategoryLevel;
 import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.domain.enums.HistoryMenuType;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.ledger.service.mapper.LedgerMapper;
-import com.moneymanager.ledger.service.policy.LedgerDatePolicy;
 import com.moneymanager.ledger.service.policy.LedgerHistoryPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,56 +74,13 @@ public class LedgerReadService {
 	private final LedgerHistoryPolicy ledgerHistoryPolicy;
 	private final LedgerMapper ledgerMapper;
 
-	private final LedgerDatePolicy datePolicy;
-
-	private final SecurityUtil securityUtil;
+	private final CurrentUser currentUser;
 	private final Clock clock;
-
-
-	public LedgerWriteStep1Response getWriteStep1Data() {
-		LocalDate minDate = datePolicy.minimum();
-		LocalDate maxDate = datePolicy.maximum();
-
-		List<Integer> years = DateRangeUtils.getYearsInRange(minDate.getYear(), maxDate.getYear());
-		List<Integer> months = DateRangeUtils.getMonthsInRange(1, maxDate.getMonthValue());
-		List<Integer> days = DateRangeUtils.getDaysInRange(1, maxDate.getDayOfMonth());
-
-		return LedgerWriteStep1Response.of(years, months, days);
-	}
-
-
-	/**
-	 * 가계부 작성 2단계 화면에 사용되는 초기 데이터를 조회합니다.
-	 * <p>
-	 *     다음 정보를 생성하고 반환됩니다.
-	 *     <ul>
-	 *         <li>가계부 유형에 따라 중간 단계({@link CategoryLevel#MIDDLE}) 카테고리 목록</li>
-	 *         <li>화면 제목에 사용될 날짜 문자열</li>
-	 *         <li>회원별 이미지 슬롯 사용 가능 여부 리스트</li>
-	 *     </ul>
-	 * </p>
-	 *
-	 * @param type	가계부 유형(수입/지출)
-	 * @param date	가계부 거래 날짜를 담은 {@link LocalDate}
-	 * @return	가계부 작성 2단계에 필요한 초기 데이터를 담은 {@link LedgerWriteStep2Response} 객체
-	 */
-	public LedgerWriteStep2Response getWriteStep2Data(CategoryType type, LocalDate date) {
-		//카테고리 목록 조회
-		List<CategoryItem> categories = categoryReadService.getMiddleCategories(type);
-
-		//제목 포맷 변환
-		String title = DateTimeUtil.formatDate(date, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
-
-		//회원별로 이미지 슬롯 조회
-		List<ImageSlot> imageSlot = imageReadService.resolveImageSlots();
-
-		return LedgerWriteStep2Response.of(title, type, categories, imageSlot);
-	}
 
 
 	public HistoryDashboardResponse getHistoryDashboard(HistoryType historyType) {
 		// 1. 인증된 사용자 조회
-		String memberId = securityUtil.getMemberId();
+		String memberId = currentUser.getMemberId();
 
 		// 2. 기간 생성
 		LocalDate today = LocalDate.now(clock);
@@ -191,7 +149,7 @@ public class LedgerReadService {
 
 	public LedgerDetailResponse getDetailData(String code) {
 		//1. 인증된 사용자 조회
-		String memberId = securityUtil.getMemberId();
+		String memberId = currentUser.getMemberId();
 
 		//2. 가계부 조회
 		Ledger ledger = getLedger(memberId, code);
@@ -212,7 +170,7 @@ public class LedgerReadService {
 
 	public LedgerEditResponse getEditData(String code) {
 		//1. 인증된 사용자 조회
-		String memberId = securityUtil.getMemberId();
+		String memberId = currentUser.getMemberId();
 
 		//2. 가계부 조회
 		Ledger ledger = getLedger(memberId, code);

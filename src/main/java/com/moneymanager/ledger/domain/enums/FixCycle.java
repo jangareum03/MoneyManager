@@ -4,7 +4,6 @@ package com.moneymanager.ledger.domain.enums;
 import lombok.Getter;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 
 /**
@@ -36,9 +35,10 @@ import java.util.stream.Collectors;
  */
 @Getter
 public enum FixCycle {
-		WEEKLY("일주일", "W"),
-		MONTHLY("한달", "M"),
-		YEARLY("일년", "Y");
+
+	YEARLY("일년", "Y"),
+	MONTHLY("한달", "M"),
+	WEEKLY("일주일", "W");
 
 	private final String label;
 	private final String value;
@@ -52,13 +52,7 @@ public enum FixCycle {
 		return Arrays.stream(values())
 				.filter(c -> c.value.equalsIgnoreCase(cycle))
 				.findFirst()
-				.get();
-	}
-
-	private static String getAllowedValues() {
-		return Arrays.stream(FixCycle.values())
-				.map(FixCycle::getValue)
-				.collect(Collectors.joining(", "));
+				.orElseThrow();
 	}
 
 }

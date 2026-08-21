@@ -73,10 +73,9 @@ function fetchLedgerUpdate( id, data ) {
 
 //----------[ ▼ 카테고리 정보를 가져옵니다. ]----------
 function fetchCategoryInfo( code ) {
-    return fetch('/api/ledgers/category', {
-        method: 'POST',
+    return fetch(`/api/ledgers/category/${code}/children`, {
+        method: 'GET',
         headers: { 'Content-Type' : 'text/plain' },
-        body: code
     })
     .then( response => response.json() );
 }
@@ -179,10 +178,14 @@ function fetchInquirySearch( data ) {
 
 //----------[ ▼ 년과 월의 마지막 일을 가져옵니다. ]----------
 function fetchLastDay( year, month ) {
-    return fetch('/api/ledgers/lastDay', {
-        method: 'POST',
-        headers: { 'Content-Type' : 'application/json' },
-        body: JSON.stringify({ year: year, month: month })
+    const unit = month == null ? 'year' : 'month';
+    const date =
+        unit === 'year'
+            ? `${year}`
+            : `${year}${String(month).padStart(2, '0')}`;
+
+    return fetch(`/api/ledgers/dates?unit=${unit}&date=${date}`, {
+        method: 'GET'
     })
     .then( response => response.json() );
 }

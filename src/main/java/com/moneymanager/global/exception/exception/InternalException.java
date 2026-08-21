@@ -32,17 +32,21 @@ import com.moneymanager.global.log.LogContent;
  */
 public class InternalException extends ApplicationException {
 
-	private InternalException(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		super(errorCode, logInfo, userMessage);
+	private InternalException(ErrorCode errorCode, LogContent logContent, Throwable cause) {
+		super(errorCode, logContent, cause);
 	}
 
 	@Override
-	protected ApplicationException newInstance(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		return of(errorCode, logInfo);
+	protected ApplicationException recreate(ErrorCode errorCode, LogContent logContent, String userMessage, Throwable cause) {
+		return new InternalException(errorCode, logContent, cause);
 	}
 
-	public static InternalException of(ErrorCode errorCode, LogContent logInfo) {
-		return new InternalException(errorCode, logInfo, null);
+	public static InternalException of(ErrorCode errorCode, LogContent logContent) {
+		return new InternalException(errorCode, logContent, null);
+	}
+
+	public static InternalException of(ErrorCode errorCode, LogContent logContent, Throwable cause) {
+		return new InternalException(errorCode, logContent, cause);
 	}
 
 }

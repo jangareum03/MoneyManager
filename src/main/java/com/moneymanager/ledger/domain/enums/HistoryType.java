@@ -34,44 +34,27 @@ import java.util.stream.Collectors;
  */
 @Getter
 public enum HistoryType {
-	WEEK("yyyy년 MM월 W주"),
-	MONTH("yyyy년 MM월"),
-	YEAR("yyyy년");
+    WEEK("yyyy년 MM월 W주"),
+    MONTH("yyyy년 MM월"),
+    YEAR("yyyy년");
 
-	private final String format;
+    private final String format;
 
-	HistoryType(String format) {
-		this.format = format;
-	}
+    HistoryType(String format) {
+        this.format = format;
+    }
 
 
-	/**
-	 *	문자열을 {@link HistoryType}으로 변환합니다.
-	 *<p>
-	 *     입력값은 대소문자 구분없이 내부적으로 비교하여 처리합니다.
-	 *</p>
-	 * <p>
-	 *     아래와 같은 경우에는 예외가 발생합니다.
-	 *     <ul>
-	 *         <li>문자열({@code type})이 null 또는 공백인 경우</li>
-	 *         <li>정의되지 않은 enum 값인 경우</li>
-	 *     </ul>
-	 * </p>
-	 *
-	 * @param type	변환할 문자열
-	 * @return	변환된 {@link HistoryType}
-	 * @throws IllegalArgumentException	필수값이 없거나 허용되지 않은 값인 경우 발생
-	 */
-	public static HistoryType from(String type) {
-		return Arrays.stream(values())
-				.filter(t -> t.name().equalsIgnoreCase(type))
-				.findFirst()
-				.get();
-	}
+    public static HistoryType from(String type) {
+        return Arrays.stream(values())
+                .filter(t -> t.name().equalsIgnoreCase(type))
+                .findFirst()
+                .orElseThrow();
+    }
 
-	private static String getAllowedValues() {
-		return Arrays.stream(HistoryType.values())
-				.map(Enum::name)
-				.collect(Collectors.joining(", "));
-	}
+    private static String getAllowedValues() {
+        return Arrays.stream(HistoryType.values())
+                .map(Enum::name)
+                .collect(Collectors.joining(", "));
+    }
 }

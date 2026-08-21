@@ -1,13 +1,16 @@
 package com.moneymanager.global.util.date;
 
 
+import com.moneymanager.global.domain.enums.DatePatterns;
+import com.moneymanager.global.log.AuditLogger;
+import com.moneymanager.global.util.string.StringUtil;
+
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
-
-import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 
 
 /**
@@ -46,12 +49,27 @@ public class DateTimeUtil {
 
 	private final static String DATE_FORMAT = "yyyyMMdd";
 
-	public static LocalDate parseDateFromYyyyMMdd(String date) {
-		if(isNullOrBlank(date)) {
+	public static LocalDate parseDateOrToday(String date) {
+		LocalDate today = LocalDate.now();
 
+		if(StringUtil.isNullOrBlank(date)) {
+			AuditLogger.warn("날짜 값이 없어 현재 날짜로 대체합니다.", date, DATE_FORMAT);
+			return today;
 		}
 
-		return LocalDate.parse(date, DateTimeFormatter.ofPattern(DATE_FORMAT));
+		for(DatePatterns patterns : DatePatterns.values()) {
+			try{
+				return LocalDate.parse(
+						date,
+						DateTimeFormatter.ofPattern(patterns.getPattern())
+				);
+			}catch(DateTimeParseException e){
+				// 다음 포맷 시도
+			}
+		}
+
+		AuditLogger.warn("날짜 형식이 올바르지 않아 현재 날짜로 대체합니다.", date, DATE_FORMAT);
+		return today;
 	}
 
 

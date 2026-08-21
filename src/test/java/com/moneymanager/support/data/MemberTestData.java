@@ -11,7 +11,7 @@ public final class MemberTestData {
 	private MemberTestData() {}
 
 	public static final String MEMBER_ID = "UCt01001";
-	public static final String USERNAME = "testuser";
+	public static final String USERNAME = "test123";
 	public static final String PASSWORD = "pw1234!!";
 	public static final String ROLE = "ROLE_USER";
 
@@ -22,7 +22,7 @@ public final class MemberTestData {
 	public static final MemberGender GENDER = MemberGender.NORMAL;
 	public static final MemberType TYPE = MemberType.COMMON;
 	public static final MemberStatus STATUS = MemberStatus.ACTIVE;
-	public static final LocalDateTime CREATE_DATE = LocalDateTime.of(2026, 06, 12, 7, 20);
+	public static final LocalDateTime CREATE_DATE = LocalDateTime.of(2026, 6, 12, 7, 20);
 	public static final LocalDateTime LAST_LOGIN_DATE = CREATE_DATE.plusDays(3).plusHours(3);
 
 }

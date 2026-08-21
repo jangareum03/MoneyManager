@@ -1,9 +1,9 @@
 package com.moneymanager.support.fixture.response;
 
-import com.moneymanager.ledger.domain.dto.response.HistoryDashboardResponse;
-import com.moneymanager.ledger.domain.dto.response.HistoryItem;
-import com.moneymanager.ledger.domain.dto.response.LedgerStatistics;
-import com.moneymanager.ledger.domain.dto.response.MenuItem;
+import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
+import com.moneymanager.ledger.domain.dto.response.item.HistoryItem;
+import com.moneymanager.ledger.domain.dto.response.history.LedgerStatistics;
+import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
 
 import java.time.LocalDate;
 import java.util.List;

@@ -5,17 +5,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
-import com.moneymanager.support.ApplicationExceptionAssert;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Named.named;
 
 /**
@@ -48,32 +45,32 @@ import static org.junit.jupiter.api.Named.named;
 public class FixedYnTest {
 
 	@Nested
-	@DisplayName("FixedType 변환")
+	@DisplayName("FixedType 변환할 때")
 	class FromTest {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 
 			@ParameterizedTest
 			@MethodSource("validFixes")
-			@DisplayName("대문자 값이면 FixedYN으로 변환된다.")
+			@DisplayName("대문자 값이면 변환한다.")
 			void createsFixedYN_whenUpperCaseIsGiven(String value, FixedType expected) {
-				//when: 대문자로 FixedYN을 변환한다.
+				//when
 				FixedType result = FixedType.from(value.toUpperCase());
 
-				//then: FixYN을 반환한다.
+				//then
 				assertThat(result).isSameAs(expected);
 			}
 
 			@ParameterizedTest
 			@MethodSource("validFixes")
-			@DisplayName("소문자 값이면 FixedYN으로 변환된다.")
+			@DisplayName("소문자 값이면 변환한다.")
 			void createsFixedYN_whenLowerCaseIsValid(String value, FixedType expected) {
-				//when: 소문자로 FixedYN을 변환한다.
+				//when
 				FixedType result = FixedType.from(value.toLowerCase());
 
-				//then: FixYN을 반환한다.
+				//then
 				assertThat(result).isSameAs(expected);
 			}
 
@@ -93,59 +90,23 @@ public class FixedYnTest {
 		}
 
 		@Nested
-		@DisplayName("실패 케이스")
+		@DisplayName("실패")
 		class Failure {
 
 			@ParameterizedTest
-			@NullSource
-			@DisplayName("값이 null이면 변환에 실패한다.")
-			void throwsException_whenValueIsNull(String value) {
-				//when: null로 FixYN을 변환한다.
-				Throwable throwable = catchThrowable(() -> FixedType.from(value));
-				
-				//then: 값 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("고정여부 생성")
-						.hasCauseMessage("필수값 누락")
-						.hasField("fix")
-						.hasValue(value)
-						.hasUserMessage("고정", "선택");
-			}
-
-			@ParameterizedTest
-			@EmptySource
+			@NullAndEmptySource
 			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
-			@DisplayName("값이 비어있으면 변환에 실패한다.")
-			void throwsException_whenValueIsEmpty(String value) {
-				//when: 빈 값으로 FixYN을 변환한다.
-				Throwable throwable = catchThrowable(() -> FixedType.from(value));
-
-				//then: 값 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("고정여부 생성")
-						.hasCauseMessage("필수값 누락")
-						.hasField("fix")
-						.hasValue(value)
-						.hasUserMessage("고정", "선택");
+			@DisplayName("null이거나 비어있으면 예외가 발생한다.")
+			void throwsNoSuchElementException_whenValueIsNull(String value) {
+				assertThatThrownBy(() -> FixedType.from(value))
+						.isInstanceOf(NoSuchElementException.class);
 			}
 			
 			@Test
-			@DisplayName("허용되지 않은 값이면 변환에 실패한다.")
-			void throwsException_whenValueIsInvalid() {
-				//when: 허용되지 않은 값으로 FixCycle을 변환한다.
-				Throwable throwable = catchThrowable(() -> FixedType.from("error"));
-				
-				//then: 변환 중 에외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(INVALID_VALUE)
-						.hasWork("고정여부 생성")
-						.hasCauseMessage("허용되지 않은 값")
-						.hasField("fix")
-						.hasValue("error")
-						.hasOption("allowed", "Y, N")
-						.hasUserMessage("허용", "않은 고정");
+			@DisplayName("허용되지 않은 값이면 예외가 발생한다.")
+			void throwsNoSuchElementException_whenValueIsInvalid() {
+				assertThatThrownBy(() -> FixedType.from("nonExistent"))
+						.isInstanceOf(NoSuchElementException.class);
 			}
 
 		}

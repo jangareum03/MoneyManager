@@ -5,17 +5,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
-import com.moneymanager.support.ApplicationExceptionAssert;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Named.named;
 
 /**
@@ -48,32 +45,32 @@ import static org.junit.jupiter.api.Named.named;
 public class FixCycleTest {
 
 	@Nested
-	@DisplayName("FixCycle 변환")
+	@DisplayName("FixCycle 변환할 때")
 	class FromTest {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 
 			@ParameterizedTest
 			@MethodSource("validFixCycles")
-			@DisplayName("대문자 값이면 FixCycle으로 변환된다.")
+			@DisplayName("대문자 값이면 변환된다.")
 			void createsFixCycle_whenUpperCaseIsGiven(String cycle, FixCycle expected) {
-				//when: 대문자로 FixCycle을 변환한다.
+				//when
 				FixCycle result = FixCycle.from(cycle.toUpperCase());
 				
-				//then: FixCycle이 반환된다.
+				//then
 				assertThat(result).isSameAs(expected);
 			}
 
 			@ParameterizedTest
 			@MethodSource("validFixCycles")
-			@DisplayName("소문자 값이면 FixCycle으로 변환된다.")
+			@DisplayName("소문자 값이면 변환된다.")
 			void createsFixCycle_whenLowerCaseIsValid(String cycle, FixCycle expected) {
-				//when: 소문자로 FixCycle을 변환한다.
+				//when
 				FixCycle result = FixCycle.from(cycle.toLowerCase());
 
-				//then: FixCycle이 반환된다.
+				//then
 				assertThat(result).isSameAs(expected);
 			}
 
@@ -98,58 +95,23 @@ public class FixCycleTest {
 
 
 		@Nested
-		@DisplayName("실패 케이스")
+		@DisplayName("실패")
 		class Failure {
 			
 			@ParameterizedTest
-			@NullSource
-			@DisplayName("값이 null이면 변환에 실패한다.")
-			void throwsException_whenValueIsNull(String cycle) {
-				//when: null로 FixCycle을 변환한다.
-				Throwable throwable = catchThrowable(() -> FixCycle.from(cycle));
-				
-				//then: 값 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-								.hasErrorCode(REQUIRED_VALUE)
-								.hasWork("고정주기 생성")
-								.hasCauseMessage("필수값 누락")
-								.hasField("fixCycle")
-								.hasValue(cycle)
-								.hasUserMessage("고정 주기", "선택");
-			}
-			
-			@ParameterizedTest
-			@EmptySource
+			@NullAndEmptySource
 			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
-			@DisplayName("값이 비어있으면 변환에 실패한다.")
-			void throwsException_whenValueIsEmpty(String cycle) {
-				//when: 빈 값으로 FixCycle을 변환한다.
-				Throwable throwable = catchThrowable(() -> FixCycle.from(cycle));
-
-				//then: 값 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("고정주기 생성")
-						.hasCauseMessage("필수값 누락")
-						.hasField("fixCycle")
-						.hasValue(cycle)
-						.hasUserMessage("고정 주기", "선택");
+			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
+			void throwsNoSuchElementException_whenValueIsNull(String cycle) {
+				assertThatThrownBy(() -> FixCycle.from(cycle))
+						.isInstanceOf(NoSuchElementException.class);
 			}
 			
 			@Test
-			@DisplayName("허용되지 않은 값이면 변환에 실패한다.")
-			void throwsException_whenValueIsInvalid() {
-				//when: 허용되지 않은 값으로 FixCycle을 변환한다.
-				Throwable throwable = catchThrowable(() -> FixCycle.from("error"));
-				
-				//then: 변환 중 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(INVALID_VALUE)
-						.hasWork("고정주기 생성")
-						.hasCauseMessage("허용되지 않은 값")
-						.hasField("fixCycle")
-						.hasValue("error")
-						.hasUserMessage("허용하지 않은", "고정 주기");
+			@DisplayName("허용되지 않은 값이면 예외를 발생시킨다.")
+			void throwsNoSuchElementException_whenValueIsInvalid() {
+				assertThatThrownBy(() -> FixCycle.from("nonExist"))
+						.isInstanceOf(NoSuchElementException.class);
 			}
 
 		}

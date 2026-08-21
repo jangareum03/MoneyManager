@@ -5,7 +5,6 @@ import com.moneymanager.global.exception.exception.InternalException;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -41,82 +40,90 @@ import java.util.StringJoiner;
 @Builder(toBuilder = true)
 public class LogContent {
 
-	private String work;							//기능
-	private String cause;							//실패원인
-	private Class<?> target;						//처리중인 대상
-	private String field;							//필드
-	private String value;							//값
+    private String work;                            //기능
+    private String cause;                           //실패원인
+    private Class<?> target;                      //처리중인 대상
+    private String field;                            //필드
+    private String value;                          //값
 
-	@Builder.Default
-	private Map<String, Object> options = new LinkedHashMap<>();
+    @Builder.Default
+    private Map<String, Object> options = new LinkedHashMap<>();
+
+    public static LogContent of(String work, Class<?> target) {
+        return builder()
+                .work(work)
+                .build();
+    }
+
+    public static LogContent of(String work, String field, Object value) {
+        return builder()
+                .work(work)
+                .field(field)
+                .value(String.valueOf(value))
+                .build();
+    }
+
+    public static LogContent of(String work, Class<?> target, Object... value) {
+        return builder()
+                .work(work)
+                .target(target)
+                .value(toValue(value))
+                .build();
+    }
+
+    public static LogContent ofValues(String work, String... value) {
+        return builder()
+                .work(work)
+                .value(toValue(value))
+                .build();
+    }
+
+    public LogContent withCause(String cause) {
+        return this.toBuilder()
+                   .cause(cause)
+                   .build();
+    }
+
+    public LogContent withOption(String key, Object value) {
+        Map<String, Object> newOptions = new LinkedHashMap<>(options);
+        newOptions.put(key, value);
+
+        return this.toBuilder()
+                   .options(newOptions)
+                   .build();
+    }
 
 
-	public static LogContent of(String work, String cause, Object... value) {
-		return LogContent.builder()
-				.work(work)
-				.cause(cause)
-				.value(valueOf(value))
-				.build();
-	}
+    //===== 보조 메서드 =====
+    private static String toValue(Object[] values) {
+        if (values.length == 1) {
+            return String.valueOf(values[0]);
+        }
 
-	public static LogContent ofTarget(String work, String cause, Class<?> target, Object... value) {
-		return LogContent.builder()
-				.work(work)
-				.cause(cause)
-				.target(target)
-				.value(toValue(value))
-				.build();
-	}
-	
-	public static LogContent ofField(String work, String cause, String field, Object value) {
-		return LogContent.builder()
-				.work(work)
-				.cause(cause)
-				.field(field)
-				.value(String.valueOf(value))
-				.build();
-	}
+        return valueOf(values);
+    }
 
-	public LogContent addOption(String key, Object value) {
-		Map<String, Object> newOptions = new LinkedHashMap<>(options);
-		newOptions.put(key, value);
+    private static String valueOf(Object... values) {
+        if (values.length % 2 != 0) {
+            throw InternalException.of(
+                    CommonErrorCode.INTERVAL_SERVER_ERROR,
+                    of(
+                            "로그 값 생성",
+                            LogContent.class,
+                            "value",
+                            values
+                    )
+                            .withCause("key-value 형식 불일치")
+            );
+        }
 
-		return this.toBuilder()
-				.options(newOptions)
-				.build();
-	}
+        StringJoiner joiner = new StringJoiner(", ", "{", "}");
 
+        for (int i = 0; i < values.length; i += 2) {
+            joiner.add(values[i] + ": " + values[i + 1]);
+        }
 
-	//===== 보조 메서드 =====
-	private static String toValue(Object[] values) {
-		if(values.length == 1) {
-			return String.valueOf(values[0]);
-		}
-
-		return valueOf(values);
-	}
-
-	private static String valueOf(Object... values) {
-		if(values.length %2 != 0) {
-			throw InternalException.of(
-					CommonErrorCode.INVALID_REQUEST,
-					LogContent.ofTarget(
-							"로그 값 생성",
-							"key-value 형식 불일치",
-							LogContent.class,
-							"value",
-							Arrays.toString(values)
-					)
-			);
-		}
-
-		StringJoiner joiner = new StringJoiner(", ", "{", "}");
-
-		for(int i=0; i<values.length; i+=2) {
-			joiner.add(values[i] + ": " + values[i+1]);
-		}
-
-		return joiner.toString();
-	}
+        return joiner.toString();
+    }
 
 }

@@ -31,9 +31,15 @@ import lombok.Getter;
  */
 @Getter
 public enum ServiceAction {
-	LOGIN("로그인", "/"),
+	//화면 요청
 	LEDGER_REGISTER_STEP1_VIEW("가계부 작성 1단계 화면 조회", "/ledgers"),
-	LEDGER_REGISTER("가계부 등록", "가계부 등록 중 문제가 발생했습니다. 다시 시도해주세요."),
+	LEDGER_REGISTER_STEP2_VIEW("가계부 작성 2단계 화면 조회", "/ledgers/new/step1"),
+	LEDGER_MAP_VIEW("가계부 장소 작성 화면 조회", "/ledgers/new/step2"),
+
+	LOGIN("로그인", "/"),
+	LEDGER_CATEGORY("가계부 카테고리 조회", "/ledgers/new/step1"),
+	LEDGER_REGISTER_DATE("가계부 날짜 목록 조회", "/ledgers/new/step1"),
+	LEDGER_REGISTER("가계부 등록", "/ledgers/new/step2"),
 	LEDGER_DETAIL("가계부 상세 조회", "가계부 정보를 불러오는 중 문제가 발생했습니다."),
 	LEDGER_EDIT_VIEW("가계부 수정 화면 조회", "가계부 정보를 불러오는 중 문제가 발생했습니다."),
 	LEDGER_EDIT("가계부 수정", "가계부 수정 중 문제가 발생했습니다.");

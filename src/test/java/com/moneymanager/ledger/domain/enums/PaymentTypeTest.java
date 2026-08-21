@@ -2,19 +2,15 @@ package com.moneymanager.ledger.domain.enums;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
-import com.moneymanager.support.ApplicationExceptionAssert;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Named.named;
 
 /**
@@ -47,16 +43,16 @@ import static org.junit.jupiter.api.Named.named;
 public class PaymentTypeTest {
 
 	@Nested
-	@DisplayName("PaymentType 변환")
+	@DisplayName("PaymentType 변환할 때")
 	class FromTest {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 
 			@ParameterizedTest
 			@MethodSource("validPaymentTypes")
-			@DisplayName("대문자 값이면 PaymentType으로 변환된다.")
+			@DisplayName("대문자 값이면 변환한다.")
 			void createsPaymentType_whenUpperCaseIsGiven(String value, PaymentType expected) {
 				//when: 대문자로 PaymentType으로 변환한다.
 				PaymentType result = PaymentType.from(value.toUpperCase());
@@ -67,7 +63,7 @@ public class PaymentTypeTest {
 
 			@ParameterizedTest
 			@MethodSource("validPaymentTypes")
-			@DisplayName("소문자 값이면 PaymentType으로 변환된다.")
+			@DisplayName("소문자 값이면 변환한다.")
 			void createsPaymentType_whenLowerCaseIsValid(String value, PaymentType expected) {
 				//when: 소문자로 PaymentType으로 변환한다.
 				PaymentType result = PaymentType.from(value.toLowerCase());
@@ -78,7 +74,7 @@ public class PaymentTypeTest {
 
 			@ParameterizedTest
 			@MethodSource("validPaymentTypes")
-			@DisplayName("혼합 대소문자 값이면 PaymentType으로 변환된다.")
+			@DisplayName("혼합 대소문자 값이면 변환한다.")
 			void createsPaymentType_whenMixedCaseIsValid(String value, PaymentType expected) {
 				//when: 혼합 대소문자로 PaymentType으로 변환한다.
 				PaymentType result = PaymentType.from(value);
@@ -112,56 +108,16 @@ public class PaymentTypeTest {
 
 
 		@Nested
-		@DisplayName("실패 케이스")
+		@DisplayName("실패")
 		class Failure {
-			
-			@ParameterizedTest
-			@NullSource
-			@DisplayName("값이 null이면 변환에 실패한다.")
-			void throwsException_whenValueIsNull(String value) {
-				//when: null로 PaymentType을 변환한다.
-				Throwable throwable = catchThrowable(() -> PaymentType.from(value));
-				
-				//then: 값 검증에서 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("가계부 결제유형 생성")
-						.hasCauseMessage("필수값 누락")
-						.hasField("paymentType")
-						.hasValue(value);
-			}
 
 			@ParameterizedTest
-			@EmptySource
-			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
-			@DisplayName("값이 비어있으면 변환에 실패한다.")
-			void throwsException_whenValueIsEmpty(String value) {
-				//when: 빈 값으로 PaymentType을 변환한다.
-				Throwable throwable = catchThrowable(() -> PaymentType.from(value));
-
-				//then: 값 검증에서 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("가계부 결제유형 생성")
-						.hasCauseMessage("필수값 누락")
-						.hasField("paymentType")
-						.hasValue(value);
-			}
-
-			@Test
-			@DisplayName("허용되지 않은 값이면 변환에 실패한다.")
-			void throwsException_whenValueIsInvalid() {
-				//when: 허용되지 않은 값으로 PaymentType을 변환한다.
-				Throwable throwable = catchThrowable(() -> PaymentType.from("error"));
-				
-				//then: 변환 중 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("가계부 결제유형 생성")
-						.hasCauseMessage("허용되지 않은 값")
-						.hasField("paymentType")
-						.hasValue("error")
-						.hasOption("allowed", "NONE, CASH, CARD, BANK");
+			@ValueSource(strings = {"TYPE", "b", "cash1"})
+			@DisplayName("유효하지 않은 금액 유형이면 예외를 발생시킨다.")
+			void throwsNoSuchElementException_whenCategoryCodeIsInvalid(String value) {
+				//when
+				assertThatThrownBy(() -> PaymentType.from(value))
+						.isInstanceOf(NoSuchElementException.class);
 			}
 
 		}

@@ -35,21 +35,21 @@ import lombok.Getter;
 @Getter
 public class BusinessException extends ApplicationException {
 
-	private BusinessException(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		super(errorCode, logInfo, userMessage);
-	}
-
-	public static BusinessException of(ErrorCode errorCode, LogContent logInfo) {
-		return of(errorCode, logInfo, null);
-	}
-
-	public static BusinessException of(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		return new BusinessException(errorCode, logInfo, userMessage);
+	private BusinessException(ErrorCode errorCode, LogContent logInfo, Throwable cause) {
+		super(errorCode, logInfo, cause);
 	}
 
 	@Override
-	protected BusinessException newInstance(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		return new BusinessException(errorCode, logInfo, userMessage);
+	protected ApplicationException recreate(ErrorCode errorCode, LogContent logContent, String userMessage, Throwable cause) {
+		return new BusinessException(errorCode, logContent, cause);
+	}
+
+	public static BusinessException of(ErrorCode errorCode, LogContent logContent) {
+		return of(errorCode, logContent, null);
+	}
+
+	public static BusinessException of(ErrorCode errorCode, LogContent logContent, Throwable cause) {
+		return new BusinessException(errorCode, logContent, cause);
 	}
 
 }

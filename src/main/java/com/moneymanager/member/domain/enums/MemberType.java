@@ -40,7 +40,7 @@ public enum MemberType {
 	GOOGLE("G"),
 	NAVER("N");
 
-	private String value;		//DB 값
+	private final String value;		//DB 값
 
 	MemberType(String value) {
 		this.value = value;
@@ -57,7 +57,6 @@ public enum MemberType {
 				CommonErrorCode.INVALID_VALUE,
 				LogContent.of(
 						"회원 유형 조회",
-						"허용하지 않은 유형",
 						MemberType.class,
 						value
 				)

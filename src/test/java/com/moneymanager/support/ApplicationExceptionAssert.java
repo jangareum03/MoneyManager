@@ -64,7 +64,7 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 	public ApplicationExceptionAssert hasWork(String work) {
 		isNotNull();
 
-		assertThat(actual.getDeveloperLog().getWork()).isEqualTo(work);
+		assertThat(actual.getLogContent().getWork()).isEqualTo(work);
 
 		return this;
 	}
@@ -72,7 +72,7 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 	public ApplicationExceptionAssert hasCauseMessage(String cause) {
 		isNotNull();
 
-		assertThat(actual.getDeveloperLog().getCause()).isEqualTo(cause);
+		assertThat(actual.getLogContent().getCause()).isEqualTo(cause);
 
 		return this;
 	}
@@ -80,7 +80,7 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 	public ApplicationExceptionAssert hasTarget(Class<?> target) {
 		isNotNull();
 
-		assertThat(actual.getDeveloperLog().getTarget()).isEqualTo(target);
+		assertThat(actual.getLogContent().getTarget()).isEqualTo(target);
 
 		return this;
 	}
@@ -88,7 +88,7 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 	public ApplicationExceptionAssert hasField(String field) {
 		isNotNull();
 
-		assertThat(actual.getDeveloperLog().getField()).contains(field);
+		assertThat(actual.getLogContent().getField()).contains(field);
 
 		return this;
 	}
@@ -97,10 +97,10 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 		isNotNull();
 
 		if(value == null) {
-			assertThat(actual.getDeveloperLog().getValue()).isNull();
+			assertThat(actual.getLogContent().getValue()).isNull();
 		}else {
 			for(Object v : value) {
-				assertThat(actual.getDeveloperLog().getValue()).contains(String.valueOf(v));
+				assertThat(actual.getLogContent().getValue()).contains(String.valueOf(v));
 			}
 		}
 
@@ -110,8 +110,8 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 	public ApplicationExceptionAssert hasOption(Object key, Object value) {
 		isNotNull();
 
-		assertThat(actual.getDeveloperLog().getOptions()).containsKeys(String.valueOf(key));
-		assertThat(actual.getDeveloperLog().getOptions().get(key))
+		assertThat(actual.getLogContent().getOptions()).containsKeys(String.valueOf(key));
+		assertThat(actual.getLogContent().getOptions().get(key))
 				.asString()
 				.contains(String.valueOf(value));
 

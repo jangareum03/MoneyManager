@@ -3,6 +3,8 @@ package com.moneymanager.ledger.domain.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+
 
 /**
  * <p>
@@ -37,7 +39,11 @@ public enum CategoryLevel {
 	MIDDLE,
 	LOW;
 
-	public static CategoryLevel from(String level) {
-		return CategoryLevel.valueOf(level.toUpperCase());
+	public static CategoryLevel from(String value) {
+		return Arrays.stream(values())
+				.filter(level -> level.name().equalsIgnoreCase(value))
+				.findFirst()
+				.orElseThrow();
 	}
+
 }

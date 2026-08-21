@@ -2,6 +2,7 @@ package com.moneymanager.global.exception.exception;
 
 import com.moneymanager.global.exception.code.ErrorCode;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.global.util.string.StringUtil;
 import lombok.Getter;
 
 /**
@@ -35,29 +36,43 @@ import lombok.Getter;
 public abstract class ApplicationException extends RuntimeException {
 
 	private final ErrorCode errorCode;							//에러코드
-	private final LogContent developerLog;		//개발 로그정보
+	private final LogContent logContent;				//개발 로그정보
 	private final String userMessage;								//안내 메시지
 
-	protected ApplicationException(ErrorCode errorCode, LogContent logInfo, String userMessage) {
-		this(errorCode, logInfo, userMessage, null);
-	}
-
-	protected ApplicationException(ErrorCode errorCode, LogContent logInfo, String userMessage, Throwable throwable) {
+	public ApplicationException(ErrorCode errorCode, LogContent logContent, Throwable throwable) {
 		super(throwable);
 
 		this.errorCode = errorCode;
-		this.developerLog = logInfo;
+		this.logContent = resolveLogContent(errorCode, logContent);
+		this.userMessage =  null;
+	}
+
+	private ApplicationException(ErrorCode errorCode, LogContent logContent, String userMessage, Throwable throwable) {
+		super(throwable);
+
+		this.errorCode = errorCode;
+		this.logContent = logContent;
 		this.userMessage = userMessage;
 	}
 
 	public ApplicationException withUserMessage(String userMessage) {
-		return newInstance(getErrorCode(), getDeveloperLog(), userMessage);
+		return recreate(errorCode, logContent, userMessage, getCause());
 	}
 
-	protected abstract ApplicationException newInstance(
-			ErrorCode errorCode,
-			LogContent logInfo,
-			String userMessage
-	);
+	protected abstract  ApplicationException recreate(ErrorCode errorCode, LogContent logContent, String userMessage, Throwable cause);
+
+	private static LogContent resolveLogContent(ErrorCode errorCode, LogContent content) {
+		if(content == null) {
+			return null;
+		}
+
+		if(!StringUtil.isNullOrBlank(content.getCause())) {
+			return content;
+		}
+
+		return content.toBuilder()
+				.cause(errorCode.getReason())
+				.build();
+	}
 
 }

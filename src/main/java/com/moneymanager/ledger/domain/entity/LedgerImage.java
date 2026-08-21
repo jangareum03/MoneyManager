@@ -1,9 +1,9 @@
 package com.moneymanager.ledger.domain.entity;
 
-import com.moneymanager.global.exception.exception.BusinessException;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 /**
@@ -45,54 +45,12 @@ public class LedgerImage {
 	private LocalDateTime createdAt;		//등록일
 	private LocalDateTime updatedAt;		//수정일
 
-	/**
-	 *	가계부 이미지 정보를 검증하고, {@link LedgerImage} 객체를 생성합니다.
-	 *<p>
-	 *     검증할 항목:
-	 *     <ul>
-	 *         <li>가계부 ID 유효성</li>
-	 *         <li>이미지 경로 유효성</li>
-	 *         <li>정렬 순서 값 유효성</li>
-	 *     </ul>
-	 *</p>
-	 * 검증 실패 시 {@link BusinessException}가 발생합니다.
-	 *
-	 * @param ledgerId	가계부 ID
-	 * @param path	이미지 저장한 상대경로
-	 * @param order 이미지 정렬 순서
-	 * @return	검증된 정보를 기반으로 생성된 {@link LedgerImage} 객체
-	 * @throws BusinessException    입력값이 유효하지 않은 경우 발생
-	 */
-	public static LedgerImage create(Long ledgerId, String path, int order) {
-		//1. 값 검증
-		validateLedgerId(ledgerId);
-		validateOrder(order);
-		validatePath(path);
-
-		//2. db에 저장하기 위해 path 변환
-		String dbPath = path.replace("\\", "/");
-
-		if(!dbPath.startsWith("/")) {
-			dbPath = "/" + dbPath;
-		}
-
+	public static LedgerImage create(Long ledgerId, Path path, int order) {
 		return LedgerImage.builder()
 				.ledgerId(ledgerId)
-				.imagePath(dbPath)
+				.imagePath(String.join("/", path.toString()))
 				.sortOrder(order)
 				.build();
-	}
-
-	private static void validateLedgerId(Long id) {
-
-	}
-
-	private static void validatePath(String path) {
-
-	}
-
-	private static void validateOrder(int order) {
-
 	}
 
 }

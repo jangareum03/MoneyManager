@@ -10,7 +10,6 @@
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
             <PatternLayout pattern="${consoleLayout}" disableAnsi="false" />
-            <LevelRangeFilter minLevel="INFO" maxLevel="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
         </Console>
 
         <!--ConsoleAppender, RollingFileAppneder -->

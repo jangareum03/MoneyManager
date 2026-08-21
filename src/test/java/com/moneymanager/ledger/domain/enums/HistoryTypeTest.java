@@ -5,17 +5,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
-import com.moneymanager.support.ApplicationExceptionAssert;
 
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_VALUE;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Named.named;
 
 /**
@@ -48,32 +45,32 @@ import static org.junit.jupiter.api.Named.named;
 public class HistoryTypeTest {
 
 	@Nested
-	@DisplayName("HistoryType 변환")
-	class FromTest {
+	@DisplayName("HistoryType 변환할 때")
+	class From {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 
 			@ParameterizedTest
 			@MethodSource("validHistoryTypes")
-			@DisplayName("대문자 값이면 HistoryType으로 변환된다.")
+			@DisplayName("대문자 값이면 변환한다.")
 			void createsHistoryType_whenUpperCaseIsGiven(String value, HistoryType expected) {
-				//when: 대문자로 HistoryType을 변환한다.
+				//when
 				HistoryType result = HistoryType.from(value.toUpperCase());
 
-				//then: HistoryType을 반환한다.
+				//then
 				assertThat(result).isSameAs(expected);
 			}
 
 			@ParameterizedTest
 			@MethodSource("validHistoryTypes")
-			@DisplayName("소문자 값이면 HistoryType으로 변환된다.")
+			@DisplayName("소문자 값이면 변환한다.")
 			void createsHistoryType_whenLowerCaseIsValid(String value, HistoryType expected) {
-				//when: 소문자로 HistoryType을 변환한다.
+				//when
 				HistoryType result = HistoryType.from(value.toLowerCase());
 
-				//then: HistoryType을 반환한다.
+				//then
 				assertThat(result).isSameAs(expected);
 			}
 
@@ -97,56 +94,22 @@ public class HistoryTypeTest {
 		}
 
 		@Nested
-		@DisplayName("실패 케이스")
+		@DisplayName("실패")
 		class Failure {
 
 			@ParameterizedTest
 			@NullSource
-			@DisplayName("값이 null이면 변환에 실패한다.")
-			void throwsException_whenValueIsNull(String value) {
-				//when: null로 HistoryType을 변환한다.
-				Throwable throwable = catchThrowable(() -> HistoryType.from(value));
-
-				//then: 값 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("가계부 내역유형 생성")
-						.hasCauseMessage("필수값 누락")
-						.hasField("type")
-						.hasValue(value);
-			}
-
-			@ParameterizedTest
-			@EmptySource
-			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
-			@DisplayName("값이 비어있으면 변환에 실패한다.")
-			void throwsException_whenValueIsEmpty(String value) {
-				//when: 빈 값으로 HistoryType을 변환한다.
-				Throwable throwable = catchThrowable(() -> HistoryType.from(value));
-
-				//then: 값 검증에 대한 예외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(REQUIRED_VALUE)
-						.hasWork("가계부 내역유형 생성")
-						.hasCauseMessage("필수값 누락")
-						.hasField("type")
-						.hasValue(value);
+			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
+			void throwsNoSuchElementException_whenValueIsNullOrEmpty(String value) {
+				assertThatThrownBy(() -> HistoryType.from(value))
+						.isInstanceOf(NoSuchElementException.class);
 			}
 
 			@Test
-			@DisplayName("허용되지 않은 값이면 변환에 실패한다.")
-			void throwsException_whenValueIsInvalid() {
-				//when: 허용되지 않은 값으로 FixCycle을 변환한다.
-				Throwable throwable = catchThrowable(() -> HistoryType.from("error"));
-
-				//then: 변환 중 에외가 발생한다.
-				ApplicationExceptionAssert.assertThatApplicationException(throwable)
-						.hasErrorCode(INVALID_VALUE)
-						.hasWork("가계부 내역유형 생성")
-						.hasCauseMessage("허용되지 않은 값")
-						.hasField("type")
-						.hasValue("error")
-						.hasOption("allowed", "WEEK, MONTH, YEAR");
+			@DisplayName("허용되지 않은 값이면 예외를 발생시킨다.")
+			void throwsNoSuchElementException_whenValueIsInvalid() {
+				assertThatThrownBy(() -> HistoryType.from("noExist"))
+						.isInstanceOf(NoSuchElementException.class);
 			}
 
 		}

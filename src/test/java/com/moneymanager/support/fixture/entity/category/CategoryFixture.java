@@ -31,10 +31,10 @@ public final class CategoryFixture {
 
 	static Category create(String code, String name, Category parent) {
 		if(parent == null) {
-			return Category.topCategory(code, name);
+			return Category.builder().code(code).name(name).build();
 		}
 
-		return Category.childCategory(code, name, parent);
+		return Category.builder().code(code).name(name).parentCode(parent.getCode()).build();
 	}
 
 }

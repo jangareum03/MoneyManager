@@ -1,12 +1,11 @@
 package com.moneymanager.global.domain.vo;
 
-import com.moneymanager.global.validation.DateValidator;
 import lombok.Value;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-import static com.moneymanager.global.util.date.DateTimeUtil.parseDateFromYyyyMMdd;
+import static com.moneymanager.global.util.date.DateTimeUtil.parseDateOrToday;
 
 /**
  * <p>
@@ -42,10 +41,9 @@ public class DateRange {
 	LocalDate to;
 
 	public DateRange(String from, String to) {
-		DateValidator.validatePeriod(from, to);
 
-		this.from = parseDateFromYyyyMMdd(from);
-		this.to = parseDateFromYyyyMMdd(to);
+		this.from = parseDateOrToday(from);
+		this.to = parseDateOrToday(to);
 	}
 
 	public DateRange(LocalDate from, LocalDate to) {

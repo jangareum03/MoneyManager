@@ -1,5 +1,6 @@
 package com.moneymanager.ledger.domain.dto.response;
 
+import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.support.fixture.entity.category.CategoryFixture;

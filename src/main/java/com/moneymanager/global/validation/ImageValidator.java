@@ -30,5 +30,5 @@ import org.springframework.web.multipart.MultipartFile;
  * </table>
  */
 public interface ImageValidator {
-	void validateImage(MultipartFile file);
+	void validate(MultipartFile file);
 }

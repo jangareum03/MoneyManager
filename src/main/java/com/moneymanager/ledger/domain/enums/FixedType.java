@@ -3,7 +3,6 @@ package com.moneymanager.ledger.domain.enums;
 import lombok.Getter;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 
 /**
@@ -35,28 +34,22 @@ import java.util.stream.Collectors;
  */
 @Getter
 public enum FixedType {
-	REPEAT("반복", "Y"),
-	VARIABLE("일회", "N");
+    REPEAT("반복", "Y"),
+    VARIABLE("일회", "N");
 
-	private final String label;		//화면에 표시될 문구
-	private final String value;		//DB 값
+    private final String label;        //화면에 표시될 문구
+    private final String value;        //DB 값
 
-	FixedType(String label, String value) {
-		this.label = label;
-		this.value = value;
-	}
+    FixedType(String label, String value) {
+        this.label = label;
+        this.value = value;
+    }
 
-	public static FixedType from(String fix) {
-		return Arrays.stream(values())
-				.filter(f -> f.value.equalsIgnoreCase(fix))
-				.findFirst()
-				.get();
-	}
-
-	private static String getAllowedValues() {
-		return Arrays.stream(values())
-				.map(FixedType::getValue)
-				.collect(Collectors.joining(", "));
-	}
+    public static FixedType from(String value) {
+        return Arrays.stream(values())
+                .filter(t -> t.value.equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow();
+    }
 
 }

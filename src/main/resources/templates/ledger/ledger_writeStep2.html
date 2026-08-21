@@ -19,7 +19,12 @@
                     <div class="form__input-container form__input-container--fix">
                         <section class="form__input-box form__input-box--main">
                             <label class="form__label" th:each="fix : *{fixed}">
-                                <input class="form__input form__input--radio" type="radio" th:value="${fix.value}" th:checked="${fix.value == 'N'}">[[${fix.label}]]
+                                <input class="form__input form__input--radio" type="radio" th:value="${fix.value}" th:checked="${fix.value == 'n'}">[[${fix.label}]]
+                            </label>
+                        </section>
+                        <section class="from__input-box form__infput-box--option">
+                            <label class="form__label" th:each="cycle : *{fixCycle}">
+                                <input class="form__input form__input--radio" name="cycle" type="radio" th:value="${cycle.value}" th:checked="${cycle.value == 'm'}">[[${cycle.label}]]
                             </label>
                         </section>
                     </div>
@@ -60,7 +65,7 @@
                         <!-- 금액 유형 -->
                         <section class="form__input-box form__input-box--type">
                             <label th:each="pay : *{paymentTypes}">
-                                <input class="form__input form__input--radio" name="paymentType" type="radio" th:value="${pay.name}" th:checked="${pay.name == 'NONE'}">
+                                <input class="form__input form__input--radio" name="paymentType" type="radio" th:value="${pay.value}" th:checked="${pay.value == 'none'}">
                                 <th:block th:utext="${pay.svg}"></th:block>
                             </label>
                         </section>

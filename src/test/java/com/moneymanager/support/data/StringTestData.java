@@ -37,7 +37,7 @@ public final class StringTestData {
 		return Stream.of(
 				min - 1, max+1
 				)
-				.filter(length -> length >= 0)
+				.filter(length -> length > 0)
 				.distinct()
 				.map(length -> Arguments.of(
 						named(length + "글자", text.repeat(length))

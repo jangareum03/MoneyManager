@@ -1,6 +1,6 @@
 package com.moneymanager.global.security.jwt;
 
-import com.moneymanager.global.domain.response.AccessToken;
+import com.moneymanager.global.domain.dto.response.AccessToken;
 import com.moneymanager.global.security.CustomUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -84,10 +84,10 @@ public class JwtTokenProvider {
 		return new AccessToken(token, expiration);
 	}
 
-	public String createAccessToken(String subject, List<String> roles) {
+	public String createAccessToken(String subject) {
 		return Jwts.builder()
 				.subject(subject)
-				.claim("role", roles)
+				.claim("role", "ROLE_USER")
 				.signWith(key)
 				.compact();
 	}

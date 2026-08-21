@@ -51,26 +51,24 @@ public class DateRangeUtils {
 		if (start <= 0) {
 			throw InternalException.of(
 					OUT_OF_RANGE,
-					LogContent.ofField(
+					LogContent.of(
 									"연도 리스트 조회",
-									"시작 연도 0이하",
 									"start",
 									start
-							)
-							.addOption("min", 1)
+							).withCause("시작 연도 0이하")
+							.withOption("min", 1)
 			);
 		}
 
 		if (end <= 1) {
 			throw InternalException.of(
 					OUT_OF_RANGE,
-					LogContent.ofField(
+					LogContent.of(
 									"연도 리스트 조회",
-									"종료 연도 0이하",
 									"end",
 									end
-							)
-							.addOption("min", 1)
+							).withCause("종료 연도 0이하")
+							  .withOption("min", 1)
 			);
 		}
 
@@ -80,11 +78,13 @@ public class DateRangeUtils {
 		if (startYear.isAfter(endYear)) {
 			throw InternalException.of(
 					OUT_OF_RANGE,
-					LogContent.of(
+					LogContent.ofValues(
 							"연도 리스트 조회",
-							"시작연도 > 종료연도",
-							"start", start, "end", end
-					)
+							"start",
+							String.valueOf(start),
+							"end",
+							String.valueOf(end)
+					).withCause("시작연도 > 종료연도")
 			);
 		}
 
@@ -95,39 +95,39 @@ public class DateRangeUtils {
 		if (start < 1 || start > 12) {
 			throw InternalException.of(
 					OUT_OF_RANGE,
-					LogContent.ofField(
+					LogContent.of(
 							"월 리스트 조회",
-							"시작월 범위 초과",
 							"start",
 							start
-					)
-							.addOption("min", 1)
-							.addOption("max", 12)
+					).withCause("시작월 범위 초과")
+							.withOption("min", 1)
+							.withOption("max", 12)
 			);
 		}
 
 		if (end < 1 || end > 12) {
 			throw InternalException.of(
 					OUT_OF_RANGE,
-					LogContent.ofField(
+					LogContent.of(
 							"월 리스트 조회",
-							"종료월 범위 초과",
 							"end",
 							end
-					)
-							.addOption("min", 1)
-							.addOption("max", 12)
+					).withCause("종료월 범위 초과")
+							.withOption("min", 1)
+							.withOption("max", 12)
 			);
 		}
 
 		if( start > end ) {
 			throw InternalException.of(
 					OUT_OF_RANGE,
-					LogContent.of(
+					LogContent.ofValues(
 							"월 리스트 조회",
-							"시작월 > 종료월",
-							"start", start, "end", end
-					)
+							"start",
+							String.valueOf(start),
+							"end",
+							String.valueOf(end)
+					).withCause("시작월 > 종료월")
 			);
 		}
 
@@ -138,39 +138,39 @@ public class DateRangeUtils {
 		if( start <= 0 || start > 31 ) {
 			throw InternalException.of(
 					OUT_OF_RANGE,
-					LogContent.ofField(
+					LogContent.of(
 									"일 리스트 조회",
-									"시작일 범위 초과",
 									"start",
 									start
-							)
-							.addOption("min", 1)
-							.addOption("max", 31)
+							).withCause("시작일 범위 초과")
+							.withOption("min", 1)
+							.withOption("max", 31)
 			);
 		}
 
 		if( end <= 0 || end > 31 ) {
 			throw InternalException.of(
 					OUT_OF_RANGE,
-					LogContent.ofField(
+					LogContent.of(
 									"일 리스트 조회",
-									"종료일 범위 초과",
 									"end",
 									end
-							)
-							.addOption("min", 1)
-							.addOption("max", 31)
+							).withCause("종료일 범위 초과")
+							.withOption("min", 1)
+							.withOption("max", 31)
 			);
 		}
 
 		if( start > end ) {
 			throw InternalException.of(
 					OUT_OF_RANGE,
-					LogContent.of(
+					LogContent.ofValues(
 							"일 리스트 조회",
-							"시작일 > 종료일",
-							"start", start, "end", end
-					)
+							"start",
+							String.valueOf(start),
+							"end",
+							String.valueOf(end)
+					).withCause("시작일 > 종료일")
 			);
 		}
 

@@ -1,5 +1,9 @@
 package com.moneymanager.ledger.domain.dto.vo;
 
+import com.moneymanager.global.exception.code.CommonErrorCode;
+import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.log.LogContent;
+import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import lombok.Value;
 
@@ -37,18 +41,49 @@ public class Money {
 	PaymentType paymentType;
 
 	private Money(Long amount, PaymentType paymentType) {
-		validateAmount(amount);
-
 		this.amount = amount;
 		this.paymentType = paymentType;
 	}
 
-	public static Money of(Long amount, PaymentType paymentType) {
-		return new Money(amount, paymentType);
+	public static Money of(Long amount, String type) {
+		if(StringUtil.isNullOrBlank(type)) {
+			throw ValidationException.of(
+					CommonErrorCode.REQUIRED_VALUE,
+					LogContent.of(
+							"Money 생성",
+							Money.class,
+							"paymentType", type
+					)
+			);
+		}
+
+		return of(amount, PaymentType.from(type));
 	}
 
-	private void validateAmount(Long amount) {
+	public static Money of(Long amount, PaymentType paymentType) {
+		if(amount == null || amount <= 0) {
+			throw ValidationException.of(
+					CommonErrorCode.REQUIRED_VALUE,
+					LogContent.of(
+							"Money 생성",
+							Money.class,
+							"amount", amount
+					)
+			);
+		}
 
+		if(paymentType == null) {
+			throw ValidationException.of(
+					CommonErrorCode.REQUIRED_VALUE,
+					LogContent.of(
+							"Money 생성",
+							Money.class,
+							"paymentType", null
+					)
+			);
+		}
+
+		return new Money(amount, paymentType);
 	}
 
 }

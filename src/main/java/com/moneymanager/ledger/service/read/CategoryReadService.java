@@ -1,10 +1,12 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.ledger.domain.dto.response.CategoryItem;
+import com.moneymanager.global.exception.code.CategoryErrorCode;
+import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.log.LogContent;
+import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.service.cache.CategoryCacheService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -38,81 +40,105 @@ import java.util.stream.Collectors;
  * </table>
  */
 @Service
-@RequiredArgsConstructor
 public class CategoryReadService {
 
-	private final CategoryCacheService categoryCacheService;
+    private final Map<String, Category> categoryMap;
 
-	public List<CategoryItem> getRootCategories() {
-		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
+    public CategoryReadService(CategoryCacheService categoryCacheService) {
+        this.categoryMap = categoryCacheService.getCategoryMap();
+    }
 
-		return categoryMap.values().stream()
-						.filter(c -> c.getParentCode() == null)
-						.map(CategoryItem::from)
-						.sorted(Comparator.comparing(CategoryItem::getCode))
-						.collect(Collectors.toList());
-	}
+    public List<CategoryItem> getRootCategories() {
+        return categoryMap.values().stream()
+                .filter(c -> c.getParentCode() == null)
+                .map(CategoryItem::from)
+                .sorted(Comparator.comparing(CategoryItem::getCode))
+                .collect(Collectors.toList());
+    }
 
-	public List<CategoryItem> getMiddleCategories(CategoryType type) {
-		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
+    public List<CategoryItem> getMiddleCategories(CategoryType type) {
+        return categoryMap.values().stream()
+                .filter(c -> c.getParentCode() != null)
+                .filter(c -> c.getParentCode().endsWith("0000"))
+                .filter(
+                        c -> type == CategoryType.INCOME
+                                ? c.getCode().startsWith("01")
+                                : c.getCode().startsWith("02")
+                )
+                .map(CategoryItem::from)
+                .sorted(Comparator.comparing(CategoryItem::getCode))
+                .toList();
+    }
 
-		return categoryMap.values().stream()
-						.filter(c -> c.getParentCode() != null)
-						.filter(c -> c.getParentCode().endsWith("0000"))
-						.filter(
-								c -> type == CategoryType.INCOME
-								? c.getCode().startsWith("01")
-								: c.getCode().startsWith("02")
-						)
-						.map(CategoryItem::from)
-						.sorted(Comparator.comparing(CategoryItem::getCode))
-						.toList();
-	}
+    public List<CategoryItem> getLowCategories(CategoryType type) {
+        return categoryMap.values().stream()
+                .filter(c ->
+                        c.getParentCode() != null
+                                && c.getParentCode().endsWith("00")
+                                && !c.getParentCode().endsWith("0000")
+                )
+                .filter(
+                        c -> type == CategoryType.INCOME
+                                ? c.getCode().startsWith("01")
+                                : c.getCode().startsWith("02")
+                )
+                .map(CategoryItem::from)
+                .sorted(Comparator.comparing(CategoryItem::getCode))
+                .collect(Collectors.toList());
+    }
 
-	public List<CategoryItem> getLowCategories(CategoryType type) {
-		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
+    public List<CategoryItem> getChildrenByParentCode(String code) {
+        Category current = getCategory(code);
 
-		return categoryMap.values().stream()
-						.filter(c ->
-								c.getParentCode() != null
-								&& c.getParentCode().endsWith("00")
-								&& !c.getParentCode().endsWith("0000")
-						)
-						.filter(
-								c -> type == CategoryType.INCOME
-								? c.getCode().startsWith("01")
-								: c.getCode().startsWith("02")
-						)
-						.map(CategoryItem::from)
-						.sorted(Comparator.comparing(CategoryItem::getCode))
-						.collect(Collectors.toList());
-	}
+        return categoryMap.values().stream()
+                .filter(c ->
+                        c.getParentCode() != null
+                                && c.getParentCode().equals(current.getCode())
+                )
+                .map(CategoryItem::from)
+                .sorted(Comparator.comparing(CategoryItem::getCode))
+                .collect(Collectors.toList());
+    }
 
+    public List<CategoryItem> findCategoryHierarchy(String code) {
+        List<Category> result = new ArrayList<>();
 
-	public List<CategoryItem> findCategoryHierarchy(String code) {
-		List<Category> result = new ArrayList<>();
+        Category current = getCategory(code);
 
-		Category current = getCategory(code);
+        while (current != null) {
+            result.add(current);
 
-		while (current != null) {
-			result.add(current);
+            String parentCode = current.getParentCode();
+            current = (parentCode != null) ? getCategory(parentCode) : null;
+        }
 
-			String parentCode = current.getParentCode();
-			current = (parentCode != null) ? getCategory(parentCode) : null;
-		}
+        Collections.reverse(result);
 
-		Collections.reverse(result);
-
-		return result.stream()
-				.map(CategoryItem::from)
-				.toList();
-	}
+        return result.stream()
+                .map(CategoryItem::from)
+                .toList();
+    }
 
 
-	public Category getCategory(String code) {
-		Map<String, Category> categoryMap = categoryCacheService.getCategoryMap();
+    public Category getCategory(String code) {
+        Category category = categoryMap.get(code);
 
-		return categoryMap.get(code);
-	}
+        if (category == null) {
+            throw ValidationException.of(
+                    CategoryErrorCode.DATA_NOT_FOUND,
+                    LogContent.of(
+                            "카테고리 조회",
+                            Category.class,
+                            "code", code
+                    )
+            );
+        }
+
+        return category;
+    }
+
+    public boolean exists(String code) {
+        return categoryMap.get(code) != null;
+    }
 
 }
