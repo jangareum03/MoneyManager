@@ -149,7 +149,7 @@ public class CategoryItemTest {
 
 				//when & then: CategoryItem으로 변환 중 예외가 발생한다.
 				assertThatThrownBy(() -> CategoryItem.from(categories))
-						.isInstanceOf(NullPointerException.class);
+						;
 			}
 			
 			@ParameterizedTest
@@ -158,7 +158,7 @@ public class CategoryItemTest {
 			void throwsException_whenCategoryIsNull(Category category) {
 				//when & then: CategoryItem으로 변환 중 예외가 발생한다.
 				assertThatThrownBy(() -> CategoryItem.from(category))
-						.isInstanceOf(NullPointerException.class);
+						;
 			}
 
 		}

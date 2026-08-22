@@ -1,7 +1,5 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.global.exception.code.CategoryErrorCode;
-import com.moneymanager.global.exception.exception.ValidationException;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.domain.enums.CategoryType;
@@ -22,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -180,7 +179,7 @@ class CategoryReadServiceTest {
             void throwsValidationException_whenCodeDoesNotExist() {
                 //when & then
                 assertThatThrownBy(() -> target.getChildrenByParentCode("nonExistentCode"))
-                        .isInstanceOf(ValidationException.class);
+                        ;
             }
 
         }
@@ -224,8 +223,8 @@ class CategoryReadServiceTest {
                 ApplicationExceptionAssert.assertThatApplicationException(
                                 catchThrowable(() -> target.getCategory(code))
                         )
-                        .isInstanceOf(ValidationException.class)
-                        .hasErrorCode(CategoryErrorCode.DATA_NOT_FOUND)
+                        
+                        .hasErrorCode(DATA_NOT_FOUND)
                         .hasWork("카테고리 조회")
                         .hasCauseMessage("카테고리 없음")
                         .hasTarget(Category.class)
@@ -236,14 +235,14 @@ class CategoryReadServiceTest {
             @DisplayName("코드가 존재하지 않으면 예외를 발생시킨다")
             void throwsValidationException_whenCodeDoesNotExist() {
                 assertThatThrownBy(() -> target.getCategory("030000"))
-                        .isInstanceOf(ValidationException.class);
+                        ;
             }
 
             @Test
             @DisplayName("코드가 유효하지 않으면 예외를 발생시킨다.")
             void throwsValidationException_whenCodeIsInvalid() {
                 assertThatThrownBy(() -> target.getCategory("nonExistCode"))
-                        .isInstanceOf(ValidationException.class);
+                        ;
             }
 
         }

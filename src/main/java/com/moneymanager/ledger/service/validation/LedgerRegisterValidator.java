@@ -1,8 +1,6 @@
 package com.moneymanager.ledger.service.validation;
 
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
-import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
@@ -16,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.moneymanager.global.domain.enums.RegexPattern.*;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 import static com.moneymanager.global.util.string.StringUtil.matchesPattern;
 
@@ -57,8 +56,8 @@ public class LedgerRegisterValidator {
 
     public void validate(LedgerWriteRequest request) {
         if(request == null) {
-            throw InternalException.of(
-                    CommonErrorCode.REQUIRED_NOT_EXIST,
+            throw new ApplicationException(
+                    REQUIRED_NOT_EXIST,
                     LogContent.of(
                             "가계부 등록 요청 검증",
                             LedgerWriteRequest.class
@@ -189,8 +188,8 @@ public class LedgerRegisterValidator {
 
     //===== 유틸 메서드 =====
     private void throwRequiredException(String field, Object value) {
-        throw ValidationException.of(
-                CommonErrorCode.REQUIRED_VALUE,
+        throw new ApplicationException(
+                REQUIRED_VALUE,
                 LogContent.of(
                         "가계부 등록 요청 검증",
                         LedgerWriteRequest.class,
@@ -201,8 +200,8 @@ public class LedgerRegisterValidator {
     }
 
     private void throwFormatException(String field, Object value, String format) {
-        throw ValidationException.of(
-                CommonErrorCode.INVALID_FORMAT,
+        throw new ApplicationException(
+                INVALID_VALUE,
                 LogContent.of(
                         "가계부 등록 요청 검증",
                         LedgerWriteRequest.class,
@@ -213,8 +212,8 @@ public class LedgerRegisterValidator {
     }
 
     private void throwValueException(String field, Object value, String allowedValues) {
-        throw ValidationException.of(
-                CommonErrorCode.INVALID_VALUE,
+        throw new ApplicationException(
+                INVALID_VALUE,
                 LogContent.of(
                         "가계부 등록 요청 검증",
                         LedgerWriteRequest.class,

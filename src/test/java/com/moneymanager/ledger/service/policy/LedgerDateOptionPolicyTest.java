@@ -1,7 +1,6 @@
 package com.moneymanager.ledger.service.policy;
 
 import com.moneymanager.global.config.MutableClock;
-import com.moneymanager.global.exception.code.LedgerErrorCode;
 import com.moneymanager.ledger.domain.enums.DateUnit;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Named.named;
@@ -175,7 +175,7 @@ class LedgerDateOptionPolicyTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 						catchThrowable(() -> target.getOptions(YEAR, date))
 				)
-						.hasErrorCode(LedgerErrorCode.POLICY_VIOLATION)
+						.hasErrorCode(POLICY_VIOLATION)
 						.hasWork("월 목록 조회")
 						.hasCauseMessage("허용되지 않은 연도")
 						.hasField("date")
@@ -204,7 +204,7 @@ class LedgerDateOptionPolicyTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 								catchThrowable(() -> target.getOptions(MONTH, date))
 						)
-						.hasErrorCode(LedgerErrorCode.POLICY_VIOLATION)
+						.hasErrorCode(POLICY_VIOLATION)
 						.hasWork("일 목록 조회")
 						.hasCauseMessage("허용되지 않은 월")
 						.hasValue("year", "month", date.substring(0, 4), date.substring(5));

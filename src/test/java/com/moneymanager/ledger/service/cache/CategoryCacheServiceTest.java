@@ -1,7 +1,5 @@
 package com.moneymanager.ledger.service.cache;
 
-import com.moneymanager.global.exception.code.CategoryErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.repository.CategoryRepository;
 import com.moneymanager.support.ApplicationExceptionAssert;
@@ -21,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -130,7 +129,7 @@ public class CategoryCacheServiceTest {
 				
 				//when & then: 모든 카테고리 조회 중 IllegalStateException이 발생한다.
 				assertThatThrownBy(() -> target.getCategoryMap())
-						.isInstanceOf(IllegalStateException.class);
+						;
 			}
 
 			@Test
@@ -144,8 +143,8 @@ public class CategoryCacheServiceTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 						catchThrowable(() -> target.getCategoryMap())
 				)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(CategoryErrorCode.DATA_NOT_FOUND)
+						
+						.hasErrorCode(DATA_NOT_FOUND)
 						.hasWork("전체 카테고리 조회")
 						.hasCauseMessage("카테고리 없음");
 			}

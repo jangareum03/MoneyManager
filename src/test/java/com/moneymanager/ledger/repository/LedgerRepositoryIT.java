@@ -1,7 +1,5 @@
 package com.moneymanager.ledger.repository;
 
-import com.moneymanager.global.exception.code.LedgerErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
@@ -14,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -157,8 +156,7 @@ class LedgerRepositoryIT extends IntegrationTest {
 
         	//then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(InternalException.class)
-                    .hasErrorCode(LedgerErrorCode.DATA_NOT_FOUND)
+                    .hasErrorCode(DATA_NOT_FOUND)
                     .hasWork("가계부 번호로 가계부 조회")
                     .hasTarget(Ledger.class)
                     .hasValue("id", id);

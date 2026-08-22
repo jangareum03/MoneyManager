@@ -1,8 +1,6 @@
 package com.moneymanager.global.util.date;
 
 
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,6 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.junit.jupiter.api.Named.named;
@@ -104,8 +103,8 @@ class DateRangeUtilsTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 						catchThrowable(() -> DateRangeUtils.getYearsInRange(start, end))
 				)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						
+						.hasErrorCode(OUT_OF_RANGE)
 						.hasWork("연도 리스트 조회")
 						.hasCauseMessage("시작 연도 0이하")
 						.hasField("start")
@@ -124,8 +123,8 @@ class DateRangeUtilsTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 								catchThrowable(() -> DateRangeUtils.getYearsInRange(start, end))
 						)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						
+						.hasErrorCode(OUT_OF_RANGE)
 						.hasWork("연도 리스트 조회")
 						.hasCauseMessage("종료 연도 0이하")
 						.hasField("end")
@@ -144,8 +143,8 @@ class DateRangeUtilsTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 								catchThrowable(() -> DateRangeUtils.getYearsInRange(start, end))
 						)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						
+						.hasErrorCode(OUT_OF_RANGE)
 						.hasWork("연도 리스트 조회")
 						.hasCauseMessage("시작연도 > 종료연도")
 						.hasValue("start", "end", start, end);
@@ -216,8 +215,8 @@ class DateRangeUtilsTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 						catchThrowable(() -> DateRangeUtils.getMonthsInRange(start, end))
 				)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						
+						.hasErrorCode(OUT_OF_RANGE)
 						.hasCauseMessage("시작월 범위 초과")
 						.hasField("start")
 						.hasValue(start)
@@ -239,8 +238,8 @@ class DateRangeUtilsTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 								catchThrowable(() -> DateRangeUtils.getMonthsInRange(start, end))
 						)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						
+						.hasErrorCode(OUT_OF_RANGE)
 						.hasCauseMessage("종료월 범위 초과")
 						.hasField("end")
 						.hasValue(end)
@@ -259,8 +258,8 @@ class DateRangeUtilsTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 								catchThrowable(() -> DateRangeUtils.getMonthsInRange(start, end))
 						)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						
+						.hasErrorCode(OUT_OF_RANGE)
 						.hasCauseMessage("시작월 > 종료월")
 						.hasValue("start", "end", start, end);
 			}
@@ -338,8 +337,8 @@ class DateRangeUtilsTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 								catchThrowable(() -> DateRangeUtils.getDaysInRange(start, end))
 						)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						
+						.hasErrorCode(OUT_OF_RANGE)
 						.hasCauseMessage("시작일 범위 초과")
 						.hasField("start")
 						.hasValue(start)
@@ -361,8 +360,8 @@ class DateRangeUtilsTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 								catchThrowable(() -> DateRangeUtils.getDaysInRange(start, end))
 						)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						
+						.hasErrorCode(OUT_OF_RANGE)
 						.hasCauseMessage("종료일 범위 초과")
 						.hasField("end")
 						.hasValue(end)
@@ -381,8 +380,8 @@ class DateRangeUtilsTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 								catchThrowable(() -> DateRangeUtils.getDaysInRange(start, end))
 						)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						
+						.hasErrorCode(OUT_OF_RANGE)
 						.hasCauseMessage("시작일 > 종료일")
 						.hasValue("start", "end", start, end);
 			}

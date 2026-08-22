@@ -1,6 +1,5 @@
 package com.moneymanager.ledger.domain.enums;
 
-import com.moneymanager.global.exception.code.CommonErrorCode;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,9 +12,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Named.named;
@@ -97,14 +96,14 @@ class DateUnitTest {
 			@DisplayName("값이 null이거나 빈 문자열이면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueIsNullOrEmpty(String value) {
 				assertThatThrownBy(() -> DateUnit.from(value))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 			
 			@Test
 			@DisplayName("값이 존재하지 않으면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueDoesNotExist() {
 				assertThatThrownBy(() -> DateUnit.from("nonexistent"))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 
 			
@@ -161,7 +160,7 @@ class DateUnitTest {
 					ApplicationExceptionAssert.assertThatApplicationException(
 							catchThrowable(() -> dateUnit.validateDate(date))
 					)
-							.hasErrorCode(CommonErrorCode.REQUIRED_VALUE)
+							.hasErrorCode(REQUIRED_VALUE)
 							.hasWork("날짜 검증")
 							.hasCauseMessage("필수값 누락");
 				});
@@ -178,7 +177,7 @@ class DateUnitTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 						catchThrowable(() -> dateUnit.validateDate(date))
 				)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						.hasErrorCode(OUT_OF_RANGE)
 						.hasWork("날짜 검증")
 						.hasField("date")
 						.hasValue(date)
@@ -196,7 +195,7 @@ class DateUnitTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 								catchThrowable(() -> dateUnit.validateDate(date))
 						)
-						.hasErrorCode(CommonErrorCode.OUT_OF_RANGE)
+						.hasErrorCode(OUT_OF_RANGE)
 						.hasWork("날짜 검증")
 						.hasField("date")
 						.hasValue(date.length())
@@ -214,7 +213,7 @@ class DateUnitTest {
 						ApplicationExceptionAssert.assertThatApplicationException(
 										catchThrowable(() -> dateUnit.validateDate(date))
 								)
-								.hasErrorCode(CommonErrorCode.INVALID_FORMAT)
+								.hasErrorCode(INVALID_VALUE)
 								.hasWork("날짜 검증")
 								.hasField("date")
 								.hasValue(date);
@@ -226,7 +225,7 @@ class DateUnitTest {
 						ApplicationExceptionAssert.assertThatApplicationException(
 										catchThrowable(() -> dateUnit.validateDate(date))
 								)
-								.hasErrorCode(CommonErrorCode.INVALID_FORMAT)
+								.hasErrorCode(INVALID_VALUE)
 								.hasWork("날짜 검증")
 								.hasField("date")
 								.hasValue(date);

@@ -1,8 +1,6 @@
 package com.moneymanager.ledger.service.policy;
 
 import com.moneymanager.global.config.MutableClock;
-import com.moneymanager.global.exception.code.LedgerErrorCode;
-import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.StringTestData;
@@ -19,6 +17,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import java.time.LocalDate;
 import java.util.stream.Stream;
 
+import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
@@ -101,8 +100,8 @@ class LedgerPolicyTest {
         	
         	//then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(BusinessException.class)
-                    .hasErrorCode(LedgerErrorCode.POLICY_VIOLATION)
+                    
+                    .hasErrorCode(POLICY_VIOLATION)
                     .hasWork("가계부 비즈니스 규칙 검증")
                     .hasCauseMessage("거래날짜 범위 초과")
                     .hasTarget(Ledger.class)
@@ -160,8 +159,8 @@ class LedgerPolicyTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(BusinessException.class)
-                    .hasErrorCode(LedgerErrorCode.POLICY_VIOLATION)
+                    
+                    .hasErrorCode(POLICY_VIOLATION)
                     .hasWork("가계부 비즈니스 규칙 검증")
                     .hasCauseMessage("메모 길이 초과")
                     .hasTarget(Ledger.class)

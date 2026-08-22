@@ -1,6 +1,6 @@
 package com.moneymanager.global.validation;
 
-import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.*;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 
 /**
@@ -44,7 +44,7 @@ public abstract class BaseImageValidator implements ImageValidator {
 
 	protected void validateContentType(String contentType) {
 		if(contentType == null || !contentType.contains("image")) {
-			throw ValidationException.of(
+			throw new ApplicationException(
 					UNSUPPORTED_FILE_TYPE,
 				LogContent.of(
 						work,
@@ -60,7 +60,7 @@ public abstract class BaseImageValidator implements ImageValidator {
 		String fileName = file.getOriginalFilename();
 
 		if(isNullOrBlank(fileName)) {
-			throw ValidationException.of(
+			throw new ApplicationException(
 					REQUIRED_VALUE,
 					LogContent.of(
 							work,
@@ -74,7 +74,7 @@ public abstract class BaseImageValidator implements ImageValidator {
 		String ext = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
 
 		if(!allowedExtensions.contains(ext)) {
-			throw ValidationException.of(
+			throw new ApplicationException(
 					UNSUPPORTED_FILE_TYPE,
 					LogContent.of(
 							work,
@@ -93,7 +93,7 @@ public abstract class BaseImageValidator implements ImageValidator {
 			String hex = byteToHex(header);
 
 			if(!allowedHeaders.contains(hex)) {
-				throw ValidationException.of(
+				throw new ApplicationException(
 						UNSUPPORTED_FILE_TYPE,
 						LogContent.of(
 								work,
@@ -121,7 +121,7 @@ public abstract class BaseImageValidator implements ImageValidator {
 		long max = 5 * 1024 * 1024;
 
 		if(size > max) {
-			throw ValidationException.of(
+			throw new ApplicationException(
 					FILE_TOO_LARGE,
 					LogContent.of(
 							work,

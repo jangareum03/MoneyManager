@@ -1,7 +1,6 @@
 package com.moneymanager.ledger.service.cache;
 
-import com.moneymanager.global.exception.code.CategoryErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.repository.CategoryRepository;
@@ -12,6 +11,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 
 /**
  * <p>
@@ -61,8 +62,8 @@ public class CategoryCacheService {
         List<Category> categoryList = categoryRepository.findAllCategory();
 
         if (categoryList.isEmpty()) {
-            throw InternalException.of(
-                    CategoryErrorCode.DATA_NOT_FOUND,
+            throw new ApplicationException(
+                    DATA_NOT_FOUND,
                     LogContent.of(
                             "전체 카테고리 조회",
                             Category.class

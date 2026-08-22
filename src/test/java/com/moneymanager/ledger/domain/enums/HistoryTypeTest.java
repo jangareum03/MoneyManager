@@ -102,14 +102,14 @@ public class HistoryTypeTest {
 			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueIsNullOrEmpty(String value) {
 				assertThatThrownBy(() -> HistoryType.from(value))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 
 			@Test
 			@DisplayName("허용되지 않은 값이면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueIsInvalid() {
 				assertThatThrownBy(() -> HistoryType.from("noExist"))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 
 		}

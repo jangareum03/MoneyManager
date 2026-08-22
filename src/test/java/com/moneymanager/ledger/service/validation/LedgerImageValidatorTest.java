@@ -1,6 +1,5 @@
 package com.moneymanager.ledger.service.validation;
 
-import com.moneymanager.global.exception.exception.ValidationException;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.fixture.file.ImageFixture;
@@ -16,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.*;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.mock;
@@ -91,7 +90,7 @@ class LedgerImageValidatorTest {
                 //when & then
                 ApplicationExceptionAssert.assertThatApplicationException(
                                 catchThrowable(() -> target.validate(file))
-                        ).isInstanceOf(ValidationException.class)
+                        )
                         .hasErrorCode(FILE_NOT_FOUND)
                         .hasWork("가계부 이미지 검증")
                         .hasCauseMessage("파일 없음");
@@ -145,7 +144,7 @@ class LedgerImageValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
+                    
                     .hasErrorCode(UNSUPPORTED_FILE_TYPE)
                     .hasWork("이미지 파일 검증")
                     .hasTarget(MultipartFile.class)
@@ -173,7 +172,7 @@ class LedgerImageValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
+                    
                     .hasErrorCode(UNSUPPORTED_FILE_TYPE)
                     .hasWork("이미지 파일 검증")
                     .hasTarget(MultipartFile.class)
@@ -204,7 +203,7 @@ class LedgerImageValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
+                    
                     .hasErrorCode(UNSUPPORTED_FILE_TYPE)
                     .hasWork("이미지 파일 검증")
                     .hasTarget(MultipartFile.class)
@@ -233,7 +232,7 @@ class LedgerImageValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
+                    
                     .hasErrorCode(REQUIRED_VALUE)
                     .hasWork("이미지 파일 검증")
                     .hasTarget(MultipartFile.class)
@@ -256,7 +255,7 @@ class LedgerImageValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
+                    
                     .hasErrorCode(UNSUPPORTED_FILE_TYPE)
                     .hasWork("이미지 파일 검증")
                     .hasTarget(MultipartFile.class)
@@ -280,7 +279,7 @@ class LedgerImageValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
+                    
                     .hasErrorCode(UNSUPPORTED_FILE_TYPE)
                     .hasWork("이미지 파일 검증")
                     .hasTarget(MultipartFile.class)
@@ -316,7 +315,7 @@ class LedgerImageValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
+                    
                     .hasErrorCode(FILE_TOO_LARGE)
                     .hasWork("이미지 파일 검증")
                     .hasTarget(MultipartFile.class)

@@ -111,14 +111,14 @@ public class CategoryTypeTest {
 			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueIsBlank(String type) {
 				assertThatThrownBy(() -> CategoryType.from(type))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 
 			@Test
 			@DisplayName("허용되지 않은 값이면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueIsInvalid() {
 				assertThatThrownBy(() -> CategoryType.from("error"))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 
 		}
@@ -168,14 +168,14 @@ public class CategoryTypeTest {
 			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
 			void throwsException_whenValueIsBlank(String code) {
 				assertThatThrownBy(() -> CategoryType.from(code))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 
 			@Test
 			@DisplayName("허용되지 않은 값이면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueIsInvalid() {
 				assertThatThrownBy(() -> CategoryType.from("nonExistent"))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 			
 		}

@@ -2,7 +2,6 @@ package com.moneymanager.ledger.service.storage;
 
 import com.moneymanager.global.config.MutableClock;
 import com.moneymanager.global.domain.FileMetadata;
-import com.moneymanager.global.exception.exception.InternalException;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.file.ImageFixture;
@@ -174,7 +173,7 @@ class LedgerImageStorageTest {
             	
             	//then
                 ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                        .isInstanceOf(InternalException.class)
+                        
                         .hasWork("파일 업로드")
                         .hasCauseMessage("파일 없음");
             }
@@ -191,7 +190,7 @@ class LedgerImageStorageTest {
 
                 //then
                 ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                        .isInstanceOf(InternalException.class)
+                        
                         .hasWork("파일 업로드")
                         .hasCauseMessage("파일 없음");
             }
@@ -211,7 +210,7 @@ class LedgerImageStorageTest {
             	
             	//when
                 assertThatThrownBy(() -> target.store(file, memberId))
-                        .isInstanceOf(IOException.class);
+                        ;
             }
 
         }

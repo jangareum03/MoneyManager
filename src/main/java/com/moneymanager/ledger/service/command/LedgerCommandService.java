@@ -1,8 +1,7 @@
 package com.moneymanager.ledger.service.command;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import com.moneymanager.global.exception.code.CategoryErrorCode;
-import com.moneymanager.global.exception.exception.BusinessException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
@@ -18,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+
+import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_VALUE;
 
 
 /**
@@ -64,8 +65,8 @@ public class LedgerCommandService {
 		Place place = Place.ofOrNull(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress());
 
 		if(!categoryReadService.exists(request.getCategoryCode())) {
-			throw BusinessException.of(
-					CategoryErrorCode.DATA_NOT_FOUND,
+			throw new ApplicationException(
+					REQUIRED_VALUE,
 					LogContent.of(
 							"Ledger 생성",
 							LedgerWriteRequest.class,

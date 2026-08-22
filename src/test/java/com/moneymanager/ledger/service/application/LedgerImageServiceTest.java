@@ -1,9 +1,6 @@
 package com.moneymanager.ledger.service.application;
 
 import com.moneymanager.global.domain.FileMetadata;
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.code.LedgerErrorCode;
-import com.moneymanager.global.exception.exception.ExternalException;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
@@ -28,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.eq;
@@ -143,8 +141,8 @@ public class LedgerImageServiceTest{
 
                 //then
                 ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                        .isInstanceOf(ExternalException.class)
-                        .hasErrorCode(CommonErrorCode.FILE_UPLOAD_FAILED)
+                        
+                        .hasErrorCode(FILE_UPLOAD_FAILED)
                         .hasWork("이미지 파일 저장")
                         .hasTarget(FileMetadata.class)
                         .hasValue("memberId", memberId, "originalFilename", images.get(0).getOriginalFilename());
@@ -170,8 +168,8 @@ public class LedgerImageServiceTest{
 
                 //then
                 ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                        .isInstanceOf(ExternalException.class)
-                        .hasErrorCode(CommonErrorCode.FILE_UPLOAD_FAILED)
+                        
+                        .hasErrorCode(FILE_UPLOAD_FAILED)
                         .hasWork("이미지 파일 저장")
                         .hasTarget(FileMetadata.class)
                         .hasValue("memberId", memberId, "originalFilename", images.get(1).getOriginalFilename());
@@ -199,8 +197,8 @@ public class LedgerImageServiceTest{
 
                 //then
                 ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                        .isInstanceOf(ExternalException.class)
-                        .hasErrorCode(LedgerErrorCode.DATA_PERSISTENCE_FAILED)
+                        
+                        .hasErrorCode(INTERVAL_SERVER_ERROR)
                         .hasWork("가계부 이미지 정보 저장")
                         .hasTarget(LedgerImage.class)
                         .hasValue("memberId", memberId, "ledgerId", ledgerId, "imageCount", images.size());

@@ -14,7 +14,8 @@ import com.moneymanager.support.ApplicationExceptionAssert;
 
 import java.util.stream.Stream;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.*;
+
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Named.named;

@@ -1,11 +1,12 @@
 package com.moneymanager.ledger.domain.dto.vo;
 
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import lombok.Value;
+
+import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_VALUE;
 
 /**
  * <p>
@@ -47,8 +48,8 @@ public class Money {
 
 	public static Money of(Long amount, String type) {
 		if(StringUtil.isNullOrBlank(type)) {
-			throw ValidationException.of(
-					CommonErrorCode.REQUIRED_VALUE,
+			throw new ApplicationException(
+					REQUIRED_VALUE,
 					LogContent.of(
 							"Money 생성",
 							Money.class,
@@ -62,8 +63,8 @@ public class Money {
 
 	public static Money of(Long amount, PaymentType paymentType) {
 		if(amount == null || amount <= 0) {
-			throw ValidationException.of(
-					CommonErrorCode.REQUIRED_VALUE,
+			throw new ApplicationException(
+					REQUIRED_VALUE,
 					LogContent.of(
 							"Money 생성",
 							Money.class,
@@ -73,8 +74,8 @@ public class Money {
 		}
 
 		if(paymentType == null) {
-			throw ValidationException.of(
-					CommonErrorCode.REQUIRED_VALUE,
+			throw new ApplicationException(
+					REQUIRED_VALUE,
 					LogContent.of(
 							"Money 생성",
 							Money.class,

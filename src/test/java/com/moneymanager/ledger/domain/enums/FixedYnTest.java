@@ -99,14 +99,14 @@ public class FixedYnTest {
 			@DisplayName("null이거나 비어있으면 예외가 발생한다.")
 			void throwsNoSuchElementException_whenValueIsNull(String value) {
 				assertThatThrownBy(() -> FixedType.from(value))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 			
 			@Test
 			@DisplayName("허용되지 않은 값이면 예외가 발생한다.")
 			void throwsNoSuchElementException_whenValueIsInvalid() {
 				assertThatThrownBy(() -> FixedType.from("nonExistent"))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 
 		}

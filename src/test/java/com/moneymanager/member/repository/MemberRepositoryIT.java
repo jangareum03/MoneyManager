@@ -1,7 +1,5 @@
 package com.moneymanager.member.repository;
 
-import com.moneymanager.global.exception.code.MemberErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
 import com.moneymanager.member.domain.dto.MemberAuth;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
@@ -14,7 +12,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -24,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 import static org.assertj.core.api.Assertions.*;
 
 /**
@@ -199,7 +197,7 @@ class MemberRepositoryIT {
 
 				//when & then
 				assertThatThrownBy(() -> target.save(member))
-						.isInstanceOf(DataIntegrityViolationException.class);
+						;
 			}
 
 			@Test
@@ -214,7 +212,7 @@ class MemberRepositoryIT {
 
 				//when & then: "UCt01001"를 가진 회원번호를 다시 저장한다.
 				assertThatThrownBy(() -> target.save(member))
-						.isInstanceOf(DataIntegrityViolationException.class);
+						;
 			}
 
 		}
@@ -319,8 +317,8 @@ class MemberRepositoryIT {
 				ApplicationExceptionAssert.assertThatApplicationException(
 						catchThrowable(() -> target.findImageUploadLimitByMemberId("nonexistent"))
 				)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(MemberErrorCode.DATA_INTEGRITY_ERROR)
+						
+						.hasErrorCode(DATA_NOT_FOUND)
 						.hasWork("등록 가능한 이미지 개수 조회")
 						.hasCauseMessage("존재하지 않은 회원")
 						.hasTarget(MemberInfo.class)

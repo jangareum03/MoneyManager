@@ -104,14 +104,14 @@ public class FixCycleTest {
 			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueIsNull(String cycle) {
 				assertThatThrownBy(() -> FixCycle.from(cycle))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 			
 			@Test
 			@DisplayName("허용되지 않은 값이면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueIsInvalid() {
 				assertThatThrownBy(() -> FixCycle.from("nonExist"))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 
 		}

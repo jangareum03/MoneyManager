@@ -1,7 +1,5 @@
 package com.moneymanager.ledger.domain.dto.vo;
 
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.ValidationException;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import org.junit.jupiter.api.DisplayName;
@@ -9,6 +7,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
 
+import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -83,8 +82,8 @@ class MoneyTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.REQUIRED_VALUE)
+                    
+                    .hasErrorCode(REQUIRED_VALUE)
                     .hasWork("Money 생성")
                     .hasCauseMessage("필수값 누락")
                     .hasValue("amount", amount);
@@ -99,8 +98,8 @@ class MoneyTest {
 
         	//then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.REQUIRED_VALUE)
+                    
+                    .hasErrorCode(REQUIRED_VALUE)
                     .hasWork("Money 생성")
                     .hasCauseMessage("필수값 누락")
                     .hasValue("amount", amount);
@@ -116,8 +115,8 @@ class MoneyTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.REQUIRED_VALUE)
+                    
+                    .hasErrorCode(REQUIRED_VALUE)
                     .hasWork("Money 생성")
                     .hasCauseMessage("필수값 누락")
                     .hasValue("paymentType", paymentType);

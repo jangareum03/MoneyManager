@@ -1,7 +1,5 @@
 package com.moneymanager.ledger.service.command;
 
-import com.moneymanager.global.exception.code.CategoryErrorCode;
-import com.moneymanager.global.exception.exception.BusinessException;
 import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.vo.Money;
@@ -24,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.when;
@@ -169,8 +168,8 @@ class LedgerCommandServiceTest {
 
                 //then
                 ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                        .isInstanceOf(BusinessException.class)
-                        .hasErrorCode(CategoryErrorCode.DATA_NOT_FOUND)
+                        
+                        .hasErrorCode(REQUIRED_VALUE)
                         .hasWork("Ledger 생성")
                         .hasTarget(LedgerWriteRequest.class)
                         .hasValue("categoryCode", request.getCategoryCode());

@@ -1,7 +1,6 @@
 package com.moneymanager.member.service.read;
 
-import com.moneymanager.global.exception.code.MemberErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.repository.MemberRepository;
@@ -14,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
@@ -85,14 +85,14 @@ class MemberReadServiceTest {
 		class Failure {
 			
 			@Test
-			@DisplayName("회원이 존재하지 않으면 InternalException 예외를 전파한다.")
+			@DisplayName("회원이 존재하지 않으면 예외를 전파한다.")
 			void throwsInternalException_whenUserDoesNotExist() {
 				//given
 				String memberId = "nonexistent";
 
 				when(repository.findImageUploadLimitByMemberId(memberId))
-						.thenThrow(InternalException.of(
-								MemberErrorCode.DATA_INTEGRITY_ERROR,
+						.thenThrow(new ApplicationException(
+								DATA_NOT_FOUND,
 								LogContent.of(
 										"등록 가능한 이미지 개수 조회",
 										MemberInfo.class,
@@ -102,8 +102,7 @@ class MemberReadServiceTest {
 						));
 
 				//when & then
-				assertThatThrownBy(() -> target.getAvailableImageCount(memberId))
-						.isInstanceOf(InternalException.class);
+				assertThatThrownBy(() -> target.getAvailableImageCount(memberId));
 			}
 
 		}

@@ -1,7 +1,6 @@
 package com.moneymanager.ledger.service.policy;
 
-import com.moneymanager.global.exception.code.LedgerErrorCode;
-import com.moneymanager.global.exception.exception.BusinessException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.date.DateRangeUtils;
 import com.moneymanager.ledger.domain.enums.DateUnit;
@@ -14,6 +13,8 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
 
 /**
  * <p>
@@ -62,8 +63,8 @@ public class LedgerDateOptionPolicy {
         Year year = Year.parse(date);
 
         if (!ledgerDatePolicy.isValidYear(year)) {
-            throw BusinessException.of(
-                    LedgerErrorCode.POLICY_VIOLATION,
+            throw new ApplicationException(
+                    POLICY_VIOLATION,
                     LogContent.of(
                             "월 목록 조회",
                             "date",
@@ -83,8 +84,8 @@ public class LedgerDateOptionPolicy {
         YearMonth yearMonth = YearMonth.parse(date, DateTimeFormatter.ofPattern("yyyyMM"));
 
         if (!ledgerDatePolicy.isValidYearMonth(yearMonth)) {
-            throw BusinessException.of(
-                    LedgerErrorCode.POLICY_VIOLATION,
+            throw new ApplicationException(
+                    POLICY_VIOLATION,
                     LogContent.ofValues(
                             "일 목록 조회",
                             "year",

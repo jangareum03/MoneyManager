@@ -1,7 +1,6 @@
 package com.moneymanager.ledger.repository;
 
-import com.moneymanager.global.exception.code.LedgerErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
@@ -18,6 +17,8 @@ import javax.sql.DataSource;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
+
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 
 /**
  * <p>
@@ -151,8 +152,8 @@ public class LedgerRepository {
 					id
 			);
 		} catch (EmptyResultDataAccessException e) {
-            throw InternalException.of(
-					LedgerErrorCode.DATA_NOT_FOUND,
+            throw new ApplicationException(
+					DATA_NOT_FOUND,
 					LogContent.of(
 							"가계부 번호로 가계부 조회",
 							Ledger.class,

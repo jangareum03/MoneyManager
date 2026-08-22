@@ -1,10 +1,8 @@
 package com.moneymanager.ledger.service.application;
 
 import com.moneymanager.global.domain.FileMetadata;
-import com.moneymanager.global.exception.code.CommonErrorCode;
 import com.moneymanager.global.exception.code.ErrorCode;
-import com.moneymanager.global.exception.code.LedgerErrorCode;
-import com.moneymanager.global.exception.exception.ExternalException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
@@ -23,6 +21,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
+
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 
 /**
  * <p>
@@ -89,8 +89,8 @@ public class LedgerImageService {
         }catch (IOException e) {
             cleanFiles(metadataList);
 
-            throwExternalException(
-                    CommonErrorCode.FILE_UPLOAD_FAILED,
+            throwException(
+                    FILE_UPLOAD_FAILED,
                     "이미지 파일 저장",
                     FileMetadata.class,
                     e,
@@ -100,8 +100,8 @@ public class LedgerImageService {
         }catch (DataAccessException e) {
             cleanFiles(metadataList);
 
-            throwExternalException(
-                    LedgerErrorCode.DATA_PERSISTENCE_FAILED,
+            throwException(
+                    INTERVAL_SERVER_ERROR,
                     "가계부 이미지 정보 저장",
                     LedgerImage.class,
                     e,
@@ -134,8 +134,8 @@ public class LedgerImageService {
         };
     }
 
-    private void throwExternalException(ErrorCode errorCode, String work, Class target, Throwable e, Object... values) {
-        throw ExternalException.of(
+    private void throwException(ErrorCode errorCode, String work, Class target, Throwable e, Object... values) {
+        throw new ApplicationException(
                 errorCode,
                 LogContent.of(
                         work,

@@ -2,8 +2,7 @@ package com.moneymanager.ledger.service.storage;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.global.domain.FileMetadata;
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.log.LogContent;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +15,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.LocalDate;
+
+import static com.moneymanager.global.exception.code.ErrorCode.FILE_NOT_FOUND;
 
 /**
  * <p>
@@ -58,8 +59,8 @@ public class LedgerImageStorage {
 
     public FileMetadata store(MultipartFile file, String memberId) throws IOException {
         if(file == null || file.isEmpty()) {
-            throw InternalException.of(
-                    CommonErrorCode.FILE_NOT_FOUND,
+            throw new ApplicationException(
+                    FILE_NOT_FOUND,
                     LogContent.of(
                             "파일 업로드",
                             MultipartFile.class

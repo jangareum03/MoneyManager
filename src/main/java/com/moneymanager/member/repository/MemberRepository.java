@@ -1,7 +1,6 @@
 package com.moneymanager.member.repository;
 
-import com.moneymanager.global.exception.code.MemberErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.member.domain.dto.MemberAuth;
 import com.moneymanager.member.domain.entity.Member;
@@ -16,6 +15,8 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.Optional;
+
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 
 /**
  * <p>
@@ -164,8 +165,8 @@ public class MemberRepository {
 					memberId
 			);
 		}catch (EmptyResultDataAccessException e) {
-			throw InternalException.of(
-					MemberErrorCode.DATA_NOT_FOUND,
+			throw new ApplicationException(
+					DATA_NOT_FOUND,
 					LogContent.of(
 							"등록 가능한 이미지 개수 조회",
 							MemberInfo.class,

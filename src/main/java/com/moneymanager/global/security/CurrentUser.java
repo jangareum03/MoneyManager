@@ -1,12 +1,13 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.UNAUTHORIZED;
+import static com.moneymanager.global.exception.code.ErrorCode.UNAUTHORIZED;
+
 
 /**
  * <p>
@@ -48,7 +49,7 @@ public class CurrentUser {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 		if(auth == null || !(auth.getPrincipal() instanceof CustomUserDetails)) {
-			throw InternalException.of(
+			throw new ApplicationException(
 					UNAUTHORIZED,
 					LogContent.of("회원 인증", Authentication.class)
 			);

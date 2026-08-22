@@ -1,11 +1,12 @@
 package com.moneymanager.ledger.domain.enums;
 
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
 
 import java.util.Arrays;
+
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 
 /**
  * <p>
@@ -64,8 +65,8 @@ public enum DateUnit {
 
     private static void validateNullOrBlank(String value) {
         if (StringUtil.isNullOrBlank(value)) {
-            throw ValidationException.of(
-                    CommonErrorCode.REQUIRED_VALUE,
+            throw new ApplicationException(
+                    REQUIRED_VALUE,
                     LogContent.of(
                             "날짜 검증",
                             "date",
@@ -79,8 +80,8 @@ public enum DateUnit {
     //===== 보조 메서드 =====
     private static void validateSize(String value, int size) {
         if (value.length() != size) {
-            throw ValidationException.of(
-                    CommonErrorCode.OUT_OF_RANGE,
+            throw new ApplicationException(
+                    OUT_OF_RANGE,
                     LogContent.of(
                             "날짜 검증",
                             "date",
@@ -92,8 +93,8 @@ public enum DateUnit {
 
     private static void validateNumber(String value, int size) {
         if (!StringUtil.matchesPattern(value, "\\d+")) {
-            throw ValidationException.of(
-                    CommonErrorCode.INVALID_FORMAT,
+            throw new ApplicationException(
+                    INVALID_VALUE,
                     LogContent.of(
                             "날짜 검증",
                             "date",
@@ -101,17 +102,6 @@ public enum DateUnit {
                     ).withOption("format", size + "자리 숫자")
             );
         }
-    }
-
-    private static ValidationException validateValue(String value) {
-        return ValidationException.of(
-                CommonErrorCode.INVALID_VALUE,
-                LogContent.of(
-                        "DateUnit 생성",
-                        "unit",
-                        value
-                ).withOption("allowed", values())
-        );
     }
 
 }

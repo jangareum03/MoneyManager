@@ -1,7 +1,5 @@
 package com.moneymanager.ledger.service.cache;
 
-import com.moneymanager.global.exception.code.CategoryErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.repository.CategoryRepository;
 import com.moneymanager.support.ApplicationExceptionAssert;
@@ -20,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.times;
@@ -115,8 +114,8 @@ public class CategoryCacheServiceIT extends IntegrationTest {
 				ApplicationExceptionAssert.assertThatApplicationException(
 								catchThrowable(() -> target.getCategoryMap())
 						)
-						.isInstanceOf(InternalException.class)
-						.hasErrorCode(CategoryErrorCode.DATA_NOT_FOUND)
+						
+						.hasErrorCode(DATA_NOT_FOUND)
 						.hasWork("전체 카테고리 조회")
 						.hasCauseMessage("카테고리 없음");
 			}

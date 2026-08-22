@@ -1,10 +1,11 @@
 package com.moneymanager.member.service.validation;
 
 import com.moneymanager.global.domain.enums.RegexPattern;
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
+
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 
 /**
  * <p>
@@ -42,8 +43,8 @@ public class MemberValidator {
 
     private static void checkUsername(String username) {
         if (StringUtil.isNullOrBlank(username)) {
-            throw ValidationException.of(
-                    CommonErrorCode.REQUIRED_VALUE,
+            throw new ApplicationException(
+                    REQUIRED_VALUE,
                     LogContent.of(
                             "로그인 검증",
                             "username",
@@ -53,9 +54,8 @@ public class MemberValidator {
         }
 
         if (!StringUtil.matchesPattern(username, RegexPattern.MEMBER_USERNAME.getPattern())) {
-            throw ValidationException
-                    .of(
-                            CommonErrorCode.INVALID_FORMAT,
+            throw new ApplicationException(
+                            INVALID_VALUE,
                             LogContent.of(
                                               "로그인 검증",
                                               "username",
@@ -71,9 +71,8 @@ public class MemberValidator {
 
     private static void checkPassword(String password) {
         if (StringUtil.isNullOrBlank(password)) {
-            throw ValidationException
-                    .of(
-                            CommonErrorCode.REQUIRED_VALUE,
+            throw new ApplicationException(
+                            REQUIRED_VALUE,
                             LogContent.of(
                                     "로그인 검증",
                                     "password",
@@ -84,9 +83,8 @@ public class MemberValidator {
         }
 
         if (!StringUtil.matchesPattern(password, RegexPattern.MEMBER_PWD.getPattern())) {
-            throw ValidationException
-                    .of(
-                            CommonErrorCode.INVALID_FORMAT,
+            throw new ApplicationException(
+                            INVALID_VALUE,
                             LogContent.of(
                                               "로그인 검증",
                                               "password",

@@ -1,11 +1,11 @@
 package com.moneymanager.ledger.domain.dto.vo;
 
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
 import lombok.Value;
 
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
 
 /**
@@ -81,8 +81,8 @@ public class Place {
 
     private static void validatePlaceName(String placeName) {
         if (StringUtil.isNullOrBlank(placeName)) {
-            throw ValidationException.of(
-                    CommonErrorCode.REQUIRED_VALUE,
+            throw new ApplicationException(
+                    REQUIRED_VALUE,
                     LogContent.of(
                             "Place 생성",
                             Place.class,
@@ -92,8 +92,8 @@ public class Place {
         }
 
         if (placeName.length() > 100) {
-            throw ValidationException.of(
-                    CommonErrorCode.OUT_OF_RANGE,
+            throw new ApplicationException(
+                    OUT_OF_RANGE,
                     LogContent.of(
                                     "Place 생성",
                                     Place.class,
@@ -106,8 +106,8 @@ public class Place {
 
     private static void validateRoadAddress(String roadAddress) {
         if (StringUtil.isNullOrBlank(roadAddress)) {
-            throw ValidationException.of(
-                    CommonErrorCode.REQUIRED_VALUE,
+            throw new ApplicationException(
+                    REQUIRED_VALUE,
                     LogContent.of(
                             "Place 생성",
                             Place.class,
@@ -117,8 +117,8 @@ public class Place {
         }
 
         if (roadAddress.length() > 300) {
-            throw ValidationException.of(
-                    CommonErrorCode.OUT_OF_RANGE,
+            throw new ApplicationException(
+                    OUT_OF_RANGE,
                     LogContent.of(
                                     "Place 생성",
                                     Place.class,
@@ -131,8 +131,8 @@ public class Place {
 
     private static void validateDetailAddress(String detailAddress) {
         if (detailAddress.length() > 300) {
-            throw ValidationException.of(
-                    CommonErrorCode.OUT_OF_RANGE,
+            throw new ApplicationException(
+                    OUT_OF_RANGE,
                     LogContent.of(
                                     "Place 생성",
                                     Place.class,

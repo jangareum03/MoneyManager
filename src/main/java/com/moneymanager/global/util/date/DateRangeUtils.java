@@ -1,6 +1,6 @@
 package com.moneymanager.global.util.date;
 
-import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 
 import java.time.Year;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.OUT_OF_RANGE;
+import static com.moneymanager.global.exception.code.ErrorCode.OUT_OF_RANGE;
 
 /**
  * <p>
@@ -49,7 +49,7 @@ public class DateRangeUtils {
 
 	public static List<Integer> getYearsInRange(int start, int end) {
 		if (start <= 0) {
-			throw InternalException.of(
+			throw new ApplicationException(
 					OUT_OF_RANGE,
 					LogContent.of(
 									"연도 리스트 조회",
@@ -61,7 +61,7 @@ public class DateRangeUtils {
 		}
 
 		if (end <= 1) {
-			throw InternalException.of(
+			throw new ApplicationException(
 					OUT_OF_RANGE,
 					LogContent.of(
 									"연도 리스트 조회",
@@ -76,7 +76,7 @@ public class DateRangeUtils {
 		Year endYear = Year.of(end);
 
 		if (startYear.isAfter(endYear)) {
-			throw InternalException.of(
+			throw new ApplicationException(
 					OUT_OF_RANGE,
 					LogContent.ofValues(
 							"연도 리스트 조회",
@@ -93,7 +93,7 @@ public class DateRangeUtils {
 
 	public static List<Integer> getMonthsInRange(int start, int end) {
 		if (start < 1 || start > 12) {
-			throw InternalException.of(
+			throw new ApplicationException(
 					OUT_OF_RANGE,
 					LogContent.of(
 							"월 리스트 조회",
@@ -106,7 +106,7 @@ public class DateRangeUtils {
 		}
 
 		if (end < 1 || end > 12) {
-			throw InternalException.of(
+			throw new ApplicationException(
 					OUT_OF_RANGE,
 					LogContent.of(
 							"월 리스트 조회",
@@ -119,7 +119,7 @@ public class DateRangeUtils {
 		}
 
 		if( start > end ) {
-			throw InternalException.of(
+			throw new ApplicationException(
 					OUT_OF_RANGE,
 					LogContent.ofValues(
 							"월 리스트 조회",
@@ -136,7 +136,7 @@ public class DateRangeUtils {
 
 	public static List<Integer> getDaysInRange(int start, int end) {
 		if( start <= 0 || start > 31 ) {
-			throw InternalException.of(
+			throw new ApplicationException(
 					OUT_OF_RANGE,
 					LogContent.of(
 									"일 리스트 조회",
@@ -149,7 +149,7 @@ public class DateRangeUtils {
 		}
 
 		if( end <= 0 || end > 31 ) {
-			throw InternalException.of(
+			throw new ApplicationException(
 					OUT_OF_RANGE,
 					LogContent.of(
 									"일 리스트 조회",
@@ -162,7 +162,7 @@ public class DateRangeUtils {
 		}
 
 		if( start > end ) {
-			throw InternalException.of(
+			throw new ApplicationException(
 					OUT_OF_RANGE,
 					LogContent.ofValues(
 							"일 리스트 조회",

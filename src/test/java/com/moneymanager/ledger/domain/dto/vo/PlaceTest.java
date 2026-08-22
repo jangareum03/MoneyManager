@@ -1,6 +1,5 @@
 package com.moneymanager.ledger.domain.dto.vo;
 
-import com.moneymanager.global.exception.exception.ValidationException;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.StringTestData;
@@ -14,8 +13,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 import java.util.stream.Stream;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.OUT_OF_RANGE;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_VALUE;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -172,7 +170,7 @@ public class PlaceTest {
 
 			//then
 			ApplicationExceptionAssert.assertThatApplicationException(throwable)
-					.isInstanceOf(ValidationException.class)
+					
 					.hasErrorCode(REQUIRED_VALUE)
 					.hasWork("Place 생성")
 					.hasCauseMessage("필수값 누락")
@@ -193,9 +191,9 @@ public class PlaceTest {
 			
 			//then
 			ApplicationExceptionAssert.assertThatApplicationException(throwable)
-					.hasErrorCode(OUT_OF_RANGE)
+					.hasErrorCode(OUT_OF_LENGTH)
 					.hasWork("Place 생성")
-					.hasCauseMessage("길이 또는 범위 불일치")
+					.hasCauseMessage("길이 초과")
 					.hasValue("placeName", placeName)
 					.hasOption("min", 1)
 					.hasOption("max", 100);

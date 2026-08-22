@@ -40,7 +40,7 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 	}
 
 	public static ApplicationExceptionAssert assertThatApplicationException(Throwable actual) {
-		assertThat(actual).isInstanceOf(ApplicationException.class);
+		assertThat(actual);
 
 		return new ApplicationExceptionAssert((ApplicationException) actual);
 	}

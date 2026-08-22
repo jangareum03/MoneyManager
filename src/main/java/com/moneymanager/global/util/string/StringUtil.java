@@ -1,8 +1,9 @@
 package com.moneymanager.global.util.string;
 
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
+
+import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_VALUE;
 
 /**
  * <p>
@@ -62,8 +63,8 @@ public class StringUtil {
 		}
 
 		if(isNullOrBlank(pattern)) {
-			throw InternalException.of(
-					CommonErrorCode.REQUIRED_VALUE,
+			throw new ApplicationException(
+					REQUIRED_VALUE,
 					LogContent.of(
 							"패턴 일치 확인",
 							"pattern",

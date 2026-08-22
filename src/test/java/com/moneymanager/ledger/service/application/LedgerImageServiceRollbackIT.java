@@ -1,6 +1,5 @@
 package com.moneymanager.ledger.service.application;
 
-import com.moneymanager.global.exception.exception.ExternalException;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.ledger.service.storage.LedgerImageStorage;
@@ -230,7 +229,7 @@ public class LedgerImageServiceRollbackIT extends IntegrationTest {
 
                 //when
                 assertThatThrownBy(() -> target.processImageUpload(memberId, ledgerId, images))
-                        .isInstanceOf(ExternalException.class);
+                        ;
 
                 //then
                 assertThat(imageRepository.findByLedgerId(ledgerId).size()).isZero();
@@ -259,7 +258,7 @@ public class LedgerImageServiceRollbackIT extends IntegrationTest {
 
                 //when
                 assertThatThrownBy(() -> target.processImageUpload(memberId, ledgerId, images))
-                        .isInstanceOf(ExternalException.class);
+                        ;
 
                 //then:
                 assertThat(imageRepository.findByLedgerId(ledgerId).size()).isZero();

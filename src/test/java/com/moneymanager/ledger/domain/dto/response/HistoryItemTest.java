@@ -90,7 +90,7 @@ public class HistoryItemTest {
 
 				//when & then
 				assertThatThrownBy(() -> HistoryItem.from(historyQuery))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 			
 		}

@@ -1,13 +1,14 @@
 package com.moneymanager.global.log;
 
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.StringJoiner;
+
+import static com.moneymanager.global.exception.code.ErrorCode.INTERVAL_SERVER_ERROR;
 
 /**
  * <p>
@@ -105,8 +106,8 @@ public class LogContent {
 
     private static String valueOf(Object... values) {
         if (values.length % 2 != 0) {
-            throw InternalException.of(
-                    CommonErrorCode.INTERVAL_SERVER_ERROR,
+            throw new ApplicationException(
+                    INTERVAL_SERVER_ERROR,
                     of(
                             "로그 값 생성",
                             LogContent.class,

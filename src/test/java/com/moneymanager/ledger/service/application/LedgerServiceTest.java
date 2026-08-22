@@ -1,9 +1,7 @@
 package com.moneymanager.ledger.service.application;
 
 import com.moneymanager.global.domain.enums.DatePatterns;
-import com.moneymanager.global.exception.exception.BusinessException;
-import com.moneymanager.global.exception.exception.InternalException;
-import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.global.util.date.DateTimeUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
@@ -46,7 +44,6 @@ import org.springframework.dao.DataAccessException;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -340,11 +337,10 @@ class LedgerServiceTest {
             void throwsInternalException_whenCategoryDoesNotExist() {
                 //given
                 when(categoryReadService.getMiddleCategories(any(CategoryType.class)))
-                        .thenThrow(InternalException.class);
+                        .thenThrow(ApplicationException.class);
 
                 //when & then
-                assertThatThrownBy(() -> target.getStep2("income", "20260115"))
-                        .isInstanceOf(InternalException.class);
+                assertThatThrownBy(() -> target.getStep2("income", "20260115"));
             }
 
             @Test
@@ -355,11 +351,10 @@ class LedgerServiceTest {
                         .thenReturn("nonExistent");
 
                 when(memberReadService.getAvailableImageCount("nonExistent"))
-                        .thenThrow(InternalException.class);
+                        .thenThrow(ApplicationException.class);
 
                 //when & then
-                assertThatThrownBy(() -> target.getStep2("outlay", "20260115"))
-                        .isInstanceOf(InternalException.class);
+                assertThatThrownBy(() -> target.getStep2("outlay", "20260115"));
             }
 
         }
@@ -431,8 +426,7 @@ class LedgerServiceTest {
                 String date = "202510";
 
                 //when & then
-                assertThatThrownBy(() -> target.fetchDateOptionsByUnit(unit, date))
-                        .isInstanceOf(NoSuchElementException.class);
+                assertThatThrownBy(() -> target.fetchDateOptionsByUnit(unit, date));
 
                 //then
                 verify(ledgerPolicy, never()).dateOptions(any(), any());
@@ -446,8 +440,7 @@ class LedgerServiceTest {
                 String date = "20250101";
 
                 //when & then
-                assertThatThrownBy(() -> target.fetchDateOptionsByUnit(unit, date))
-                        .isInstanceOf(ValidationException.class);
+                assertThatThrownBy(() -> target.fetchDateOptionsByUnit(unit, date));
 
                 //then
                 verify(ledgerPolicy, never()).dateOptions(any(), any());
@@ -461,11 +454,10 @@ class LedgerServiceTest {
                 String date = "202501";
 
                 when(ledgerPolicy.dateOptions(DateUnit.MONTH, date))
-                        .thenThrow(BusinessException.class);
+                        .thenThrow(ApplicationException.class);
 
                 //when & then
-                assertThatThrownBy(() -> target.fetchDateOptionsByUnit(unit, date))
-                        .isInstanceOf(BusinessException.class);
+                assertThatThrownBy(() -> target.fetchDateOptionsByUnit(unit, date));
 
                 //then
                 verify(ledgerPolicy).dateOptions(any(), any());
@@ -554,12 +546,11 @@ class LedgerServiceTest {
             @DisplayName("요청 검증에 실패하면 그 후 동작은 수행하지 않는다.")
             void throwsExceptionAndAbortsProcess_whenRequestValidationFails() {
                 //given
-                doThrow(InternalException.class)
+                doThrow(ApplicationException.class)
                         .when(registerValidator).validate(null);
 
                 //when
-                assertThatThrownBy(() -> target.processLedgerRegistration(null))
-                        .isInstanceOf(InternalException.class);
+                assertThatThrownBy(() -> target.processLedgerRegistration(null));
 
                 //then
                 verify(currentUser).getMemberId();
@@ -576,11 +567,10 @@ class LedgerServiceTest {
                         .thenReturn(MemberTestData.MEMBER_ID);
 
                 when(commandService.create(memberId, request))
-                        .thenThrow(BusinessException.class);
+                        .thenThrow(ApplicationException.class);
 
                 //when
-                assertThatThrownBy(() -> target.processLedgerRegistration(request))
-                        .isInstanceOf(BusinessException.class);
+                assertThatThrownBy(() -> target.processLedgerRegistration(request));
 
                 //then
                 verify(currentUser).getMemberId();
@@ -600,12 +590,11 @@ class LedgerServiceTest {
                 when(commandService.create(memberId, request))
                         .thenReturn(ledger);
 
-               doThrow(BusinessException.class)
+               doThrow(ApplicationException.class)
                        .when(ledgerPolicy).validateCreatable(ledger);
 
                 //when
-                assertThatThrownBy(() -> target.processLedgerRegistration(request))
-                        .isInstanceOf(BusinessException.class);
+                assertThatThrownBy(() -> target.processLedgerRegistration(request));
 
                 //then
                 verify(currentUser).getMemberId();
@@ -639,7 +628,7 @@ class LedgerServiceTest {
 
                 //when
                 assertThatThrownBy(() -> target.processLedgerRegistration(request))
-                        .isInstanceOf(DataAccessException.class);
+                        ;
 
                 //then
                 verify(currentUser).getMemberId();

@@ -1,7 +1,6 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.global.exception.code.CategoryErrorCode;
-import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.entity.Category;
@@ -11,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 
 /**
  * <p>
@@ -124,8 +125,8 @@ public class CategoryReadService {
         Category category = categoryMap.get(code);
 
         if (category == null) {
-            throw ValidationException.of(
-                    CategoryErrorCode.DATA_NOT_FOUND,
+            throw new ApplicationException(
+                    DATA_NOT_FOUND,
                     LogContent.of(
                             "카테고리 조회",
                             Category.class,

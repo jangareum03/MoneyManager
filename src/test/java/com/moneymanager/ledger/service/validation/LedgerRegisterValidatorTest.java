@@ -1,8 +1,5 @@
 package com.moneymanager.ledger.service.validation;
 
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
-import com.moneymanager.global.exception.exception.ValidationException;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.LedgerTestData;
@@ -21,8 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Collections;
 import java.util.stream.Stream;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.INVALID_FORMAT;
-import static com.moneymanager.global.exception.code.CommonErrorCode.REQUIRED_NOT_EXIST;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Named.named;
@@ -134,7 +130,7 @@ class LedgerRegisterValidatorTest {
             //when & then
             ApplicationExceptionAssert.assertThatApplicationException(
                             catchThrowable(() -> target.validate(request))
-                    ).isInstanceOf(InternalException.class)
+                    )
                     .hasErrorCode(REQUIRED_NOT_EXIST)
                     .hasWork("가계부 등록 요청 검증")
                     .hasCauseMessage("요청객체 없음");
@@ -159,8 +155,8 @@ class LedgerRegisterValidatorTest {
             //when & then
             ApplicationExceptionAssert.assertThatApplicationException(
                             catchThrowable(() -> target.validate(request))
-                    ).isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.REQUIRED_VALUE)
+                    )
+                    .hasErrorCode(REQUIRED_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("date", date);
@@ -178,8 +174,8 @@ class LedgerRegisterValidatorTest {
             //when & then
             ApplicationExceptionAssert.assertThatApplicationException(
                             catchThrowable(() -> target.validate(request))
-                    ).isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.INVALID_FORMAT)
+                    )
+                    .hasErrorCode(INVALID_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("date", date)
@@ -207,8 +203,8 @@ class LedgerRegisterValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.REQUIRED_VALUE)
+                    
+                    .hasErrorCode(REQUIRED_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("category", category);
@@ -228,8 +224,8 @@ class LedgerRegisterValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.INVALID_FORMAT)
+                    
+                    .hasErrorCode(INVALID_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("category", category)
@@ -273,8 +269,8 @@ class LedgerRegisterValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.INVALID_VALUE)
+                    
+                    .hasErrorCode(INVALID_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("category", category);
@@ -298,8 +294,8 @@ class LedgerRegisterValidatorTest {
             //when & then
             ApplicationExceptionAssert.assertThatApplicationException(
                             catchThrowable(() -> target.validate(request))
-                    ).isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.REQUIRED_VALUE)
+                    )
+                    .hasErrorCode(REQUIRED_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("amount", amount);
@@ -317,8 +313,8 @@ class LedgerRegisterValidatorTest {
             //when & then
             ApplicationExceptionAssert.assertThatApplicationException(
                             catchThrowable(() -> target.validate(request))
-                    ).isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.REQUIRED_VALUE)
+                    )
+                    .hasErrorCode(REQUIRED_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("amount", amount);
@@ -345,8 +341,8 @@ class LedgerRegisterValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.REQUIRED_VALUE)
+                    
+                    .hasErrorCode(REQUIRED_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("paymentType", paymentType);
@@ -373,8 +369,8 @@ class LedgerRegisterValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.REQUIRED_VALUE)
+                    
+                    .hasErrorCode(REQUIRED_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("fix", fix);
@@ -394,8 +390,8 @@ class LedgerRegisterValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.INVALID_VALUE)
+                    
+                    .hasErrorCode(INVALID_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("fix", fix)
@@ -424,8 +420,8 @@ class LedgerRegisterValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.REQUIRED_VALUE)
+                    
+                    .hasErrorCode(REQUIRED_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("fixCycle", fixCycle);
@@ -446,8 +442,8 @@ class LedgerRegisterValidatorTest {
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ValidationException.class)
-                    .hasErrorCode(CommonErrorCode.INVALID_VALUE)
+                    
+                    .hasErrorCode(INVALID_VALUE)
                     .hasWork("가계부 등록 요청 검증")
                     .hasTarget(LedgerWriteRequest.class)
                     .hasValue("fixCycle", fixCycle)

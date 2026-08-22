@@ -1,9 +1,10 @@
 package com.moneymanager.member.domain.enums;
 
-import com.moneymanager.global.exception.code.CommonErrorCode;
-import com.moneymanager.global.exception.exception.InternalException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import lombok.Getter;
+
+import static com.moneymanager.global.exception.code.ErrorCode.INVALID_VALUE;
 
 /**
  * <p>
@@ -54,8 +55,8 @@ public enum MemberStatus {
 			}
 		}
 
-		throw InternalException.of(
-				CommonErrorCode.INVALID_VALUE,
+		throw new ApplicationException(
+				INVALID_VALUE,
 				LogContent.of(
 						"회원 상태 조회",
 						MemberStatus.class,

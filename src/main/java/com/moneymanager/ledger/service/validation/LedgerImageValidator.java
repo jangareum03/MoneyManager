@@ -1,7 +1,6 @@
 package com.moneymanager.ledger.service.validation;
 
-import com.moneymanager.global.exception.exception.ExternalException;
-import com.moneymanager.global.exception.exception.ValidationException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.validation.BaseImageValidator;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
@@ -11,8 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-import static com.moneymanager.global.exception.code.CommonErrorCode.FILE_NOT_FOUND;
-import static com.moneymanager.global.exception.code.CommonErrorCode.FILE_READ_FAILED;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 
 
 /**
@@ -50,7 +48,7 @@ public class LedgerImageValidator extends BaseImageValidator {
 
     public void validate(MultipartFile file) {
         if(file == null) {
-            throw ValidationException.of(
+            throw new ApplicationException(
                     FILE_NOT_FOUND,
                     LogContent.of(
                             "가계부 이미지 검증",
@@ -65,7 +63,7 @@ public class LedgerImageValidator extends BaseImageValidator {
             validateExtension(file, allowedExtensions);
             validateSize(file.getSize());
         }catch (IOException e) {
-            throw ExternalException.of(
+            throw new ApplicationException(
                     FILE_READ_FAILED,
                     LogContent.of(
                             "가계부 이미지 검증",

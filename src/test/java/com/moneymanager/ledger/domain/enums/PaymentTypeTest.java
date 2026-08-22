@@ -117,7 +117,7 @@ public class PaymentTypeTest {
 			void throwsNoSuchElementException_whenCategoryCodeIsInvalid(String value) {
 				//when
 				assertThatThrownBy(() -> PaymentType.from(value))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 
 		}

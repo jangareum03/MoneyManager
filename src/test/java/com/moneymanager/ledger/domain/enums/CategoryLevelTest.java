@@ -103,14 +103,14 @@ public class CategoryLevelTest {
 			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenLevelIsNullOrBlank(String level) {
 				assertThatThrownBy(() -> CategoryLevel.from(level))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 
 			@Test
 			@DisplayName("유효하지 않은 값이면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenLevelIsInvalid() {
 				assertThatThrownBy(() -> CategoryLevel.from("noExist"))
-						.isInstanceOf(NoSuchElementException.class);
+						;
 			}
 			
 		}

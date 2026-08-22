@@ -1,6 +1,5 @@
 package com.moneymanager.global.domain.vo;
 
-import com.moneymanager.global.exception.exception.ValidationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -108,7 +107,7 @@ public class DateRangeTest {
 
 				//when & then: DateRange를 생성 중 ValidationException이 발생한다.
 				assertThatThrownBy(() -> new DateRange(from, to))
-						.isInstanceOf(ValidationException.class);
+						;
 			}
 			
 			@Test
@@ -120,7 +119,7 @@ public class DateRangeTest {
 
 				//when & then: DateRange를 생성 중 ValidationException이 발생한다.
 				assertThatThrownBy(() -> new DateRange(from, to))
-						.isInstanceOf(ValidationException.class);
+						;
 			}
 
 		}

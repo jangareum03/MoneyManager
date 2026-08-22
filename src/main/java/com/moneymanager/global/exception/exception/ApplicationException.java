@@ -33,33 +33,31 @@ import lombok.Getter;
  * </table>
  */
 @Getter
-public abstract class ApplicationException extends RuntimeException {
+public class ApplicationException extends RuntimeException {
 
 	private final ErrorCode errorCode;							//에러코드
-	private final LogContent logContent;				//개발 로그정보
+	private final LogContent logContent;						//로그정보
 	private final String userMessage;								//안내 메시지
 
-	public ApplicationException(ErrorCode errorCode, LogContent logContent, Throwable throwable) {
-		super(throwable);
+	public ApplicationException(ErrorCode errorCode, LogContent logContent) {
+		this(errorCode, logContent, null);
+	}
 
-		this.errorCode = errorCode;
-		this.logContent = resolveLogContent(errorCode, logContent);
-		this.userMessage =  null;
+	public ApplicationException(ErrorCode errorCode, LogContent logContent, Throwable throwable) {
+		this(errorCode, logContent, null, throwable);
 	}
 
 	private ApplicationException(ErrorCode errorCode, LogContent logContent, String userMessage, Throwable throwable) {
 		super(throwable);
 
 		this.errorCode = errorCode;
-		this.logContent = logContent;
+		this.logContent = resolveLogContent(errorCode, logContent);
 		this.userMessage = userMessage;
 	}
 
 	public ApplicationException withUserMessage(String userMessage) {
-		return recreate(errorCode, logContent, userMessage, getCause());
+		return new ApplicationException(errorCode, logContent, userMessage, getCause());
 	}
-
-	protected abstract  ApplicationException recreate(ErrorCode errorCode, LogContent logContent, String userMessage, Throwable cause);
 
 	private static LogContent resolveLogContent(ErrorCode errorCode, LogContent content) {
 		if(content == null) {

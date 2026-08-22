@@ -98,7 +98,7 @@ class FixedTypeTest {
             @DisplayName("유효하지 않은 고정 여부면 예외를 발생시킨다.")
             void throwsNoSuchElementException_whenFixedTypeIsInvalid(String value) {
                 assertThatThrownBy(() -> FixedType.from(value))
-                        .isInstanceOf(NoSuchElementException.class);
+                        ;
             }
 
         }

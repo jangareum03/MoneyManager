@@ -1,7 +1,6 @@
 package com.moneymanager.ledger.service.policy;
 
-import com.moneymanager.global.exception.code.LedgerErrorCode;
-import com.moneymanager.global.exception.exception.BusinessException;
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
@@ -12,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
+
+import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
 
 /**
  * <p>
@@ -66,8 +67,8 @@ public class LedgerPolicy {
 
     public void validateCreatable(Ledger ledger) {
         if (!datePolicy.isValidDate(ledger.getDate())) {
-            throw BusinessException.of(
-                    LedgerErrorCode.POLICY_VIOLATION,
+            throw new ApplicationException(
+                    POLICY_VIOLATION,
                     LogContent.of(
                                     "가계부 비즈니스 규칙 검증",
                                     Ledger.class,
@@ -81,8 +82,8 @@ public class LedgerPolicy {
 
         String memo = ledger.getMemo();
         if (!StringUtil.isNullOrBlank(memo) && memo.length() > 300) {
-            throw BusinessException.of(
-                    LedgerErrorCode.POLICY_VIOLATION,
+            throw new ApplicationException(
+                    POLICY_VIOLATION,
                     LogContent.of(
                                     "가계부 비즈니스 규칙 검증",
                                     Ledger.class,
