@@ -5,7 +5,6 @@ import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
-import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.entity.Ledger;
@@ -14,11 +13,10 @@ import com.moneymanager.ledger.service.policy.LedgerDatePolicy;
 import com.moneymanager.ledger.service.read.CategoryReadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
-import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_VALUE;
+import static com.moneymanager.global.exception.code.ErrorCode.INVALID_VALUE;
 
 
 /**
@@ -57,7 +55,7 @@ public class LedgerCommandService {
 	private final LedgerRepository ledgerRepository;
 
 
-	public Ledger create(String memberId, LedgerWriteRequest request) {
+	public Ledger toCreateEntity(String memberId, LedgerWriteRequest request) {
 		String code = UlidCreator.getUlid().toString();
 		LocalDate date = LocalDate.parse(request.getDate(), LedgerDatePolicy.DATE_FORMATTER);
 
@@ -66,7 +64,7 @@ public class LedgerCommandService {
 
 		if(!categoryReadService.exists(request.getCategoryCode())) {
 			throw new ApplicationException(
-					REQUIRED_VALUE,
+					INVALID_VALUE,
 					LogContent.of(
 							"Ledger 생성",
 							LedgerWriteRequest.class,
@@ -85,9 +83,32 @@ public class LedgerCommandService {
 		return ledgerRepository.save(ledger);
 	}
 
-	@Transactional
-	public LedgerDetailResponse update(String code, LedgerUpdateRequest request) {
-		return null;
+	public void updateLedger(LedgerUpdateRequest request, Ledger ledger) {
+		//1. 카테고리 코드 존재여부 확인
+		if(!categoryReadService.exists(request.getCategoryCode())) {
+			throw new ApplicationException(
+					INVALID_VALUE,
+					LogContent.of(
+							"Ledger 수정",
+							LedgerUpdateRequest.class,
+							"categoryCode", request.getCategoryCode()
+					)
+			);
+		}
+
+		//2. 가계부 정보 변경
+		ledger.changeCategory(request.getCategoryCode());
+		ledger.changeFixInfo(request.getFixed(), request.getFixCycle());
+		ledger.changeMoney(Money.of(request.getAmount(), request.getPaymentType()));
+		ledger.changePlace(Place.ofOrNull(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress()));
+
+		ledger.changeMemo(request.getMemo());
+
+		//3. 변경된 가계부 저장
+		if(ledger.isChanged()) {
+			ledgerRepository.save(ledger);
+		}
+
 	}
 
 }

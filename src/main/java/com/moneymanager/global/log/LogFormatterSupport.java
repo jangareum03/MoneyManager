@@ -45,12 +45,10 @@ public final class LogFormatterSupport {
 	}
 
 	public static void append(StringBuilder sb, String key, Object value) {
-		if(value != null) {
-			sb.append("   |   ")
-					.append(key)
-					.append("=")
-					.append(value);
-		}
+		sb.append(key)
+				.append("=")
+				.append(value)
+				.append("   |   ");
 	}
 
 }

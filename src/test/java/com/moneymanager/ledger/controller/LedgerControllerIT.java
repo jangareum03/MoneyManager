@@ -69,14 +69,13 @@ public class LedgerControllerIT extends IntegrationTest {
 	LedgerReadService ledgerReadService;
 
     private Member member;
-    private final Path path = Path.of("src/test/resources/temp");
 
 	@BeforeEach
 	void setUp() throws IOException {
 		member = saveMember();
 
-        if(Files.exists(path)) {
-            Files.walk(path)
+        if(Files.exists(getTempDir())) {
+            Files.walk(getTempDir())
                     .sorted(Comparator.reverseOrder())
                     .forEach(path -> {
                         try {
@@ -257,7 +256,7 @@ public class LedgerControllerIT extends IntegrationTest {
                             ledger.getCategory().equals(CategoryTestData.SALARY_CODE)
                     );
 
-            try(Stream<Path> files = Files.walk(path)) {
+            try(Stream<Path> files = Files.walk(getTempDir())) {
                 assertThat(files).anyMatch(p ->
                         p.getFileName().toString().endsWith(".jpg"));
             }
@@ -281,7 +280,7 @@ public class LedgerControllerIT extends IntegrationTest {
 
             //then
             assertThat(ledgerRepository.count()).isEqualTo(0);
-            assertThat(Files.exists(path)).isFalse();
+            assertThat(Files.exists(getTempDir())).isFalse();
         }
 
         @Test
@@ -307,7 +306,7 @@ public class LedgerControllerIT extends IntegrationTest {
 
             //then
             assertThat(ledgerRepository.count()).isEqualTo(0);
-            assertThat(Files.exists(path)).isFalse();
+            assertThat(Files.exists(getTempDir())).isFalse();
         }
     }
 

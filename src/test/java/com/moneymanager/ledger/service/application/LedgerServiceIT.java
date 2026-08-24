@@ -1,29 +1,37 @@
 package com.moneymanager.ledger.service.application;
 
+import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
+import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
+import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.file.ImageFixture;
+import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
 import com.moneymanager.support.security.WithMockCustomUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -63,14 +71,6 @@ class LedgerServiceIT extends IntegrationTest {
 
     @Autowired
     private LedgerImageRepository imageRepository;
-
-    @TempDir
-    static Path tempDir;
-
-    @DynamicPropertySource
-    static void dynamicProperties(DynamicPropertyRegistry registry) {
-        registry.add("file.root", () -> tempDir.toString());
-    }
 
     @Nested
     @WithMockCustomUser
@@ -192,12 +192,116 @@ class LedgerServiceIT extends IntegrationTest {
 
             //when
             assertThatThrownBy(() -> target.processLedgerRegistration(request))
-                    ;
+            ;
 
             //then
             Long count = ledgerRepository.count();
 
             assertThat(count).isZero();
+        }
+
+    }
+
+
+    @Nested
+    @WithMockCustomUser
+    @DisplayName("가계부를 수정할 때")
+    class Update {
+
+        Ledger saved;
+
+        @BeforeEach
+        void setUp() throws IOException {
+            Long id = ledgerRepository.save(
+                    LedgerFixture.builder()
+                            .id(null)
+                            .memberId(MemberTestData.MEMBER_ID)
+                            .saved()
+            );
+
+            saved = ledgerRepository.findById(id);
+
+            deleteTempDir(getTempDir());
+        }
+
+        @Test
+        @DisplayName("정상적인 가계부 수정 요청이면 수정한다.")
+        void updatesLedger_whenRequestIsFromOwner() {
+            //given
+            String code = saved.getCode();
+            LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
+                    .categoryCode("010201")
+                    .memo("메모")
+                    .build();
+
+            assertThat(saved.getUpdatedAt()).isNull();
+
+            //when
+            target.processLedgerUpdate(code, request);
+
+            //then
+            Ledger updated = ledgerRepository.findById(saved.getId());
+
+            assertThat(updated.getCategory()).isEqualTo(request.getCategoryCode());
+            assertThat(updated.getMemo()).isEqualTo(request.getMemo());
+            assertThat(updated.getUpdatedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("이미지를 포함한 수정 요청이면 가계부 수정 후 이미지도 저장한다.")
+        void updatesLedgerAndImage_whenImageIsProvided() throws IOException {
+            //given
+            String code = saved.getCode();
+            LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
+                    .images(List.of(
+                            ImageFixture.jpg("test")
+                    ))
+                    .build();
+
+            assertThat(saved.getUpdatedAt()).isNull();
+
+            //when
+            target.processLedgerUpdate(code, request);
+
+            //then
+            List<LedgerImage> images = imageRepository.findByLedgerId(saved.getId());
+
+            assertThat(images).hasSize(1);
+            assertThat(images.get(0).getLedgerId()).isEqualTo(saved.getId());
+
+            try (Stream<Path> paths = Files.walk(getTempDir().resolve(MemberTestData.MEMBER_ID))) {
+                long count = paths
+                        .filter(Files::isRegularFile)
+                        .filter(path -> {
+                            String fileName = path.getFileName().toString();
+
+                            return fileName.endsWith("jpg") || fileName.endsWith("png");
+                        })
+                        .count();
+
+                assertThat(count).isEqualTo(1);
+            }
+        }
+
+        @Test
+        @DisplayName("타인의 가계부를 수정 요청하면 수정하지 않는다.")
+        void throwsException_whenUserIsNotOwner() {
+            //given: 다른 회원의 가계부가 주어진다.
+            Member other = saveOtherMember();
+
+            Long id = ledgerRepository.save(
+                    LedgerFixture.builder().memberId(other.getId()).create()
+            );
+
+            Ledger otherLedger =  ledgerRepository.findById(id);
+
+            LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
+                    .memo("수정")
+                    .build();
+
+            //when & then
+            assertThatThrownBy(() -> target.processLedgerUpdate(otherLedger.getCode(), request))
+                    .isInstanceOf(ApplicationException.class);
         }
 
     }

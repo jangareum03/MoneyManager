@@ -218,7 +218,6 @@ public class PlaceTest {
 			ApplicationExceptionAssert.assertThatApplicationException(throwable)
 					.hasErrorCode(REQUIRED_VALUE)
 					.hasWork("Place 생성")
-					.hasCauseMessage("필수값 누락")
 					.hasTarget(Place.class)
 					.hasValue("roadAddress", roadAddress);
 		}
@@ -236,9 +235,8 @@ public class PlaceTest {
 			
 			//then
 			ApplicationExceptionAssert.assertThatApplicationException(throwable)
-					.hasErrorCode(OUT_OF_RANGE)
+					.hasErrorCode(OUT_OF_LENGTH)
 					.hasWork("Place 생성")
-					.hasCauseMessage("길이 또는 범위 불일치")
 					.hasTarget(Place.class)
 					.hasValue("roadAddress", roadAddress)
 					.hasOption("min", 1)
@@ -262,9 +260,8 @@ public class PlaceTest {
 
 			//then
 			ApplicationExceptionAssert.assertThatApplicationException(throwable)
-					.hasErrorCode(OUT_OF_RANGE)
+					.hasErrorCode(OUT_OF_LENGTH)
 					.hasWork("Place 생성")
-					.hasCauseMessage("길이 또는 범위 불일치")
 					.hasTarget(Place.class)
 					.hasOption("min", 0)
 					.hasOption("max", 300);

@@ -1,8 +1,13 @@
 package com.moneymanager.ledger.service.read;
 
 import com.moneymanager.global.domain.vo.DateRange;
+import com.moneymanager.global.exception.code.ErrorCode;
+import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.security.CurrentUser;
-import com.moneymanager.ledger.domain.dto.response.*;
+import com.moneymanager.ledger.domain.dto.response.ImageSlot;
+import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
+import com.moneymanager.ledger.domain.dto.response.LedgerEditResponse;
 import com.moneymanager.ledger.domain.dto.response.category.CategoryEditInfo;
 import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerStatistics;
@@ -135,24 +140,12 @@ public class LedgerReadService {
 		return LedgerStatistics.of(income, outlay);
 	}
 
-	//내역 메뉴 생성
-	private List<MenuItem> createMenu() {
-		return List.of(
-			new MenuItem("전체", HistoryMenuType.ALL.name()),
-			new MenuItem("수입/지출", HistoryMenuType.CATEGORY.name()),
-			new MenuItem("카테고리", HistoryMenuType.SUB_CATEGORY.name()),
-			new MenuItem("메모", HistoryMenuType.MEMO.name()),
-			new MenuItem("기간", HistoryMenuType.DATE.name())
-		);
-	}
-
-
 	public LedgerDetailResponse getDetailData(String code) {
 		//1. 인증된 사용자 조회
 		String memberId = currentUser.getMemberId();
 
 		//2. 가계부 조회
-		Ledger ledger = getLedger(memberId, code);
+		Ledger ledger = getLedger(code);
 
 		//3. 카테고리 조회
 		Category category = categoryReadService.getCategory(ledger.getCategory());
@@ -167,13 +160,12 @@ public class LedgerReadService {
 		return ledgerMapper.toDetailDto(ledger, category, images);
 	}
 
-
 	public LedgerEditResponse getEditData(String code) {
 		//1. 인증된 사용자 조회
 		String memberId = currentUser.getMemberId();
 
 		//2. 가계부 조회
-		Ledger ledger = getLedger(memberId, code);
+		Ledger ledger = getLedger(code);
 
 		//3. 카테고리 조회
 		CategoryEditInfo categoryEditInfo = buildCategoryInfo(ledger);
@@ -184,6 +176,36 @@ public class LedgerReadService {
 		return ledgerMapper.toEditDto(ledger, images, categoryEditInfo);
 	}
 
+	public Ledger getOwnerLedger(String memberId, String code) {
+		Ledger ledger = ledgerRepository.findByCode(code);
+
+		if(!ledger.getMemberId().equals(memberId)) {
+			throw new ApplicationException(
+					ErrorCode.OWNER_ONLY,
+					LogContent.of(
+							"가계부 작성자 확인",
+							Ledger.class,
+							"code", code,
+							"requester", memberId
+					)
+			);
+		}
+
+		return ledger;
+	}
+
+	//===== getHistoryDashboard 보조 메서드 =====
+	private List<MenuItem> createMenu() {
+		return List.of(
+				new MenuItem("전체", HistoryMenuType.ALL.name()),
+				new MenuItem("수입/지출", HistoryMenuType.CATEGORY.name()),
+				new MenuItem("카테고리", HistoryMenuType.SUB_CATEGORY.name()),
+				new MenuItem("메모", HistoryMenuType.MEMO.name()),
+				new MenuItem("기간", HistoryMenuType.DATE.name())
+		);
+	}
+
+	//===== getEditData 보조 메서드 =====
 	private CategoryEditInfo buildCategoryInfo(Ledger ledger) {
 		String categoryCode = ledger.getCategory();
 		CategoryType type = CategoryType.fromCode(categoryCode);
@@ -203,8 +225,8 @@ public class LedgerReadService {
 				.toList();
 	}
 
-	public Ledger getLedger(String memberId, String code) {
-		return ledgerRepository.findByCode(memberId, code);
+	private Ledger getLedger(String code) {
+		return ledgerRepository.findByCode(code);
 	}
 
 }

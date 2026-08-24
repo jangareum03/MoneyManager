@@ -40,23 +40,22 @@ public class AuditLogger {
 		String trace = MDC.get("traceId");
 		ServiceAction action = context.getAction();
 		String result = String.valueOf(context.getResult());
-		String memberId = context.getMember();
 
 		StringBuilder message = new StringBuilder();
 
 		message.append("[")
 				.append(trace)
-				.append("] ");
+				.append("]	");
 
 		LogFormatterSupport.append(message, "action", action.name());
 		LogFormatterSupport.append(message, "result", result);
-		LogFormatterSupport.append(message, "member", memberId);
+		LogFormatterSupport.append(message, "member", context.getMember());
 
 		if(context.getResult() == OperationResult.FAIL) {
 			LogFormatterSupport.append(message, "errorCode", context.getOptions().get("error"));
-			LogFormatterSupport.append(message, "message", action.getTitle() + " 실패");
+			LogFormatterSupport.append(message, "message", action.getDescription() + " 실패");
 		}else {
-			LogFormatterSupport.append(message, "message", action.getTitle() + " 성공");
+			LogFormatterSupport.append(message, "message", action.getDescription() + " 성공");
 		}
 
 		log.info(message.toString());

@@ -1,6 +1,5 @@
 package com.moneymanager.global.operation.aspect;
 
-import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.operation.OperationContext;
 import com.moneymanager.global.operation.annotation.Operation;
 import com.moneymanager.global.operation.enums.OperationResult;
@@ -72,8 +71,6 @@ public class OperationAspect {
 			context.setResult(OperationResult.FAIL);
 
 			throw e;
-		} finally {
-			AuditLogger.info(context);
 		}
 	}
 

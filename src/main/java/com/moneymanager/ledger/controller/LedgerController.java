@@ -1,5 +1,6 @@
 package com.moneymanager.ledger.controller;
 
+import com.moneymanager.global.exception.annotation.WebController;
 import com.moneymanager.global.operation.annotation.Operation;
 import com.moneymanager.global.operation.enums.ServiceAction;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.*;
  * </table>
  */
 @Controller
+@WebController
 @RequiredArgsConstructor
 @RequestMapping("/ledgers")
 public class LedgerController {

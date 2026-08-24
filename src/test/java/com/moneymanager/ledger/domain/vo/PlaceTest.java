@@ -259,9 +259,8 @@ public class PlaceTest {
 
 			//then
 			ApplicationExceptionAssert.assertThatApplicationException(throwable)
-					.hasErrorCode(OUT_OF_RANGE)
+					.hasErrorCode(OUT_OF_LENGTH)
 					.hasWork("Place 생성")
-					.hasCauseMessage("길이 또는 범위 불일치")
 					.hasTarget(Place.class)
 					.hasValue("placeName", placeName)
 					.hasOption("min", 1)

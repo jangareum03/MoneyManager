@@ -44,8 +44,4 @@ public final class LedgerWriteRequestFixture {
 				.detailAddress(LedgerTestData.DETAIL_ADDRESS);
 	}
 
-	public static LedgerWriteRequest create() {
-		return builder().build();
-	}
-
 }

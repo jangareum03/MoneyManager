@@ -1,9 +1,8 @@
 package com.moneymanager.support.fixture.request;
 
+import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
-import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,41 +13,12 @@ public final class LedgerUpdateRequestFixture {
 
 	private LedgerUpdateRequestFixture() {}
 
-	public static LedgerUpdateRequest.LedgerUpdateRequestBuilder from(Ledger ledger) {
-		return LedgerUpdateRequest.builder()
-				.categoryCode(ledger.getCategory())
-				.memo(ledger.getMemo())
-				.fixed(ledger.getFix().getValue())
-				.amount(ledger.getMoney().getAmount())
-				.paymentType(ledger.getMoney().getPaymentType().name())
-				.fixCycle(
-						ledger.getFixCycle() == null
-						? null
-						: ledger.getFixCycle().getValue()
-				)
-				.placeName(
-						ledger.getPlace() == null
-						? null
-						: ledger.getPlace().getPlaceName()
-				)
-				.roadAddress(
-						ledger.getPlace() == null
-								? null
-								: ledger.getPlace().getRoadAddress()
-				)
-				.detailAddress(
-						ledger.getPlace() == null
-								? null
-								: ledger.getPlace().getDetailAddress()
-				);
-	}
-
 	public static LedgerUpdateRequest.LedgerUpdateRequestBuilder builder() {
 		return LedgerUpdateRequest.builder()
 				.categoryCode(CategoryTestData.SALARY_CODE)
-				.fixed(LedgerTestData.FIX_N.getValue())
+				.fixed(LedgerTestData.FIX_N.getValue().toLowerCase())
 				.amount(LedgerTestData.AMOUNT)
-				.paymentType(LedgerTestData.PAYMENT_TYPE.name());
+				.paymentType(LedgerTestData.PAYMENT_TYPE.name().toLowerCase());
 	}
 
 	public static LedgerUpdateRequest.LedgerUpdateRequestBuilder withImages(int size) {
@@ -69,10 +39,6 @@ public final class LedgerUpdateRequestFixture {
 				.placeName(LedgerTestData.PLACE_NAME)
 				.roadAddress(LedgerTestData.ROAD_ADDRESS)
 				.detailAddress(LedgerTestData.DETAIL_ADDRESS);
-	}
-
-	public static LedgerUpdateRequest create() {
-		return builder().build();
 	}
 
 }

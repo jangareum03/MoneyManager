@@ -1,6 +1,5 @@
 package com.moneymanager.ledger.service.validation;
 
-import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import org.junit.jupiter.api.BeforeEach;
@@ -113,7 +112,7 @@ class LedgerImageValidatorTest {
                 ApplicationExceptionAssert.assertThatApplicationException(throwable)
                         .hasErrorCode(FILE_READ_FAILED)
                         .hasWork("가계부 이미지 검증")
-                        .hasTarget(LedgerWriteRequest.class)
+                        .hasTarget(MultipartFile.class)
                         .hasValue("images", "테스트.png");
             }
 

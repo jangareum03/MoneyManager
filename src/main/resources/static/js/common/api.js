@@ -61,8 +61,8 @@ function fetchLedgerSearch( data ) {
 
 
 //----------[ ▼ 특정 가계부를 수정합니다. ]----------
-function fetchLedgerUpdate( id, data ) {
-    return fetch(`/api/ledgers/${id}`, {
+function fetchLedgerUpdate( code, data ) {
+    return fetch(`/api/ledgers/${code}`, {
         method: 'PUT',
         body: data
     })

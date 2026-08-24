@@ -76,7 +76,7 @@ async function handlerClick( event ) {
     //취소버튼 클릭할 때
     if( target.classList.contains('button--cancel') ) {
         if( confirm('정말로 취소하시겠습니까?') ) {
-            const id = getLedgerId();
+            const id = getLedgerCode();
 
             goToPage(`/ledgers/${id}`);
         }
@@ -99,13 +99,13 @@ async function handlerClick( event ) {
         }
 
         const formData = getFormData();
-        const id = getLedgerId();
+        const code = getLedgerCode();
 
-        const apiResult = await fetchLedgerUpdate( id, formData );
+        const apiResult = await fetchLedgerUpdate( code, formData );
 
         alert(apiResult.message);
         if( apiResult.success ) {
-            goToPage(`/ledgers/${id}`);
+            goToPage(`/ledgers/${code}`);
         }
     }
 
@@ -312,7 +312,7 @@ function resetLocation( container ) {
 
 
 //----------[ ▼ 현재 주소에서 가계부 번호를 가져옵니다. ]----------
-function getLedgerId() {
+function getLedgerCode() {
     const pathParts = window.location.pathname.split('/');
 
     return pathParts[2];

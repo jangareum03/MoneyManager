@@ -4,14 +4,24 @@ import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.repository.MemberRepository;
+import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberFixture;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import javax.servlet.http.Cookie;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 /**
  * <p>
@@ -57,6 +67,14 @@ public abstract class IntegrationTest {
 	@Autowired
 	protected LedgerRepository ledgerRepository;
 
+	@TempDir
+	static Path tempDir;
+
+	@DynamicPropertySource
+	static void dynamicProperties(DynamicPropertyRegistry registry) {
+		registry.add("file.root", () -> tempDir.toString());
+	}
+
 	protected Cookie accessTokenCookie(String username) {
 		String token = jwtTokenProvider.createAccessToken(username);
 
@@ -74,4 +92,35 @@ public abstract class IntegrationTest {
 
 		return member;
 	}
+
+	protected Member saveOtherMember() {
+		Member member = MemberFixture.member(passwordEncoder)
+				.id(MemberTestData.OTHER_MEMBER_ID)
+				.username(MemberTestData.OTHER_USERNAME)
+				.build();
+
+		memberRepository.save(member);
+
+		return member;
+	}
+
+	protected Path getTempDir() {
+		return tempDir;
+	}
+
+	protected void deleteTempDir(Path dir) throws IOException {
+		if(Files.exists(dir)) {
+			try(Stream<Path> paths = Files.walk(dir)) {
+				paths.sorted(Comparator.reverseOrder())
+						.forEach(path -> {
+							try{
+								Files.deleteIfExists(path);
+							}catch (IOException e) {
+								throw new UncheckedIOException(e);
+							}
+						});
+			}
+		}
+	}
+
 }

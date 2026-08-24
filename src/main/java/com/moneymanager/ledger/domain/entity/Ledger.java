@@ -63,6 +63,9 @@ public class Ledger {
     private final LocalDateTime createdAt;            //등록일
     private LocalDateTime updatedAt;            //수정일
 
+    //DB 컬럼에 없는 필드
+    private boolean changed;
+
     private Ledger(
             Long id, String code, String memberId, LocalDate date, String category, String fix, String fixCycle, String memo,
             Money money, Place place,
@@ -115,28 +118,32 @@ public class Ledger {
 
         this.fix = newFix;
         this.fixCycle = newCycle;
-        this.updatedAt = LocalDateTime.now();
+        markChanged();
     }
 
     public void changeCategory(String category) {
-        if (!this.category.equals(category)) {
-            this.category = category;
-            this.updatedAt = LocalDateTime.now();
+        if (this.category.equals(category)) {
+            return;
         }
+
+        this.category = category;
+        markChanged();
     }
 
     public void changeMemo(String memo) {
-        if (!Objects.equals(this.memo, memo)) {
-            this.memo = memo;
-            this.updatedAt = LocalDateTime.now();
+        if (Objects.equals(this.memo, memo)) {
+            return;
         }
+
+        this.memo = memo;
+        markChanged();
     }
 
     public void changeMoney(Money money) {
         if (this.money.equals(money)) return;
 
         this.money = money;
-        this.updatedAt = LocalDateTime.now();
+        markChanged();
     }
 
     public void changePlace(Place place) {
@@ -145,11 +152,16 @@ public class Ledger {
         }
 
         this.place = place;
-        this.updatedAt = LocalDateTime.now();
+        markChanged();
     }
 
 
     //===== 유틸 메서드 =====
+    private  void markChanged() {
+        this.updatedAt = LocalDateTime.now();
+        this.changed = true;
+    }
+
     public static <T,R> R getValueOrNull(T t, Function<T, R> mapper) {
         return t == null ? null : mapper.apply(t);
     }

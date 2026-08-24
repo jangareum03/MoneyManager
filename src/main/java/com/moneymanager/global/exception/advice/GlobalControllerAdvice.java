@@ -1,6 +1,8 @@
 package com.moneymanager.global.exception.advice;
 
+import com.moneymanager.global.exception.annotation.WebController;
 import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.log.DevLogger;
 import com.moneymanager.global.operation.OperationContext;
 import com.moneymanager.global.operation.holder.OperationContextHolder;
@@ -45,7 +47,7 @@ import javax.servlet.http.HttpServletRequest;
  * 		</tbody>
  * </table>
  */
-@ControllerAdvice
+@ControllerAdvice(annotations = WebController.class)
 public class GlobalControllerAdvice {
 
 	@ModelAttribute("sidebarUser")
@@ -76,16 +78,16 @@ public class GlobalControllerAdvice {
 
 	@ExceptionHandler(ApplicationException.class)
 	public RedirectView handleValidationException(ApplicationException e, HttpServletRequest request) {
-		try{
-			OperationContext context = OperationContextHolder.get();
+		OperationContext context = OperationContextHolder.get();
 
-			context.addOption("error", e.getErrorCode());
+		try{
+			context.addOption("error", e.getErrorCode().getCode());
 			context.addOption("log", e.getLogContent());
 			context.addOption("message", e.getUserMessage());
 
 			DevLogger.debug(context);
 
-			if(context.getAction().getView() == null || StringUtil.isNullOrBlank(context.getAction().getView())) {
+			if(context.getAction().getPath() == null || StringUtil.isNullOrBlank(context.getAction().getPath())) {
 				String referer = request.getHeader("referer");
 
 				if(isValidInternalUrl(referer)) {
@@ -93,8 +95,10 @@ public class GlobalControllerAdvice {
 				}
 			}
 
-			return new RedirectView(context.getAction().getView());
+			return new RedirectView(context.getAction().getPath());
 		}finally {
+			AuditLogger.info(context);
+
 			OperationContextHolder.clear();
 		}
 	}

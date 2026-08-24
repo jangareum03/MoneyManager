@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
+import static com.moneymanager.global.exception.code.ErrorCode.INTERVAL_SERVER_ERROR;
 
 /**
  * <p>
@@ -91,53 +92,6 @@ public class LedgerRepository {
 		return ledger.getId();
 	}
 
-	public int update(Ledger ledger) {
-		String query = """
-				UPDATE ledger
-				SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, amount = ?, payment_type = ?, place_name = ?, road_address = ?, detail_address = ?, updated_at = ?
-				WHERE member_id = ? AND code = ?
-				""";
-
-		String cycle = ledger.getFixCycle() == null ? null : ledger.getFixCycle().getValue();
-		Money money = ledger.getMoney();
-
-		Place place = ledger.getPlace();
-
-		String placeName = null;
-		String roadAddress = null;
-		String detailAddress = null;
-
-		if(place != null) {
-			placeName = place.getPlaceName();
-			roadAddress = place.getRoadAddress();
-			detailAddress = place.getDetailAddress();
-		}
-
-		return jdbcTemplate.update(
-				query,
-
-				ledger.getCategory(), ledger.getFix().getValue(), cycle, ledger.getMemo(),
-				money.getAmount(), money.getPaymentType().name(),
-				placeName, roadAddress, detailAddress,
-				ledger.getUpdatedAt(),
-
-				ledger.getMemberId(), ledger.getCode()
-		);
-
-	}
-
-
-	/**
-	 * {@code ledger}테이블에 저장된 가계부 정보를 조회합니다.
-	 * <p>
-	 *     가계부 번호({@code id})를 기준으로 가계부 정보가 존재하면 반환하며,
-	 *     조회된 정보가 없는 경우 {@link org.springframework.dao.EmptyResultDataAccessException}이 발생합니다.
-	 * </p>
-	 *
-	 * @param id	가계부 번호
-	 * @return	번호에 해당하는 가계부 정보를 담은 {@link Ledger} 객체
-	 * @throws org.springframework.dao.EmptyResultDataAccessException 조회된 정보가 없는 경우
-	 */
 	public Ledger findById(Long id) {
 		String query = """
 				SELECT id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address, created_at, updated_at
@@ -164,19 +118,29 @@ public class LedgerRepository {
 	}
 
 
-	public Ledger findByCode(String memberId, String code) {
+	public Ledger findByCode(String code) {
 		String query = """
 				SELECT *
 				FROM ledger
-				WHERE member_id = ?
-					AND code = ?
+				WHERE code = ?
 				""";
 
-		return jdbcTemplate.queryForObject(
-				query,
-				ledgerRowMapper,
-				memberId, code
-		);
+		try{
+			return jdbcTemplate.queryForObject(
+					query,
+					ledgerRowMapper,
+					code
+			);
+		}catch (EmptyResultDataAccessException e) {
+			throw new ApplicationException(
+					DATA_NOT_FOUND,
+					LogContent.of(
+							"가계부 코드로 가계부 조회",
+							Ledger.class,
+							"code", code
+					)
+			);
+		}
 	}
 
 
@@ -263,6 +227,44 @@ public class LedgerRepository {
 		);
 
 		return id;
+	}
+
+	private void update(Ledger ledger) {
+		String query = """
+				UPDATE ledger
+				SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, amount = ?, payment_type = ?, place_name = ?, road_address = ?, detail_address = ?, updated_at = ?
+				WHERE member_id = ? AND id = ?
+				""";
+
+		int row = jdbcTemplate.update(
+				query,
+
+				ledger.getCategory(),
+				ledger.getFix().getValue(),
+				Ledger.getValueOrNull(ledger.getFixCycle(), FixCycle::getValue),
+				ledger.getMemo(),
+				ledger.getMoney().getAmount(),
+				Ledger.getValueOrNull(ledger.getMoney().getPaymentType(), PaymentType::name),
+				Ledger.getValueOrNull(ledger.getPlace(), Place::getPlaceName),
+				Ledger.getValueOrNull(ledger.getPlace(), Place::getRoadAddress),
+				Ledger.getValueOrNull(ledger.getPlace(), Place::getDetailAddress),
+				ledger.getUpdatedAt(),
+
+				ledger.getMemberId(), ledger.getId()
+		);
+
+		if(row == 0) {
+			throw new ApplicationException(
+					INTERVAL_SERVER_ERROR,
+					LogContent.of(
+							"가계부 수정",
+							Ledger.class,
+							"ledgerId", ledger.getId(),
+							"memberId", ledger.getMemberId()
+					)
+			);
+		}
+
 	}
 
 

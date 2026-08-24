@@ -1,5 +1,6 @@
 package com.moneymanager.support.fixture.entity;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.entity.Ledger;
@@ -58,8 +59,20 @@ public final class LedgerFixture {
 		return this;
 	}
 
+	public LedgerFixture memberId(String memberId) {
+		this.memberId = memberId;
+
+		return this;
+	}
+
 	public LedgerFixture  date(LocalDate date) {
 		this.date = date;
+
+		return this;
+	}
+
+	public LedgerFixture category(String category) {
+		this.category = category;
 
 		return this;
 	}
@@ -88,8 +101,18 @@ public final class LedgerFixture {
 		return this;
 	}
 
-	public Ledger build() {
-		String fixCycleValue = fixCycle == null ? null : fixCycle.getValue();
+	public Ledger saved() {
+		return create(id, code, memberId);
+	}
+
+	public Ledger create() {
+		return create(null, UlidCreator.getUlid().toString(), memberId);
+	}
+
+
+	//===== 유틸 메서드 =====
+	private Ledger create(Long id, String code, String memberId) {
+		String fixCycleValue = Ledger.getValueOrNull(fixCycle, FixCycle::getValue);
 
 		return Ledger.create(
 				id, code, memberId, date, category,

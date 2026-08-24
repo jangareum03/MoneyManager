@@ -42,23 +42,26 @@ import java.util.List;
 @Builder
 @Getter
 public class LedgerUpdateRequest implements LedgerImageRequest {
-	private String categoryCode;					//카테고리
-	private String memo;									//메모
+    private String categoryCode;                    //카테고리
+    private String memo;                                    //메모
 
-	private String fixed;									//가계부 고정여부
-	private String fixCycle;								//가계부 고정주기
+    private String fixed;                                    //가계부 고정여부
+    private String fixCycle;                                //가계부 고정주기
 
-	private Long amount;								//가격
-	private String paymentType;						//결제유형
+    private Long amount;                                //가격
+    private String paymentType;                        //결제유형
 
-	private String placeName;							//장소명
-	private String roadAddress;						//기본주소
-	private String detailAddress;					//상세주소
+    private String placeName;                            //장소명
+    private String roadAddress;                        //기본주소
+    private String detailAddress;                    //상세주소
 
-	private List<MultipartFile> images;			//이미지 리스트
+    private List<MultipartFile> images;            //이미지 리스트
 
-	public void attachImages(List<MultipartFile> images) {
-		this.images = images;
-	}
+    public void attachImages(List<MultipartFile> files) {
+        this.images =
+                files == null
+                        ? List.of()
+                        : files;
+    }
 
 }

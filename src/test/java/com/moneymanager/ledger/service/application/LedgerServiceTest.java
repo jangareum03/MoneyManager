@@ -4,6 +4,7 @@ import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.global.util.date.DateTimeUtil;
+import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
@@ -20,7 +21,9 @@ import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
 import com.moneymanager.ledger.service.read.CategoryReadService;
+import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.ledger.service.validation.LedgerRegisterValidator;
+import com.moneymanager.ledger.service.validation.LedgerUpdateValidator;
 import com.moneymanager.member.service.read.MemberReadService;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
@@ -28,6 +31,8 @@ import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerFixture;
 import com.moneymanager.support.fixture.entity.category.IncomeCategoryFixture;
 import com.moneymanager.support.fixture.entity.category.OutlayCategoryFixture;
+import com.moneymanager.support.fixture.file.ImageFixture;
+import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,10 +42,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -97,10 +104,16 @@ class LedgerServiceTest {
     private MemberReadService memberReadService;
 
     @Mock
-    private LedgerCommandService commandService;
+    private LedgerCommandService ledgerCommandService;
+
+    @Mock
+    private LedgerReadService ledgerReadService;
 
     @Mock
     private LedgerRegisterValidator registerValidator;
+
+    @Mock
+    private LedgerUpdateValidator updateValidator;
 
     @Mock
     private LedgerPolicy ledgerPolicy;
@@ -482,7 +495,7 @@ class LedgerServiceTest {
                         .code(CategoryTestData.SALARY_CODE)
                         .fix(FixedType.VARIABLE)
                         .money(LedgerTestData.AMOUNT, LedgerTestData.PAYMENT_TYPE)
-                        .build();
+                        .saved();
 
         @Nested
         @DisplayName("성공")
@@ -498,7 +511,7 @@ class LedgerServiceTest {
             @DisplayName("유효한 요청이면 정상적으로 가계부를 저장한다.")
             void savesLedger_whenRequestIsValid() {
                 //given
-                when(commandService.create(memberId, request))
+                when(ledgerCommandService.toCreateEntity(memberId, request))
                         .thenReturn(ledger);
 
                 //when
@@ -506,9 +519,9 @@ class LedgerServiceTest {
 
                 //then
                 verify(registerValidator).validate(request);
-                verify(commandService).create(memberId, request);
+                verify(ledgerCommandService).toCreateEntity(memberId, request);
                 verify(ledgerPolicy).validateCreatable(ledger);
-                verify(commandService).save(ledger);
+                verify(ledgerCommandService).save(ledger);
 
                 verify(imageService, never()).processImageUpload(any(), any(), any());
             }
@@ -519,10 +532,10 @@ class LedgerServiceTest {
                 LedgerWriteRequest request =
                         LedgerWriteRequestFixture.withImages(1).build();
 
-                when(commandService.create(memberId, request))
+                when(ledgerCommandService.toCreateEntity(memberId, request))
                         .thenReturn(ledger);
 
-                when(commandService.save(ledger))
+                when(ledgerCommandService.save(ledger))
                         .thenReturn(ledger.getId());
 
                 //when
@@ -530,9 +543,9 @@ class LedgerServiceTest {
 
                 //then
                 verify(registerValidator).validate(request);
-                verify(commandService).create(memberId, request);
+                verify(ledgerCommandService).toCreateEntity(memberId, request);
                 verify(ledgerPolicy).validateCreatable(ledger);
-                verify(commandService).save(ledger);
+                verify(ledgerCommandService).save(ledger);
                 verify(imageService).processImageUpload(memberId, ledger.getId(), request.getImages());
             }
 
@@ -556,7 +569,7 @@ class LedgerServiceTest {
                 verify(currentUser).getMemberId();
                 verify(registerValidator).validate(null);
 
-                verify(commandService, never()).create(anyString(), any(LedgerWriteRequest.class));
+                verify(ledgerCommandService, never()).toCreateEntity(anyString(), any(LedgerWriteRequest.class));
             }
 
             @Test
@@ -566,7 +579,7 @@ class LedgerServiceTest {
                 when(currentUser.getMemberId())
                         .thenReturn(MemberTestData.MEMBER_ID);
 
-                when(commandService.create(memberId, request))
+                when(ledgerCommandService.toCreateEntity(memberId, request))
                         .thenThrow(ApplicationException.class);
 
                 //when
@@ -575,7 +588,7 @@ class LedgerServiceTest {
                 //then
                 verify(currentUser).getMemberId();
                 verify(registerValidator).validate(request);
-                verify(commandService).create(memberId, request);
+                verify(ledgerCommandService).toCreateEntity(memberId, request);
 
                 verify(ledgerPolicy, never()).validateCreatable(any(Ledger.class));
             }
@@ -587,7 +600,7 @@ class LedgerServiceTest {
                 when(currentUser.getMemberId())
                         .thenReturn(MemberTestData.MEMBER_ID);
 
-                when(commandService.create(memberId, request))
+                when(ledgerCommandService.toCreateEntity(memberId, request))
                         .thenReturn(ledger);
 
                doThrow(ApplicationException.class)
@@ -599,10 +612,10 @@ class LedgerServiceTest {
                 //then
                 verify(currentUser).getMemberId();
                 verify(registerValidator).validate(request);
-                verify(commandService).create(memberId, request);
+                verify(ledgerCommandService).toCreateEntity(memberId, request);
                 verify(ledgerPolicy).validateCreatable(ledger);
 
-                verify(commandService, never()).save(ledger);
+                verify(ledgerCommandService, never()).save(ledger);
             }
 
             @Test
@@ -615,16 +628,16 @@ class LedgerServiceTest {
                         .code(CategoryTestData.SALARY_CODE)
                         .fix(FixedType.VARIABLE)
                         .money(LedgerTestData.AMOUNT, LedgerTestData.PAYMENT_TYPE)
-                        .build();
+                        .saved();
 
                 when(currentUser.getMemberId())
                         .thenReturn(MemberTestData.MEMBER_ID);
 
-                when(commandService.create(memberId, request))
+                when(ledgerCommandService.toCreateEntity(memberId, request))
                         .thenReturn(ledger);
 
                 doThrow(new DataAccessException("DB 오류") {})
-                        .when(commandService).save(ledger);
+                        .when(ledgerCommandService).save(ledger);
 
                 //when
                 assertThatThrownBy(() -> target.processLedgerRegistration(request))
@@ -633,13 +646,186 @@ class LedgerServiceTest {
                 //then
                 verify(currentUser).getMemberId();
                 verify(registerValidator).validate(request);
-                verify(commandService).create(memberId, request);
+                verify(ledgerCommandService).toCreateEntity(memberId, request);
                 verify(ledgerPolicy).validateCreatable(ledger);
-                verify(commandService).save(ledger);
+                verify(ledgerCommandService).save(ledger);
 
                 verify(imageService, never()).processImageUpload(memberId, ledger.getId(), request.getImages());
             }
 
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("가계부를 수정할 때")
+    class Update {
+
+        @BeforeEach
+        void setUp() {
+            when(currentUser.getMemberId())
+                    .thenReturn(MemberTestData.MEMBER_ID);
+        }
+
+        @Nested
+        @DisplayName("성공")
+        class Success {
+        
+            @Test
+            @DisplayName("필수 정보가 정상적으로 주어지면 가계부를 수정한다.")
+            void updatesAccountBook_whenRequiredDataIsValid() {
+            	//given
+                String code = "code";
+                LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder().build();
+
+                Ledger ledger = LedgerFixture.builder().saved();
+
+                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                        .thenReturn(ledger);
+
+            	//when
+                target.processLedgerUpdate(code, request);
+            	
+            	//then
+            	verify(updateValidator).validate(request);
+                verify(ledgerCommandService).updateLedger(request, ledger);
+            }
+            
+            @ParameterizedTest
+            @NullAndEmptySource
+            @DisplayName("이미지가 없거나 비어있으면 이미지 처리를 수행하지 않는다.")
+            void doesNotProcessImage_whenImageIsInvalid(List<MultipartFile> images) {
+            	//given
+                String code = "code";
+                LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
+                        .images(images)
+                        .build();
+
+                Ledger ledger = LedgerFixture.builder().saved();
+
+                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                        .thenReturn(ledger);
+            	
+            	//when
+                target.processLedgerUpdate(code, request);
+            	
+            	//then
+                InOrder order = inOrder(currentUser, ledgerReadService, updateValidator, ledgerCommandService, imageService);
+
+                order.verify(currentUser).getMemberId();
+                order.verify(ledgerReadService).getOwnerLedger(MemberTestData.MEMBER_ID, code);
+                order.verify(updateValidator).validate(request);
+                order.verify(ledgerCommandService).updateLedger(request, ledger);
+
+                verify(imageService, never()).processImageUpload(MemberTestData.MEMBER_ID, ledger.getId(), request.getImages());
+            }
+            
+            @Test
+            @DisplayName("이미지가 있으면 이미지 처리를 수행한다.")
+            void processesImage_whenImageIsValid() {
+                //given
+                String code = "code";
+                LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
+                        .images(List.of(
+                                ImageFixture.jpg("test")
+                        ))
+                        .build();
+
+                Ledger ledger = LedgerFixture.builder().saved();
+
+                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                        .thenReturn(ledger);
+
+                //when
+                target.processLedgerUpdate(code, request);
+
+                //then
+                InOrder order = inOrder(currentUser, ledgerReadService, updateValidator, ledgerCommandService, imageService);
+
+                order.verify(currentUser).getMemberId();
+                order.verify(ledgerReadService).getOwnerLedger(MemberTestData.MEMBER_ID, code);
+                order.verify(updateValidator).validate(request);
+                order.verify(ledgerCommandService).updateLedger(request, ledger);
+                order.verify(imageService).processImageUpload(MemberTestData.MEMBER_ID, ledger.getId(), request.getImages());
+            }
+            
+        }
+        
+        @Nested
+        @DisplayName("실패")
+        class Failure {
+        
+            @Test
+            @DisplayName("소유권 확인에 실패하면 그 후 동작은 수행하지 않는다.")
+            void throwsException_whenOwnershipCheckFails() {
+            	//given
+                String code = "code";
+                LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder().build();
+
+                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                        .thenThrow(ApplicationException.class);
+            	
+            	//when
+                assertThatThrownBy(() -> target.processLedgerUpdate(code, request))
+                        .isInstanceOf(ApplicationException.class);
+            	
+            	//then
+            	verify(updateValidator, never()).validate(request);
+            }
+            
+            @Test
+            @DisplayName("요청 정보 검증에 실패하면 그 후 동작은 수행하지 않는다.")
+            void throwsException_whenRequestValidationFails() {
+                //given
+                String code = "code";
+                LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder().build();
+
+                Ledger ledger = LedgerFixture.builder().saved();
+
+                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                        .thenReturn(ledger);
+
+                doThrow(ApplicationException.class)
+                        .when(updateValidator)
+                                .validate(request);
+
+                //when
+                assertThatThrownBy(() -> target.processLedgerUpdate(code, request))
+                        .isInstanceOf(ApplicationException.class);
+
+                //then
+                verify(ledgerCommandService, never()).updateLedger(request, ledger);
+            }
+            
+            @Test
+            @DisplayName("가계부 수정에 실패하면 그 후 동작은 수행하지 않는다.")
+            void throwsException_whenAccountBookUpdateFails() {
+                //given
+                String code = "code";
+                LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
+                        .images(List.of(
+                                ImageFixture.jpg("test")
+                        ))
+                        .build();
+
+                Ledger ledger = LedgerFixture.builder().saved();
+
+                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                        .thenReturn(ledger);
+
+                doThrow(ApplicationException.class)
+                        .when(ledgerCommandService)
+                        .updateLedger(request, ledger);
+
+                //when
+                assertThatThrownBy(() -> target.processLedgerUpdate(code, request))
+                        .isInstanceOf(ApplicationException.class);
+
+                //then
+                verify(imageService, never()).processImageUpload(MemberTestData.MEMBER_ID, ledger.getId(), request.getImages());
+            }
+            
         }
 
     }

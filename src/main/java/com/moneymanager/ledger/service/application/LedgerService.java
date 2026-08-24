@@ -4,6 +4,7 @@ import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.global.util.date.DateRangeUtils;
 import com.moneymanager.global.util.date.DateTimeUtil;
+import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
@@ -15,7 +16,9 @@ import com.moneymanager.ledger.domain.enums.DateUnit;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
 import com.moneymanager.ledger.service.read.CategoryReadService;
+import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.ledger.service.validation.LedgerRegisterValidator;
+import com.moneymanager.ledger.service.validation.LedgerUpdateValidator;
 import com.moneymanager.member.service.read.MemberReadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -62,8 +65,10 @@ public class LedgerService {
     private final CategoryReadService categoryReadService;
     private final MemberReadService memberReadService;
     private final LedgerCommandService ledgerCommandService;
+    private final LedgerReadService ledgerReadService;
 
     private final LedgerRegisterValidator registerValidator;
+    private final LedgerUpdateValidator updateValidator;
     private final LedgerPolicy ledgerPolicy;
 
 
@@ -117,13 +122,27 @@ public class LedgerService {
 
         registerValidator.validate(request);
 
-        Ledger ledger = ledgerCommandService.create(memberId, request);
+        Ledger ledger = ledgerCommandService.toCreateEntity(memberId, request);
         ledgerPolicy.validateCreatable(ledger);
 
         Long ledgerId = ledgerCommandService.save(ledger);
 
         if (request.getImages() != null && !request.getImages().isEmpty()) {
             imageService.processImageUpload(memberId, ledgerId, request.getImages());
+        }
+    }
+
+    @Transactional
+    public void processLedgerUpdate(String code, LedgerUpdateRequest request) {
+        String memberId = currentUser.getMemberId();
+
+        Ledger ledger = ledgerReadService.getOwnerLedger(memberId, code);
+        updateValidator.validate(request);
+
+        ledgerCommandService.updateLedger(request, ledger);
+
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            imageService.processImageUpload(memberId, ledger.getId(), request.getImages());
         }
     }
 

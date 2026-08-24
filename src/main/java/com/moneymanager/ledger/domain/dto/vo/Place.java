@@ -93,7 +93,7 @@ public class Place {
 
         if (placeName.length() > 100) {
             throw new ApplicationException(
-                    OUT_OF_RANGE,
+                    OUT_OF_LENGTH,
                     LogContent.of(
                                     "Place 생성",
                                     Place.class,
@@ -118,7 +118,7 @@ public class Place {
 
         if (roadAddress.length() > 300) {
             throw new ApplicationException(
-                    OUT_OF_RANGE,
+                    OUT_OF_LENGTH,
                     LogContent.of(
                                     "Place 생성",
                                     Place.class,
@@ -132,7 +132,7 @@ public class Place {
     private static void validateDetailAddress(String detailAddress) {
         if (detailAddress.length() > 300) {
             throw new ApplicationException(
-                    OUT_OF_RANGE,
+                    OUT_OF_LENGTH,
                     LogContent.of(
                                     "Place 생성",
                                     Place.class,

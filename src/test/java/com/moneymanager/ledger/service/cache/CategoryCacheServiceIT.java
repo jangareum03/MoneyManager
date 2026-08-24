@@ -117,7 +117,7 @@ public class CategoryCacheServiceIT extends IntegrationTest {
 						
 						.hasErrorCode(DATA_NOT_FOUND)
 						.hasWork("전체 카테고리 조회")
-						.hasCauseMessage("카테고리 없음");
+						.hasCauseMessage("데이터 없음");
 			}
 
 		}

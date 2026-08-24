@@ -1,0 +1,185 @@
+package com.moneymanager.ledger.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
+import com.moneymanager.ledger.service.application.LedgerService;
+import com.moneymanager.ledger.service.read.CategoryReadService;
+import com.moneymanager.support.UnitTest;
+import com.moneymanager.support.data.LedgerTestData;
+import com.moneymanager.support.fixture.file.ImageFixture;
+import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * <p>
+ * 패키지이름    : com.moneymanager.ledger.controller<br>
+ * 파일이름       : LedgerApiControllerTest<br>
+ * 작성자          : areum Jang<br>
+ * 생성날짜       : 26. 8. 23<br>
+ * 설명              : LedgerApiController 클래스 요청을 검증하는 단위 테스트 클래스
+ * </p>
+ * <br>
+ * <p color='#FFC658'>📢 변경이력</p>
+ * <table border="1" cellpadding="5" cellspacing="0" style="width: 100%">
+ * 		<thead>
+ * 		 	<tr style="border-top: 2px solid; border-bottom: 2px solid">
+ * 		 	  	<td>날짜</td>
+ * 		 	  	<td>작성자</td>
+ * 		 	  	<td>변경내용</td>
+ * 		 	</tr>
+ * 		</thead>
+ * 		<tbody>
+ * 		 	<tr style="border-bottom: 1px dotted">
+ * 		 	  <td>26. 8. 23</td>
+ * 		 	  <td>areum Jang</td>
+ * 		 	  <td>최초 생성 (버전 2.0)</td>
+ * 		 	</tr>
+ * 		</tbody>
+ * </table>
+ */
+@WebMvcTest(LedgerApiController.class)
+@AutoConfigureMockMvc(addFilters = false)
+public class LedgerApiControllerTest extends UnitTest {
+
+    private final String BASE_URI = "/api/ledgers";
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
+    private LedgerService ledgerService;
+
+    @MockBean
+    private CategoryReadService categoryReadService;
+
+
+    @Nested
+    @DisplayName("가계부 수정할 때")
+    class Update {
+
+        @Test
+        @DisplayName("정상 요청이면 서비스를 호출한다.")
+        void callsService_whenRequestIsValid() throws Exception {
+        	//given
+            LedgerUpdateRequest request = LedgerUpdateRequestFixture
+                    .withPlace()
+                    .fixed(LedgerTestData.FIX_Y.getValue())
+                    .fixCycle(LedgerTestData.FIX_CYCLE.getValue())
+                    .memo(LedgerTestData.MEMO)
+                    .build();
+
+            MockMultipartFile ledger = new MockMultipartFile(
+                    "ledger",
+                    "",
+                    MediaType.APPLICATION_JSON_VALUE,
+                    objectMapper.writeValueAsBytes(request)
+            );
+
+            List<MockMultipartFile> image = List.of(
+                    ImageFixture.jpg("test"),
+                    ImageFixture.png("test")
+            );
+        	
+        	//when
+            mockMvc.perform(
+                    multipart(BASE_URI + "/{code}", "code-123")
+                            .file(ledger)
+                            .file(image.get(0))
+                            .file(image.get(1))
+                            .with(r -> {
+                                r.setMethod("PUT");
+
+                                return r;
+                            })
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("가계부 수정 완료했습니다."))
+                    .andExpect(jsonPath("$.next").value("/ledgers/code-123"));
+
+        	//then
+        	verify(ledgerService).processLedgerUpdate(
+                    eq("code-123"),
+                    any(LedgerUpdateRequest.class)
+            );
+        }
+        
+        @Test
+        @DisplayName("이미지가 없어도 서비스를 호출한다.")
+        void callsService_whenImageIsNullOrBlank() throws Exception {
+            //given
+            LedgerUpdateRequest request = LedgerUpdateRequestFixture
+                    .withPlace()
+                    .fixed(LedgerTestData.FIX_Y.getValue())
+                    .fixCycle(LedgerTestData.FIX_CYCLE.getValue())
+                    .memo(LedgerTestData.MEMO)
+                    .build();
+
+            MockMultipartFile ledger = new MockMultipartFile(
+                    "ledger",
+                    "",
+                    MediaType.APPLICATION_JSON_VALUE,
+                    objectMapper.writeValueAsBytes(request)
+            );
+
+            //when
+            mockMvc.perform(
+                            multipart(BASE_URI + "/{code}", "code-123")
+                                    .file(ledger)
+                                    .with(r -> {
+                                        r.setMethod("PUT");
+
+                                        return r;
+                                    })
+                    )
+                    .andExpect(status().isOk());
+
+            //then
+            verify(ledgerService).processLedgerUpdate(
+                    eq("code-123"),
+                    any(LedgerUpdateRequest.class)
+            );
+        }
+        
+        @Test
+        @DisplayName("요청에서 ledger가 없으면 실패한다.")
+        void rejectsRequest_whenLedgerDoesNotExist() throws Exception {
+        	//when
+            mockMvc.perform(
+                    multipart(BASE_URI + "/{code}", "code-123")
+                            .with(req -> {
+                                req.setMethod("PUT");
+
+                                return req;
+                            })
+            )
+                    .andExpect(status().isBadRequest());
+        	
+        	//then
+        	verifyNoInteractions(ledgerService);
+        }
+
+    }
+
+}

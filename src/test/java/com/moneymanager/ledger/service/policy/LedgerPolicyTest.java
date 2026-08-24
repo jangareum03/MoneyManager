@@ -81,7 +81,7 @@ class LedgerPolicyTest {
         	//given
             Ledger ledger = LedgerFixture.builder()
                     .date(LocalDate.now(clock).minusMonths(3))
-                    .build();
+                    .saved();
         	
         	//when
             assertDoesNotThrow(() -> target.validateCreatable(ledger));
@@ -93,7 +93,7 @@ class LedgerPolicyTest {
             //given
             Ledger ledger = LedgerFixture.builder()
                     .date(LocalDate.now(clock).plusDays(1))
-                    .build();
+                    .saved();
 
         	//when
             Throwable throwable = catchThrowable(() -> target.validateCreatable(ledger));
@@ -118,7 +118,7 @@ class LedgerPolicyTest {
             //when
             Ledger ledger = LedgerFixture.builder()
                     .memo(memo)
-                    .build();
+                    .saved();
 
         	//when
         	assertDoesNotThrow(
@@ -133,7 +133,7 @@ class LedgerPolicyTest {
             //when
             Ledger ledger = LedgerFixture.builder()
                     .memo(memo)
-                    .build();
+                    .saved();
 
             //when
             assertDoesNotThrow(
@@ -152,7 +152,7 @@ class LedgerPolicyTest {
         	//given
             Ledger ledger = LedgerFixture.builder()
                     .memo(memo)
-                    .build();
+                    .saved();
 
         	//when
             Throwable throwable = catchThrowable(() -> target.validateCreatable(ledger));

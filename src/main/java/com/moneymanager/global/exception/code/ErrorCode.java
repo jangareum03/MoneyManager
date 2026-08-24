@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus;
  * 패키지이름    : com.moneymanager.exception.code<br>
  * 파일이름       : ErrorCode<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 6. 30.<br>
- * 설명              :
+ * 생성날짜       : 26. 6. 30<br>
+ * 설명              : 오류 코드 정의한 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -46,6 +46,9 @@ public enum ErrorCode {
 	/** 인증 오류 **/
 	UNAUTHORIZED("200", "인증되지 않은 사용자",  HttpStatus.UNAUTHORIZED),
 
+	/** 인가 오류**/
+	OWNER_ONLY("303", "소유자가 아닌 사용자", HttpStatus.FORBIDDEN),
+
 	/** 정책 오류 **/
 	POLICY_VIOLATION("400", "정책 위반", HttpStatus.FORBIDDEN),
 
@@ -70,4 +73,7 @@ public enum ErrorCode {
 		this.status = status;
 	}
 
+	public String getCode() {
+		return "ERR-" + code;
+	}
 }

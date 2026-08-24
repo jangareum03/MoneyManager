@@ -9,21 +9,16 @@ import com.moneymanager.support.fixture.entity.LedgerFixture;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import com.moneymanager.support.security.WithMockCustomUser;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.dao.DataAccessException;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -71,40 +66,19 @@ public class LedgerImageServiceRollbackIT extends IntegrationTest {
     @SpyBean
     private LedgerImageStorage imageStorage;
 
-    @TempDir
-    static Path tempDir;
-
-    @DynamicPropertySource
-    static void dynamicProperties(DynamicPropertyRegistry registry) {
-        registry.add("file.root", () -> tempDir.toString());
-    }
-
     Long ledgerId;
+    Path memberDir;
 
     @BeforeEach
     void setUp() throws IOException {
         ledgerId = ledgerRepository.save(
-                LedgerFixture.builder()
-                        .id(null)
-                        .build()
+                LedgerFixture.builder().create()
         );
 
         //폴더 공유로 삭제
-        Path memberDir = tempDir.resolve(MemberTestData.MEMBER_ID);
+        memberDir = getTempDir().resolve(MemberTestData.MEMBER_ID);
 
-        if(Files.exists(memberDir)) {
-            try(Stream<Path> paths = Files.walk(memberDir)) {
-                paths
-                        .sorted(Comparator.reverseOrder())
-                        .forEach(path -> {
-                            try{
-                                Files.deleteIfExists(path);
-                            }catch (IOException e) {
-                                throw new UncheckedIOException(e);
-                            }
-                        });
-            }
-        }
+        deleteTempDir(memberDir);
     }
 
     @AfterEach
@@ -142,7 +116,7 @@ public class LedgerImageServiceRollbackIT extends IntegrationTest {
                 assertThat(imageRepository.findByLedgerId(ledgerId).size())
                         .isEqualTo(1);
 
-                try (Stream<Path> paths = Files.walk(tempDir.resolve(memberId))) {
+                try (Stream<Path> paths = Files.walk(memberDir)) {
                     long size = paths
                             .filter(Files::isRegularFile)
                             .filter(path -> path.getFileName().toString().endsWith(".jpg"))
@@ -170,7 +144,7 @@ public class LedgerImageServiceRollbackIT extends IntegrationTest {
                 assertThat(imageRepository.findByLedgerId(ledgerId).size())
                         .isEqualTo(2);
 
-                try (Stream<Path> paths = Files.walk(tempDir)) {
+                try (Stream<Path> paths = Files.walk(memberDir)) {
                     long size = paths
                             .filter(Files::isRegularFile)
                             .filter(f -> f.getFileName().toString().endsWith(".jpg"))
@@ -234,7 +208,7 @@ public class LedgerImageServiceRollbackIT extends IntegrationTest {
                 //then
                 assertThat(imageRepository.findByLedgerId(ledgerId).size()).isZero();
 
-                try(Stream<Path> paths =  Files.walk(tempDir.resolve(memberId))) {
+                try(Stream<Path> paths =  Files.walk(memberDir)) {
                     boolean hasFile = paths
                             .anyMatch(path -> path.getFileName().toString().endsWith(".jpg") || path.getFileName().toString().endsWith(".png"));
 
@@ -263,7 +237,7 @@ public class LedgerImageServiceRollbackIT extends IntegrationTest {
                 //then:
                 assertThat(imageRepository.findByLedgerId(ledgerId).size()).isZero();
 
-                try(Stream<Path> paths =  Files.walk(tempDir.resolve(memberId))) {
+                try(Stream<Path> paths =  Files.walk(memberDir)) {
                     boolean hasFile = paths
                             .anyMatch(path -> path.getFileName().toString().endsWith(".jpg") || path.getFileName().toString().endsWith(".png"));
 

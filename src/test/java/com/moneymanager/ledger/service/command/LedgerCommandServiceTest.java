@@ -1,6 +1,8 @@
 package com.moneymanager.ledger.service.command;
 
+import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.security.CurrentUser;
+import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
@@ -13,6 +15,8 @@ import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
+import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -23,9 +27,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_VALUE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * <p>
@@ -94,7 +97,7 @@ class LedgerCommandServiceTest {
                         .thenReturn(Boolean.TRUE);
 
                 //when
-                Ledger result = target.create(memberId, request);
+                Ledger result = target.toCreateEntity(memberId, request);
 
                 //then
                 assertThat(result).isNotNull();
@@ -123,7 +126,7 @@ class LedgerCommandServiceTest {
                         .thenReturn(Boolean.TRUE);
 
                 //when
-                Ledger result = target.create(memberId, request);
+                Ledger result = target.toCreateEntity(memberId, request);
 
                 //then
                 assertThat(result.getPlace()).isNull();
@@ -140,8 +143,8 @@ class LedgerCommandServiceTest {
                         .thenReturn(Boolean.TRUE);
 
                 //when
-                Ledger ledgerA = target.create(memberId, request);
-                Ledger ledgerB = target.create(memberId, request);
+                Ledger ledgerA = target.toCreateEntity(memberId, request);
+                Ledger ledgerB = target.toCreateEntity(memberId, request);
 
                 //then
                 assertThat(ledgerA.getCode()).isNotEqualTo(ledgerB.getCode());
@@ -164,7 +167,7 @@ class LedgerCommandServiceTest {
                         .thenReturn(Boolean.FALSE);
 
                 //when
-                Throwable throwable = catchThrowable(() -> target.create(memberId, request));
+                Throwable throwable = catchThrowable(() -> target.toCreateEntity(memberId, request));
 
                 //then
                 ApplicationExceptionAssert.assertThatApplicationException(throwable)
@@ -177,6 +180,68 @@ class LedgerCommandServiceTest {
 
         }
 
+    }
+
+
+    @Nested
+    @DisplayName("가계부 수정할 때")
+    class Update {
+
+        @Test
+        @DisplayName("기존과 다른 정보를 요청하면 가계부를 수정한다.")
+        void updatesAccountBook_whenRequestIsDifferent() {
+        	//given
+            Ledger ledger = LedgerFixture.builder().saved();
+            LedgerUpdateRequest request = LedgerUpdateRequestFixture.withPlace().build();
+
+            when(categoryReadService.exists(request.getCategoryCode()))
+                    .thenReturn(Boolean.TRUE);
+        	
+        	//when
+            target.updateLedger(request, ledger);
+        	
+        	//then
+            assertThat(ledger.getPlace().getPlaceName()).isEqualTo(request.getPlaceName());
+            assertThat(ledger.getPlace().getRoadAddress()).isEqualTo(request.getRoadAddress());
+            assertThat(ledger.getPlace().getDetailAddress()).isEqualTo(request.getDetailAddress());
+
+        	verify(ledgerRepository).save(ledger);
+        }
+        
+        @Test
+        @DisplayName("기존과 동일한 정보면 가계부 저장을 수행하지 않는다.")
+        void doesNothing_whenAccountBookDataIsUnchanged() {
+        	//given
+            LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder().build();
+            Ledger ledger = LedgerFixture.builder().saved();
+
+            when(categoryReadService.exists(request.getCategoryCode()))
+                    .thenReturn(Boolean.TRUE);
+        	
+        	//when
+            target.updateLedger(request, ledger);
+        	
+        	//then
+        	verify(ledgerRepository, never()).save(ledger);
+        }
+        
+        @Test
+        @DisplayName("유효하지 않은 카테고리 코드면 예외를 발생시킨다.")
+        void throwsException_whenCategoryCodeIsInvalid() {
+        	//given
+            LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
+                    .categoryCode("no-exist")
+                    .build();
+            Ledger ledger = LedgerFixture.builder().saved();
+
+            when(categoryReadService.exists(request.getCategoryCode()))
+                    .thenThrow(ApplicationException.class);
+        	
+        	//when & then
+            assertThatThrownBy(() -> target.updateLedger(request, ledger))
+                    .isInstanceOf(ApplicationException.class);
+        }
+        
     }
 
 }

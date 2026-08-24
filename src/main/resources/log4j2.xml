@@ -3,7 +3,7 @@
     <!--공통 속성 설정 -->
     <Properties>
         <Property name="consoleLayout">%highlight{[%-5level]}{FATAL=bg_red, ERROR=red, INFO=green, DEBUG=blue} %style{%d{yyyy-MM-dd HH:mm:ss}:%-3relative}{cyan}    %style{[%M]}{yellow} %logger{35} - %msg%n</Property>
-        <Property name="fileLayout">%d [%t] %-5level %c(%M:%L) - %m%n</Property>
+        <Property name="fileLayout">%d  %m%n</Property>
     </Properties>
 
     <!-- 로그 출력 방법 및 file 생성 설정 -->

@@ -25,4 +25,7 @@ public final class MemberTestData {
 	public static final LocalDateTime CREATE_DATE = LocalDateTime.of(2026, 6, 12, 7, 20);
 	public static final LocalDateTime LAST_LOGIN_DATE = CREATE_DATE.plusDays(3).plusHours(3);
 
+	//타인의 회원정보
+	public static final String OTHER_MEMBER_ID = "UCo02001";
+	public static final String OTHER_USERNAME = "other007";
 }

@@ -1,13 +1,12 @@
 package com.moneymanager.ledger.controller;
 
-import com.moneymanager.global.domain.dto.response.ApiResponse;
+import com.moneymanager.global.domain.dto.response.api.ApiBody;
+import com.moneymanager.global.exception.annotation.ApiController;
 import com.moneymanager.global.operation.annotation.Operation;
 import com.moneymanager.global.operation.enums.ServiceAction;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
-import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.service.application.LedgerService;
-import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.read.CategoryReadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -43,38 +42,36 @@ import java.util.List;
  * </table>
  */
 @RestController
+@ApiController
 @RequiredArgsConstructor
 @RequestMapping("/api/ledgers")
 public class LedgerApiController {
 
-	private  final LedgerService ledgerService;
-	private final LedgerCommandService commandService;
-	private final CategoryReadService categoryReadService;
+    private final LedgerService ledgerService;
+    private final CategoryReadService categoryReadService;
 
-	@PatchMapping("/{code}")
-	public ApiResponse<LedgerDetailResponse> update(@PathVariable String code, @RequestPart("ledger") LedgerUpdateRequest request, @RequestPart(value = "images", required = false) List<MultipartFile> fileList) {
-		//1. 요청 검증
+    @GetMapping("/category/{code}/children")
+    @Operation(ServiceAction.LEDGER_CATEGORY)
+    public List<CategoryItem> getCategories(@PathVariable String code) {
+        return categoryReadService.getChildrenByParentCode(code);
+    }
 
-		//2. 가계부 이미지 반영
-		request.attachImages(fileList);
+    @GetMapping("/dates")
+    @Operation(ServiceAction.LEDGER_REGISTER_DATE)
+    public List<Integer> getDateList(@RequestParam String unit, @RequestParam String date) {
+        return ledgerService.fetchDateOptionsByUnit(unit, date);
+    }
 
-		//3. 가계부 수정 후 반환
-		LedgerDetailResponse response = commandService.update(code, request);
+    @PutMapping("/{code}")
+    public ApiBody<Void> updateLedger(@PathVariable String code, @RequestPart("ledger") LedgerUpdateRequest request, @RequestPart(value = "images", required = false) List<MultipartFile> files) {
+        request.attachImages(files);
 
-		//4. 수정된 가계부 객체 반환
-		return ApiResponse.success("가계부 수정 완료했습니다.", response);
-	}
+        ledgerService.processLedgerUpdate(code, request);
 
-	@GetMapping("/category/{code}/children")
-	@Operation(ServiceAction.LEDGER_CATEGORY)
-	public List<CategoryItem> getCategories(@PathVariable String code) {
-		return categoryReadService.getChildrenByParentCode(code);
-	}
-
-	@GetMapping("/dates")
-	@Operation(ServiceAction.LEDGER_REGISTER_DATE)
-	public List<Integer> getDateList(@RequestParam String unit, @RequestParam String date) {
-		return ledgerService.fetchDateOptionsByUnit(unit, date);
-	}
+        return ApiBody.next(
+                "가계부 수정 완료했습니다.",
+                "/ledgers/" + code
+        );
+    }
 
 }

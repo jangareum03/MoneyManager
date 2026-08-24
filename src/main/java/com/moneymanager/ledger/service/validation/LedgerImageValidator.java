@@ -3,7 +3,6 @@ package com.moneymanager.ledger.service.validation;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.validation.BaseImageValidator;
-import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -67,7 +66,7 @@ public class LedgerImageValidator extends BaseImageValidator {
                     FILE_READ_FAILED,
                     LogContent.of(
                             "가계부 이미지 검증",
-                            LedgerWriteRequest.class,
+                            MultipartFile.class,
                             "images",
                             file.getOriginalFilename()
                     ),

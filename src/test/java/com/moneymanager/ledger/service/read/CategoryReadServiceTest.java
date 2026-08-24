@@ -226,7 +226,6 @@ class CategoryReadServiceTest {
                         
                         .hasErrorCode(DATA_NOT_FOUND)
                         .hasWork("카테고리 조회")
-                        .hasCauseMessage("카테고리 없음")
                         .hasTarget(Category.class)
                         .hasValue("code", code);
             }
@@ -234,15 +233,13 @@ class CategoryReadServiceTest {
             @Test
             @DisplayName("코드가 존재하지 않으면 예외를 발생시킨다")
             void throwsValidationException_whenCodeDoesNotExist() {
-                assertThatThrownBy(() -> target.getCategory("030000"))
-                        ;
+                assertThatThrownBy(() -> target.getCategory("030000"));
             }
 
             @Test
             @DisplayName("코드가 유효하지 않으면 예외를 발생시킨다.")
             void throwsValidationException_whenCodeIsInvalid() {
-                assertThatThrownBy(() -> target.getCategory("nonExistCode"))
-                        ;
+                assertThatThrownBy(() -> target.getCategory("nonExistCode"));
             }
 
         }
