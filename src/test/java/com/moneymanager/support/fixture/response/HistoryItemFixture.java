@@ -20,7 +20,7 @@ public class HistoryItemFixture {
 	public static HistoryItem create(Long amount, String memo, String categoryName, String categoryCode) {
 		return HistoryItem.from(
 				new LedgerHistoryQuery(
-						LedgerTestData.CODE,
+						LedgerTestData.DEFAULT_CODE,
 						LocalDate.of(2026, 1, 1),
 						amount,
 						memo,

@@ -75,7 +75,7 @@ class LedgerFieldValidatorTest {
 
         @ParameterizedTest
         @NullAndEmptySource
-        @MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+        @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
         @DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
         void throwsValidationException_whenDateIsNullOrBlank(String date) {
             //when
@@ -90,7 +90,7 @@ class LedgerFieldValidatorTest {
         }
 
         @ParameterizedTest
-        @MethodSource("com.moneymanager.support.data.DateTestData#invalidDates")
+        @MethodSource("com.moneymanager.support.stream.DateTestStream#invalidDates")
         @DisplayName("포맷이 잘못되면 예외를 발생시킨다.")
         void throwsValidationException_whenDateHasInvalidFormat(String date) {
             //when
@@ -113,7 +113,7 @@ class LedgerFieldValidatorTest {
 
         @ParameterizedTest
         @NullAndEmptySource
-        @MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+        @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
         @DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
         void throwsValidationException_whenCategoryIsNullOrBlank(String category) {
             //when
@@ -222,7 +222,7 @@ class LedgerFieldValidatorTest {
 
         @ParameterizedTest
         @NullAndEmptySource
-        @MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+        @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
         @DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
         void throwsValidationException_whenPaymentTypeIsBlank(String paymentType) {
             //when
@@ -244,7 +244,7 @@ class LedgerFieldValidatorTest {
 
         @ParameterizedTest
         @NullAndEmptySource
-        @MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+        @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
         @DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
         void throwsValidationException_whenFixedIsBlank(String fix) {
             //when
@@ -281,7 +281,7 @@ class LedgerFieldValidatorTest {
 
         @ParameterizedTest
         @NullAndEmptySource
-        @MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+        @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
         @DisplayName("REPEAT이고 고정 주기가 null이거나 비어있으면 예외를 발생시킨다.")
         void throwsValidationException_whenFixCycleIsBlank(String fixCycle) {
             //when

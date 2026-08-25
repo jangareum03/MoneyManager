@@ -14,11 +14,11 @@ import java.lang.annotation.Target;
 @WithSecurityContext(factory = WithMockCustomUserSecurityContextFactory.class)
 public @interface WithMockCustomUser {
 
-	String memberId() default MemberTestData.MEMBER_ID;
+	String memberId() default MemberTestData.DEFAULT_ID;
 
-	String username() default MemberTestData.USERNAME;
+	String username() default MemberTestData.DEFAULT_USERNAME;
 
-	String password() default MemberTestData.PASSWORD;
+	String password() default MemberTestData.DEFAULT_PASSWORD;
 
 	String role() default "USER";
 

@@ -3,11 +3,14 @@ package com.moneymanager.ledger.service.command;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.global.util.ObjectUtils;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.enums.FixCycle;
+import com.moneymanager.ledger.domain.enums.FixedType;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.ledger.service.policy.LedgerDatePolicy;
 import com.moneymanager.ledger.service.read.CategoryReadService;
@@ -59,6 +62,9 @@ public class LedgerCommandService {
 		String code = UlidCreator.getUlid().toString();
 		LocalDate date = LocalDate.parse(request.getDate(), LedgerDatePolicy.DATE_FORMATTER);
 
+		FixedType fix = FixedType.from(request.getFixed());
+		FixCycle cycle = ObjectUtils.getValueOrNull(request.getFixCycle(), FixCycle::from);
+
 		Money money = Money.of(request.getAmount(), request.getPaymentType());
 		Place place = Place.ofOrNull(request.getPlaceName(), request.getRoadAddress(), request.getDetailAddress());
 
@@ -73,8 +79,8 @@ public class LedgerCommandService {
 			);
 		}
 
-		return Ledger.create(
-				code, memberId, date, request.getCategoryCode(), request.getFixed(), request.getFixCycle(), request.getMemo(),
+		return Ledger.of(
+				code, memberId, date, request.getCategoryCode(), fix, cycle, request.getMemo(),
 				money, place
 		);
 	}

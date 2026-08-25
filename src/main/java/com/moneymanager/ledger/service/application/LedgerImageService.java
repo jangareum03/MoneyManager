@@ -116,7 +116,7 @@ public class LedgerImageService {
     //===== processImageUpload 보조 메서드 =====
     private List<LedgerImage> createLedgerImage(Long ledgerId, List<FileMetadata> metadata) {
         return IntStream.range(0, metadata.size())
-                .mapToObj(i -> LedgerImage.create(
+                .mapToObj(i -> LedgerImage.of(
                         ledgerId,
                         metadata.get(i).getRelativePath(),
                         i + 1

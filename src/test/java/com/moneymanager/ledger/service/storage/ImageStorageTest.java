@@ -78,7 +78,7 @@ class LedgerImageStorageTest {
             @DisplayName("유효한 파일과 회원번호면 서버에 파일을 저장하고 파일 정보를 반환한다.")
             void savesFileAndReturnsFileMetadata_whenRequestIsValid() throws IOException {
                 //given
-                String memberId = MemberTestData.MEMBER_ID;
+                String memberId = MemberTestData.DEFAULT_ID;
                 MockMultipartFile file = ImageFixture.jpg("test");
 
                 //when
@@ -105,7 +105,7 @@ class LedgerImageStorageTest {
             @DisplayName("저장할 때마다 저장된 파일명은 중복되지 않는다.")
             void generatesUniqueFileName_whenFileIsSaved() throws IOException {
                 //given
-                String memberId = MemberTestData.MEMBER_ID;
+                String memberId = MemberTestData.DEFAULT_ID;
                 MockMultipartFile file = ImageFixture.jpg("test");
 
                 //when
@@ -121,7 +121,7 @@ class LedgerImageStorageTest {
             @DisplayName("폴더가 없으면 새로운 폴더에 저장한다.")
             void savesFileInNewDirectory_whenDirectoryDoesNotExist() throws IOException {
                 //given
-                String memberId = MemberTestData.MEMBER_ID;
+                String memberId = MemberTestData.DEFAULT_ID;
                 MockMultipartFile file = ImageFixture.jpg("test");
 
                 Path directoryPath = temp.resolve(memberId);
@@ -138,7 +138,7 @@ class LedgerImageStorageTest {
             @DisplayName("폴더가 있으면 폴더를 생성하지 않는다.")
             void savesFileInExistingDirectory_whenDirectoryExists() throws IOException {
                 //given
-                String memberId = MemberTestData.MEMBER_ID;
+                String memberId = MemberTestData.DEFAULT_ID;
                 MockMultipartFile file = ImageFixture.jpg("test");
 
                 Path directoryPath = temp.resolve(memberId);
@@ -166,7 +166,7 @@ class LedgerImageStorageTest {
             void throwsInternalException_whenFileIsNull() {
             	//given
                 MockMultipartFile file = null;
-                String memberId = MemberTestData.MEMBER_ID;
+                String memberId = MemberTestData.DEFAULT_ID;
             	
             	//when
                 Throwable throwable = catchThrowable(() -> target.store(file, memberId));
@@ -182,8 +182,8 @@ class LedgerImageStorageTest {
             @DisplayName("파일이 비어있으면 예외를 발생시킨다.")
             void throwsInternalException_whenFileIsEmpty() {
                 //given
-                MockMultipartFile file = ImageFixture.emptyFile();
-                String memberId = MemberTestData.MEMBER_ID;
+                MockMultipartFile file = ImageFixture.empty("test");
+                String memberId = MemberTestData.DEFAULT_ID;
 
                 //when
                 Throwable throwable = catchThrowable(() -> target.store(file, memberId));
@@ -199,7 +199,7 @@ class LedgerImageStorageTest {
             @DisplayName("파일을 저장 중 문제가 발생하면 예외를 전파시킨다.")
             void rethrowsException_whenFileSaveFails() throws IOException {
             	//given
-                String memberId = MemberTestData.MEMBER_ID;
+                String memberId = MemberTestData.DEFAULT_ID;
                 MockMultipartFile file = mock(MockMultipartFile.class);
 
                 when(file.getOriginalFilename()).thenReturn("test.jpg");

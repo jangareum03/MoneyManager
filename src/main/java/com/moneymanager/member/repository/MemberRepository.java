@@ -2,9 +2,11 @@ package com.moneymanager.member.repository;
 
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.global.util.ObjectUtils;
 import com.moneymanager.member.domain.dto.MemberAuth;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
+import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberStatus;
 import com.moneymanager.member.domain.enums.MemberType;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -13,6 +15,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -48,139 +51,154 @@ import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 @Repository
 public class MemberRepository {
 
-	private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-	public MemberRepository(DataSource dataSource) {
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
-	}
+    public MemberRepository(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
 
-	private final RowMapper<Member> memberRowMapper = (rs, rowNum) -> {
-		MemberType type = MemberType.fromValue(rs.getString("type"));
-		MemberStatus status = MemberStatus.fromValue(rs.getString("status"));
+    private final RowMapper<Member> memberRowMapper = (rs, rowNum) -> {
+        MemberType type = MemberType.fromValue(rs.getString("type"));
+        MemberStatus status = MemberStatus.fromValue(rs.getString("status"));
+		MemberGender gender = MemberGender.fromValue(rs.getString("gender"));
 
-		LocalDateTime deleted = rs.getString("deleted_at") == null
-												? null
-												: rs.getTimestamp("deleted_at").toLocalDateTime();
+        LocalDateTime deleted = rs.getString("deleted_at") == null
+                ? null
+                : rs.getTimestamp("deleted_at").toLocalDateTime();
 
-		return Member.builder()
-				.id(rs.getString("id"))
-				.username(rs.getString("username"))
-				.password(rs.getString("password"))
-				.name(rs.getString("name"))
-				.birthdate(rs.getString("birthdate"))
-				.nickname(rs.getString("nickname"))
-				.email(rs.getString("email"))
-				.role(rs.getString("role"))
-				.type(type)
-				.status(status)
-				.createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-				.deletedAt(deleted)
-				.build();
-	};
-
-	public void save(Member member) {
-		String query = """
-				INSERT INTO member(id, type, username, password, name, birthdate, nickname, email)
-					VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-				""";
-
-		jdbcTemplate.update(
-				query,
-				member.getId(), member.getType().getValue(), member.getUsername(), member.getPassword(),
-				member.getName(), member.getBirthdate(), member.getNickname(), member.getEmail()
+        MemberInfo memberInfo = MemberInfo.restore(
+				rs.getString("id"),
+				gender,
+				rs.getString("profile"),
+				rs.getLong("point"),
+				rs.getLong("consecutive_days"),
+				rs.getInt("image_limit"),
+				rs.getInt("failure_count"),
+				ObjectUtils.getValueOrNull(rs.getTimestamp("login_at"), Timestamp::toLocalDateTime)
 		);
 
-		save(member.getInfo());
-	}
+        return Member.restore(
+                rs.getString("id"),
+                rs.getString("username"),
+                rs.getString("password"),
+                rs.getString("name"),
+                rs.getString("birthdate"),
+                rs.getString("nickname"),
+                rs.getString("email"),
+                rs.getString("role"),
+                type,
+                status,
+                rs.getTimestamp("created_at").toLocalDateTime(),
+                deleted,
+                memberInfo
+        );
+    };
 
-	private void save(MemberInfo memberInfo) {
-		String query = """
-				INSERT INTO member_info(id, gender, login_at)
-					VALUES (?, ?, ?)
-				""";
+    public void save(Member member) {
+        String query = """
+                INSERT INTO member(id, type, username, password, name, birthdate, nickname, email)
+                	VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """;
 
-		jdbcTemplate.update(
-				query,
-				memberInfo.getId(), memberInfo.getGender().getValue(), memberInfo.getLoginAt()
-		);
-	}
+        jdbcTemplate.update(
+                query,
+                member.getId(), member.getType().getValue(), member.getUsername(), member.getPassword(),
+                member.getName(), member.getBirthdate(), member.getNickname(), member.getEmail()
+        );
 
-	public Member findById(String id) {
-		String query = """
-				SELECT *
-				FROM member
-				WHERE id = ?
-				""";
+        save(member.getInfo());
+    }
 
-		return jdbcTemplate.queryForObject(query, memberRowMapper, id);
-	}
+    private void save(MemberInfo memberInfo) {
+        String query = """
+                INSERT INTO member_info(id, gender, login_at)
+                	VALUES (?, ?, ?)
+                """;
+
+        jdbcTemplate.update(
+                query,
+                memberInfo.getId(), memberInfo.getGender().getValue(), memberInfo.getLoginAt()
+        );
+    }
+
+    public Member findById(String id) {
+        String query = """
+                SELECT m.*, mi.gender, mi.profile, mi.point, mi.consecutive_days, mi.image_limit, mi.failure_count, mi.login_at
+                FROM member m
+                LEFT JOIN member_info mi
+                	ON m.id = mi.id
+                WHERE m.id = ?
+                """;
+
+        return jdbcTemplate.queryForObject(query, memberRowMapper, id);
+    }
 
 
-	public Optional<MemberAuth> findAuthByUsername(String username) {
-		String query = """
-				SELECT m.id, m.username, m.password, m.nickname, m.role, m.status, m.deleted_at, mi.profile, mi.failure_count
-				FROM member m JOIN member_info mi
-					ON m.id = mi.id
-				WHERE m.username = ?
-				""";
+    public Optional<MemberAuth> findAuthByUsername(String username) {
+        String query = """
+                SELECT m.id, m.username, m.password, m.nickname, m.role, m.status, m.deleted_at, mi.profile, mi.failure_count
+                FROM member m JOIN member_info mi
+                	ON m.id = mi.id
+                WHERE m.username = ?
+                """;
 
-		try {
-			return Optional.ofNullable(
-					jdbcTemplate.queryForObject(
-							query,
-							(rs, rowNum) -> MemberAuth.builder()
-										.memberId(rs.getString("id"))
-										.username(rs.getString("username"))
-										.password(rs.getString("password"))
-										.nickname(rs.getString("nickname"))
-										.profile(rs.getString("profile"))
-										.role(rs.getString("role"))
-										.status(MemberStatus.fromValue(rs.getString("status")))
-										.loginFailCount(rs.getInt("failure_count"))
-										.deletedDate(
-												rs.getTimestamp("deleted_at") == null
-														? null
-														: rs.getTimestamp("deleted_at").toLocalDateTime()
-										)
-										.build(),
-							username
-					)
-			);
-		}catch (EmptyResultDataAccessException e) {
-			return Optional.empty();
-		}
-	}
+        try {
+            return Optional.ofNullable(
+                    jdbcTemplate.queryForObject(
+                            query,
+                            (rs, rowNum) -> MemberAuth.builder()
+                                    .memberId(rs.getString("id"))
+                                    .username(rs.getString("username"))
+                                    .password(rs.getString("password"))
+                                    .nickname(rs.getString("nickname"))
+                                    .profile(rs.getString("profile"))
+                                    .role(rs.getString("role"))
+                                    .status(MemberStatus.fromValue(rs.getString("status")))
+                                    .loginFailCount(rs.getInt("failure_count"))
+                                    .deletedDate(
+                                            rs.getTimestamp("deleted_at") == null
+                                                    ? null
+                                                    : rs.getTimestamp("deleted_at").toLocalDateTime()
+                                    )
+                                    .build(),
+                            username
+                    )
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
 
-	public Integer findImageUploadLimitByMemberId(String memberId) {
-		String query = """
-				SELECT image_limit
-					FROM member_info
-					WHERE id = ?
-				""";
+    public Integer findImageUploadLimitByMemberId(String memberId) {
+        String query = """
+                SELECT image_limit
+                	FROM member_info
+                	WHERE id = ?
+                """;
 
-		try{
-			return jdbcTemplate.queryForObject(
-					query,
-					Integer.class,
-					memberId
-			);
-		}catch (EmptyResultDataAccessException e) {
-			throw new ApplicationException(
-					DATA_NOT_FOUND,
-					LogContent.of(
-							"등록 가능한 이미지 개수 조회",
-							MemberInfo.class,
-							"memberId",
-							memberId
-					).withCause("존재하지 않은 회원")
-			);
-		}
-	}
+        try {
+            return jdbcTemplate.queryForObject(
+                    query,
+                    Integer.class,
+                    memberId
+            );
+        } catch (EmptyResultDataAccessException e) {
+            throw new ApplicationException(
+                    DATA_NOT_FOUND,
+                    LogContent.of(
+                            "등록 가능한 이미지 개수 조회",
+                            MemberInfo.class,
+                            "memberId",
+                            memberId
+                    ).withCause("존재하지 않은 회원")
+            );
+        }
+    }
 
-	public void deleteAll() {
-		String query = "DELETE FROM member";
+    public void deleteAll() {
+        String query = "DELETE FROM member";
 
-		jdbcTemplate.update(query);
-	}
+        jdbcTemplate.update(query);
+    }
 
 }

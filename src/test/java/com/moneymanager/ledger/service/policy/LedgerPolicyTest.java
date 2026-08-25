@@ -3,8 +3,8 @@ package com.moneymanager.ledger.service.policy;
 import com.moneymanager.global.config.MutableClock;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.support.ApplicationExceptionAssert;
-import com.moneymanager.support.data.StringTestData;
-import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.stream.StringTestStream;
+import com.moneymanager.support.fixture.entity.LedgerTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -78,29 +78,28 @@ class LedgerPolicyTest {
         @Test
         @DisplayName("가계부 거래날짜가 작성이 가능하면 검증에 통과한다.")
         void validatesTransactionDate_whenDateIsValid() {
-        	//given
-            Ledger ledger = LedgerFixture.builder()
+            //given
+            Ledger ledger = LedgerTestFixture.builder()
                     .date(LocalDate.now(clock).minusMonths(3))
-                    .saved();
-        	
-        	//when
+                    .build();
+
+            //when
             assertDoesNotThrow(() -> target.validateCreatable(ledger));
         }
-        
+
         @Test
         @DisplayName("가계부 거래날짜가 작성이 불가능하면 예외를 발생시킨다.")
         void throwsException_whenTransactionDateIsOutOfRange() {
             //given
-            Ledger ledger = LedgerFixture.builder()
+            Ledger ledger = LedgerTestFixture.builder()
                     .date(LocalDate.now(clock).plusDays(1))
-                    .saved();
+                    .build();
 
-        	//when
+            //when
             Throwable throwable = catchThrowable(() -> target.validateCreatable(ledger));
-        	
-        	//then
+
+            //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    
                     .hasErrorCode(POLICY_VIOLATION)
                     .hasWork("가계부 비즈니스 규칙 검증")
                     .hasCauseMessage("거래날짜 범위 초과")
@@ -112,28 +111,28 @@ class LedgerPolicyTest {
 
         @ParameterizedTest
         @NullAndEmptySource
-        @MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+        @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
         @DisplayName("메모가 null이거나 비어있으면 검증에 통과한다.")
         void validatesMemo_whenMemoIsBlank(String memo) {
             //when
-            Ledger ledger = LedgerFixture.builder()
+            Ledger ledger = LedgerTestFixture.builder()
                     .memo(memo)
-                    .saved();
+                    .build();
 
-        	//when
-        	assertDoesNotThrow(
+            //when
+            assertDoesNotThrow(
                     () -> target.validateCreatable(ledger)
             );
         }
-        
+
         @ParameterizedTest
         @MethodSource("validMemo")
         @DisplayName("메모 길이가 300이하면 검증에 통과한다.")
         void validatesMemo_whenMemoLengthIsWithin300(String memo) {
             //when
-            Ledger ledger = LedgerFixture.builder()
+            Ledger ledger = LedgerTestFixture.builder()
                     .memo(memo)
-                    .saved();
+                    .build();
 
             //when
             assertDoesNotThrow(
@@ -142,24 +141,24 @@ class LedgerPolicyTest {
         }
 
         static Stream<Arguments> validMemo() {
-            return StringTestData.validLengths("가", 0, 300);
+            return StringTestStream.validLengths("가", 0, 300);
         }
 
         @ParameterizedTest
         @MethodSource("invalidMemo")
         @DisplayName("메모 길이가 300초과하면 에외를 발생시킨다.")
         void throwsBusinessException_whenMemoLengthExceeds300(String memo) {
-        	//given
-            Ledger ledger = LedgerFixture.builder()
+            //given
+            Ledger ledger = LedgerTestFixture.builder()
+                    .date(LocalDate.now(clock))
                     .memo(memo)
-                    .saved();
+                    .build();
 
-        	//when
+            //when
             Throwable throwable = catchThrowable(() -> target.validateCreatable(ledger));
 
             //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    
                     .hasErrorCode(POLICY_VIOLATION)
                     .hasWork("가계부 비즈니스 규칙 검증")
                     .hasCauseMessage("메모 길이 초과")
@@ -170,7 +169,7 @@ class LedgerPolicyTest {
         }
 
         static Stream<Arguments> invalidMemo() {
-            return StringTestData.invalidLengths("가", 0, 300);
+            return StringTestStream.invalidLengths("가", 0, 300);
         }
 
     }

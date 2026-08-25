@@ -46,14 +46,14 @@ public class LedgerImageRepository {
 	}
 
 
-	private final RowMapper<LedgerImage> ledgerImageRowMapper = (rs, rowNum) -> LedgerImage.builder()
-		   .id(rs.getLong("id"))
-		   .ledgerId(rs.getLong("ledger_id"))
-		   .imagePath(rs.getString("image_path"))
-		   .sortOrder(rs.getInt("sort_order"))
-		   .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-		   .updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
-		   .build();
+	private final RowMapper<LedgerImage> ledgerImageRowMapper = (rs, rowNum) -> LedgerImage.restore(
+			rs.getLong("id"),
+			rs.getLong("ledger_id"),
+			rs.getString("image_path"),
+			rs.getInt("sort_order"),
+			rs.getTimestamp("created_at").toLocalDateTime(),
+			rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null
+	);
 
 
 	/**

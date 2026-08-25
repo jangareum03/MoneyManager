@@ -2,7 +2,7 @@ package com.moneymanager.ledger.domain.vo;
 
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.support.data.StringTestData;
+import com.moneymanager.support.stream.StringTestStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -111,7 +111,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> validPlaceNameLengths() {
-			return StringTestData.validLengths("가", 1, 100);
+			return StringTestStream.validLengths("가", 1, 100);
 		}
 
 		@ParameterizedTest
@@ -152,7 +152,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> validRoadAddressLengths() {
-			return StringTestData.validLengths("가", 1, 300);
+			return StringTestStream.validLengths("가", 1, 300);
 		}
 
 		@ParameterizedTest
@@ -193,7 +193,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> validDetailAddressLengths() {
-			return StringTestData.validLengths("가", 1, 300);
+			return StringTestStream.validLengths("가", 1, 300);
 		}
 
 		@ParameterizedTest
@@ -268,7 +268,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> invalidPlaceNameLengths() {
-			return StringTestData.invalidLengths("가", 1, 100);
+			return StringTestStream.invalidLengths("가", 1, 100);
 		}
 
 		@ParameterizedTest
@@ -303,7 +303,7 @@ public class PlaceTest {
 			
 			//then
 			ApplicationExceptionAssert.assertThatApplicationException(throwable)
-					.hasErrorCode(OUT_OF_RANGE)
+					.hasErrorCode(OUT_OF_LENGTH)
 					.hasWork("Place 생성")
 					.hasTarget(Place.class)
 					.hasValue("roadAddress", roadAddress)
@@ -312,7 +312,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> invalidRoadAddressLengths() {
-			return StringTestData.invalidLengths("가", 1, 300);
+			return StringTestStream.invalidLengths("가", 1, 300);
 		}
 
 		@ParameterizedTest
@@ -328,7 +328,7 @@ public class PlaceTest {
 
 			//then
 			ApplicationExceptionAssert.assertThatApplicationException(throwable)
-					.hasErrorCode(OUT_OF_RANGE)
+					.hasErrorCode(OUT_OF_LENGTH)
 					.hasWork("Place 생성")
 					.hasTarget(Place.class)
 					.hasValue("detailAddress 길이", detailAddress.length())
@@ -337,7 +337,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> invalidDetailAddressLengths() {
-			return StringTestData.invalidLengths("가", 1, 300);
+			return StringTestStream.invalidLengths("가", 1, 300);
 		}
 
 	}

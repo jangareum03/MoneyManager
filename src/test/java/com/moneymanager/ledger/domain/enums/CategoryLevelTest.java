@@ -99,7 +99,7 @@ public class CategoryLevelTest {
 		
 			@ParameterizedTest
 			@NullAndEmptySource
-			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenLevelIsNullOrBlank(String level) {
 				assertThatThrownBy(() -> CategoryLevel.from(level))

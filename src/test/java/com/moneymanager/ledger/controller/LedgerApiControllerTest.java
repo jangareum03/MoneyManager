@@ -74,7 +74,6 @@ public class LedgerApiControllerTest extends UnitTest {
     @MockBean
     private CategoryReadService categoryReadService;
 
-
     @Nested
     @DisplayName("가계부 수정할 때")
     class Update {
@@ -85,8 +84,8 @@ public class LedgerApiControllerTest extends UnitTest {
         	//given
             LedgerUpdateRequest request = LedgerUpdateRequestFixture
                     .withPlace()
-                    .fixed(LedgerTestData.FIX_Y.getValue())
-                    .fixCycle(LedgerTestData.FIX_CYCLE.getValue())
+                    .fixed(LedgerTestData.FIXED_REPEAT.getValue())
+                    .fixCycle(LedgerTestData.MONTHLY_CYCLE.getValue())
                     .memo(LedgerTestData.MEMO)
                     .build();
 
@@ -131,8 +130,8 @@ public class LedgerApiControllerTest extends UnitTest {
             //given
             LedgerUpdateRequest request = LedgerUpdateRequestFixture
                     .withPlace()
-                    .fixed(LedgerTestData.FIX_Y.getValue())
-                    .fixCycle(LedgerTestData.FIX_CYCLE.getValue())
+                    .fixed(LedgerTestData.FIXED_REPEAT.getValue())
+                    .fixCycle(LedgerTestData.MONTHLY_CYCLE.getValue())
                     .memo(LedgerTestData.MEMO)
                     .build();
 

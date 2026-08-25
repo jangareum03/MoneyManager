@@ -50,7 +50,7 @@ class DateUnitTest {
 
 	@Nested
 	@DisplayName("DateUnit 생성할 때")
-	class FromTest {
+	class From {
 
 		@Nested
 		@DisplayName("성공")
@@ -92,7 +92,7 @@ class DateUnitTest {
 
 			@ParameterizedTest
 			@NullAndEmptySource
-			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 			@DisplayName("값이 null이거나 빈 문자열이면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueIsNullOrEmpty(String value) {
 				assertThatThrownBy(() -> DateUnit.from(value))
@@ -114,7 +114,7 @@ class DateUnitTest {
 
 	@Nested
 	@DisplayName("단위별로 날짜 검증할 때")
-	class ValidDateTest {
+	class ValidDate {
 
 		@Nested
 		@DisplayName("성공")
@@ -152,7 +152,7 @@ class DateUnitTest {
 			
 			@ParameterizedTest
 			@NullAndEmptySource
-			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 			@DisplayName("모든 단위에서 null이거나 빈 문자열이면 예외를 발생시킨다.")
 			void throwsValidationException_whenInputIsNullOrEmpty(String date) {
 				//when & then

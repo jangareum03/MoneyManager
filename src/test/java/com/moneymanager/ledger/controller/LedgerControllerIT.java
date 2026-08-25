@@ -1,11 +1,10 @@
 package com.moneymanager.ledger.controller;
 
-import com.moneymanager.ledger.service.application.LedgerService;
-import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
+import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,11 +16,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,29 +58,11 @@ public class LedgerControllerIT extends IntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-	@Autowired
-	LedgerService ledgerService;
-
-	@Autowired
-	LedgerReadService ledgerReadService;
-
     private Member member;
 
 	@BeforeEach
-	void setUp() throws IOException {
-		member = saveMember();
-
-        if(Files.exists(getTempDir())) {
-            Files.walk(getTempDir())
-                    .sorted(Comparator.reverseOrder())
-                    .forEach(path -> {
-                        try {
-                            Files.deleteIfExists(path);
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    });
-        }
+	void setUp() {
+        member = memberRepository.findById(MemberTestData.DEFAULT_ID);
 	}
 
     @Nested
@@ -94,7 +72,7 @@ public class LedgerControllerIT extends IntegrationTest {
         private final String URI = "/ledgers/new/step1";
 
         @Nested
-        @DisplayName("성공 케이스")
+        @DisplayName("성공")
         class Success {
 
             @Test
@@ -200,8 +178,7 @@ public class LedgerControllerIT extends IntegrationTest {
                                         .param("date", "20260101")
                                         .cookie(accessTokenCookie(member.getUsername()))
                         )
-                        .andExpect(status().isOk())
-                        .andExpect(view().name("error/400"));
+                        .andExpect(status().isMethodNotAllowed());
             }
 
             @Test
@@ -230,6 +207,11 @@ public class LedgerControllerIT extends IntegrationTest {
 
         final String URI = "/ledgers";
 
+        @BeforeEach
+        void setUp() {
+            ledgerRepository.deleteAll();
+        }
+
         @Test
         @DisplayName("등록 요청으로 가계부를 저장한다.")
         void savesLedger_whenRequestIsValid() throws Exception {
@@ -240,11 +222,11 @@ public class LedgerControllerIT extends IntegrationTest {
             mockMvc.perform(
                             multipart(URI)
                                     .file(file)
-                                    .param("date", LedgerTestData.DATE)
-                                    .param("categoryCode", CategoryTestData.SALARY_CODE)
-                                    .param("fixed", LedgerTestData.FIX_N.getValue().toLowerCase())
-                                    .param("amount", LedgerTestData.AMOUNT.toString())
-                                    .param("paymentType", LedgerTestData.PAYMENT_TYPE.name().toLowerCase())
+                                    .param("date", LedgerTestData.DEFAULT_DATE)
+                                    .param("categoryCode", LedgerTestData.DEFAULT_CATEGORY)
+                                    .param("fixed", LedgerTestData.DEFAULT_FIX.getValue().toLowerCase())
+                                    .param("amount", LedgerTestData.DEFAULT_AMOUNT.toString())
+                                    .param("paymentType", LedgerTestData.DEFAULT_PAYMENT_TYPE.name().toLowerCase())
 									.cookie(accessTokenCookie(member.getUsername()))
                     )
                     .andExpect(status().is3xxRedirection())
@@ -253,12 +235,19 @@ public class LedgerControllerIT extends IntegrationTest {
             //then
             assertThat(ledgerRepository.findAll())
                     .anyMatch(ledger ->
-                            ledger.getCategory().equals(CategoryTestData.SALARY_CODE)
+                            ledger.getCategory().equals(LedgerTestData.DEFAULT_CATEGORY)
                     );
 
-            try(Stream<Path> files = Files.walk(getTempDir())) {
-                assertThat(files).anyMatch(p ->
-                        p.getFileName().toString().endsWith(".jpg"));
+            try(Stream<Path> files = Files.walk(tempDir)) {
+                boolean exist = files
+                        .filter(Files::isRegularFile)
+                        .anyMatch(path -> {
+                            String fileName = path.getFileName().toString().toLowerCase();
+
+                            return fileName.endsWith(".jpg") || fileName.endsWith(".png");
+                        });
+
+                assertThat(exist).isTrue();
             }
         }
 
@@ -268,10 +257,10 @@ public class LedgerControllerIT extends IntegrationTest {
             //when
             mockMvc.perform(
                             multipart(URI)
-                                    .param("date", LedgerTestData.DATE)
-                                    .param("fixed", LedgerTestData.FIX_N.getValue().toLowerCase())
-                                    .param("amount", LedgerTestData.AMOUNT.toString())
-                                    .param("paymentType", LedgerTestData.PAYMENT_TYPE.name().toLowerCase())
+                                    .param("date", LedgerTestData.DEFAULT_DATE)
+                                    .param("fixed", LedgerTestData.DEFAULT_FIX.getValue().toLowerCase())
+                                    .param("amount", LedgerTestData.DEFAULT_AMOUNT.toString())
+                                    .param("paymentType", LedgerTestData.DEFAULT_PAYMENT_TYPE.name().toLowerCase())
                                     .cookie(accessTokenCookie(member.getUsername()))
                     )
                     .andDo(print())
@@ -280,24 +269,24 @@ public class LedgerControllerIT extends IntegrationTest {
 
             //then
             assertThat(ledgerRepository.count()).isEqualTo(0);
-            assertThat(Files.exists(getTempDir())).isFalse();
+            assertThat(Files.exists(tempDir.resolve(member.getId()))).isFalse();
         }
 
         @Test
         @DisplayName("서버에 파일 저장 실패하면 등록하지 않는다.")
         void doesNotSaveLedger_whenFileUploadFails() throws Exception {
             //when
-            MockMultipartFile file = ImageFixture.emptyFile();
+            MockMultipartFile file = ImageFixture.empty("test");
 
             //when
             mockMvc.perform(
                             multipart(URI)
                                     .file(file)
-                                    .param("date", LedgerTestData.DATE)
+                                    .param("date", LedgerTestData.DEFAULT_DATE)
                                     .param("categoryCode", CategoryTestData.SALARY_CODE)
-                                    .param("fixed", LedgerTestData.FIX_N.getValue().toLowerCase())
-                                    .param("amount", LedgerTestData.AMOUNT.toString())
-                                    .param("paymentType", LedgerTestData.PAYMENT_TYPE.name().toLowerCase())
+                                    .param("fixed", LedgerTestData.DEFAULT_FIX.getValue().toLowerCase())
+                                    .param("amount", LedgerTestData.DEFAULT_AMOUNT.toString())
+                                    .param("paymentType", LedgerTestData.DEFAULT_PAYMENT_TYPE.name().toLowerCase())
                                     .cookie(accessTokenCookie(member.getUsername()))
                     )
                     .andDo(print())
@@ -306,7 +295,7 @@ public class LedgerControllerIT extends IntegrationTest {
 
             //then
             assertThat(ledgerRepository.count()).isEqualTo(0);
-            assertThat(Files.exists(getTempDir())).isFalse();
+            assertThat(Files.exists(tempDir.resolve(member.getId()))).isFalse();
         }
     }
 

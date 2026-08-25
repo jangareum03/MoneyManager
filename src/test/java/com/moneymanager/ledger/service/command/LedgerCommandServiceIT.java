@@ -7,7 +7,7 @@ import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.entity.LedgerTestFixture;
 import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,7 +61,7 @@ class LedgerCommandServiceIT extends IntegrationTest {
         @BeforeEach
         void setUp() {
             Long id = ledgerRepository.save(
-                    LedgerFixture.builder().create()
+                    LedgerTestFixture.builder().build()
             );
 
             saved = ledgerRepository.findById(id);
@@ -72,8 +72,8 @@ class LedgerCommandServiceIT extends IntegrationTest {
         void updatesAccountBook_whenRequestIsValid() {
         	//given
             LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
-                    .fixed(LedgerTestData.FIX_Y.getValue())
-                    .fixCycle(LedgerTestData.FIX_CYCLE.getValue())
+                    .fixed(LedgerTestData.FIXED_REPEAT.getValue())
+                    .fixCycle(LedgerTestData.MONTHLY_CYCLE.getValue())
                     .amount(50000L)
                     .paymentType(PaymentType.CARD.name())
                     .build();
@@ -82,8 +82,8 @@ class LedgerCommandServiceIT extends IntegrationTest {
             target.updateLedger(request, saved);
         	
         	//then
-        	assertThat(saved.getFix()).isEqualTo(LedgerTestData.FIX_Y);
-        	assertThat(saved.getFixCycle()).isEqualTo(LedgerTestData.FIX_CYCLE);
+        	assertThat(saved.getFix()).isEqualTo(LedgerTestData.FIXED_REPEAT);
+        	assertThat(saved.getFixCycle()).isEqualTo(LedgerTestData.MONTHLY_CYCLE);
             assertThat(saved.getMoney().getAmount()).isEqualTo(50000L);
             assertThat(saved.getMoney().getPaymentType()).isEqualTo(PaymentType.CARD);
         }

@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 
-import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +45,7 @@ public class FixCycleTest {
 
 	@Nested
 	@DisplayName("FixCycle 변환할 때")
-	class FromTest {
+	class From {
 
 		@Nested
 		@DisplayName("성공")
@@ -100,7 +99,7 @@ public class FixCycleTest {
 			
 			@ParameterizedTest
 			@NullAndEmptySource
-			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueIsNull(String cycle) {
 				assertThatThrownBy(() -> FixCycle.from(cycle))

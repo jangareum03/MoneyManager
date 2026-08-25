@@ -44,7 +44,7 @@ public class MoneyTest {
 
 	@Nested
 	@DisplayName("Money 생성할 때")
-	class CreateTest {
+	class Create {
 
 		@ParameterizedTest
 		@EnumSource(PaymentType.class)

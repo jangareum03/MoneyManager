@@ -114,8 +114,8 @@ class LedgerUpdateValidatorTest {
                 //given
                 LedgerUpdateRequest request = LedgerUpdateRequest
                         .builder()
-                        .fixed(LedgerTestData.FIX_Y.getValue())
-                        .fixCycle(LedgerTestData.FIX_CYCLE.getValue())
+                        .fixed(LedgerTestData.FIXED_REPEAT.getValue())
+                        .fixCycle(LedgerTestData.MONTHLY_CYCLE.getValue())
                         .build();
 
                 //when
@@ -133,7 +133,7 @@ class LedgerUpdateValidatorTest {
                 //given
                 LedgerUpdateRequest request = LedgerUpdateRequestFixture
                         .builder()
-                        .fixed(LedgerTestData.FIX_N.getValue())
+                        .fixed(LedgerTestData.DEFAULT_FIX.getValue())
                         .build();
 
                 //when
@@ -147,7 +147,7 @@ class LedgerUpdateValidatorTest {
 
             @ParameterizedTest
             @NullAndEmptySource
-            @MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+            @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
             @DisplayName("장소명과 기본주소가 null이거나 비어있으면 검증을 수행하지 않는다.")
             void validatesPlace_whenNameAndAddressAreNullOrEmpty(String value) {
                 //given

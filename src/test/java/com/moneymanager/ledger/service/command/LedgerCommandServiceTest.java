@@ -15,7 +15,7 @@ import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.entity.LedgerTestFixture;
 import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +26,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_VALUE;
+import static com.moneymanager.global.exception.code.ErrorCode.INVALID_VALUE;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -87,7 +87,7 @@ class LedgerCommandServiceTest {
             @DisplayName("존재하는 회원과 유효한 요청이면 생성한다.")
             void createsLedger_whenUserExistsAndRequestIsValid() {
                 //given
-                String memberId = MemberTestData.MEMBER_ID;
+                String memberId = MemberTestData.DEFAULT_ID;
                 LedgerWriteRequest request = LedgerWriteRequestFixture
                         .withPlace()
                         .fixCycle("m")
@@ -107,7 +107,7 @@ class LedgerCommandServiceTest {
 
                 assertThat(result.getCode()).isNotBlank();
                 assertThat(result.getMemberId()).isEqualTo(memberId);
-                assertThat(result.getDate()).isEqualTo(LedgerTestData.LOCAL_DATE);
+                assertThat(result.getDate()).isEqualTo(LedgerTestData.DEFAULT_LOCAL_DATE);
                 assertThat(result.getCategory()).isEqualTo(request.getCategoryCode());
                 assertThat(result.getFix()).isSameAs(FixedType.VARIABLE);
                 assertThat(result.getFixCycle()).isSameAs(FixCycle.MONTHLY);
@@ -119,7 +119,7 @@ class LedgerCommandServiceTest {
             @DisplayName("장소 정보가 없으면 null로 포함되어 생성한다.")
             void createsLedgerWithNullPlace_whenLocationIsNull() {
                 //given
-                String memberId = MemberTestData.MEMBER_ID;
+                String memberId = MemberTestData.DEFAULT_ID;
                 LedgerWriteRequest request = LedgerWriteRequestFixture.builder().build();
 
                 when(categoryReadService.exists(request.getCategoryCode()))
@@ -136,7 +136,7 @@ class LedgerCommandServiceTest {
             @DisplayName("매번 다른 가계부 코드로 생성한다.")
             void createsLedgerWithUniqueCode_whenCalledMultipleTimes() {
                 //given
-                String memberId = MemberTestData.MEMBER_ID;
+                String memberId = MemberTestData.DEFAULT_ID;
                 LedgerWriteRequest request = LedgerWriteRequestFixture.builder().build();
 
                 when(categoryReadService.exists(request.getCategoryCode()))
@@ -160,7 +160,7 @@ class LedgerCommandServiceTest {
             @DisplayName("존재하지 않은 카테고리면 예외를 발생시킨다.")
             void throwsBusinessException_whenCategoryDoesNotExist() {
                 //given
-                String memberId = MemberTestData.MEMBER_ID;
+                String memberId = MemberTestData.DEFAULT_ID;
                 LedgerWriteRequest request = LedgerWriteRequestFixture.builder().build();
 
                 when(categoryReadService.exists(request.getCategoryCode()))
@@ -172,7 +172,7 @@ class LedgerCommandServiceTest {
                 //then
                 ApplicationExceptionAssert.assertThatApplicationException(throwable)
                         
-                        .hasErrorCode(REQUIRED_VALUE)
+                        .hasErrorCode(INVALID_VALUE)
                         .hasWork("Ledger 생성")
                         .hasTarget(LedgerWriteRequest.class)
                         .hasValue("categoryCode", request.getCategoryCode());
@@ -191,7 +191,7 @@ class LedgerCommandServiceTest {
         @DisplayName("기존과 다른 정보를 요청하면 가계부를 수정한다.")
         void updatesAccountBook_whenRequestIsDifferent() {
         	//given
-            Ledger ledger = LedgerFixture.builder().saved();
+            Ledger ledger = LedgerTestFixture.builder().build();
             LedgerUpdateRequest request = LedgerUpdateRequestFixture.withPlace().build();
 
             when(categoryReadService.exists(request.getCategoryCode()))
@@ -213,7 +213,7 @@ class LedgerCommandServiceTest {
         void doesNothing_whenAccountBookDataIsUnchanged() {
         	//given
             LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder().build();
-            Ledger ledger = LedgerFixture.builder().saved();
+            Ledger ledger = LedgerTestFixture.builder().build();
 
             when(categoryReadService.exists(request.getCategoryCode()))
                     .thenReturn(Boolean.TRUE);
@@ -222,7 +222,7 @@ class LedgerCommandServiceTest {
             target.updateLedger(request, ledger);
         	
         	//then
-        	verify(ledgerRepository, never()).save(ledger);
+        	verify(ledgerRepository, never()).save(any());
         }
         
         @Test
@@ -232,7 +232,7 @@ class LedgerCommandServiceTest {
             LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
                     .categoryCode("no-exist")
                     .build();
-            Ledger ledger = LedgerFixture.builder().saved();
+            Ledger ledger = LedgerTestFixture.builder().build();
 
             when(categoryReadService.exists(request.getCategoryCode()))
                     .thenThrow(ApplicationException.class);

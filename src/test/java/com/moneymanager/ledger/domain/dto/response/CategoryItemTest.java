@@ -53,11 +53,11 @@ import static org.junit.jupiter.api.Named.named;
 public class CategoryItemTest {
 
 	@Nested
-	@DisplayName("CategoryItem 변환")
-	class FromTest {
+	@DisplayName("CategoryItem 변환할 때")
+	class From {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 
 			@Test
@@ -135,7 +135,7 @@ public class CategoryItemTest {
 
 
 		@Nested
-		@DisplayName("실패 케이스")
+		@DisplayName("실패")
 		class Failure {
 
 			@Test

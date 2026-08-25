@@ -66,7 +66,7 @@ class MemberReadServiceTest {
 			@DisplayName("회원이 존재하면 가능한 개수를 반환한다.")
 			void returnsAvailableCount_whenUserExists() {
 				//given
-				String memberId = MemberTestData.MEMBER_ID;
+				String memberId = MemberTestData.DEFAULT_ID;
 
 				when(repository.findImageUploadLimitByMemberId(memberId))
 						.thenReturn(1);

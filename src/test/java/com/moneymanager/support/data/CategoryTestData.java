@@ -2,6 +2,8 @@ package com.moneymanager.support.data;
 
 public final class CategoryTestData {
 
+	private CategoryTestData() {}
+
 	public static final String INCOME_CODE = "010000";
 	public static final String INCOME_NAME = "수입";
 	public static final String EARNED_CODE = "010100";

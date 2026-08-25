@@ -2,14 +2,15 @@ package com.moneymanager.support;
 
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.ledger.repository.LedgerRepository;
-import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.repository.MemberRepository;
 import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.entity.MemberFixture;
-import org.junit.jupiter.api.io.TempDir;
+import com.moneymanager.support.fixture.entity.MemberTestFixture;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -59,7 +60,10 @@ public abstract class IntegrationTest {
 	private JwtTokenProvider jwtTokenProvider;
 
 	@Autowired
-	private PasswordEncoder passwordEncoder;
+	protected PasswordEncoder passwordEncoder;
+
+	@Autowired
+	protected JdbcTemplate jdbcTemplate;
 
 	@Autowired
 	protected MemberRepository memberRepository;
@@ -67,12 +71,22 @@ public abstract class IntegrationTest {
 	@Autowired
 	protected LedgerRepository ledgerRepository;
 
-	@TempDir
-	static Path tempDir;
+	protected static Path tempDir = createTempDir();
 
 	@DynamicPropertySource
 	static void dynamicProperties(DynamicPropertyRegistry registry) {
 		registry.add("file.root", () -> tempDir.toString());
+	}
+
+	@BeforeEach
+	void prepareTestEnvironment() throws IOException {
+		cleanTempDir();
+		insertTestData();
+	}
+
+	@AfterEach
+	void cleanupTestEnvironment() {
+		deleteTestData();
 	}
 
 	protected Cookie accessTokenCookie(String username) {
@@ -81,46 +95,43 @@ public abstract class IntegrationTest {
 		return new Cookie("accessToken", token);
 	}
 
-	protected Member saveMember() {
-		Member member = MemberFixture.member(passwordEncoder).build();
 
-		boolean exits = memberRepository.findById(member.getId()) != null;
-
-		if (!exits) {
-			memberRepository.save(member);
+	//===== 보조 메서드 =====
+	private static Path createTempDir() {
+		try{
+			return Files.createTempDirectory("ledger-test");
+		}catch (IOException e) {
+			throw new UncheckedIOException(e);
 		}
-
-		return member;
 	}
 
-	protected Member saveOtherMember() {
-		Member member = MemberFixture.member(passwordEncoder)
-				.id(MemberTestData.OTHER_MEMBER_ID)
-				.username(MemberTestData.OTHER_USERNAME)
-				.build();
+	private void insertTestData() {
+		String username = MemberTestData.DEFAULT_USERNAME;
 
-		memberRepository.save(member);
-
-		return member;
-	}
-
-	protected Path getTempDir() {
-		return tempDir;
-	}
-
-	protected void deleteTempDir(Path dir) throws IOException {
-		if(Files.exists(dir)) {
-			try(Stream<Path> paths = Files.walk(dir)) {
-				paths.sorted(Comparator.reverseOrder())
-						.forEach(path -> {
-							try{
-								Files.deleteIfExists(path);
-							}catch (IOException e) {
-								throw new UncheckedIOException(e);
-							}
-						});
-			}
+		if(memberRepository.findAuthByUsername(username).isEmpty()) {
+			memberRepository.save(
+					MemberTestFixture.builder().build(passwordEncoder)
+			);
 		}
+	}
+
+	private void cleanTempDir() throws IOException {
+		try (Stream<Path> paths = Files.walk(tempDir)) {
+			paths.sorted(Comparator.reverseOrder())
+					.filter(path -> !path.equals(tempDir))
+					.forEach(path -> {
+						try {
+							Files.delete(path);
+						} catch (IOException e) {
+							throw new UncheckedIOException(e);
+						}
+					});
+		}
+	}
+
+	private void deleteTestData() {
+		memberRepository.deleteAll();
+		ledgerRepository.deleteAll();
 	}
 
 }

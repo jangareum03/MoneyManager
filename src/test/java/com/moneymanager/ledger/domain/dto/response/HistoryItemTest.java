@@ -10,8 +10,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.NoSuchElementException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -45,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class HistoryItemTest {
 
 	@Nested
-	@DisplayName("HistoryItem 생성할 때")
+	@DisplayName("HistoryItem 변환할 때")
 	class FromTest {
 
 		@Nested
@@ -53,7 +51,7 @@ public class HistoryItemTest {
 		class Success {
 		
 			@Test
-			@DisplayName("유효한 값이면 생성한다.")
+			@DisplayName("유효한 값이면 변환한다.")
 			void createsHistoryItem_whenQueryIsValid() {
 				//given
 				LedgerHistoryQuery historyQuery = LedgerHistoryQueryFixture.create();
@@ -80,9 +78,9 @@ public class HistoryItemTest {
 				String category = "030101";
 
 				LedgerHistoryQuery historyQuery = new LedgerHistoryQuery(
-						LedgerTestData.CODE,
-						LedgerTestData.LOCAL_DATE,
-						LedgerTestData.AMOUNT,
+						LedgerTestData.DEFAULT_CODE,
+						LedgerTestData.DEFAULT_LOCAL_DATE,
+						LedgerTestData.DEFAULT_AMOUNT,
 						LedgerTestData.MEMO,
 						CategoryTestData.SALARY_NAME,
 						category

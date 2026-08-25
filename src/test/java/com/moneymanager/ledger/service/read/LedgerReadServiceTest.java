@@ -5,7 +5,7 @@ import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.support.ApplicationExceptionAssert;
-import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.entity.LedgerTestFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -66,7 +66,7 @@ class LedgerReadServiceTest {
             String memberId = "memberId";
 
             when(ledgerRepository.findByCode(code))
-                    .thenReturn(LedgerFixture.builder().memberId(memberId).code(code).saved());
+                    .thenReturn(LedgerTestFixture.builder().memberId(memberId).code(code).build());
         	
         	//when
             Ledger result = target.getOwnerLedger(memberId, code);
@@ -102,7 +102,7 @@ class LedgerReadServiceTest {
             String memberId = "memberId";
 
             when(ledgerRepository.findByCode(code))
-                    .thenReturn(LedgerFixture.builder().memberId("other").saved());
+                    .thenReturn(LedgerTestFixture.builder().memberId("other").build());
         	
         	//when
             Throwable throwable = catchThrowable(() -> target.getOwnerLedger(memberId, code));

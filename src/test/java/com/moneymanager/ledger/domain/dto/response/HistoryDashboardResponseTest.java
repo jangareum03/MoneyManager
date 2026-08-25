@@ -50,15 +50,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class HistoryDashboardResponseTest {
 
 	@Nested
-	@DisplayName("HistoryDashboardResponse 변환")
-	class OfTest {
+	@DisplayName("HistoryDashboardResponse 변환할 때")
+	class Of {
 
 		@Nested
-		@DisplayName("성공 케이스")
+		@DisplayName("성공")
 		class Success {
 
 			@Test
-			@DisplayName("날짜가 원하는 문자열 포맷으로 변환된다.")
+			@DisplayName("날짜가 원하는 문자열 포맷으로 변환한다.")
 			void returnsFormattedString_whenStringFormatIsGiven() {
 				//given: HistoryDashboardResponse 생성하기 위해 필요한 정보가 준비되어 있다.
 				String title = "제목";
@@ -92,7 +92,7 @@ public class HistoryDashboardResponseTest {
 			}
 			
 			@Test
-			@DisplayName("HistoryItem 리스트가 순서 그대로 유지된다.")
+			@DisplayName("HistoryItem 리스트가 순서 그대로 유지한다.")
 			void sortsHistoryItemsByOriginalOrder_whenListIsGiven() {
 				//given: HistoryDashboardResponse 생성하기 위해 필요한 정보가 준비되어 있다.
 				String title = "제목";
@@ -131,7 +131,7 @@ public class HistoryDashboardResponseTest {
 			}
 			
 			@Test
-			@DisplayName("여러 날짜를 모두 변환하며 입력 순서대로 유지된다.")
+			@DisplayName("여러 날짜를 모두 변환하며 입력 순서대로 유지한다.")
 			void returnsFormattedDatesInInputOrder_whenMultipleDatesAreGiven() {
 				//given: HistoryDashboardResponse 생성하기 위해 필요한 정보가 준비되어 있다.
 				String title = "제목";
@@ -175,7 +175,7 @@ public class HistoryDashboardResponseTest {
 			}
 			
 			@Test
-			@DisplayName("빈 Map이면 그대로 반환된다.")
+			@DisplayName("빈 Map이면 그대로 반환한다.")
 			void doesNothing_whenMapIsEmpty() {
 				//given: HistoryItem을 담은 Map을 빈 맵으로 준비되어 있다.
 				String title = "제목";

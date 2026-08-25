@@ -5,7 +5,7 @@ import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.entity.MemberFixture;
+import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -69,7 +69,7 @@ class MemberRepositoryIT {
 
 	@BeforeEach
 	void setUp() {
-		member = MemberFixture.member(passwordEncoder).build();
+		member = MemberTestFixture.builder().build(passwordEncoder);
 
 		target.save(member);
 	}
@@ -82,7 +82,7 @@ class MemberRepositoryIT {
 		void setUp() {
 			jdbcTemplate.update(
 					"DELETE FROM member WHERE id =? ",
-					MemberTestData.MEMBER_ID
+					MemberTestData.DEFAULT_ID
 			);
 		}
 
@@ -191,22 +191,19 @@ class MemberRepositoryIT {
 			@DisplayName("필수 정보가 없으면 저장에 실패한다.")
 			void throwsDataIntegrityViolationException_whenRequiredFieldIsMissing() {
 				//given
-				Member member = MemberFixture.member()
+				Member member = MemberTestFixture.builder()
 						.username(null)
-						.build();
+						.build(passwordEncoder);
 
 				//when & then
-				assertThatThrownBy(() -> target.save(member))
-						;
+				assertThatThrownBy(() -> target.save(member));
 			}
 
 			@Test
 			@DisplayName("기존에 있는 회원번호는 저장에 실패한다.")
 			void throwsDataIntegrityViolationException_whenMemberNumberAlreadyExists() {
 				//given: "UCt01001"를 가진 회원번호가 저장되어 있다.
-				Member member = MemberFixture.member()
-						.id(MemberTestData.MEMBER_ID)
-						.build();
+				Member member = MemberTestFixture.builder().build(passwordEncoder);
 
 				target.save(member);
 
@@ -228,7 +225,7 @@ class MemberRepositoryIT {
 		void setUp() {
 			jdbcTemplate.update(
 					"UPDATE member_info SET failure_count = 1 WHERE id = ?",
-					MemberTestData.MEMBER_ID
+					MemberTestData.DEFAULT_ID
 			);
 		}
 
@@ -240,13 +237,13 @@ class MemberRepositoryIT {
 			@DisplayName("회원이 존재하면 회원인증 정보를 반환한다.")
 			void returnsUserAuthInfo_whenUserExists() {
 				//when
-				Optional<MemberAuth> result = target.findAuthByUsername(MemberTestData.USERNAME);
+				Optional<MemberAuth> result = target.findAuthByUsername(MemberTestData.DEFAULT_USERNAME);
 				
 				//then
 				assertThat(result.isPresent()).isTrue();
 
 				MemberAuth memberAuth = result.get();
-				assertThat(memberAuth.getUsername()).isEqualTo(MemberTestData.USERNAME);
+				assertThat(memberAuth.getUsername()).isEqualTo(MemberTestData.DEFAULT_USERNAME);
 				assertThat(memberAuth.getLoginFailCount()).isEqualTo(1);
 				assertThat(memberAuth.getDeletedDate()).isNull();
 			}
@@ -257,11 +254,11 @@ class MemberRepositoryIT {
 				//given: 저장된 회원에 탈퇴일을 변경한다.
 				jdbcTemplate.update(
 						"UPDATE member SET deleted_at = SYSDATE WHERE username = ?",
-						MemberTestData.USERNAME
+						MemberTestData.DEFAULT_USERNAME
 				);
 				
 				//when
-				Optional<MemberAuth> result = target.findAuthByUsername(MemberTestData.USERNAME);
+				Optional<MemberAuth> result = target.findAuthByUsername(MemberTestData.DEFAULT_USERNAME);
 				
 				//then: 탈퇴일이 반환된다.
 				MemberAuth memberAuth = result.get();
@@ -292,7 +289,7 @@ class MemberRepositoryIT {
 		void setUp() {
 			jdbcTemplate.update(
 					"UPDATE member_info SET image_limit = 2 WHERE id = ?",
-					MemberTestData.MEMBER_ID
+					MemberTestData.DEFAULT_ID
 			);
 		}
 
@@ -304,7 +301,7 @@ class MemberRepositoryIT {
 			@DisplayName("회원이 존재하면 개수가 반환된다.")
 			void returnsCount_whenUserExists() {
 				//when
-				Integer result = target.findImageUploadLimitByMemberId(MemberTestData.MEMBER_ID);
+				Integer result = target.findImageUploadLimitByMemberId(MemberTestData.DEFAULT_ID);
 				
 				//then
 				assertThat(result).isEqualTo(2);

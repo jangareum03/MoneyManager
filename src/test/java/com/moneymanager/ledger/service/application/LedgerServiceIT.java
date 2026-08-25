@@ -13,7 +13,8 @@ import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.entity.LedgerTestFixture;
+import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
@@ -77,11 +78,6 @@ class LedgerServiceIT extends IntegrationTest {
     @DisplayName("작성 2단계에 필요한 정보를 조회할 때")
     class GetWriteStep2Data {
 
-        @BeforeEach
-        void setUp() {
-            saveMember();
-        }
-
         @Nested
         @DisplayName("성공")
         class Success {
@@ -117,14 +113,19 @@ class LedgerServiceIT extends IntegrationTest {
     @DisplayName("가계부 등록 처리 진행할 때")
     class ProcessLedgerRegistration {
 
+        @BeforeEach
+        void setUp() {
+            ledgerRepository.deleteAll();
+        }
+
         @Test
         @DisplayName("유효한 요청 정보면 가계부를 저장한다.")
         void savesLedger_whenRequestIsValid() {
             //given
             LedgerWriteRequest request = LedgerWriteRequestFixture
                     .withPlace()
-                    .fixed(LedgerTestData.FIX_Y.getValue().toLowerCase())
-                    .fixCycle(LedgerTestData.FIX_CYCLE.getValue().toLowerCase())
+                    .fixed(LedgerTestData.FIXED_REPEAT.getValue().toLowerCase())
+                    .fixCycle(LedgerTestData.MONTHLY_CYCLE.getValue().toLowerCase())
                     .memo(LedgerTestData.MEMO)
                     .build();
 
@@ -135,7 +136,6 @@ class LedgerServiceIT extends IntegrationTest {
 
             //then
             Long after = ledgerRepository.count();
-
             assertThat(after).isGreaterThan(before);
 
             Ledger saved = ledgerRepository.findAll().get(0);
@@ -150,7 +150,7 @@ class LedgerServiceIT extends IntegrationTest {
                     .isNotNull();
 
             assertThat(saved.getCreatedAt()).isNotNull();
-            assertThat(saved.getMemberId()).isEqualTo(MemberTestData.MEMBER_ID);
+            assertThat(saved.getMemberId()).isEqualTo(MemberTestData.DEFAULT_ID);
 
             assertThat(saved.getDate())
                     .isEqualTo(LocalDate.parse(request.getDate(), DateTimeFormatter.ofPattern("yyyyMMdd")));
@@ -172,6 +172,12 @@ class LedgerServiceIT extends IntegrationTest {
             LedgerWriteRequest request = LedgerWriteRequestFixture
                     .withImages(2)
                     .build();
+
+            //given: 회원의 이미지 개수를 2로 변경
+            jdbcTemplate.update(
+                    "UPDATE member_info SET image_limit = 2 WHERE id = ?",
+                    MemberTestData.DEFAULT_ID
+            );
 
             //when
             target.processLedgerRegistration(request);
@@ -208,39 +214,34 @@ class LedgerServiceIT extends IntegrationTest {
     @DisplayName("가계부를 수정할 때")
     class Update {
 
-        Ledger saved;
+        Ledger ledger;
 
         @BeforeEach
         void setUp() throws IOException {
             Long id = ledgerRepository.save(
-                    LedgerFixture.builder()
-                            .id(null)
-                            .memberId(MemberTestData.MEMBER_ID)
-                            .saved()
+                    LedgerTestFixture.builder().build()
             );
 
-            saved = ledgerRepository.findById(id);
-
-            deleteTempDir(getTempDir());
+            ledger = ledgerRepository.findById(id);
         }
 
         @Test
         @DisplayName("정상적인 가계부 수정 요청이면 수정한다.")
         void updatesLedger_whenRequestIsFromOwner() {
             //given
-            String code = saved.getCode();
+            String code = ledger.getCode();
             LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
                     .categoryCode("010201")
                     .memo("메모")
                     .build();
 
-            assertThat(saved.getUpdatedAt()).isNull();
+            assertThat(ledger.getUpdatedAt()).isNull();
 
             //when
             target.processLedgerUpdate(code, request);
 
             //then
-            Ledger updated = ledgerRepository.findById(saved.getId());
+            Ledger updated = ledgerRepository.findById(ledger.getId());
 
             assertThat(updated.getCategory()).isEqualTo(request.getCategoryCode());
             assertThat(updated.getMemo()).isEqualTo(request.getMemo());
@@ -251,25 +252,25 @@ class LedgerServiceIT extends IntegrationTest {
         @DisplayName("이미지를 포함한 수정 요청이면 가계부 수정 후 이미지도 저장한다.")
         void updatesLedgerAndImage_whenImageIsProvided() throws IOException {
             //given
-            String code = saved.getCode();
+            String code = ledger.getCode();
             LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
                     .images(List.of(
                             ImageFixture.jpg("test")
                     ))
                     .build();
 
-            assertThat(saved.getUpdatedAt()).isNull();
+            assertThat(ledger.getUpdatedAt()).isNull();
 
             //when
             target.processLedgerUpdate(code, request);
 
             //then
-            List<LedgerImage> images = imageRepository.findByLedgerId(saved.getId());
+            List<LedgerImage> images = imageRepository.findByLedgerId(ledger.getId());
 
             assertThat(images).hasSize(1);
-            assertThat(images.get(0).getLedgerId()).isEqualTo(saved.getId());
+            assertThat(images.get(0).getLedgerId()).isEqualTo(ledger.getId());
 
-            try (Stream<Path> paths = Files.walk(getTempDir().resolve(MemberTestData.MEMBER_ID))) {
+            try (Stream<Path> paths = Files.walk(tempDir)) {
                 long count = paths
                         .filter(Files::isRegularFile)
                         .filter(path -> {
@@ -286,14 +287,27 @@ class LedgerServiceIT extends IntegrationTest {
         @Test
         @DisplayName("타인의 가계부를 수정 요청하면 수정하지 않는다.")
         void throwsException_whenUserIsNotOwner() {
-            //given: 다른 회원의 가계부가 주어진다.
-            Member other = saveOtherMember();
+            //given: 다른 회원의 가계부가 주어진다
+            String memberId = "other";
 
-            Long id = ledgerRepository.save(
-                    LedgerFixture.builder().memberId(other.getId()).create()
+            memberRepository.save(
+                    MemberTestFixture.builder()
+                            .id(memberId)
+                            .username("other")
+                            .nickName("other")
+                            .email("other@test.com")
+                            .build(passwordEncoder)
             );
 
-            Ledger otherLedger =  ledgerRepository.findById(id);
+            Member other = memberRepository.findById(memberId);
+
+            Long id = ledgerRepository.save(
+                    LedgerTestFixture.builder()
+                            .memberId(other.getId())
+                            .build()
+            );
+
+            Ledger otherLedger = ledgerRepository.findById(id);
 
             LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
                     .memo("수정")

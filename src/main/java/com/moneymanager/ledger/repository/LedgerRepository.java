@@ -2,10 +2,12 @@ package com.moneymanager.ledger.repository;
 
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.global.util.ObjectUtils;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.FixCycle;
+import com.moneymanager.ledger.domain.enums.FixedType;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -51,228 +54,228 @@ import static com.moneymanager.global.exception.code.ErrorCode.INTERVAL_SERVER_E
 @Repository
 public class LedgerRepository {
 
-	private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-	public LedgerRepository(DataSource dataSource) {
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
-	}
+    public LedgerRepository(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
 
-	private final RowMapper<Ledger> ledgerRowMapper = (rs, rowNum) -> Ledger.create(
+    private final RowMapper<Ledger> ledgerRowMapper = (rs, rowNum) -> Ledger.restore(
             rs.getLong("id"),
             rs.getString("code"),
             rs.getString("member_id"),
             rs.getDate("transaction_date").toLocalDate(),
             rs.getNString("category_id"),
-            rs.getString("fix"),
-            rs.getString("fix_cycle"),
+            FixedType.from(rs.getString("fix")),
+            ObjectUtils.getValueOrNull(rs.getString("fix_cycle"), FixCycle::from),
             rs.getString("memo"),
             Money.of(rs.getLong("amount"), rs.getString("payment_type")),
-            Place.ofOrNull(rs.getString("place_name"),rs.getString("road_address"), rs.getString("detail_address")),
+            Place.ofOrNull(rs.getString("place_name"), rs.getString("road_address"), rs.getString("detail_address")),
             rs.getTimestamp("created_at").toLocalDateTime(),
-            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null
-            );
+            ObjectUtils.getValueOrNull(rs.getTimestamp("updated_at"), Timestamp::toLocalDateTime)
+    );
 
-	private final RowMapper<LedgerHistoryQuery> ledgerHistoryQueryRowMapper = (rs, rowNum) -> new LedgerHistoryQuery(
-			rs.getString("code"),
-			rs.getDate("transaction_date").toLocalDate(),
-			rs.getLong("amount"),
-			rs.getString("memo"),
-			rs.getString("category_name"),
-			rs.getString("category_code")
-	);
+    private final RowMapper<LedgerHistoryQuery> ledgerHistoryQueryRowMapper = (rs, rowNum) -> new LedgerHistoryQuery(
+            rs.getString("code"),
+            rs.getDate("transaction_date").toLocalDate(),
+            rs.getLong("amount"),
+            rs.getString("memo"),
+            rs.getString("category_name"),
+            rs.getString("category_code")
+    );
 
 
-	public Long save(Ledger ledger) {
-		if(ledger.getId() == null) {
-			return insert(ledger);
-		}else {
-			update(ledger);
-		}
-
-		return ledger.getId();
-	}
-
-	public Ledger findById(Long id) {
-		String query = """
-				SELECT id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address, created_at, updated_at
-				FROM ledger
-				WHERE id = ?
-				""";
-
-		try{
-			return jdbcTemplate.queryForObject(
-					query,
-					ledgerRowMapper,
-					id
-			);
-		} catch (EmptyResultDataAccessException e) {
-            throw new ApplicationException(
-					DATA_NOT_FOUND,
-					LogContent.of(
-							"가계부 번호로 가계부 조회",
-							Ledger.class,
-							"id", id
-					)
-			);
+    public Long save(Ledger ledger) {
+        if (ledger.getId() == null) {
+            return insert(ledger);
+        } else {
+            update(ledger);
         }
-	}
+
+        return ledger.getId();
+    }
+
+    public Ledger findById(Long id) {
+        String query = """
+                SELECT id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address, created_at, updated_at
+                FROM ledger
+                WHERE id = ?
+                """;
+
+        try {
+            return jdbcTemplate.queryForObject(
+                    query,
+                    ledgerRowMapper,
+                    id
+            );
+        } catch (EmptyResultDataAccessException e) {
+            throw new ApplicationException(
+                    DATA_NOT_FOUND,
+                    LogContent.of(
+                            "가계부 번호로 가계부 조회",
+                            Ledger.class,
+                            "id", id
+                    )
+            );
+        }
+    }
 
 
-	public Ledger findByCode(String code) {
-		String query = """
-				SELECT *
-				FROM ledger
-				WHERE code = ?
-				""";
+    public Ledger findByCode(String code) {
+        String query = """
+                SELECT *
+                FROM ledger
+                WHERE code = ?
+                """;
 
-		try{
-			return jdbcTemplate.queryForObject(
-					query,
-					ledgerRowMapper,
-					code
-			);
-		}catch (EmptyResultDataAccessException e) {
-			throw new ApplicationException(
-					DATA_NOT_FOUND,
-					LogContent.of(
-							"가계부 코드로 가계부 조회",
-							Ledger.class,
-							"code", code
-					)
-			);
-		}
-	}
-
-
-	public List<Ledger> findAll() {
-		String query = """
-				SELECT *
-				FROM ledger
-				""";
-
-		return jdbcTemplate.query(
-				query,
-				ledgerRowMapper
-		);
-	}
+        try {
+            return jdbcTemplate.queryForObject(
+                    query,
+                    ledgerRowMapper,
+                    code
+            );
+        } catch (EmptyResultDataAccessException e) {
+            throw new ApplicationException(
+                    DATA_NOT_FOUND,
+                    LogContent.of(
+                            "가계부 코드로 가계부 조회",
+                            Ledger.class,
+                            "code", code
+                    )
+            );
+        }
+    }
 
 
-	public List<LedgerHistoryQuery> findHistoriesByMemberAndDateBetween(String memberId, LocalDate startDate, LocalDate endDate) {
-		String query = """
-				SELECT l.code, transaction_date, c.code AS category_code, c.name AS category_name, amount, memo
-				FROM ledger l
-				JOIN ledger_category  c ON l.category_id = c.code
-				WHERE l.member_id = ?
-					AND l.transaction_date >= ?
-					AND l.transaction_date < ?
-				ORDER BY l.transaction_date DESC, l.id DESC
-				""";
+    public List<Ledger> findAll() {
+        String query = """
+                SELECT *
+                FROM ledger
+                """;
 
-		return jdbcTemplate.query(
-				query,
-
-				ledgerHistoryQueryRowMapper,
-
-				memberId,
-				Date.valueOf(startDate),
-				Date.valueOf(endDate.plusDays(1))
-		);
-	}
-
-	public Long count() {
-		String query = """
-				SELECT COUNT(*)
-				FROM ledger
-				""";
-
-		return jdbcTemplate.queryForObject(
-				query,
-				Long.class
-		);
-	}
-
-	public void deleteAll() {
-		String query = """
-				DELETE FROM ledger
-				""";
-
-		jdbcTemplate.update(query);
-	}
+        return jdbcTemplate.query(
+                query,
+                ledgerRowMapper
+        );
+    }
 
 
-	//===== save 보조 메서드 =====
-	private Long insert(Ledger ledger) {
-		String query = """
-				INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address)
-					VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-				""";
+    public List<LedgerHistoryQuery> findHistoriesByMemberAndDateBetween(String memberId, LocalDate startDate, LocalDate endDate) {
+        String query = """
+                SELECT l.code, transaction_date, c.code AS category_code, c.name AS category_name, amount, memo
+                FROM ledger l
+                JOIN ledger_category  c ON l.category_id = c.code
+                WHERE l.member_id = ?
+                	AND l.transaction_date >= ?
+                	AND l.transaction_date < ?
+                ORDER BY l.transaction_date DESC, l.id DESC
+                """;
 
-		Long id = getNextId();
+        return jdbcTemplate.query(
+                query,
 
-		jdbcTemplate.update(
-				query,
-				id,
-				ledger.getCode(),
-				ledger.getMemberId(),
-				ledger.getCategory(),
-				ledger.getFix().getValue(),
-				Ledger.getValueOrNull(ledger.getFixCycle(), FixCycle::getValue),
-				ledger.getDate(),
-				ledger.getMemo(),
-				ledger.getMoney().getAmount(),
-				Ledger.getValueOrNull(ledger.getMoney().getPaymentType(), PaymentType::name),
-				Ledger.getValueOrNull(ledger.getPlace(), Place::getPlaceName),
-				Ledger.getValueOrNull(ledger.getPlace(), Place::getRoadAddress),
-				Ledger.getValueOrNull(ledger.getPlace(), Place::getDetailAddress)
-		);
+                ledgerHistoryQueryRowMapper,
 
-		return id;
-	}
+                memberId,
+                Date.valueOf(startDate),
+                Date.valueOf(endDate.plusDays(1))
+        );
+    }
 
-	private void update(Ledger ledger) {
-		String query = """
-				UPDATE ledger
-				SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, amount = ?, payment_type = ?, place_name = ?, road_address = ?, detail_address = ?, updated_at = ?
-				WHERE member_id = ? AND id = ?
-				""";
+    public Long count() {
+        String query = """
+                SELECT COUNT(*)
+                FROM ledger
+                """;
 
-		int row = jdbcTemplate.update(
-				query,
+        return jdbcTemplate.queryForObject(
+                query,
+                Long.class
+        );
+    }
 
-				ledger.getCategory(),
-				ledger.getFix().getValue(),
-				Ledger.getValueOrNull(ledger.getFixCycle(), FixCycle::getValue),
-				ledger.getMemo(),
-				ledger.getMoney().getAmount(),
-				Ledger.getValueOrNull(ledger.getMoney().getPaymentType(), PaymentType::name),
-				Ledger.getValueOrNull(ledger.getPlace(), Place::getPlaceName),
-				Ledger.getValueOrNull(ledger.getPlace(), Place::getRoadAddress),
-				Ledger.getValueOrNull(ledger.getPlace(), Place::getDetailAddress),
-				ledger.getUpdatedAt(),
+    public void deleteAll() {
+        String query = """
+                DELETE FROM ledger
+                """;
 
-				ledger.getMemberId(), ledger.getId()
-		);
-
-		if(row == 0) {
-			throw new ApplicationException(
-					INTERVAL_SERVER_ERROR,
-					LogContent.of(
-							"가계부 수정",
-							Ledger.class,
-							"ledgerId", ledger.getId(),
-							"memberId", ledger.getMemberId()
-					)
-			);
-		}
-
-	}
+        jdbcTemplate.update(query);
+    }
 
 
-	//===== 유틸 메서드 =====
-	private Long getNextId() {
-		String query = "SELECT ledger_seq.NEXTVAL FROM dual";
+    //===== save 보조 메서드 =====
+    private Long insert(Ledger ledger) {
+        String query = """
+                INSERT INTO ledger(id, code, member_id, category_id, fix, fix_cycle, transaction_date, memo, amount, payment_type, place_name, road_address, detail_address)
+                	VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """;
 
-		return jdbcTemplate.queryForObject(query, Long.class);
-	}
+        Long id = getNextId();
+
+        jdbcTemplate.update(
+                query,
+                id,
+                ledger.getCode(),
+                ledger.getMemberId(),
+                ledger.getCategory(),
+                ledger.getFix().getValue(),
+                ObjectUtils.getValueOrNull(ledger.getFixCycle(), FixCycle::getValue),
+                ledger.getDate(),
+                ledger.getMemo(),
+                ledger.getMoney().getAmount(),
+                ObjectUtils.getValueOrNull(ledger.getMoney().getPaymentType(), PaymentType::name),
+                ObjectUtils.getValueOrNull(ledger.getPlace(), Place::getPlaceName),
+                ObjectUtils.getValueOrNull(ledger.getPlace(), Place::getRoadAddress),
+                ObjectUtils.getValueOrNull(ledger.getPlace(), Place::getDetailAddress)
+        );
+
+        return id;
+    }
+
+    private void update(Ledger ledger) {
+        String query = """
+                UPDATE ledger
+                SET category_id = ?, fix = ?, fix_cycle = ?, memo = ?, amount = ?, payment_type = ?, place_name = ?, road_address = ?, detail_address = ?, updated_at = ?
+                WHERE member_id = ? AND id = ?
+                """;
+
+        int row = jdbcTemplate.update(
+                query,
+
+                ledger.getCategory(),
+                ledger.getFix().getValue(),
+                ObjectUtils.getValueOrNull(ledger.getFixCycle(), FixCycle::getValue),
+                ledger.getMemo(),
+                ledger.getMoney().getAmount(),
+                ObjectUtils.getValueOrNull(ledger.getMoney().getPaymentType(), PaymentType::name),
+                ObjectUtils.getValueOrNull(ledger.getPlace(), Place::getPlaceName),
+                ObjectUtils.getValueOrNull(ledger.getPlace(), Place::getRoadAddress),
+                ObjectUtils.getValueOrNull(ledger.getPlace(), Place::getDetailAddress),
+                ledger.getUpdatedAt(),
+
+                ledger.getMemberId(), ledger.getId()
+        );
+
+        if (row == 0) {
+            throw new ApplicationException(
+                    INTERVAL_SERVER_ERROR,
+                    LogContent.of(
+                            "가계부 수정",
+                            Ledger.class,
+                            "ledgerId", ledger.getId(),
+                            "memberId", ledger.getMemberId()
+                    )
+            );
+        }
+
+    }
+
+
+    //===== 유틸 메서드 =====
+    private Long getNextId() {
+        String query = "SELECT ledger_seq.NEXTVAL FROM dual";
+
+        return jdbcTemplate.queryForObject(query, Long.class);
+    }
 
 }

@@ -1,4 +1,4 @@
-package com.moneymanager.support.data;
+package com.moneymanager.support.stream;
 
 import org.junit.jupiter.params.provider.Arguments;
 
@@ -6,7 +6,9 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Named.named;
 
-public final class StringTestData {
+public final class StringTestStream {
+
+	private StringTestStream() {}
 
 	public static Stream<Arguments> blankStrings() {
 		return Stream.of(

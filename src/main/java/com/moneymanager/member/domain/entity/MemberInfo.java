@@ -1,7 +1,6 @@
 package com.moneymanager.member.domain.entity;
 
 import com.moneymanager.member.domain.enums.MemberGender;
-import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -46,10 +45,8 @@ public class MemberInfo {
 	private Integer failureCount;				//로그인 실패 횟수
 	private LocalDateTime loginAt;				//마지막 접속일
 
-	@Builder
-	public MemberInfo(String id, MemberGender gender, String profile, Long point, Long consecutiveDays, int imageLimit, int failureCount, LocalDateTime loginAt) {
+	private MemberInfo(String id, MemberGender gender, String profile, Long point, Long consecutiveDays, Integer imageLimit, Integer failureCount, LocalDateTime loginAt) {
 		this.id = id;
-
 		this.gender = gender;
 		this.profile = profile;
 		this.point = point;
@@ -57,6 +54,14 @@ public class MemberInfo {
 		this.imageLimit = imageLimit;
 		this.failureCount = failureCount;
 		this.loginAt = loginAt;
+	}
+
+	public static MemberInfo of(String id, MemberGender gender) {
+		return new MemberInfo(id, gender, null, null, null, null, null, null);
+	}
+
+	public static MemberInfo restore(String id, MemberGender gender, String profile, Long point, Long consecutiveDays, Integer imageLimit, Integer failureCount, LocalDateTime loginAt) {
+		return new MemberInfo(id, gender, profile, point, consecutiveDays, imageLimit, failureCount, loginAt);
 	}
 
 }

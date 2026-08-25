@@ -54,7 +54,7 @@ class DateTimeUtilTest {
 		class Success {
 
 			@ParameterizedTest
-			@MethodSource("com.moneymanager.support.data.DateTestData#validDates")
+			@MethodSource("com.moneymanager.support.stream.DateTestStream#validDates")
 			@DisplayName("지정된 날짜로 LocalDate를 반환한다.")
 			void returnsLocalDate_whenDateFormatIsValid(String date) {
 				//when
@@ -66,7 +66,7 @@ class DateTimeUtilTest {
 			
 			@ParameterizedTest
 			@NullAndEmptySource
-			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 			@DisplayName("null 또는 빈 값이면 오늘날짜의 LocalDate를 반환한다.")
 			void returnsToday_whenDateIsNullOrEmpty(String date) {
 				//when
@@ -77,7 +77,7 @@ class DateTimeUtilTest {
 			}
 			
 			@ParameterizedTest
-			@MethodSource("com.moneymanager.support.data.DateTestData#unsupportedFormats")
+			@MethodSource("com.moneymanager.support.stream.DateTestStream#unsupportedFormats")
 			@DisplayName("지원하지 않는 날짜 형식이면 오늘날짜의 LocalDate를 반환한다.")
 			void returnsToday_whenDateFormatIsInvalid(String date) {
 				//when
@@ -88,7 +88,7 @@ class DateTimeUtilTest {
 			}
 			
 			@ParameterizedTest
-			@MethodSource("com.moneymanager.support.data.DateTestData#invalidDates")
+			@MethodSource("com.moneymanager.support.stream.DateTestStream#invalidDates")
 			@DisplayName("유효하지 않은 날짜면 오늘날짜의 LocalDate를 반환한다.")
 			void returnsToday_whenDateIsInvalid(String date) {
 				//when
@@ -373,7 +373,7 @@ class DateTimeUtilTest {
 
 			@ParameterizedTest
 			@EmptySource
-			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 			void returnEmpty_whenPatternIsEmpty(String pattern) {
 				//given: 오늘 날짜가 준비되어 있다.
 				LocalDate today = LocalDate.now();

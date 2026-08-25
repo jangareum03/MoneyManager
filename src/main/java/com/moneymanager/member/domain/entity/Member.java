@@ -3,9 +3,7 @@ package com.moneymanager.member.domain.entity;
 import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberStatus;
 import com.moneymanager.member.domain.enums.MemberType;
-import lombok.Builder;
 import lombok.Getter;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 
@@ -36,7 +34,6 @@ import java.time.LocalDateTime;
  * 		</tbody>
  * </table>
  */
-@Builder
 @Getter
 public class Member {
 
@@ -56,26 +53,33 @@ public class Member {
 
 	private MemberInfo info;										//상세정보
 
-	public static Member testMember(PasswordEncoder passwordEncoder) {
-		MemberInfo memberInfo = MemberInfo.builder()
-				.id("UCt01001")
-				.gender(MemberGender.MALE)
-				.build();
+	private Member(String id, String username, String password, String name, String birthdate, String nickname, String email, String role, MemberType type, MemberStatus status, LocalDateTime createdAt, LocalDateTime deletedAt, MemberInfo info) {
+		this.id = id;
+		this.username = username;
+		this.password = password;
+		this.name = name;
+		this.birthdate = birthdate;
+		this.nickname = nickname;
+		this.email = email;
+		this.role = role;
+		this.type = type;
+		this.status = status;
+		this.createdAt = createdAt;
+		this.deletedAt = deletedAt;
 
+		this.info = info;
+	}
 
-		return Member.builder()
-				.id("UCt01001")
-				.username("test123")
-				.password(passwordEncoder.encode("pw1234!!"))
-				.name("홍길동")
-				.birthdate("19950321")
-				.type(MemberType.COMMON)
-				.status(MemberStatus.ACTIVE)
-				.role("ROLE_USER")
-				.nickname("홍길동전")
-				.email("test@test.com")
-				.info(memberInfo)
-				.build();
+	//생성용
+	public static Member of(String id, String username, String password, String name, String birthdate, String nickname, String email, MemberType type, MemberGender gender) {
+		MemberInfo info = MemberInfo.of(id, gender);
+
+		return new Member(id, username, password, name, birthdate, nickname, email, null, type, null, null, null, info);
+	}
+
+	//DB용
+	public static Member restore(String id, String username, String password, String name, String birthdate, String nickname, String email, String role, MemberType type, MemberStatus status, LocalDateTime createdAt, LocalDateTime deletedAt, MemberInfo info) {
+		return new Member(id, username, password, name, birthdate, nickname, email, role, type, status, createdAt, deletedAt, info);
 	}
 
 }

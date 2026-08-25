@@ -1,6 +1,5 @@
 package com.moneymanager.ledger.domain.entity;
 
-import lombok.Builder;
 import lombok.Getter;
 
 import java.nio.file.Path;
@@ -33,24 +32,39 @@ import java.time.LocalDateTime;
  * 		</tbody>
  * </table>
  */
-@Builder
 @Getter
 public class LedgerImage {
-	private Long id;										//이미지 식별번호
-	private Long ledgerId;							//가계부 시스템 고유번호(내부용)
+	private final Long id;										//이미지 식별번호
+	private final Long ledgerId;							//가계부 시스템 고유번호(내부용)
 
-	private String imagePath;						//이미지 상대경로
-	private int sortOrder;							//나열 순서
+	private final String imagePath;						//이미지 상대경로
+	private final int sortOrder;							//나열 순서
 
-	private LocalDateTime createdAt;		//등록일
+	private final LocalDateTime createdAt;		//등록일
 	private LocalDateTime updatedAt;		//수정일
 
-	public static LedgerImage create(Long ledgerId, Path path, int order) {
-		return LedgerImage.builder()
-				.ledgerId(ledgerId)
-				.imagePath(String.join("/", path.toString()))
-				.sortOrder(order)
-				.build();
+	private LedgerImage(Long id, Long ledgerId, String imagePath, int sortOrder, LocalDateTime createdAt, LocalDateTime updatedAt) {
+		this.id = id;
+		this.ledgerId = ledgerId;
+		this.imagePath = imagePath;
+		this.sortOrder = sortOrder;
+		this.createdAt = createdAt;
+		this.updatedAt = updatedAt;
 	}
 
+	//생성용
+	public static LedgerImage of(Long ledgerId, Path path, int order) {
+		return new LedgerImage(null, ledgerId, toImagePath(path),  order, LocalDateTime.now(), null);
+	}
+
+	//DB용
+	public static LedgerImage restore(Long id, Long ledgerId, String imagePath, int sortOrder, LocalDateTime createdAt, LocalDateTime updatedAt) {
+		return new LedgerImage(id, ledgerId, imagePath, sortOrder, createdAt, updatedAt);
+	}
+
+
+	//===== 유틸 메서드 =====
+	private static String toImagePath(Path path) {
+		return path.toString().replace("\\", "/");
+	}
 }

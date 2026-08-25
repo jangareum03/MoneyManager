@@ -1,4 +1,4 @@
-package com.moneymanager.support.data;
+package com.moneymanager.support.stream;
 
 import com.moneymanager.global.domain.enums.DatePatterns;
 import org.junit.jupiter.params.provider.Arguments;
@@ -9,23 +9,16 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Named.named;
 
-public final class DateTestData {
+public final class DateTestStream {
 
-	public static Stream<Arguments> unsupportedFormats() {
-		return Stream.of(
-				Arguments.of(named("날짜 형식이 yyyy-MM-dd 인 경우", "2026-01-01")),
-				Arguments.of(named("날짜 형식이 yyyy.MM.dd 인 경우", "2026.01.01")),
-				Arguments.of(named("날짜 형식이 MM/dd/yyyy 인 경우", "10/22/2026")),
-				Arguments.of(named("날짜 형식이 dd/MM/yyyy 인 경우", "15/06/2026"))
-		);
-	}
+	private  DateTestStream() {}
 
 	public static Stream<Arguments> validDates() {
 		return Stream.of(DatePatterns.values())
 				.filter(patterns ->
-									patterns != DatePatterns.KOREAN_YEAR
-									&& patterns != DatePatterns.KOREAN_YEAR_MONTH
-									&& patterns != DatePatterns.KOREAN_YEAR_MONTH_WEEK
+						patterns != DatePatterns.KOREAN_YEAR
+								&& patterns != DatePatterns.KOREAN_YEAR_MONTH
+								&& patterns != DatePatterns.KOREAN_YEAR_MONTH_WEEK
 				)
 				.map(date ->  Arguments.of(
 						named(
@@ -41,6 +34,15 @@ public final class DateTestData {
 				Arguments.of(named("날짜 월이 잘못된 경우(date: 20261301)", "20261301")),
 				Arguments.of(named("날짜 일이 잘못된 경우(date: 20260140)", "20260140")),
 				Arguments.of(named("숫자말고 다른 문자가 있는 경우(date: 한abc)", "한abc"))
+		);
+	}
+
+	public static Stream<Arguments> unsupportedFormats() {
+		return Stream.of(
+				Arguments.of(named("날짜 형식이 yyyy-MM-dd 인 경우", "2026-01-01")),
+				Arguments.of(named("날짜 형식이 yyyy.MM.dd 인 경우", "2026.01.01")),
+				Arguments.of(named("날짜 형식이 MM/dd/yyyy 인 경우", "01/01/2026")),
+				Arguments.of(named("날짜 형식이 dd/MM/yyyy 인 경우", "01/01/2026"))
 		);
 	}
 

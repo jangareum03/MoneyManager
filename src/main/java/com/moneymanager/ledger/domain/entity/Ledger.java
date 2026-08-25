@@ -9,7 +9,6 @@ import lombok.Getter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.function.Function;
 
 
 /**
@@ -47,7 +46,7 @@ import java.util.function.Function;
 @Getter
 public class Ledger {
 
-    private Long id;                                            //가계부 번호(내부용)
+    private final Long id;                                    //가계부 번호(내부용)
     private final String code;                            //가계부 코드(외부용)
     private final String memberId;                    //작성자(회원 고유번호)
     private final LocalDate date;                    //거래 날짜
@@ -67,7 +66,7 @@ public class Ledger {
     private boolean changed;
 
     private Ledger(
-            Long id, String code, String memberId, LocalDate date, String category, String fix, String fixCycle, String memo,
+            Long id, String code, String memberId, LocalDate date, String category, FixedType fix, FixCycle fixCycle, String memo,
             Money money, Place place,
             LocalDateTime createdAt, LocalDateTime updatedAt
     ) {
@@ -78,27 +77,37 @@ public class Ledger {
         this.category = category;
         this.money = money;
         this.place = place;
-        this.fix = FixedType.from(fix);
-        this.fixCycle = fixCycle == null ? null : FixCycle.from(fixCycle);
+        this.fix = fix;
+        this.fixCycle = fixCycle;
         this.memo = memo;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
-    public static Ledger create(
-            String code, String memberId, LocalDate date, String category, String fix, String fixCycle, String memo,
+    //생성용
+    public static Ledger of(
+            String code, String memberId, LocalDate date, String category, FixedType fix, FixCycle fixCycle, String memo,
             Money money, Place place
     ) {
         return new Ledger(
                 null,
-                code, memberId, date, category, fix, fixCycle, memo,
-                money, place,
-                LocalDateTime.now(), null
+                code,
+                memberId,
+                date,
+                category,
+                fix,
+                fixCycle,
+                memo,
+                money,
+                place,
+                LocalDateTime.now(),
+                null
         );
     }
 
-    public static Ledger create(
-            Long id, String code, String memberId, LocalDate date, String category, String fix, String fixCycle, String memo,
+    //DB용
+    public static Ledger restore(
+            Long id, String code, String memberId, LocalDate date, String category, FixedType fix, FixCycle fixCycle, String memo,
             Money money, Place place, LocalDateTime createdAt, LocalDateTime updatedAt
     ) {
         return new Ledger(
@@ -157,13 +166,9 @@ public class Ledger {
 
 
     //===== 유틸 메서드 =====
-    private  void markChanged() {
+    private void markChanged() {
         this.updatedAt = LocalDateTime.now();
         this.changed = true;
-    }
-
-    public static <T,R> R getValueOrNull(T t, Function<T, R> mapper) {
-        return t == null ? null : mapper.apply(t);
     }
 
 }

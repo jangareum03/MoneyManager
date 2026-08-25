@@ -216,7 +216,7 @@ class CategoryReadServiceTest {
 
             @ParameterizedTest
             @NullAndEmptySource
-            @MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+            @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
             @DisplayName("코드가 null 또는 빈 문자열이면 예외를 발생시킨다.")
             void throwsValidationException_whenCodeIsNullOrEmpty(String code) {
                 //when & then

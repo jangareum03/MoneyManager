@@ -1,7 +1,6 @@
 package com.moneymanager.support.fixture.request;
 
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
-import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,10 +14,10 @@ public final class LedgerUpdateRequestFixture {
 
 	public static LedgerUpdateRequest.LedgerUpdateRequestBuilder builder() {
 		return LedgerUpdateRequest.builder()
-				.categoryCode(CategoryTestData.SALARY_CODE)
-				.fixed(LedgerTestData.FIX_N.getValue().toLowerCase())
-				.amount(LedgerTestData.AMOUNT)
-				.paymentType(LedgerTestData.PAYMENT_TYPE.name().toLowerCase());
+				.categoryCode(LedgerTestData.DEFAULT_CATEGORY)
+				.fixed(LedgerTestData.DEFAULT_FIX.getValue().toLowerCase())
+				.amount(LedgerTestData.DEFAULT_AMOUNT)
+				.paymentType(LedgerTestData.DEFAULT_PAYMENT_TYPE.name().toLowerCase());
 	}
 
 	public static LedgerUpdateRequest.LedgerUpdateRequestBuilder withImages(int size) {

@@ -8,8 +8,10 @@ import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.ledger.service.storage.LedgerImageStorage;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
+import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.data.MemberTestData;
+import com.moneymanager.support.fixture.entity.LedgerTestFixture;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +24,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,10 +65,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class LedgerApiControllerIT extends IntegrationTest {
 
-    private final String BASE_URI = "/api/ledgers";
-
-    private Member member;
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -80,9 +77,12 @@ public class LedgerApiControllerIT extends IntegrationTest {
     @Autowired
     private LedgerImageStorage imageStorage;
 
+    private final String BASE_URI = "/api/ledgers";
+    private Member member;
+
     @BeforeEach
     void setUp() {
-        member = saveMember();
+        member = memberRepository.findById(MemberTestData.DEFAULT_ID);
     }
 
     @Nested
@@ -100,7 +100,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
             void returnsSubcategories_whenCodeExists() throws Exception {
                 //when
                 mockMvc.perform(
-                                get(URI, "010100")
+                                get(URI, CategoryTestData.EARNED_CODE)
                                         .cookie(accessTokenCookie(member.getUsername()))
                                         .contentType(MediaType.TEXT_PLAIN)
                         )
@@ -124,10 +124,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
                                         .cookie(accessTokenCookie(member.getUsername()))
                                         .contentType(MediaType.TEXT_PLAIN)
                         )
-                        .andExpect(status().isOk())
-                        .andExpect(view().name("error/400"))
-                        .andExpect(model().attribute("message", "잘못된 요청입니다."))
-                        .andDo(print());
+                        .andExpect(status().isMethodNotAllowed());
             }
 
             @Test
@@ -140,7 +137,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
                                         .contentType(MediaType.TEXT_PLAIN)
                                         .header("referer", "/ledgers/new/step2")
                         )
-                        .andExpect(status().is3xxRedirection())
+                        .andExpect(status().isNotFound())
                         .andDo(print());
             }
 
@@ -172,8 +169,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
                                         .cookie(accessTokenCookie(member.getUsername()))
                                         .param("unit", unit)
                                         .param("value", date)
-                        )
-                        .andExpect(status().isOk());
+                        );
             }
 
         }
@@ -196,8 +192,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
                                         .param("unit", unit)
                                         .param("value", value)
                         )
-                        .andExpect(status().isOk())
-                        .andExpect(view().name("error/400"));
+                        .andExpect(status().isBadRequest());
             }
 
             @Test
@@ -209,9 +204,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
                                         .cookie(accessTokenCookie(member.getUsername()))
                                         .param("value", "2026")
                         )
-                        .andExpect(status().isOk())
-                        .andExpect(view().name("error/400"))
-                        .andExpect(model().attribute("message", "필수값이 없습니다."));
+                        .andExpect(status().isBadRequest());
             }
 
             @Test
@@ -223,8 +216,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
                                         .cookie(accessTokenCookie(member.getUsername()))
                                         .param("unit", "year")
                         )
-                        .andExpect(status().isOk())
-                        .andExpect(view().name("error/400"));
+                        .andExpect(status().isBadRequest());
 
             }
 
@@ -235,8 +227,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
                                 get(URI)
                                         .cookie(accessTokenCookie(member.getUsername()))
                         )
-                        .andExpect(status().isOk())
-                        .andExpect(view().name("error/400"));
+                        .andExpect(status().isBadRequest());
             }
 
             @Test
@@ -249,8 +240,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
                                         .param("unit", "month")
                                         .param("value", "202601")
                         )
-                        .andExpect(view().name("error/400"))
-                        .andExpect(model().attribute("message", "잘못된 요청입니다."));
+                        .andExpect(status().isMethodNotAllowed());
             }
 
         }
@@ -263,17 +253,15 @@ public class LedgerApiControllerIT extends IntegrationTest {
     class Update {
 
         private final String URI = BASE_URI + "/{code}";
-        private Ledger savedLedger;
+        private Ledger ledger;
 
         @BeforeEach
-        void setUp() throws IOException {
+        void setUp() {
             Long Id = ledgerRepository.save(
-                    LedgerFixture.builder().memberId(member.getId()).create()
+                    LedgerTestFixture.builder().build()
             );
 
-            savedLedger = ledgerRepository.findById(Id);
-
-            deleteTempDir(getTempDir());
+            ledger = ledgerRepository.findById(Id);
         }
 
         @Nested
@@ -295,7 +283,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
 
                 //when
                 mockMvc.perform(
-                                multipart(URI, savedLedger.getCode())
+                                multipart(URI, Update.this.ledger.getCode())
                                         .file(ledger)
                                         .with(req -> {
                                             req.setMethod("PUT");
@@ -306,10 +294,10 @@ public class LedgerApiControllerIT extends IntegrationTest {
                         )
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.message").value("가계부 수정 완료했습니다."))
-                        .andExpect(jsonPath("$.next").value("/ledgers/" + savedLedger.getCode()));
+                        .andExpect(jsonPath("$.next").value("/ledgers/" + Update.this.ledger.getCode()));
 
                 //then
-                Ledger updated = ledgerRepository.findById(savedLedger.getId());
+                Ledger updated = ledgerRepository.findById(Update.this.ledger.getId());
 
                 assertThat(updated.getPlace().getPlaceName()).isEqualTo(request.getPlaceName());
                 assertThat(updated.getPlace().getRoadAddress()).isEqualTo(request.getRoadAddress());
@@ -335,7 +323,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
 
                 //when
                 mockMvc.perform(
-                                multipart(URI, savedLedger.getCode())
+                                multipart(URI, Update.this.ledger.getCode())
                                         .file(ledger)
                                         .file(image)
                                         .with(req -> {
@@ -348,16 +336,16 @@ public class LedgerApiControllerIT extends IntegrationTest {
                         .andExpect(status().isOk());
 
                 //then: 데이터베이스에 이미지 정보가 저장된다.
-                List<LedgerImage> savedImage = imageRepository.findByLedgerId(savedLedger.getId());
+                List<LedgerImage> savedImage = imageRepository.findByLedgerId(Update.this.ledger.getId());
                 assertThat(savedImage).hasSize(1);
 
                 //then: 이미지 파일이 서버에 저장된다.
-                try (Stream<Path> paths = Files.walk(getTempDir().resolve(member.getId()))) {
+                try (Stream<Path> paths = Files.walk(tempDir)) {
                     long count = paths.filter(Files::isRegularFile)
                             .filter(path -> {
                                 String fileName = path.getFileName().toString().toLowerCase();
 
-                                return fileName.endsWith(".jpg") || fileName.endsWith(".png");
+                                return fileName.endsWith("jpg") || fileName.endsWith("png");
                             })
                             .count();
 
@@ -403,7 +391,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
             void throwsException_whenRequestIsInvalid() throws Exception {
                 //given
                 LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
-                        .fixed(LedgerTestData.FIX_Y.getValue())
+                        .fixed(LedgerTestData.FIXED_REPEAT.getValue())
                         .fixCycle("month")
                         .build();
 
@@ -416,7 +404,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
 
                 //when
                 mockMvc.perform(
-                                multipart(URI, savedLedger.getCode())
+                                multipart(URI, Update.this.ledger.getCode())
                                         .file(ledger)
                                         .with(req -> {
                                             req.setMethod("PUT");
@@ -434,7 +422,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
             void throwsException_whenLedgerIsNull() throws Exception {
                 //when
                 mockMvc.perform(
-                                multipart(URI, savedLedger.getCode())
+                                multipart(URI, ledger.getCode())
                                         .with(req -> {
                                             req.setMethod("PUT");
 
@@ -469,7 +457,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
 
                 //when
                 mockMvc.perform(
-                                multipart(URI, savedLedger.getCode())
+                                multipart(URI, Update.this.ledger.getCode())
                                         .file(ledger)
                                         .file(pdf)
                                         .with(req -> {

@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 
-import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +45,7 @@ public class FixedYnTest {
 
 	@Nested
 	@DisplayName("FixedType 변환할 때")
-	class FromTest {
+	class From {
 
 		@Nested
 		@DisplayName("성공")
@@ -95,7 +94,7 @@ public class FixedYnTest {
 
 			@ParameterizedTest
 			@NullAndEmptySource
-			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 			@DisplayName("null이거나 비어있으면 예외가 발생한다.")
 			void throwsNoSuchElementException_whenValueIsNull(String value) {
 				assertThatThrownBy(() -> FixedType.from(value))

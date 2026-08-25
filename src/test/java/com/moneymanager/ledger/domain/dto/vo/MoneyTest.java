@@ -107,7 +107,7 @@ class MoneyTest {
 
         @ParameterizedTest
         @NullAndEmptySource
-        @MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+        @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
         @DisplayName("금액유형이 null이면 예외를 발생시킨다.")
         void throwsValidationException_whenPaymentTypeIsBlank(String paymentType) {
             //when

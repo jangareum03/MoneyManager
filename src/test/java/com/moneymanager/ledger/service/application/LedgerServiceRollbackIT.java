@@ -5,8 +5,7 @@ import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.support.IntegrationTest;
-import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.entity.LedgerTestFixture;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,21 +60,21 @@ public class LedgerServiceRollbackIT extends IntegrationTest {
     @SpyBean
     LedgerImageRepository imageRepository;
 
+    Ledger savedLedger;
+
     @Nested
     @DisplayName("가계부 수정 요청할 때")
     class Update {
 
-        Ledger savedLedger;
-
         @BeforeEach
         void setUp() throws IOException {
+            ledgerRepository.deleteAll();
+
             Long id = ledgerRepository.save(
-                    LedgerFixture.builder().memberId(MemberTestData.MEMBER_ID).create()
+                    LedgerTestFixture.builder().build()
             );
 
             savedLedger = ledgerRepository.findById(id);
-
-            deleteTempDir(getTempDir());
         }
 
         @Test
@@ -106,7 +105,7 @@ public class LedgerServiceRollbackIT extends IntegrationTest {
                     .memo("수정")
                     .images(
                             List.of(
-                                    ImageFixture.emptyFile()
+                                    ImageFixture.empty("test")
                             )
                     )
                     .build();
@@ -122,7 +121,7 @@ public class LedgerServiceRollbackIT extends IntegrationTest {
         
         @Test
         @DisplayName("이미지 정보 저장 중 실패하면  가계부 수정되지 않고 파일도 삭제된다.")
-        void throwsExceptionAndDeletesFile_whenImageInfoSaveFails() throws IOException {
+        void throwsExceptionAndDeletesFile_whenImageInfoSaveFails() {
             //given
             String code = savedLedger.getCode();
             LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
@@ -149,7 +148,7 @@ public class LedgerServiceRollbackIT extends IntegrationTest {
             assertThat(images.size()).isEqualTo(0);
 
             //then: 폴더 미존재 검증
-            assertThat(Files.exists(getTempDir())).isFalse();
+            assertThat(Files.exists(tempDir.resolve(ledger.getMemberId()))).isFalse();
         }
 
     }

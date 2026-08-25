@@ -10,20 +10,22 @@ public final class MemberTestData {
 
 	private MemberTestData() {}
 
-	public static final String MEMBER_ID = "UCt01001";
-	public static final String USERNAME = "test123";
-	public static final String PASSWORD = "pw1234!!";
-	public static final String ROLE = "ROLE_USER";
+	//기본값
+	public static final String DEFAULT_ID = "UCt01001";
+	public static final String DEFAULT_USERNAME = "test123";
+	public static final String DEFAULT_PASSWORD = "pw1234!!";
+	public static final String DEFAULT_ROLE = "ROLE_USER";
+	public static final String DEFAULT_NAME = "테스트";
+	public static final String DEFAULT_EMAIL = "test@test.com";
+	public static final String DEFAULT_BIRTHDATE = "20020202";
+	public static final String DEFAULT_NICKNAME = "닉네임";
+	public static final MemberGender DEFAULT_GENDER = MemberGender.NORMAL;
+	public static final MemberType DEFAULT_TYPE = MemberType.COMMON;
+	public static final MemberStatus DEFAULT_STATUS = MemberStatus.ACTIVE;
+	public static final LocalDateTime DEFAULT_CREATE_DATE = LocalDateTime.of(2026, 6, 12, 7, 20);
 
-	public static final String NAME = "테스트";
-	public static final String EMAIL = "test@test.com";
-	public static final String BIRTH_DATE = "20020202";
-	public static final String NICK_NAME = "닉네임";
-	public static final MemberGender GENDER = MemberGender.NORMAL;
-	public static final MemberType TYPE = MemberType.COMMON;
-	public static final MemberStatus STATUS = MemberStatus.ACTIVE;
-	public static final LocalDateTime CREATE_DATE = LocalDateTime.of(2026, 6, 12, 7, 20);
-	public static final LocalDateTime LAST_LOGIN_DATE = CREATE_DATE.plusDays(3).plusHours(3);
+	//선택값
+	public static final LocalDateTime LAST_LOGIN_DATE = DEFAULT_CREATE_DATE.plusDays(3).plusHours(3);
 
 	//타인의 회원정보
 	public static final String OTHER_MEMBER_ID = "UCo02001";

@@ -2,7 +2,7 @@ package com.moneymanager.ledger.domain.dto.vo;
 
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.support.data.StringTestData;
+import com.moneymanager.support.stream.StringTestStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ public class PlaceTest {
 
 		@ParameterizedTest
 		@NullAndEmptySource
-		@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+		@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 		@DisplayName("필수 필드가 모두 null이거나 비어있으면 null을 반환한다.")
 		void returnsNull_whenRequiredFieldsAreNull(String value) {
 			//when
@@ -111,7 +111,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> validPlaceNameLengths() {
-			return StringTestData.validLengths("가", 1, 100);
+			return StringTestStream.validLengths("가", 1, 100);
 		}
 
 		@ParameterizedTest
@@ -129,7 +129,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> validRoadAddressLengths() {
-			return StringTestData.validLengths("가", 1, 300);
+			return StringTestStream.validLengths("가", 1, 300);
 		}
 
 		@ParameterizedTest(name = "[{index}] {0} - detailAddress: {1}")
@@ -148,7 +148,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> validDetailAddressLengths() {
-			return StringTestData.validLengths("가", 1, 300);
+			return StringTestStream.validLengths("가", 1, 300);
 		}
 
 	}
@@ -200,7 +200,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> invalidPlaceNameLengths() {
-			return StringTestData.invalidLengths("가", 1, 100);
+			return StringTestStream.invalidLengths("가", 1, 100);
 		}
 
 		@ParameterizedTest
@@ -244,7 +244,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> invalidRoadAddressLengths() {
-			return StringTestData.invalidLengths("가", 1, 300);
+			return StringTestStream.invalidLengths("가", 1, 300);
 		}
 
 		@ParameterizedTest
@@ -268,7 +268,7 @@ public class PlaceTest {
 		}
 
 		private static Stream<Arguments> invalidDetailAddressLengths() {
-			return StringTestData.invalidLengths("가", 1, 300);
+			return StringTestStream.invalidLengths("가", 1, 300);
 		}
 
 	}

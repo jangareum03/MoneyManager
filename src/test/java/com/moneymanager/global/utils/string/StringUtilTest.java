@@ -48,7 +48,7 @@ public class StringUtilTest {
 
 		@ParameterizedTest
 		@NullAndEmptySource
-		@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+		@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 		@DisplayName("문자열이 비어있으면 true가 반환힌다.")
 		void returnsTrue_whenDateIsInvalid(String value) {
 			//when: 문자열이 공백인지 확인한다.
@@ -118,7 +118,7 @@ public class StringUtilTest {
 
 		@ParameterizedTest
 		@NullAndEmptySource
-		@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+		@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 		@DisplayName("문자열이 비어있으면 false을 반환한다.")
 		void returnsFalse_whenTextIsInvalid(String value) {
 			//given: 정상적인 정규식 패턴이 준비되어 있다.
@@ -133,7 +133,7 @@ public class StringUtilTest {
 
 		@ParameterizedTest
 		@NullAndEmptySource
-		@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+		@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 		@DisplayName("패턴이 비어있으면 false을 반환한다.")
 		void returnsFalse_whenPatternIsInvalid(String pattern) {
 			//given: 정상적인 문자열이 준비되어 있다.

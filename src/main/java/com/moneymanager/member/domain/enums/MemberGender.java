@@ -1,6 +1,10 @@
 package com.moneymanager.member.domain.enums;
 
+import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.log.LogContent;
 import lombok.Getter;
+
+import static com.moneymanager.global.exception.code.ErrorCode.INVALID_VALUE;
 
 /**
  * <p>
@@ -40,6 +44,23 @@ public enum MemberGender {
 
 	MemberGender(String value) {
 		this.value = value;
+	}
+
+	public static MemberGender fromValue(String value) {
+		for (MemberGender gender : MemberGender.values()) {
+			if (gender.value.equalsIgnoreCase(value)) {
+				return gender;
+			}
+		}
+
+		throw new ApplicationException(
+				INVALID_VALUE,
+				LogContent.of(
+						"회원 성별 조회",
+						MemberGender.class,
+						value
+				)
+		);
 	}
 
 }

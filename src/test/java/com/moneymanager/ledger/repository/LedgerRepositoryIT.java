@@ -2,12 +2,10 @@ package com.moneymanager.ledger.repository;
 
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.PaymentType;
-import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
-import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.entity.LedgerTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -65,9 +63,9 @@ class LedgerRepositoryIT extends IntegrationTest {
             //given
             Long before = target.count();
 
-            Ledger ledger = LedgerFixture.builder()
-                    .memberId(MemberTestData.MEMBER_ID)
-                    .create();
+            Ledger ledger = LedgerTestFixture.builder()
+                    .memberId(MemberTestData.DEFAULT_ID)
+                    .build();
 
             //when
             target.save(ledger);
@@ -82,7 +80,7 @@ class LedgerRepositoryIT extends IntegrationTest {
         @DisplayName("필수값만 요청하면 요청한 값이 정상적으로 저장된다.")
         void saves_whenOnlyRequiredFieldsAreGiven() {
             //given
-            Ledger ledger = LedgerFixture.builder().id(null).saved();
+            Ledger ledger = LedgerTestFixture.builder().build();
 
             //when
             Long result = target.save(ledger);
@@ -103,11 +101,10 @@ class LedgerRepositoryIT extends IntegrationTest {
         @DisplayName("선택값도 요청하면 요청한 값이 정상적으로 저장된다")
         void saves_whenOptionalFieldsAreGiven() {
             //given
-            Ledger ledger = LedgerFixture.builder()
-                    .id(null)
-                    .memo(LedgerTestData.MEMO)
-                    .place(LedgerTestData.PLACE_NAME, LedgerTestData.ROAD_ADDRESS, LedgerTestData.DETAIL_ADDRESS)
-                    .saved();
+            Ledger ledger = LedgerTestFixture.builder()
+                    .withPlace()
+                    .withMemo()
+                    .build();
 
             //when
             Long result = target.save(ledger);
@@ -135,25 +132,17 @@ class LedgerRepositoryIT extends IntegrationTest {
 
         @BeforeEach
         void setUp() {
-            Long id = target.save(
-                    LedgerFixture.builder()
-                            .id(null)
-                            .saved()
-            );
-
-            saved = target.findById(id);
+            saved = savedLedger();
         }
 
         @Test
         @DisplayName("가계부 번호가 있으면 가계부 정보를 수정 후 번호를 반환한다.")
         void updatesAccountBook_whenAccountBookIdExists() {
             //given
-            Ledger ledger = LedgerFixture.builder()
-                    .id(saved.getId())
-                    .memberId(saved.getMemberId())
+            Ledger ledger = LedgerTestFixture.builder()
                     .category("020101")
                     .money(50000L, PaymentType.BANK)
-                    .saved();
+                    .buildExisting(saved.getId(), saved.getCode());
 
             //when
             Long result = target.save(ledger);
@@ -170,11 +159,9 @@ class LedgerRepositoryIT extends IntegrationTest {
         @DisplayName("선택 정보가 포함되면 선택 정보도 수정한다.")
         void updatesAllFields_whenOptionalFieldsAreGiven() {
             //given
-            Ledger ledger = LedgerFixture.builder()
-                    .id(saved.getId())
-                    .memberId(saved.getMemberId())
-                    .place(LedgerTestData.PLACE_NAME, LedgerTestData.ROAD_ADDRESS, LedgerTestData.DETAIL_ADDRESS)
-                    .saved();
+            Ledger ledger = LedgerTestFixture.builder()
+                    .withPlace()
+                    .buildExisting(saved.getId(), saved.getCode());
 
             //when
             Long result = target.save(ledger);
@@ -192,26 +179,22 @@ class LedgerRepositoryIT extends IntegrationTest {
     @DisplayName("가계부 번호로 조회할 때")
     class FindById {
 
-        private Long id;
+        private Ledger saved;
 
         @BeforeEach
         void setUp() {
-            id = target.save(
-                    LedgerFixture.builder()
-                            .id(null)
-                            .saved()
-            );
+            saved = savedLedger();
         }
 
         @Test
         @DisplayName("가계부 번호가 존재하면 번호에 해당하는 가계부를 조회한다.")
         void returnsLedger_whenLedgerIdExists() {
             //when
-            Ledger result = target.findById(id);
+            Ledger result = target.findById(saved.getId());
 
             //then
             assertThat(result).isNotNull();
-            assertThat(result.getId()).isEqualTo(id);
+            assertThat(result.getId()).isEqualTo(saved.getId());
         }
 
         @Test
@@ -238,33 +221,32 @@ class LedgerRepositoryIT extends IntegrationTest {
     @DisplayName("가계부 코드로 조회할 때")
     class FindByCode {
 
+        private Ledger saved;
+
+        @BeforeEach
+        void setUp() {
+            saved = savedLedger();
+        }
+
         @Test
         @DisplayName("존재하는 코드면 해당하는 가계부를 조회한다.")
         void findsLedger_whenCodeExists() {
             //given
-            Member member = saveMember();
-            Long ledgerId = ledgerRepository.save(
-                    LedgerFixture.builder()
-                            .id(null)
-                            .memberId(member.getId())
-                            .saved()
-            );
-
-            String code = ledgerRepository.findById(ledgerId).getCode();
+            String code = ledgerRepository.findById(saved.getId()).getCode();
 
             //when
             Ledger result = target.findByCode(code);
 
             //then
             assertThat(result).isNotNull();
-            assertThat(result.getId()).isEqualTo(ledgerId);
-            assertThat(result.getMemberId()).isEqualTo(member.getId());
+            assertThat(result.getId()).isEqualTo(saved.getId());
+            assertThat(result.getMemberId()).isEqualTo(savedLedger().getMemberId());
             assertThat(result.getCode()).isEqualTo(code);
         }
 
         @ParameterizedTest
         @NullAndEmptySource
-        @MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+        @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
         @DisplayName("코드가 null이거나 비어있으면 예외를 발생시킨다.")
         void throwsException_whenCodeIsNullOrBlank(String code) {
         	//when
@@ -297,4 +279,15 @@ class LedgerRepositoryIT extends IntegrationTest {
 
     }
 
+
+
+    private Ledger savedLedger() {
+        ledgerRepository.deleteAll();
+
+        Long id = target.save(
+                LedgerTestFixture.builder().build()
+        );
+
+        return ledgerRepository.findById(id);
+    }
 }

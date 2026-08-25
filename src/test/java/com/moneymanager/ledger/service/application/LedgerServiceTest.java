@@ -16,7 +16,6 @@ import com.moneymanager.ledger.domain.dto.response.item.PaymentTypeItem;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.domain.enums.DateUnit;
-import com.moneymanager.ledger.domain.enums.FixedType;
 import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
@@ -25,10 +24,8 @@ import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.ledger.service.validation.LedgerRegisterValidator;
 import com.moneymanager.ledger.service.validation.LedgerUpdateValidator;
 import com.moneymanager.member.service.read.MemberReadService;
-import com.moneymanager.support.data.CategoryTestData;
-import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.entity.LedgerFixture;
+import com.moneymanager.support.fixture.entity.LedgerTestFixture;
 import com.moneymanager.support.fixture.entity.category.IncomeCategoryFixture;
 import com.moneymanager.support.fixture.entity.category.OutlayCategoryFixture;
 import com.moneymanager.support.fixture.file.ImageFixture;
@@ -177,7 +174,7 @@ class LedgerServiceTest {
             @BeforeEach
             void setUp() {
                 when(currentUser.getMemberId())
-                        .thenReturn(MemberTestData.MEMBER_ID);
+                        .thenReturn(MemberTestData.DEFAULT_ID);
             }
 
             @Test
@@ -190,7 +187,7 @@ class LedgerServiceTest {
                 when(categoryReadService.getMiddleCategories(type))
                         .thenReturn(CategoryItem.from(IncomeCategoryFixture.createMiddleAll()));
 
-                when(memberReadService.getAvailableImageCount(eq(MemberTestData.MEMBER_ID)))
+                when(memberReadService.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
                         .thenReturn(1);
 
                 when(ledgerPolicy.imageSlots(1))
@@ -242,7 +239,7 @@ class LedgerServiceTest {
                 when(categoryReadService.getMiddleCategories(type))
                         .thenReturn(CategoryItem.from(OutlayCategoryFixture.createMiddleAll()));
 
-                when(memberReadService.getAvailableImageCount(eq(MemberTestData.MEMBER_ID)))
+                when(memberReadService.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
                         .thenReturn(1);
 
                 when(ledgerPolicy.imageSlots(1))
@@ -275,7 +272,7 @@ class LedgerServiceTest {
                 when(categoryReadService.getMiddleCategories(eq(CategoryType.INCOME)))
                         .thenReturn(CategoryItem.from(IncomeCategoryFixture.createMiddleAll()));
 
-                when(memberReadService.getAvailableImageCount(eq(MemberTestData.MEMBER_ID)))
+                when(memberReadService.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
                         .thenReturn(1);
 
                 when(ledgerPolicy.imageSlots(1))
@@ -299,7 +296,7 @@ class LedgerServiceTest {
 
             @ParameterizedTest
             @NullAndEmptySource
-            @MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+            @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
             @DisplayName("가게부 날짜가 없으면 오늘 날짜로 대체하여 진행된다.")
             void fallbacksToToday_whenDateIsNull(String date) {
                 //when
@@ -485,17 +482,11 @@ class LedgerServiceTest {
     @DisplayName("가계부를 등록할 때")
     class Register {
 
-        private final String memberId = MemberTestData.MEMBER_ID;
+        private final String memberId = MemberTestData.DEFAULT_ID;
 
         private final LedgerWriteRequest request = LedgerWriteRequestFixture.builder().build();
 
-        private final Ledger ledger =
-                LedgerFixture.builder()
-                        .date(LedgerTestData.LOCAL_DATE)
-                        .code(CategoryTestData.SALARY_CODE)
-                        .fix(FixedType.VARIABLE)
-                        .money(LedgerTestData.AMOUNT, LedgerTestData.PAYMENT_TYPE)
-                        .saved();
+        private final Ledger ledger = LedgerTestFixture.builder().build();
 
         @Nested
         @DisplayName("성공")
@@ -577,7 +568,7 @@ class LedgerServiceTest {
             void throwsExceptionAndAbortsProcess_whenLedgerCreationFailed() {
                 //given
                 when(currentUser.getMemberId())
-                        .thenReturn(MemberTestData.MEMBER_ID);
+                        .thenReturn(MemberTestData.DEFAULT_ID);
 
                 when(ledgerCommandService.toCreateEntity(memberId, request))
                         .thenThrow(ApplicationException.class);
@@ -598,7 +589,7 @@ class LedgerServiceTest {
             void throwsExceptionAndAbortsProcess_whenBusinessValidationFails() {
                 //given
                 when(currentUser.getMemberId())
-                        .thenReturn(MemberTestData.MEMBER_ID);
+                        .thenReturn(MemberTestData.DEFAULT_ID);
 
                 when(ledgerCommandService.toCreateEntity(memberId, request))
                         .thenReturn(ledger);
@@ -622,16 +613,10 @@ class LedgerServiceTest {
             @DisplayName("가계부 정보 저장에 실패하면 그 후 동작은 수행하지 않는다.")
             void throwsExceptionAndAbortsProcess_whenLedgerSaveFails() {
                 //given
-                Ledger ledger =
-                        LedgerFixture.builder()
-                        .date(LedgerTestData.LOCAL_DATE)
-                        .code(CategoryTestData.SALARY_CODE)
-                        .fix(FixedType.VARIABLE)
-                        .money(LedgerTestData.AMOUNT, LedgerTestData.PAYMENT_TYPE)
-                        .saved();
+                Ledger ledger = LedgerTestFixture.builder().build();
 
                 when(currentUser.getMemberId())
-                        .thenReturn(MemberTestData.MEMBER_ID);
+                        .thenReturn(MemberTestData.DEFAULT_ID);
 
                 when(ledgerCommandService.toCreateEntity(memberId, request))
                         .thenReturn(ledger);
@@ -640,8 +625,7 @@ class LedgerServiceTest {
                         .when(ledgerCommandService).save(ledger);
 
                 //when
-                assertThatThrownBy(() -> target.processLedgerRegistration(request))
-                        ;
+                assertThatThrownBy(() -> target.processLedgerRegistration(request));
 
                 //then
                 verify(currentUser).getMemberId();
@@ -665,7 +649,7 @@ class LedgerServiceTest {
         @BeforeEach
         void setUp() {
             when(currentUser.getMemberId())
-                    .thenReturn(MemberTestData.MEMBER_ID);
+                    .thenReturn(MemberTestData.DEFAULT_ID);
         }
 
         @Nested
@@ -679,9 +663,9 @@ class LedgerServiceTest {
                 String code = "code";
                 LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder().build();
 
-                Ledger ledger = LedgerFixture.builder().saved();
+                Ledger ledger = LedgerTestFixture.builder().build();
 
-                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                when(ledgerReadService.getOwnerLedger(MemberTestData.DEFAULT_ID, code))
                         .thenReturn(ledger);
 
             	//when
@@ -702,9 +686,9 @@ class LedgerServiceTest {
                         .images(images)
                         .build();
 
-                Ledger ledger = LedgerFixture.builder().saved();
+                Ledger ledger = LedgerTestFixture.builder().build();
 
-                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                when(ledgerReadService.getOwnerLedger(MemberTestData.DEFAULT_ID, code))
                         .thenReturn(ledger);
             	
             	//when
@@ -714,11 +698,11 @@ class LedgerServiceTest {
                 InOrder order = inOrder(currentUser, ledgerReadService, updateValidator, ledgerCommandService, imageService);
 
                 order.verify(currentUser).getMemberId();
-                order.verify(ledgerReadService).getOwnerLedger(MemberTestData.MEMBER_ID, code);
+                order.verify(ledgerReadService).getOwnerLedger(MemberTestData.DEFAULT_ID, code);
                 order.verify(updateValidator).validate(request);
                 order.verify(ledgerCommandService).updateLedger(request, ledger);
 
-                verify(imageService, never()).processImageUpload(MemberTestData.MEMBER_ID, ledger.getId(), request.getImages());
+                verify(imageService, never()).processImageUpload(MemberTestData.DEFAULT_ID, ledger.getId(), request.getImages());
             }
             
             @Test
@@ -732,9 +716,9 @@ class LedgerServiceTest {
                         ))
                         .build();
 
-                Ledger ledger = LedgerFixture.builder().saved();
+                Ledger ledger = LedgerTestFixture.builder().build();
 
-                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                when(ledgerReadService.getOwnerLedger(MemberTestData.DEFAULT_ID, code))
                         .thenReturn(ledger);
 
                 //when
@@ -744,10 +728,10 @@ class LedgerServiceTest {
                 InOrder order = inOrder(currentUser, ledgerReadService, updateValidator, ledgerCommandService, imageService);
 
                 order.verify(currentUser).getMemberId();
-                order.verify(ledgerReadService).getOwnerLedger(MemberTestData.MEMBER_ID, code);
+                order.verify(ledgerReadService).getOwnerLedger(MemberTestData.DEFAULT_ID, code);
                 order.verify(updateValidator).validate(request);
                 order.verify(ledgerCommandService).updateLedger(request, ledger);
-                order.verify(imageService).processImageUpload(MemberTestData.MEMBER_ID, ledger.getId(), request.getImages());
+                order.verify(imageService).processImageUpload(MemberTestData.DEFAULT_ID, ledger.getId(), request.getImages());
             }
             
         }
@@ -763,7 +747,7 @@ class LedgerServiceTest {
                 String code = "code";
                 LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder().build();
 
-                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                when(ledgerReadService.getOwnerLedger(MemberTestData.DEFAULT_ID, code))
                         .thenThrow(ApplicationException.class);
             	
             	//when
@@ -781,9 +765,9 @@ class LedgerServiceTest {
                 String code = "code";
                 LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder().build();
 
-                Ledger ledger = LedgerFixture.builder().saved();
+                Ledger ledger = LedgerTestFixture.builder().build();
 
-                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                when(ledgerReadService.getOwnerLedger(MemberTestData.DEFAULT_ID, code))
                         .thenReturn(ledger);
 
                 doThrow(ApplicationException.class)
@@ -809,9 +793,9 @@ class LedgerServiceTest {
                         ))
                         .build();
 
-                Ledger ledger = LedgerFixture.builder().saved();
+                Ledger ledger = LedgerTestFixture.builder().build();
 
-                when(ledgerReadService.getOwnerLedger(MemberTestData.MEMBER_ID, code))
+                when(ledgerReadService.getOwnerLedger(MemberTestData.DEFAULT_ID, code))
                         .thenReturn(ledger);
 
                 doThrow(ApplicationException.class)
@@ -823,7 +807,7 @@ class LedgerServiceTest {
                         .isInstanceOf(ApplicationException.class);
 
                 //then
-                verify(imageService, never()).processImageUpload(MemberTestData.MEMBER_ID, ledger.getId(), request.getImages());
+                verify(imageService, never()).processImageUpload(MemberTestData.DEFAULT_ID, ledger.getId(), request.getImages());
             }
             
         }

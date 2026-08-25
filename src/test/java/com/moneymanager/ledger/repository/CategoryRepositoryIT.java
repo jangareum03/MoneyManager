@@ -1,12 +1,11 @@
 package com.moneymanager.ledger.repository;
 
 import com.moneymanager.ledger.domain.entity.Category;
+import com.moneymanager.support.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,20 +40,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 		</tbody>
  * </table>
  */
-@SpringBootTest
-@ActiveProfiles("test")
 @Transactional
-public class CategoryRepositoryIT {
+public class CategoryRepositoryIT extends IntegrationTest {
 
 	@Autowired
 	private CategoryRepository target;
 
 	@Nested
-	@DisplayName("전체 조회")
-	class SelectAllCategoryTest {
+	@DisplayName("카테고리 전체 조회할 때")
+	class SelectAllCategory {
 
 		@Test
-		@DisplayName("카테고리 정보가 있으면 모튼 카테고리가 조회된다.")
+		@DisplayName("카테고리 정보가 있으면 모튼 카테고리를 조회한다.")
 		void returnsAllCategories_whenCategoriesExist() {
 			//when: 카테고리를 조회한다.
 			List<Category> result = target.findAllCategory();
@@ -66,7 +63,7 @@ public class CategoryRepositoryIT {
 		
 		@Test
 		@Sql(statements = "DELETE FROM ledger_category")
-		@DisplayName("카테고리 정보가 없으면 빈 List가 반환된다.")
+		@DisplayName("카테고리 정보가 없으면 빈 List를 반환한다.")
 		void returnsEmptyList_whenCategoriesDoesNotExist() {
 			//when: 카테고리를 조회한다.
 			List<Category> result = target.findAllCategory();

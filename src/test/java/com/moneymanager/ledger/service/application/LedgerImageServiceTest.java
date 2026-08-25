@@ -25,7 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-import static com.moneymanager.global.exception.code.ErrorCode.*;
+import static com.moneymanager.global.exception.code.ErrorCode.FILE_UPLOAD_FAILED;
+import static com.moneymanager.global.exception.code.ErrorCode.INTERVAL_SERVER_ERROR;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.eq;
@@ -80,7 +81,7 @@ public class LedgerImageServiceTest{
     @DisplayName("이미지 업로드 진행할 때")
     class ImageUpload {
 
-        String memberId = MemberTestData.MEMBER_ID;
+        String memberId = MemberTestData.DEFAULT_ID;
         Long ledgerId = 1L;
         List<MultipartFile> images = List.of(
                 ImageFixture.jpg("test1"),
@@ -109,9 +110,9 @@ public class LedgerImageServiceTest{
             void savesImages_whenSlotStatusIsEmpty() throws IOException {
                 //given
                 when(imageStorage.store(eq(images.get(0)), eq(memberId)))
-                        .thenReturn(FileMetadataFixture.jpg("test1").build());
+                        .thenReturn(FileMetadataFixture.jpg(memberId, "test1"));
                 when(imageStorage.store(eq(images.get(1)), eq(memberId)))
-                        .thenReturn(FileMetadataFixture.png("test2").build());
+                        .thenReturn(FileMetadataFixture.png(memberId,"test2"));
 
                 //whe
                 assertDoesNotThrow(() -> target.processImageUpload(memberId, ledgerId, images));
@@ -158,7 +159,7 @@ public class LedgerImageServiceTest{
             void deletesAllFiles_whenPartialImageSaveFails() throws IOException {
                 //given
                 when(imageStorage.store(eq(images.get(0)), eq(memberId)))
-                        .thenReturn(FileMetadataFixture.jpg("test1").build());
+                        .thenReturn(FileMetadataFixture.jpg(memberId, "test1"));
 
                 when(imageStorage.store(images.get(1), memberId))
                         .thenThrow(new IOException("파일 저장 실패"));
@@ -185,9 +186,9 @@ public class LedgerImageServiceTest{
             void deletesFilesAndMetaData_whenMetaDataSaveFails() throws IOException {
                 //given
                 when(imageStorage.store(eq(images.get(0)), eq(memberId)))
-                        .thenReturn(FileMetadataFixture.jpg("test1").build());
+                        .thenReturn(FileMetadataFixture.jpg(memberId, "test1"));
                 when(imageStorage.store(eq(images.get(1)), eq(memberId)))
-                        .thenReturn(FileMetadataFixture.png("test2").build());
+                        .thenReturn(FileMetadataFixture.png(memberId, "test2"));
 
                 doThrow(new DataAccessException("이미지 정보 저장 실패") {})
                         .when(imageRepository).saveAll(any());

@@ -15,12 +15,12 @@ public final class LedgerWriteRequestFixture {
 
 	public static LedgerWriteRequest.LedgerWriteRequestBuilder builder() {
 		return LedgerWriteRequest.builder()
-				.date(LedgerTestData.DATE)
+				.date(LedgerTestData.DEFAULT_DATE)
 				.categoryCode(CategoryTestData.SALARY_CODE)
-				.fixed(LedgerTestData.FIX_N.getValue().toLowerCase())
+				.fixed(LedgerTestData.DEFAULT_FIX.getValue().toLowerCase())
 				.fixCycle(null)
-				.amount(LedgerTestData.AMOUNT)
-				.paymentType(LedgerTestData.PAYMENT_TYPE.name().toLowerCase());
+				.amount(LedgerTestData.DEFAULT_AMOUNT)
+				.paymentType(LedgerTestData.DEFAULT_PAYMENT_TYPE.name().toLowerCase());
 	}
 
 	public static LedgerWriteRequest.LedgerWriteRequestBuilder withImages(int size) {

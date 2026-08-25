@@ -7,10 +7,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Named.named;
 
 /**
@@ -44,7 +44,7 @@ public class PaymentTypeTest {
 
 	@Nested
 	@DisplayName("PaymentType 변환할 때")
-	class FromTest {
+	class From {
 
 		@Nested
 		@DisplayName("성공")

@@ -9,7 +9,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,7 +46,7 @@ public class CategoryTypeTest {
 
 	@Nested
 	@DisplayName("CategoryType 변환할 때")
-	class FromTest {
+	class From {
 
 		@Nested
 		@DisplayName("성공")
@@ -107,7 +106,7 @@ public class CategoryTypeTest {
 
 			@ParameterizedTest
 			@NullAndEmptySource
-			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
 			void throwsNoSuchElementException_whenValueIsBlank(String type) {
 				assertThatThrownBy(() -> CategoryType.from(type))
@@ -128,7 +127,7 @@ public class CategoryTypeTest {
 
 	@Nested
 	@DisplayName("카테고리 코드 앞 2자리로 변환할 때")
-	class FromCodeTest {
+	class FromCode {
 
 		@Nested
 		@DisplayName("성공")
@@ -164,7 +163,7 @@ public class CategoryTypeTest {
 		
 			@ParameterizedTest
 			@NullAndEmptySource
-			@MethodSource("com.moneymanager.support.data.StringTestData#blankStrings")
+			@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
 			@DisplayName("null이거나 비어있으면 예외를 발생시킨다.")
 			void throwsException_whenValueIsBlank(String code) {
 				assertThatThrownBy(() -> CategoryType.from(code))

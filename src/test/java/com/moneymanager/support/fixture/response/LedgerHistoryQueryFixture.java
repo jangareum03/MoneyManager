@@ -17,12 +17,12 @@ public class LedgerHistoryQueryFixture {
 	}
 
 	public static LedgerHistoryQuery create() {
-		return create(LedgerTestData.LOCAL_DATE, LedgerTestData.AMOUNT, CategoryTestData.SALARY_NAME, CategoryTestData.SALARY_CODE);
+		return create(LedgerTestData.DEFAULT_LOCAL_DATE, LedgerTestData.DEFAULT_AMOUNT, CategoryTestData.SALARY_NAME, CategoryTestData.SALARY_CODE);
 	}
 
 	private static LedgerHistoryQuery create(LocalDate date, Long amount, String categoryName, String categoryCode) {
 		return new LedgerHistoryQuery(
-				LedgerTestData.CODE,
+				LedgerTestData.DEFAULT_CODE,
 				date,
 				amount,
 				LedgerTestData.MEMO,

@@ -20,35 +20,26 @@ public final class FileMetadataFixture {
         this.contentType = contentType;;
     }
 
-    public static FileMetadataFixture jpg(String fileName) {
-        return new FileMetadataFixture(
-                Path.of("/root/images").resolve("member").resolve(fileName),
-                Path.of("/member").resolve(fileName),
-                fileName,
-                "stored" + fileName,
-                "image/jpeg"
-        );
+    public static FileMetadata jpg(String relativePath, String fileName) {
+        return FileMetadataFixture.of(relativePath, fileName + ".jpg", "image/jpeg").build();
     }
 
-    public static FileMetadataFixture png(String fileName) {
-        return new FileMetadataFixture(
-                Path.of("/root/images").resolve("member").resolve(fileName),
-                Path.of("/member").resolve(fileName),
-                fileName,
-                "stored" + fileName,
-                "image/png"
-        );
+    public static FileMetadata png(String relativePath, String fileName) {
+        return FileMetadataFixture.of(relativePath, fileName + ".png", "image/png").build();
     }
 
-
-    public FileMetadata build() {
-        return FileMetadata.of(
-                absolutePath,
-                relativePath,
-                originalFileName,
-                storedFileName,
+    private static FileMetadataFixture of(String path, String fileName, String contentType) {
+        return new FileMetadataFixture(
+                Path.of("root").resolve(path).resolve(fileName),
+                Path.of(path).resolve(fileName),
+                fileName,
+                "stored" + fileName,
                 contentType
         );
+    }
+
+    private FileMetadata build() {
+        return FileMetadata.of(absolutePath, relativePath, originalFileName, storedFileName, contentType);
     }
 
 }
