@@ -66,7 +66,7 @@
 
             <AppenderRef ref="info-file">
                 <LevelRangeFilter
-                        minLevel="INFO"
+                        minLevel="WARN"
                         maxLevel="INFO"
                         onMatch="ACCEPT"
                         onMismatch="DENY"/>

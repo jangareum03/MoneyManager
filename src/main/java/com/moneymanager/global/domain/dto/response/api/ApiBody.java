@@ -42,6 +42,10 @@ public class ApiBody<T> {
         this.data = data;
     }
 
+    public static ApiBody<Void> message(String message) {
+        return new ApiBody<>(message, null, null);
+    }
+
     public static ApiBody<Void> next(String message, String next) {
       return new ApiBody<>(message, next, null);
     }

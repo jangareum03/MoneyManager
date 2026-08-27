@@ -9,6 +9,7 @@ import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
+import com.moneymanager.ledger.service.storage.LedgerImageStorage;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.LedgerTestData;
@@ -24,6 +25,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -36,6 +39,8 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 
 /**
  * <p>
@@ -72,6 +77,9 @@ class LedgerServiceIT extends IntegrationTest {
 
     @Autowired
     private LedgerImageRepository imageRepository;
+
+    @SpyBean
+    private LedgerImageStorage imageStorage;
 
     @Nested
     @WithMockCustomUser
@@ -112,11 +120,6 @@ class LedgerServiceIT extends IntegrationTest {
     @WithMockCustomUser
     @DisplayName("가계부 등록 처리 진행할 때")
     class ProcessLedgerRegistration {
-
-        @BeforeEach
-        void setUp() {
-            ledgerRepository.deleteAll();
-        }
 
         @Test
         @DisplayName("유효한 요청 정보면 가계부를 저장한다.")
@@ -316,6 +319,91 @@ class LedgerServiceIT extends IntegrationTest {
             //when & then
             assertThatThrownBy(() -> target.processLedgerUpdate(otherLedger.getCode(), request))
                     .isInstanceOf(ApplicationException.class);
+        }
+
+    }
+
+
+    @Nested
+    @WithMockCustomUser(memberId = "member1")
+    @Sql("/sql/ledger-delete-test.sql")
+    @DisplayName("가계부를 삭제할 때")
+    class Delete {
+        
+        @Test
+        @DisplayName("이미지가 있는 가계부는 이미지와 함께 삭제한다.")
+        void deletesLedgerAndImage_whenImageExists() throws IOException {
+        	//given
+            List<String> codes = List.of("code-1", "code-2", "code-4");
+            LedgerImage image = imageRepository.findByLedgerCode("code-1").get(0);
+
+            Path path = tempDir.resolve(image.getImagePath());
+            Files.createDirectories(path.getParent());
+            Files.createFile(path);
+        	
+        	//when
+            int result = target.processLedgerDelete(codes);
+        	
+        	//then
+        	assertThat(result).isEqualTo(3);
+            assertThat(ledgerRepository.findByCodeIn(codes)).hasSize(0);
+            assertThat(imageRepository.count()).isZero();
+
+            //파일 삭제 검증
+            assertThat(Files.exists(path)).isFalse();
+        }
+        
+        @Test
+        @DisplayName("이미지가 없는 가계부는 정보만 삭제한다.")
+        void deletesLedgerOnly_whenImageDoesNotExist() {
+            //given
+            List<String> codes = List.of("code-2", "code-4");
+
+            assertThat(ledgerRepository.count()).isEqualTo(4);
+            assertThat(imageRepository.count()).isEqualTo(1);
+
+            //when
+            int result = target.processLedgerDelete(codes);
+
+            //then
+            assertThat(result).isEqualTo(2);
+
+            assertThat(ledgerRepository.count()).isEqualTo(2);
+            assertThat(imageRepository.count()).isEqualTo(1);
+        }
+        
+        @Test
+        @DisplayName("타인의 가계부는 삭제되지 않는다.")
+        void rejectsDeletion_whenUserIsNotOwner() {
+        	//given
+            List<String> codes = List.of("code-2", "code-3", "code-4");
+        	
+        	//when
+            int result = target.processLedgerDelete(codes);
+        	
+        	//then
+        	assertThat(result).isEqualTo(2);
+
+            assertThat(ledgerRepository.findByCodeIn(codes)).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("이미지 삭제가 실패해도 가계부와 이미지 정보는 삭제한다.")
+        void deletesLedgerAndImage_whenImageDeletionFails() throws IOException {
+        	//given
+            List<String> codes = List.of("code-1");
+
+            doThrow(new IOException("파일 삭제 실패"))
+                    .when(imageStorage)
+                    .deleteOrThrow(any());
+        	
+        	//when
+            int result = target.processLedgerDelete(codes);
+        	
+        	//then
+        	assertThat(result).isEqualTo(1);
+
+            assertThat(ledgerRepository.findByCodeIn(codes)).hasSize(0);
         }
 
     }

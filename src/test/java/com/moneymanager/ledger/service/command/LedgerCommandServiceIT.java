@@ -14,7 +14,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -105,6 +108,59 @@ class LedgerCommandServiceIT extends IntegrationTest {
                     .hasWork("Ledger 수정")
                     .hasTarget(LedgerUpdateRequest.class)
                     .hasValue("categoryCode", request.getCategoryCode());
+        }
+
+    }
+
+
+    @Nested
+    @Sql("/sql/ledger-delete-test.sql")
+    @DisplayName("가계부 삭제할 때")
+    class Delete {
+        
+        @Test
+        @DisplayName("자신의 가계부면 삭제 후 삭제 개수를 반환한다.")
+        void deletesLedger_whenUserIsOwner() {
+        	//given
+            List<Ledger> ledgers = List.of(
+               LedgerTestFixture.builder().buildExisting(1L, "code-1"),
+               LedgerTestFixture.builder().buildExisting(2L, "code-2")
+            );
+        	
+        	//when
+            int result = target.deleteAll(ledgers);
+        	
+        	//then
+        	assertThat(result).isEqualTo(ledgers.size());
+        }
+        
+        @Test
+        @DisplayName("삭제할 가계부가 없으면 0을 반환한다.")
+        void returnsZero_whenLedgerDoesNotExist() {
+            //given
+            List<Ledger> ledgers = List.of(
+                    LedgerTestFixture.builder().buildExisting(5L, "code-5"),
+                    LedgerTestFixture.builder().buildExisting(7L, "code-6")
+            );
+
+            //when
+            int result = target.deleteAll(ledgers);
+
+            //then
+            assertThat(result).isZero();
+        }
+
+        @Test
+        @DisplayName("빈 목록이면 0을 반환한다.")
+        void returnsZero_whenCollectionIsEmpty() {
+        	//given
+            List<Ledger> ledgers = List.of();
+        	
+        	//when
+            int result = target.deleteAll(ledgers);
+        	
+        	//then
+        	assertThat(result).isZero();
         }
 
     }

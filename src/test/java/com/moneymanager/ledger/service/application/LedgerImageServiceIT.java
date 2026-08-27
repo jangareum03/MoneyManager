@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.dao.DataAccessException;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -33,10 +35,10 @@ import static org.mockito.Mockito.doThrow;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.ledger.service.application<br>
- * 파일이름       : LedgerImageServiceRollbackIT<br>
+ * 파일이름       : LedgerImageServiceIT<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 8. 21<br>
- * 설명              : LedgerImageService 클래스 롤백을 검증하는 통합 테스트 클래스
+ * 설명              : LedgerImageService 클래스 기능을 검증하는 통합 테스트 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -57,7 +59,8 @@ import static org.mockito.Mockito.doThrow;
  * 		</tbody>
  * </table>
  */
-public class LedgerImageServiceRollbackIT extends IntegrationTest {
+@Transactional
+public class LedgerImageServiceIT extends IntegrationTest {
 
     @Autowired
     private LedgerImageService target;
@@ -68,23 +71,20 @@ public class LedgerImageServiceRollbackIT extends IntegrationTest {
     @SpyBean
     private LedgerImageStorage imageStorage;
 
-    Ledger ledger;
-
-    @BeforeEach
-    void setUp() {
-        ledgerRepository.deleteAll();
-
-        Long id = ledgerRepository.save(
-                LedgerTestFixture.builder().build()
-        );
-
-        ledger = ledgerRepository.findById(id);
-    }
 
     @Nested
     @WithMockCustomUser
     @DisplayName("이미지 업로드 진행할 때")
     class ImageUpload {
+
+        Ledger ledger;
+
+        @BeforeEach
+        void setUp() {
+            Long id = ledgerRepository.save(LedgerTestFixture.builder().build());
+
+            ledger = ledgerRepository.findById(id);
+        }
 
         @Nested
         @DisplayName("성공")
@@ -206,7 +206,7 @@ public class LedgerImageServiceRollbackIT extends IntegrationTest {
 
                 doThrow(new IOException("파일 저장 실패"))
                         .when(imageStorage)
-                        .store(images.get(1), memberId);
+                        .createFileMetadata(memberId, images.get(1));
 
                 //when
                 assertThatThrownBy(() -> target.processImageUpload(memberId, ledger.getId(), images));
@@ -250,6 +250,74 @@ public class LedgerImageServiceRollbackIT extends IntegrationTest {
                 }
             }
 
+        }
+
+    }
+
+
+    @Nested
+    @Sql("/sql/ledger-delete-test.sql")
+    @DisplayName("이미지 삭제를 진행할 때")
+    class ImageDelete {
+        
+        @Test
+        @DisplayName("가계부에 이미지가 존재하면 파일을 삭제한다.")
+        void deletesFile_whenImageExists() throws IOException {
+        	//given: 삭제할 파일을 생성한다.
+            List<Ledger> ledgers = ledgerRepository.findByCodeIn(List.of("code-1", "code-2", "code-4"));
+
+            LedgerImage ledgerImage = imageRepository.findByLedgerId(ledgers.get(0).getId()).get(0);
+
+            Path path = tempDir.resolve(ledgerImage.getImagePath());
+            Files.createDirectories(path.getParent());
+            Files.createFile(path);
+
+            assertThat(Files.exists(path)).isTrue();
+        	
+        	//when
+            target.processImagesDelete(ledgers);
+        	
+        	//then
+            assertThat(Files.exists(path)).isFalse();
+        }
+        
+        @Test
+        @DisplayName("가계부에 이미지가 존재하지 않으면 변화가 없다.")
+        void doesNothing_whenImageDoesNotExist() {
+        	//given
+            List<Ledger> ledgers = ledgerRepository.findByCodeIn(List.of("code-2", "code-4"));
+        	
+        	//when
+            target.processImagesDelete(ledgers);
+        	
+        	//then
+        	assertThat(Files.exists(tempDir.resolve("images"))).isFalse();
+        }
+        
+        @Test
+        @DisplayName("파일 삭제를 실패하면 해당 파일이 temp폴더로 이동한다.")
+        void movesFileToTemp_whenFileDeletionFails() throws IOException {
+            //given: 삭제할 파일을 생성한다.
+            List<Ledger> ledgers = ledgerRepository.findByCodeIn(List.of("code-1", "code-2", "code-4"));
+
+            LedgerImage ledgerImage = imageRepository.findByLedgerId(ledgers.get(0).getId()).get(0);
+
+            Path path = tempDir.resolve(ledgerImage.getImagePath());
+            Files.createDirectories(path.getParent());
+            Files.createFile(path);
+
+            assertThat(Files.exists(path)).isTrue();
+
+            doThrow(new IOException("파일 삭제 실패"))
+                    .when(imageStorage)
+                    .deleteOrThrow(path);
+        	
+        	//when
+            target.processImagesDelete(ledgers);
+        	
+        	//then
+        	assertThat(Files.exists(path)).isFalse();
+            assertThat(Files.exists(tempDir.resolve("temp").resolve("test.png"))).isTrue();
         }
 
     }

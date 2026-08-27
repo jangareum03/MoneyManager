@@ -19,6 +19,7 @@ import javax.sql.DataSource;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
@@ -120,7 +121,6 @@ public class LedgerRepository {
         }
     }
 
-
     public Ledger findByCode(String code) {
         String query = """
                 SELECT *
@@ -128,24 +128,30 @@ public class LedgerRepository {
                 WHERE code = ?
                 """;
 
-        try {
+        try{
             return jdbcTemplate.queryForObject(
                     query,
                     ledgerRowMapper,
                     code
             );
         } catch (EmptyResultDataAccessException e) {
-            throw new ApplicationException(
-                    DATA_NOT_FOUND,
-                    LogContent.of(
-                            "가계부 코드로 가계부 조회",
-                            Ledger.class,
-                            "code", code
-                    )
-            );
+            return null;
         }
     }
 
+    public List<Ledger> findByCodeIn(List<String> codes) {
+        if(codes == null || codes.isEmpty()) return Collections.emptyList();
+
+        String params = getParams(codes);
+
+        String query = """
+                SELECT *
+                FROM ledger
+                WHERE code IN (%s)
+        """.formatted(params);
+
+        return jdbcTemplate.query(query, ledgerRowMapper, codes.toArray());
+    }
 
     public List<Ledger> findAll() {
         String query = """
@@ -192,14 +198,6 @@ public class LedgerRepository {
                 query,
                 Long.class
         );
-    }
-
-    public void deleteAll() {
-        String query = """
-                DELETE FROM ledger
-                """;
-
-        jdbcTemplate.update(query);
     }
 
 
@@ -270,12 +268,33 @@ public class LedgerRepository {
 
     }
 
+    public int deleteByIdIn(List<Long> ids) {
+        if(ids == null || ids.isEmpty()) {
+            return 0;
+        }
 
-    //===== 유틸 메서드 =====
+        String query = """
+                DELETE FROM ledger
+                WHERE id IN (%s)
+                """.formatted(getParams(ids));
+
+        return jdbcTemplate.update(query, ids.toArray());
+    }
+
+
+    //===== insert 보조 메서드 =====
     private Long getNextId() {
         String query = "SELECT ledger_seq.NEXTVAL FROM dual";
 
         return jdbcTemplate.queryForObject(query, Long.class);
+    }
+
+
+    //===== 유틸 메서드 =====
+    private String getParams(List<?> param) {
+        List<String> elements = Collections.nCopies(param.size(), "?");
+
+        return String.join(", ", elements);
     }
 
 }

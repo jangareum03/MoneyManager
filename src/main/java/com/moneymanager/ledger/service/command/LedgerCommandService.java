@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static com.moneymanager.global.exception.code.ErrorCode.INVALID_VALUE;
 
@@ -115,6 +116,14 @@ public class LedgerCommandService {
 			ledgerRepository.save(ledger);
 		}
 
+	}
+
+	public int deleteAll(List<Ledger> ledgers) {
+		List<Long> ids = ledgers.stream()
+				.map(Ledger::getId)
+				.toList();
+
+		return ledgerRepository.deleteByIdIn(ids);
 	}
 
 }

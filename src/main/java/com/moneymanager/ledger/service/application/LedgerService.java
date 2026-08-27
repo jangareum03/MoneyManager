@@ -146,6 +146,20 @@ public class LedgerService {
         }
     }
 
+    @Transactional
+    public int  processLedgerDelete(List<String> codes) {
+        String memberId = currentUser.getMemberId();
+
+        if(codes == null || codes.isEmpty()) {
+            return 0;
+        }
+
+        List<Ledger> ledgers = ledgerReadService.getOwnerLedgers(memberId, codes);
+        imageService.processImagesDelete(ledgers);
+
+        return ledgerCommandService.deleteAll(ledgers);
+    }
+
 
     //===== getStep2 보조 메서드 =====
     private CategoryType parseCategoryTypeOrDefault(String type) {

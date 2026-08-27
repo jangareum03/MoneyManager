@@ -1,39 +1,17 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.global.domain.vo.DateRange;
 import com.moneymanager.global.exception.code.ErrorCode;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
-import com.moneymanager.global.security.CurrentUser;
-import com.moneymanager.ledger.domain.dto.response.ImageSlot;
-import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
-import com.moneymanager.ledger.domain.dto.response.LedgerEditResponse;
-import com.moneymanager.ledger.domain.dto.response.category.CategoryEditInfo;
-import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
-import com.moneymanager.ledger.domain.dto.response.history.LedgerStatistics;
-import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
-import com.moneymanager.ledger.domain.dto.response.item.HistoryItem;
-import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
-import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.domain.entity.Ledger;
-import com.moneymanager.ledger.domain.enums.CategoryType;
-import com.moneymanager.ledger.domain.enums.HistoryMenuType;
-import com.moneymanager.ledger.domain.enums.HistoryType;
-import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.ledger.repository.LedgerRepository;
-import com.moneymanager.ledger.service.mapper.LedgerMapper;
-import com.moneymanager.ledger.service.policy.LedgerHistoryPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.Clock;
-import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
+
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 
 /**
  * <p>
@@ -72,114 +50,31 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LedgerReadService {
 
-	private final CategoryReadService categoryReadService;
-	private final LedgerImageReadService imageReadService;
-
 	private final LedgerRepository ledgerRepository;
-	private final LedgerHistoryPolicy ledgerHistoryPolicy;
-	private final LedgerMapper ledgerMapper;
 
-	private final CurrentUser currentUser;
-	private final Clock clock;
+	public List<Ledger> getOwnerLedgers(String memberId, List<String> codes) {
+		List<Ledger> ledgerList = ledgerRepository.findByCodeIn(codes);
 
-
-	public HistoryDashboardResponse getHistoryDashboard(HistoryType historyType) {
-		// 1. 인증된 사용자 조회
-		String memberId = currentUser.getMemberId();
-
-		// 2. 기간 생성
-		LocalDate today = LocalDate.now(clock);
-		DateRange dateRange = ledgerHistoryPolicy.calculateDateRange(historyType, today);
-
-		// 3. 내역 조회
-		List<LedgerHistoryQuery> histories = ledgerRepository.findHistoriesByMemberAndDateBetween(memberId, dateRange.getFrom(), dateRange.getTo());
-
-		// 4. 내역 그룹화 (날짜 기준)
-		Map<LocalDate, List<HistoryItem>> listGroups = groupByDate(histories);
-
-		// 5. 통계 생성
-		LedgerStatistics statistics = calculateStatistics(histories);
-
-		// 6. 제목 생성
-		String title = ledgerHistoryPolicy.getTitleByHistoryType(historyType);
-
-		// 7. 검색 메뉴 생성
-		List<MenuItem> menu = createMenu();
-
-		// 8. 응답 생성
-		return HistoryDashboardResponse.of(title, menu, statistics, listGroups);
-	}
-
-
-	//날짜 기준으로 내림차순 정렬
-	private Map<LocalDate, List<HistoryItem>> groupByDate(List<LedgerHistoryQuery> histories) {
-		return histories.stream()
-				.filter(history -> history.getDate() != null)
-				.collect(Collectors.groupingBy(
-						LedgerHistoryQuery::getDate,
-						() -> new TreeMap<>(Comparator.reverseOrder()),
-						Collectors.mapping(
-								HistoryItem::from,
-								Collectors.toList()
-						)
-				));
-	}
-
-	//내역에서 카테고리별 금액 합계 구하기
-	private LedgerStatistics calculateStatistics(List<LedgerHistoryQuery> histories) {
-		Map<CategoryType, Long> sumByCategory = histories.stream()
-				.filter(h -> h.getCategoryCode() != null)
-				.collect(Collectors.groupingBy(
-						h -> CategoryType.fromCode(h.getCategoryCode()),
-						Collectors.summingLong(LedgerHistoryQuery::getAmount)
-				));
-
-		Long income = sumByCategory.getOrDefault(CategoryType.INCOME, 0L);
-		Long outlay = sumByCategory.getOrDefault(CategoryType.OUTLAY, 0L);
-
-		return LedgerStatistics.of(income, outlay);
-	}
-
-	public LedgerDetailResponse getDetailData(String code) {
-		//1. 인증된 사용자 조회
-		String memberId = currentUser.getMemberId();
-
-		//2. 가계부 조회
-		Ledger ledger = getLedger(code);
-
-		//3. 카테고리 조회
-		Category category = categoryReadService.getCategory(ledger.getCategory());
-
-		//4. 정책에 맞춰 가계부 이미지 리스트 조회
-		List<String> images
-				= imageReadService.resolveImageSlots(ledger.getId())
-				.stream()
-				.map(ImageSlot::getFilePath)
+		return ledgerList.stream()
+				.filter(ledger -> isLedgerAuthor(memberId, ledger))
 				.toList();
-
-		return ledgerMapper.toDetailDto(ledger, category, images);
-	}
-
-	public LedgerEditResponse getEditData(String code) {
-		//1. 인증된 사용자 조회
-		String memberId = currentUser.getMemberId();
-
-		//2. 가계부 조회
-		Ledger ledger = getLedger(code);
-
-		//3. 카테고리 조회
-		CategoryEditInfo categoryEditInfo = buildCategoryInfo(ledger);
-
-		//4. 정책에 맞춰 가계부 이미지 리스트 조회
-		List<ImageSlot> images = imageReadService.resolveImageSlots(ledger.getId());
-
-		return ledgerMapper.toEditDto(ledger, images, categoryEditInfo);
 	}
 
 	public Ledger getOwnerLedger(String memberId, String code) {
 		Ledger ledger = ledgerRepository.findByCode(code);
 
-		if(!ledger.getMemberId().equals(memberId)) {
+		if(ledger == null) {
+			throw new ApplicationException(
+					DATA_NOT_FOUND,
+					LogContent.of(
+							"가계부 조회",
+							Ledger.class,
+							"code", code
+					)
+			);
+		}
+
+		if(!isLedgerAuthor(memberId, ledger)) {
 			throw new ApplicationException(
 					ErrorCode.OWNER_ONLY,
 					LogContent.of(
@@ -194,39 +89,10 @@ public class LedgerReadService {
 		return ledger;
 	}
 
-	//===== getHistoryDashboard 보조 메서드 =====
-	private List<MenuItem> createMenu() {
-		return List.of(
-				new MenuItem("전체", HistoryMenuType.ALL.name()),
-				new MenuItem("수입/지출", HistoryMenuType.CATEGORY.name()),
-				new MenuItem("카테고리", HistoryMenuType.SUB_CATEGORY.name()),
-				new MenuItem("메모", HistoryMenuType.MEMO.name()),
-				new MenuItem("기간", HistoryMenuType.DATE.name())
-		);
-	}
 
-	//===== getEditData 보조 메서드 =====
-	private CategoryEditInfo buildCategoryInfo(Ledger ledger) {
-		String categoryCode = ledger.getCategory();
-		CategoryType type = CategoryType.fromCode(categoryCode);
-
-		return CategoryEditInfo.builder()
-				.selected(getSelectedCategories(categoryCode))
-				.middleOptions(categoryReadService.getMiddleCategories(type))
-				.lowOptions(categoryReadService.getLowCategories(type))
-				.build();
-	}
-
-	private List<String> getSelectedCategories(String categoryCode) {
-		return categoryReadService.findCategoryHierarchy(categoryCode)
-				.stream()
-				.map(CategoryItem::getCode)
-				.skip(1)	//대분류는 수정 화면에서 선택 대상이 아니므로 제외
-				.toList();
-	}
-
-	private Ledger getLedger(String code) {
-		return ledgerRepository.findByCode(code);
+	//===== 유틸 메서드 =====
+	private boolean isLedgerAuthor(String memberId, Ledger ledger) {
+		return  ledger.getMemberId().equals(memberId);
 	}
 
 }

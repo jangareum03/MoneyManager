@@ -75,7 +75,7 @@ public abstract class IntegrationTest {
 
 	@DynamicPropertySource
 	static void dynamicProperties(DynamicPropertyRegistry registry) {
-		registry.add("file.root", () -> tempDir.toString());
+		registry.add("file.image.ledger", () -> tempDir.toString());
 	}
 
 	@BeforeEach
@@ -99,7 +99,7 @@ public abstract class IntegrationTest {
 	//===== 보조 메서드 =====
 	private static Path createTempDir() {
 		try{
-			return Files.createTempDirectory("ledger-test");
+			return Files.createTempDirectory("ledger-test-");
 		}catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
@@ -130,8 +130,8 @@ public abstract class IntegrationTest {
 	}
 
 	private void deleteTestData() {
-		memberRepository.deleteAll();
-		ledgerRepository.deleteAll();
+		jdbcTemplate.execute("DELETE FROM ledger");
+		jdbcTemplate.execute("DELETE FROM member");
 	}
 
 }

@@ -4,7 +4,6 @@ package com.moneymanager.support.security;
 import com.moneymanager.global.security.CustomUserDetails;
 import com.moneymanager.member.domain.dto.MemberAuth;
 import com.moneymanager.member.domain.enums.MemberStatus;
-import com.moneymanager.support.data.MemberTestData;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -20,10 +19,10 @@ final class WithMockCustomUserSecurityContextFactory implements WithSecurityCont
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
 
 		MemberAuth memberAuth = MemberAuth.builder()
-															.memberId(MemberTestData.DEFAULT_ID)
-															.username(MemberTestData.DEFAULT_USERNAME)
-															.password(MemberTestData.DEFAULT_PASSWORD)
-															.role("ROLE_USER")
+															.memberId(withMockCustomUser.memberId())
+															.username(withMockCustomUser.username())
+															.password(withMockCustomUser.password())
+															.role(withMockCustomUser.role())
 															.status(MemberStatus.ACTIVE)
 															.loginFailCount(1)
 															.deletedDate(null)

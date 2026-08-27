@@ -23,8 +23,8 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -81,7 +81,7 @@ public class LedgerApiControllerTest extends UnitTest {
         @Test
         @DisplayName("정상 요청이면 서비스를 호출한다.")
         void callsService_whenRequestIsValid() throws Exception {
-        	//given
+            //given
             LedgerUpdateRequest request = LedgerUpdateRequestFixture
                     .withPlace()
                     .fixed(LedgerTestData.FIXED_REPEAT.getValue())
@@ -100,30 +100,30 @@ public class LedgerApiControllerTest extends UnitTest {
                     ImageFixture.jpg("test"),
                     ImageFixture.png("test")
             );
-        	
-        	//when
-            mockMvc.perform(
-                    multipart(BASE_URI + "/{code}", "code-123")
-                            .file(ledger)
-                            .file(image.get(0))
-                            .file(image.get(1))
-                            .with(r -> {
-                                r.setMethod("PUT");
 
-                                return r;
-                            })
-            )
+            //when
+            mockMvc.perform(
+                            multipart(BASE_URI + "/{code}", "code-123")
+                                    .file(ledger)
+                                    .file(image.get(0))
+                                    .file(image.get(1))
+                                    .with(r -> {
+                                        r.setMethod("PUT");
+
+                                        return r;
+                                    })
+                    )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("가계부 수정 완료했습니다."))
                     .andExpect(jsonPath("$.next").value("/ledgers/code-123"));
 
-        	//then
-        	verify(ledgerService).processLedgerUpdate(
+            //then
+            verify(ledgerService).processLedgerUpdate(
                     eq("code-123"),
                     any(LedgerUpdateRequest.class)
             );
         }
-        
+
         @Test
         @DisplayName("이미지가 없어도 서비스를 호출한다.")
         void callsService_whenImageIsNullOrBlank() throws Exception {
@@ -160,23 +160,80 @@ public class LedgerApiControllerTest extends UnitTest {
                     any(LedgerUpdateRequest.class)
             );
         }
-        
+
         @Test
         @DisplayName("요청에서 ledger가 없으면 실패한다.")
         void rejectsRequest_whenLedgerDoesNotExist() throws Exception {
-        	//when
+            //when
             mockMvc.perform(
-                    multipart(BASE_URI + "/{code}", "code-123")
-                            .with(req -> {
-                                req.setMethod("PUT");
+                            multipart(BASE_URI + "/{code}", "code-123")
+                                    .with(req -> {
+                                        req.setMethod("PUT");
 
-                                return req;
-                            })
-            )
+                                        return req;
+                                    })
+                    )
                     .andExpect(status().isBadRequest());
-        	
-        	//then
-        	verifyNoInteractions(ledgerService);
+
+            //then
+            verifyNoInteractions(ledgerService);
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("가계부 삭제 요청할 때")
+    class Delete {
+
+        String URI = BASE_URI;
+
+        @Test
+        @DisplayName("삭제된 건수가 있으면 건수를 포함한 메서지를 반환한다.")
+        void returnsSuccessMessageWithCount_whenAccountBookIsDeleted() throws Exception {
+            //given
+            List<String> codes = List.of("code1", "code2");
+
+            when(ledgerService.processLedgerDelete(codes))
+                    .thenReturn(2);
+
+            //when
+            mockMvc.perform(
+                            delete(URI)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content("""
+                                            ["code1", "code2"]
+                                            """)
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("2건의 내역이 삭제되었습니다."));
+
+            //then
+            verify(ledgerService).processLedgerDelete(codes);
+        }
+
+        @Test
+        @DisplayName("삭제된 건수가 없으면 삭제된 내역이 없다는 메시지를 반환한다.")
+        void returnsNotFoundMessage_whenDeletedCountIsZero() throws Exception {
+            //given
+            List<String> codes = List.of("code1", "code2");
+
+            when(ledgerService.processLedgerDelete(codes))
+                    .thenReturn(0);
+
+            //when
+            mockMvc.perform(
+                            delete(URI)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content("""
+                                            ["code1", "code2"]
+                                            """)
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("삭제된 내역이 없습니다."));
+
+            //then
+            verify(ledgerService).processLedgerDelete(codes);
         }
 
     }

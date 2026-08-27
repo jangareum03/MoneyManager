@@ -39,6 +39,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -47,6 +48,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -594,8 +596,8 @@ class LedgerServiceTest {
                 when(ledgerCommandService.toCreateEntity(memberId, request))
                         .thenReturn(ledger);
 
-               doThrow(ApplicationException.class)
-                       .when(ledgerPolicy).validateCreatable(ledger);
+                doThrow(ApplicationException.class)
+                        .when(ledgerPolicy).validateCreatable(ledger);
 
                 //when
                 assertThatThrownBy(() -> target.processLedgerRegistration(request));
@@ -621,7 +623,8 @@ class LedgerServiceTest {
                 when(ledgerCommandService.toCreateEntity(memberId, request))
                         .thenReturn(ledger);
 
-                doThrow(new DataAccessException("DB 오류") {})
+                doThrow(new DataAccessException("DB 오류") {
+                })
                         .when(ledgerCommandService).save(ledger);
 
                 //when
@@ -655,11 +658,11 @@ class LedgerServiceTest {
         @Nested
         @DisplayName("성공")
         class Success {
-        
+
             @Test
             @DisplayName("필수 정보가 정상적으로 주어지면 가계부를 수정한다.")
             void updatesAccountBook_whenRequiredDataIsValid() {
-            	//given
+                //given
                 String code = "code";
                 LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder().build();
 
@@ -668,19 +671,19 @@ class LedgerServiceTest {
                 when(ledgerReadService.getOwnerLedger(MemberTestData.DEFAULT_ID, code))
                         .thenReturn(ledger);
 
-            	//when
+                //when
                 target.processLedgerUpdate(code, request);
-            	
-            	//then
-            	verify(updateValidator).validate(request);
+
+                //then
+                verify(updateValidator).validate(request);
                 verify(ledgerCommandService).updateLedger(request, ledger);
             }
-            
+
             @ParameterizedTest
             @NullAndEmptySource
             @DisplayName("이미지가 없거나 비어있으면 이미지 처리를 수행하지 않는다.")
             void doesNotProcessImage_whenImageIsInvalid(List<MultipartFile> images) {
-            	//given
+                //given
                 String code = "code";
                 LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder()
                         .images(images)
@@ -690,11 +693,11 @@ class LedgerServiceTest {
 
                 when(ledgerReadService.getOwnerLedger(MemberTestData.DEFAULT_ID, code))
                         .thenReturn(ledger);
-            	
-            	//when
+
+                //when
                 target.processLedgerUpdate(code, request);
-            	
-            	//then
+
+                //then
                 InOrder order = inOrder(currentUser, ledgerReadService, updateValidator, ledgerCommandService, imageService);
 
                 order.verify(currentUser).getMemberId();
@@ -704,7 +707,7 @@ class LedgerServiceTest {
 
                 verify(imageService, never()).processImageUpload(MemberTestData.DEFAULT_ID, ledger.getId(), request.getImages());
             }
-            
+
             @Test
             @DisplayName("이미지가 있으면 이미지 처리를 수행한다.")
             void processesImage_whenImageIsValid() {
@@ -733,31 +736,31 @@ class LedgerServiceTest {
                 order.verify(ledgerCommandService).updateLedger(request, ledger);
                 order.verify(imageService).processImageUpload(MemberTestData.DEFAULT_ID, ledger.getId(), request.getImages());
             }
-            
+
         }
-        
+
         @Nested
         @DisplayName("실패")
         class Failure {
-        
+
             @Test
             @DisplayName("소유권 확인에 실패하면 그 후 동작은 수행하지 않는다.")
             void throwsException_whenOwnershipCheckFails() {
-            	//given
+                //given
                 String code = "code";
                 LedgerUpdateRequest request = LedgerUpdateRequestFixture.builder().build();
 
                 when(ledgerReadService.getOwnerLedger(MemberTestData.DEFAULT_ID, code))
                         .thenThrow(ApplicationException.class);
-            	
-            	//when
+
+                //when
                 assertThatThrownBy(() -> target.processLedgerUpdate(code, request))
                         .isInstanceOf(ApplicationException.class);
-            	
-            	//then
-            	verify(updateValidator, never()).validate(request);
+
+                //then
+                verify(updateValidator, never()).validate(request);
             }
-            
+
             @Test
             @DisplayName("요청 정보 검증에 실패하면 그 후 동작은 수행하지 않는다.")
             void throwsException_whenRequestValidationFails() {
@@ -772,7 +775,7 @@ class LedgerServiceTest {
 
                 doThrow(ApplicationException.class)
                         .when(updateValidator)
-                                .validate(request);
+                        .validate(request);
 
                 //when
                 assertThatThrownBy(() -> target.processLedgerUpdate(code, request))
@@ -781,7 +784,7 @@ class LedgerServiceTest {
                 //then
                 verify(ledgerCommandService, never()).updateLedger(request, ledger);
             }
-            
+
             @Test
             @DisplayName("가계부 수정에 실패하면 그 후 동작은 수행하지 않는다.")
             void throwsException_whenAccountBookUpdateFails() {
@@ -809,7 +812,94 @@ class LedgerServiceTest {
                 //then
                 verify(imageService, never()).processImageUpload(MemberTestData.DEFAULT_ID, ledger.getId(), request.getImages());
             }
-            
+
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("가계부를 삭제할 때")
+    class Delete {
+
+        @BeforeEach
+        void setUp() {
+            when(currentUser.getMemberId())
+                    .thenReturn(MemberTestData.DEFAULT_ID);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        @DisplayName("코드가 null이면 0을 반환한다.")
+        void returnsZero_whenCodeIsNull(List<String> code) {
+            //when
+            int result = target.processLedgerDelete(code);
+
+            //then
+            assertThat(result).isZero();
+        }
+
+        @Test
+        @DisplayName("코드 길이가 0이면 0을 반환한다.")
+        void returnsZero_whenCodeIsEmpty() {
+            //when
+            int result = target.processLedgerDelete(Collections.emptyList());
+
+            //then
+            assertThat(result).isZero();
+        }
+
+        @Test
+        @DisplayName("가계부를 조회 후 파일 및 정보를 삭제한다.")
+        void deletesAccountBookAndImage_whenLedgerExists() {
+        	//given
+            List<String> codes = List.of("code1", "code2");
+
+            List<Ledger> ledgers = List.of(
+                    LedgerTestFixture.builder().buildExisting(1L, "code1"),
+                    LedgerTestFixture.builder().buildExisting(2L, "code2")
+            );
+
+            when(ledgerReadService.getOwnerLedgers(MemberTestData.DEFAULT_ID, codes))
+                    .thenReturn(ledgers);
+
+            when(ledgerCommandService.deleteAll(ledgers))
+                    .thenReturn(2);
+        	
+        	//when
+            int result = target.processLedgerDelete(codes);
+        	
+        	//then
+        	assertThat(result).isEqualTo(2);
+
+            verify(ledgerReadService)
+                    .getOwnerLedgers(MemberTestData.DEFAULT_ID, codes);
+
+            verify(imageService).processImagesDelete(ledgers);
+
+            verify(ledgerCommandService).deleteAll(ledgers);
+        }
+        
+        @Test
+        @DisplayName("조회된 가계부가 없으면 빈 목록을 삭제 서비스에게 전달한다.")
+        void doesNotDeleteImage_whenAccountBookDoesNotExist() {
+        	//given
+            List<String> codes = List.of("code1", "code2");
+
+            when(ledgerReadService.getOwnerLedgers(MemberTestData.DEFAULT_ID, codes))
+                    .thenReturn(List.of());
+
+            when(ledgerCommandService.deleteAll(List.of()))
+                    .thenReturn(0);
+        	
+        	//when
+            int result = target.processLedgerDelete(codes);
+        	
+        	//then
+        	assertThat(result).isZero();
+
+            verify(imageService).processImagesDelete(List.of());
+            verify(ledgerCommandService).deleteAll(List.of());
         }
 
     }

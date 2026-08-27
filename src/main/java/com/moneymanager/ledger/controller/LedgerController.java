@@ -6,11 +6,7 @@ import com.moneymanager.global.operation.enums.ServiceAction;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
-import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
-import com.moneymanager.ledger.domain.enums.*;
 import com.moneymanager.ledger.service.application.LedgerService;
-import com.moneymanager.ledger.service.read.LedgerReadService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -45,50 +41,13 @@ import org.springframework.web.bind.annotation.*;
  */
 @Controller
 @WebController
-@RequiredArgsConstructor
 @RequestMapping("/ledgers")
 public class LedgerController {
 
 	private final LedgerService ledgerService;
-	private final LedgerReadService ledgerReadService;
 
-	@GetMapping
-	public String getHistories(@RequestParam(required = false) String viewType, Model model) {
-		HistoryType type = parseHistoryTypeOrDefault(viewType);
-
-		HistoryDashboardResponse response = ledgerReadService.getHistoryDashboard(type);
-
-		model.addAttribute("history", response);
-		model.addAttribute("type", type);
-		model.addAttribute("activeMenu", HistoryMenuType.ALL.name());
-
-		return "/ledger/ledger_history";
-	}
-
-	private HistoryType parseHistoryTypeOrDefault(String type) {
-		try{
-			return HistoryType.from(type);
-		}catch (IllegalArgumentException e) {
-			return HistoryType.MONTH;
-		}
-	}
-
-	@GetMapping("/{code}")
-	public String getLedgerDetail(@PathVariable String code, Model model) {
-		model.addAttribute("ledger", ledgerReadService.getDetailData(code));
-
-		return "/ledger/ledger_detail";
-	}
-
-	@GetMapping("/{code}/edit")
-	public String showEditForm(@PathVariable String code, Model model) {
-		model.addAttribute("ledger", ledgerReadService.getEditData(code));
-
-		model.addAttribute("fixes", FixedType.values());
-		model.addAttribute("fixCycles", FixCycle.values());
-		model.addAttribute("paymentTypes", PaymentType.values());
-
-		return "/ledger/ledger_edit";
+	public  LedgerController(LedgerService ledgerService) {
+		this.ledgerService = ledgerService;
 	}
 
 	@GetMapping("/new/step1")

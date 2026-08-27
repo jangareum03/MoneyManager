@@ -207,11 +207,6 @@ public class LedgerControllerIT extends IntegrationTest {
 
         final String URI = "/ledgers";
 
-        @BeforeEach
-        void setUp() {
-            ledgerRepository.deleteAll();
-        }
-
         @Test
         @DisplayName("등록 요청으로 가계부를 저장한다.")
         void savesLedger_whenRequestIsValid() throws Exception {

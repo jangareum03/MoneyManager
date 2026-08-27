@@ -1,7 +1,5 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.global.exception.code.ErrorCode;
-import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.support.ApplicationExceptionAssert;
@@ -14,6 +12,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+import java.util.List;
+
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
+import static com.moneymanager.global.exception.code.ErrorCode.OWNER_ONLY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.when;
@@ -55,61 +58,134 @@ class LedgerReadServiceTest {
     LedgerRepository ledgerRepository;
 
     @Nested
-    @DisplayName("권한 있는 가계부 조회할 때")
+    @DisplayName("자신의 가계부 여러개를 조회할 때")
+    class GetOwnerLedgers {
+
+        @Test
+        @DisplayName("코드 리스트가 비어있으면 빈 리스트를 반환한다.")
+        void returnsEmptyList_whenLedgerCodesAreEmpty() {
+            //given
+            String memberId = "memberId";
+            List<String> codes = List.of();
+
+            //when
+            List<Ledger> result = target.getOwnerLedgers(memberId, codes);
+
+            //then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("조회한 가계부가 null이면 리스트에 추가하지 않는다.")
+        void doesNotAddToList_whenLedgerIsNull() {
+            //given
+            String memberId = "memberId";
+            List<String> codes = List.of("code1", "code2", "code3");
+
+            when(ledgerRepository.findByCodeIn(codes))
+                    .thenReturn(
+                            Arrays.asList(
+                                    LedgerTestFixture.builder().code("code1").memberId(memberId).build(),
+                                    LedgerTestFixture.builder().code("code3").memberId(memberId).build()
+                            )
+                    );
+
+            //when
+            List<Ledger> result = target.getOwnerLedgers(memberId, codes);
+
+            //then
+            assertThat(result)
+                    .extracting(Ledger::getCode)
+                    .doesNotContain("code2");
+        }
+
+        @Test
+        @DisplayName("타인의 가계부는 리스트에 추가하지 않는다.")
+        void doesNotAddToList_whenLedgerBelongsToOtherUser() {
+            //given
+            String memberId = "memberId";
+            List<String> codes = List.of("code1", "code2", "code3");
+
+            when(ledgerRepository.findByCodeIn(codes))
+                    .thenReturn(
+                            Arrays.asList(
+                                    LedgerTestFixture.builder().code("code1").memberId(memberId).build(),
+                                    LedgerTestFixture.builder().code("code2").memberId("other").build(),
+                                    LedgerTestFixture.builder().code("code3").memberId(memberId).build()
+                            )
+                    );
+
+            //when
+            List<Ledger> result = target.getOwnerLedgers(memberId, codes);
+
+            //then
+            assertThat(result)
+                    .extracting(Ledger::getCode)
+                    .doesNotContain("code2");
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("자신의 가계부 하나를 조회할 때")
     class GetOwnerLedger {
 
         @Test
         @DisplayName("본인의 가계부 코드면 가계부를 조회한다.")
         void returnsLedger_whenLedgerCodeBelongsToUser() {
-        	//given
+            //given
             String code = "code";
             String memberId = "memberId";
 
             when(ledgerRepository.findByCode(code))
                     .thenReturn(LedgerTestFixture.builder().memberId(memberId).code(code).build());
-        	
-        	//when
+
+            //when
             Ledger result = target.getOwnerLedger(memberId, code);
-        	
-        	//then
-        	assertThat(result.getMemberId()).isEqualTo(memberId);
+
+            //then
+            assertThat(result.getMemberId()).isEqualTo(memberId);
             assertThat(result.getCode()).isEqualTo(code);
         }
-        
+
         @Test
         @DisplayName("존재하지 않은 코드면 예외를 발생시킨다")
         void throwsException_whenLedgerDoesNotExist() {
-        	//given
+            //given
             String code = "code";
             String memberId = "memberId";
 
             when(ledgerRepository.findByCode(code))
-                    .thenThrow(ApplicationException.class);
-        	
-        	//when
-        	Throwable throwable = catchThrowable(() -> target.getOwnerLedger(memberId, code));
+                    .thenReturn(null);
 
-        	//then
+            //when
+            Throwable throwable = catchThrowable(() -> target.getOwnerLedger(memberId, code));
+
+            //then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .isInstanceOf(ApplicationException.class);
+                    .hasErrorCode(DATA_NOT_FOUND)
+                    .hasWork("가계부 조회")
+                    .hasTarget(Ledger.class)
+                    .hasValue("code", code);
         }
-        
+
         @Test
         @DisplayName("타인의 가계부 코드면 예외를 발생시킨다.")
         void throwsException_whenLedgerCodeBelongsToAnotherUser() {
-        	//given
+            //given
             String code = "code";
             String memberId = "memberId";
 
             when(ledgerRepository.findByCode(code))
                     .thenReturn(LedgerTestFixture.builder().memberId("other").build());
-        	
-        	//when
+
+            //when
             Throwable throwable = catchThrowable(() -> target.getOwnerLedger(memberId, code));
-        	
-        	//then
-        	ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .hasErrorCode(ErrorCode.OWNER_ONLY)
+
+            //then
+            ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                    .hasErrorCode(OWNER_ONLY)
                     .hasWork("가계부 작성자 확인")
                     .hasTarget(Ledger.class)
                     .hasValue("code", code, "requester", memberId);

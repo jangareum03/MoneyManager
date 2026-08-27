@@ -5,6 +5,7 @@ import com.moneymanager.global.domain.FileMetadata;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.ledger.domain.entity.LedgerImage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Clock;
 import java.time.LocalDate;
 
@@ -50,19 +53,19 @@ import static com.moneymanager.global.exception.code.ErrorCode.FILE_NOT_FOUND;
 public class LedgerImageStorage {
 
     private final Clock clock;
-    private final Path rootPath;
+    private final String rootPath;
 
-    public LedgerImageStorage(Clock clock, @Value("${file.root}") String rootPath) {
+    public LedgerImageStorage(Clock clock, @Value("${file.image.ledger}") String rootPath) {
         this.clock = clock;
-        this.rootPath = Path.of(rootPath);
+        this.rootPath = rootPath;
     }
 
-    public FileMetadata store(MultipartFile file, String memberId) throws IOException {
+    public FileMetadata createFileMetadata(String memberId, MultipartFile file) throws IOException {
         if(file == null || file.isEmpty()) {
             throw new ApplicationException(
                     FILE_NOT_FOUND,
                     LogContent.of(
-                            "파일 업로드",
+                            "FileMetadata 생성",
                             MultipartFile.class
                     )
             );
@@ -76,9 +79,6 @@ public class LedgerImageStorage {
         Path directoryPath = resolveDirectory(memberId);
         Files.createDirectories(directoryPath);
 
-        //서버에 이미지 저장
-        file.transferTo(directoryPath.resolve(generatedFilename));
-
         return FileMetadata.of(
                 resolveFilePath(memberId, generatedFilename),
                 resolveRelativeFilePath(memberId, generatedFilename),
@@ -88,9 +88,33 @@ public class LedgerImageStorage {
         );
     }
 
-    public void delete(Path path) {
+    public Path resolveAbsolutePath(LedgerImage ledgerImage) {
+        return Path.of(rootPath).resolve(ledgerImage.getImagePath());
+    }
+
+    public void saveFile(MultipartFile file, FileMetadata metadata) throws IOException {
+        file.transferTo(metadata.getAbsolutePath());
+    }
+
+    public void moveToTemp(Path path) throws IOException {
+        if(Files.isRegularFile(path)) {
+            Path tempDirectory = Paths.get(rootPath, "temp");
+
+            Files.createDirectories(tempDirectory);
+
+            Path file = tempDirectory.resolve(path.getFileName());
+
+            Files.move(path, file,  StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    public void deleteOrThrow(Path path) throws IOException {
+        Files.delete(path);
+    }
+
+    public void deleteFile(Path path) {
         try{
-            Files.delete(path);
+            deleteOrThrow(path);
         }catch (IOException e) {
             AuditLogger.warn(
                     "파일 경로가 잘못되거나 존재하지 않은 파일이어서 삭제가 불가능합니다.",
@@ -103,7 +127,7 @@ public class LedgerImageStorage {
 
     //===== 유틸 메서드 =====
     private Path resolveDirectory(String memberId) {
-        return rootPath.resolve(resolveRelativeDirectory(memberId));
+        return Path.of(rootPath).resolve(resolveRelativeDirectory(memberId));
     }
 
     private Path resolveRelativeDirectory(String memberId) {

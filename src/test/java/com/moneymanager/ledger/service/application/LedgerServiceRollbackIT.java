@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.dao.DataAccessException;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -60,22 +59,19 @@ public class LedgerServiceRollbackIT extends IntegrationTest {
     @SpyBean
     LedgerImageRepository imageRepository;
 
-    Ledger savedLedger;
-
     @Nested
     @DisplayName("가계부 수정 요청할 때")
     class Update {
 
-        @BeforeEach
-        void setUp() throws IOException {
-            ledgerRepository.deleteAll();
+        Ledger savedLedger;
 
-            Long id = ledgerRepository.save(
-                    LedgerTestFixture.builder().build()
-            );
+        @BeforeEach
+        void setUp() {
+            Long id = ledgerRepository.save(LedgerTestFixture.builder().build());
 
             savedLedger = ledgerRepository.findById(id);
         }
+
 
         @Test
         @DisplayName("변경된 수정사항 저장 중 실패하면 가계부가 수정되지 않는다.")

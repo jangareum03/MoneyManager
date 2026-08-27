@@ -74,4 +74,16 @@ public class LedgerApiController {
         );
     }
 
+    @DeleteMapping
+    @Operation(ServiceAction.LEDGER_DELETE)
+    public ApiBody<Void> deleteLedger(@RequestBody List<String> codes) {
+        int delCount = ledgerService.processLedgerDelete(codes);
+
+        if(delCount == 0) {
+            return ApiBody.message("삭제된 내역이 없습니다.");
+        }
+
+        return ApiBody.message(delCount +"건의 내역이 삭제되었습니다.");
+    }
+
 }

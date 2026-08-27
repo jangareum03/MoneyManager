@@ -1,6 +1,7 @@
 package com.moneymanager.ledger.repository;
 
 import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
@@ -14,7 +15,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,6 +56,9 @@ class LedgerRepositoryIT extends IntegrationTest {
 
     @Autowired
     private LedgerRepository target;
+
+    @Autowired
+    LedgerImageRepository imageRepository;
 
     @Nested
     @DisplayName("가계부 저장할 때")
@@ -132,7 +139,9 @@ class LedgerRepositoryIT extends IntegrationTest {
 
         @BeforeEach
         void setUp() {
-            saved = savedLedger();
+            Long id = ledgerRepository.save(LedgerTestFixture.builder().build());
+
+            saved = ledgerRepository.findById(id);
         }
 
         @Test
@@ -175,6 +184,7 @@ class LedgerRepositoryIT extends IntegrationTest {
 
     }
 
+
     @Nested
     @DisplayName("가계부 번호로 조회할 때")
     class FindById {
@@ -183,7 +193,9 @@ class LedgerRepositoryIT extends IntegrationTest {
 
         @BeforeEach
         void setUp() {
-            saved = savedLedger();
+            Long id = ledgerRepository.save(LedgerTestFixture.builder().build());
+
+            saved = ledgerRepository.findById(id);
         }
 
         @Test
@@ -225,7 +237,9 @@ class LedgerRepositoryIT extends IntegrationTest {
 
         @BeforeEach
         void setUp() {
-            saved = savedLedger();
+            Long id = ledgerRepository.save(LedgerTestFixture.builder().build());
+
+            saved = ledgerRepository.findById(id);
         }
 
         @Test
@@ -240,54 +254,153 @@ class LedgerRepositoryIT extends IntegrationTest {
             //then
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(saved.getId());
-            assertThat(result.getMemberId()).isEqualTo(savedLedger().getMemberId());
+            assertThat(result.getMemberId()).isEqualTo(saved.getMemberId());
             assertThat(result.getCode()).isEqualTo(code);
         }
 
         @ParameterizedTest
         @NullAndEmptySource
         @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
-        @DisplayName("코드가 null이거나 비어있으면 예외를 발생시킨다.")
-        void throwsException_whenCodeIsNullOrBlank(String code) {
+        @DisplayName("코드가 null이거나 비어있으면 null을 반환한다.")
+        void returnNull_whenCodeIsNullOrBlank(String code) {
         	//when
-            Throwable throwable = catchThrowable(() -> target.findByCode(code));
+            Ledger result = target.findByCode(code);
 
         	//then
-        	ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .hasErrorCode(DATA_NOT_FOUND)
-                    .hasWork("가계부 코드로 가계부 조회")
-                    .hasTarget(Ledger.class)
-                    .hasValue("code", code);
+        	assertThat(result).isNull();
         }
 
         @Test
-        @DisplayName("존재하지 않은 코드면 예외를 발생시킨다.")
-        void throwsException_whenCodeDoesNotExist() {
+        @DisplayName("존재하지 않은 코드면 null을 반환한다.")
+        void returnNull_whenCodeDoesNotExist() {
             //given
             String code = "no-exist";
 
             //when
-            Throwable throwable = catchThrowable(() -> target.findByCode(code));
+            Ledger result = target.findByCode(code);
 
             //then
-            ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                    .hasErrorCode(DATA_NOT_FOUND)
-                    .hasWork("가계부 코드로 가계부 조회")
-                    .hasTarget(Ledger.class)
-                    .hasValue("code", code);
+            assertThat(result).isNull();
         }
 
     }
 
 
+    @Nested
+    @DisplayName("가계부 코드 여러개로 조회할 때")
+    class FindByCodes {
+        
+        @ParameterizedTest
+        @NullAndEmptySource
+        @DisplayName("null이거나 비어있으면 빈 리스트를 반환한다.")
+        void findsEmptyList_whenCodesAreNullOrEmpty(List<String> codes) {
+        	//when
+            List<Ledger> result = target.findByCodeIn(codes);
+        	
+        	//then
+        	assertThat(result).isEmpty();
+        }
+        
+        @Test
+        @Sql("/sql/ledger-get-test.sql")
+        @DisplayName("존재하는 코드면 리스트에 포함하여 반환한다.")
+        void findsCodes_whenCodesExist() {
+        	//given
+            List<String> codes = List.of("code-1", "code-3");
+        	
+        	//when
+            List<Ledger> result = target.findByCodeIn(codes);
+        	
+        	//then
+        	assertThat(result)
+                    .hasSize(codes.size())
+                    .extracting(Ledger::getCode)
+                    .contains("code-1", "code-3");
+        }
+        
+        @Test
+        @Sql("/sql/ledger-get-test.sql")
+        @DisplayName("존재하지 않은 코드는 제외 후 반환한다.")
+        void findsCodesExcludingNonExisting_whenSomeCodesDoesNotExist() {
+            //given
+            List<String> codes = List.of("code-1", "no-exit", "code-3");
 
-    private Ledger savedLedger() {
-        ledgerRepository.deleteAll();
+            //when
+            List<Ledger> result = target.findByCodeIn(codes);
 
-        Long id = target.save(
-                LedgerTestFixture.builder().build()
-        );
+            //then
+            assertThat(result)
+                    .hasSize(2)
+                    .extracting(Ledger::getCode)
+                    .contains("code-1", "code-3");
+        }
 
-        return ledgerRepository.findById(id);
     }
+
+
+    @Nested
+    @Sql("/sql/ledger-delete-test.sql")
+    @DisplayName("가계부 코드 여러개로 삭제할 때")
+    class DeleteByCodes {
+        
+        @Test
+        @DisplayName("요청하는 코드가 비어있으면 0개를 반환한다.")
+        void deletesNothing_whenCodeListIsEmpty() {
+        	//given
+            List<Long> ids = List.of();
+        	
+        	//when
+            int result = target.deleteByIdIn(ids);
+        	
+        	//then
+        	assertThat(result).isZero();
+        }
+        
+        @Test
+        @DisplayName("존재하는 가계부 코드면 삭제 후 삭제된 개수를 반환한다.")
+        void deletesHouseholdLedgerAndReturnsCount_whenCodeExists() {
+            //given
+            List<Long> ids = List.of(1L, 2L);
+
+            //when
+            int result = target.deleteByIdIn(ids);
+
+            //then
+            assertThat(result).isEqualTo(ids.size());
+        }
+        
+        @Test
+        @DisplayName("존재하지 않은 가계부 코드면 삭제된 개수에 포함하지 않는다.")
+        void deletesNothing_whenCodeDoesNotExist() {
+            //given
+            List<Long> ids = List.of(1L, 2L, 999L);
+
+            //when
+            int result = target.deleteByIdIn(ids);
+
+            //then
+            assertThat(result).isEqualTo(2);
+        }
+        
+        @Test
+        @DisplayName("삭제된 가계부에 대한 이미지 정보 같이 삭제된다.")
+        void deletesImages_whenHouseholdLedgerIsDeleted() {
+            //given
+            List<Long> ids = List.of(1L, 2L);
+
+            List<LedgerImage> beforeImages = imageRepository.findByLedgerId(1L);
+            assertThat(beforeImages).hasSize(1);
+
+            //when
+            int result = target.deleteByIdIn(ids);
+
+            //then
+            assertThat(result).isEqualTo(ids.size());
+
+            List<LedgerImage> afterImages = imageRepository.findByLedgerId(1L);
+            assertThat(afterImages).hasSize(0);
+        }
+
+    }
+
 }

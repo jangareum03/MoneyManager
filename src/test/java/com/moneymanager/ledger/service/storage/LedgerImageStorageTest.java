@@ -2,8 +2,11 @@ package com.moneymanager.ledger.service.storage;
 
 import com.moneymanager.global.config.MutableClock;
 import com.moneymanager.global.domain.FileMetadata;
+import com.moneymanager.global.exception.code.ErrorCode;
+import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
+import com.moneymanager.support.fixture.entity.LedgerImageTestFixture;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,8 +22,6 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 
 /**
@@ -67,22 +68,22 @@ class LedgerImageStorageTest {
 
 
     @Nested
-    @DisplayName("파일 저장할 때")
-    class Save {
+    @DisplayName("FileMetadata 생성할 때")
+    class Create {
 
         @Nested
         @DisplayName("성공")
         class Success {
 
             @Test
-            @DisplayName("유효한 파일과 회원번호면 서버에 파일을 저장하고 파일 정보를 반환한다.")
-            void savesFileAndReturnsFileMetadata_whenRequestIsValid() throws IOException {
+            @DisplayName("유효한 파일과 회원번호면 파일 정보를 생성한다.")
+            void createFileMetadata_whenRequestIsValid() throws IOException {
                 //given
                 String memberId = MemberTestData.DEFAULT_ID;
                 MockMultipartFile file = ImageFixture.jpg("test");
 
                 //when
-                FileMetadata result = target.store(file, memberId);
+                FileMetadata result = target.createFileMetadata(memberId, file);
 
                 //then
                 assertThat(result).isNotNull();
@@ -92,25 +93,18 @@ class LedgerImageStorageTest {
                 assertThat(result.getStoredFileName())
                         .isNotEqualTo("test.jpg")
                         .endsWith(".jpg");
-
-                Path savedFile = Path.of(temp.toString())
-                        .resolve(result.getAbsolutePath());
-                assertThat(savedFile).isRegularFile();  //일반 파일인지 확인
-
-                assertThat(Files.readAllBytes(savedFile))
-                        .isEqualTo(file.getBytes());
             }
 
             @Test
-            @DisplayName("저장할 때마다 저장된 파일명은 중복되지 않는다.")
+            @DisplayName("저장할 때마다 저장될 파일명은 중복되지 않는다.")
             void generatesUniqueFileName_whenFileIsSaved() throws IOException {
                 //given
                 String memberId = MemberTestData.DEFAULT_ID;
                 MockMultipartFile file = ImageFixture.jpg("test");
 
                 //when
-                FileMetadata resultA = target.store(file, memberId);
-                FileMetadata resultB = target.store(file, memberId);
+                FileMetadata resultA = target.createFileMetadata(memberId, file);
+                FileMetadata resultB = target.createFileMetadata(memberId, file);
 
                 //then
                 assertThat(resultA.getStoredFileName())
@@ -128,7 +122,7 @@ class LedgerImageStorageTest {
                 assertThat(directoryPath).doesNotExist();
 
                 //when
-                target.store(file, memberId);
+                target.createFileMetadata(memberId, file);
 
                 //then
                 assertThat(directoryPath).exists().isDirectory();
@@ -145,7 +139,7 @@ class LedgerImageStorageTest {
                 Files.createDirectories(directoryPath);
 
                 //when
-                target.store(file, memberId);
+                target.createFileMetadata(memberId, file);
 
                 //then
                 assertThat(directoryPath).exists().isDirectory();
@@ -169,13 +163,12 @@ class LedgerImageStorageTest {
                 String memberId = MemberTestData.DEFAULT_ID;
             	
             	//when
-                Throwable throwable = catchThrowable(() -> target.store(file, memberId));
+                Throwable throwable = catchThrowable(() -> target.createFileMetadata(memberId, file));
             	
             	//then
                 ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                        
-                        .hasWork("파일 업로드")
-                        .hasCauseMessage("파일 없음");
+                        .hasErrorCode(ErrorCode.FILE_NOT_FOUND)
+                        .hasWork("FileMetadata 생성");
             }
 
             @Test
@@ -186,33 +179,146 @@ class LedgerImageStorageTest {
                 String memberId = MemberTestData.DEFAULT_ID;
 
                 //when
-                Throwable throwable = catchThrowable(() -> target.store(file, memberId));
+                Throwable throwable = catchThrowable(() -> target.createFileMetadata(memberId, file));
 
                 //then
                 ApplicationExceptionAssert.assertThatApplicationException(throwable)
-                        
-                        .hasWork("파일 업로드")
-                        .hasCauseMessage("파일 없음");
-            }
-            
-            @Test
-            @DisplayName("파일을 저장 중 문제가 발생하면 예외를 전파시킨다.")
-            void rethrowsException_whenFileSaveFails() throws IOException {
-            	//given
-                String memberId = MemberTestData.DEFAULT_ID;
-                MockMultipartFile file = mock(MockMultipartFile.class);
-
-                when(file.getOriginalFilename()).thenReturn("test.jpg");
-
-                doThrow(new IOException("저장 실패"))
-                        .when(file)
-                                .transferTo(any(Path.class));
-            	
-            	//when
-                assertThatThrownBy(() -> target.store(file, memberId))
-                        ;
+                        .hasErrorCode(ErrorCode.FILE_NOT_FOUND)
+                        .hasWork("FileMetadata 생성");
             }
 
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("temp 폴더로 이동할 때")
+    class MoveToTemp {
+        
+        @Test
+        @DisplayName("기존 파일을 temp폴더로 이동한다.")
+        void movesFileToTempFolder_whenFileExists() throws IOException {
+        	//given
+            Path path = temp.resolve("test.png");
+            Files.write(path, "test".getBytes());
+
+            Files.createDirectory(temp.resolve("temp"));
+        	
+        	//when
+            target.moveToTemp(path);
+        	
+        	//then
+        	Path movePath = temp.resolve("temp").resolve("test.png");
+
+            assertThat(Files.exists(path)).isFalse();
+            assertThat(Files.exists(movePath)).isTrue();
+            assertThat(Files.readString(movePath)).isEqualTo("test");
+        }
+        
+        @Test
+        @DisplayName("temp폴더가 없어도 생성 후 이동한다.")
+        void createsTempFolderAndMovesFile_whenTempFolderDoesNotExist() throws IOException {
+            //given
+            Path path = temp.resolve("test.png");
+            Files.write(path, "test".getBytes());
+
+            //when
+            target.moveToTemp(path);
+
+            //then
+            Path movePath = temp.resolve("temp").resolve("test.png");
+
+            assertThat(Files.exists(path)).isFalse();
+            assertThat(Files.exists(movePath)).isTrue();
+            assertThat(Files.readString(movePath)).isEqualTo("test");
+        }
+        
+        @Test
+        @DisplayName("파일이 존재하지 않으면 아무것도 하지 않는다.")
+        void doesNothing_whenFileDoesNotExist() throws IOException {
+        	//given
+            Path path = temp.resolve("test.png");
+        	
+        	//when
+            target.moveToTemp(path);
+        	
+        	//then
+            assertThat(Files.exists(path)).isFalse();
+            assertThat(Files.exists(temp.resolve("temp"))).isFalse();
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("절대 경로를 조합할 때")
+    class ResolvePath {
+
+        @Test
+        @DisplayName("데이터에 저장된 이미지 경로를 바탕으로 절대경로를 반환한다.")
+        void createPath_whenLedgerImageIsValid() {
+            //given
+            Path relativePath = Path.of("member1/images/test.png");
+            LedgerImage image = LedgerImageTestFixture.builder(1L, relativePath).build();
+
+            //when
+            Path result = target.resolveAbsolutePath(image);
+
+            //then
+            assertThat(result.toString()).contains(relativePath.toString());
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("파일 삭제할 때")
+    class DeleteOrThrow {
+
+        @Test
+        @DisplayName("유효한 파일 경로를 전달하면 파일을 삭제한다.")
+        void deletesFile_whenFilePathIsGiven() throws IOException {
+            //given
+            Path file = temp.resolve("test.jpg");
+            Files.createFile(file);
+
+            assertThat(file).exists();
+
+            //when
+            target.deleteOrThrow(file);
+
+            //then
+            assertThat(file).doesNotExist();
+        }
+
+        @Test
+        @DisplayName("빈 폴더 경로를 전달하면 폴더를 삭제한다.")
+        void deletesDirectory_whenPathIsEmptyDirectory() throws IOException {
+            //given
+            Path directory = temp.resolve("images");
+            Files.createDirectories(directory);
+
+            assertThat(directory).exists().isDirectory();
+
+            //when
+            target.deleteOrThrow(directory);
+
+            //then
+            assertThat(directory).doesNotExist();
+        }
+
+        @Test
+        @DisplayName("존재하지 않은 경로면 예외를 발생시킨다.")
+        void throwsIOException_whenPathDoesNotExist() {
+            //given
+            Path notExists = temp.resolve("notExists.jpg");
+
+            assertThat(notExists).doesNotExist();
+
+            //when
+            assertThatThrownBy(() -> target.deleteOrThrow(notExists))
+                    .isInstanceOf(IOException.class);
         }
 
     }
@@ -223,38 +329,6 @@ class LedgerImageStorageTest {
     class Delete {
 
         @Test
-        @DisplayName("파일 경로를 전달하면 파일을 삭제한다.")
-        void deletesFile_whenFilePathIsGiven() throws IOException {
-        	//given
-            Path file = temp.resolve("test.jpg");
-            Files.createFile(file);
-
-            assertThat(file).exists();
-        	
-        	//when
-            target.delete(file);
-        	
-        	//then
-        	assertThat(file).doesNotExist();
-        }
-        
-        @Test
-        @DisplayName("빈 디렉터리 경로를 전달하면 디렉터리를 삭제한다.")
-        void deletesDirectory_whenPathIsEmptyDirectory() throws IOException {
-        	//given
-            Path directory = temp.resolve("images");
-            Files.createDirectories(directory);
-
-            assertThat(directory).exists().isDirectory();
-        	
-        	//when
-            target.delete(directory);
-        	
-        	//then
-        	assertThat(directory).doesNotExist();
-        }
-
-        @Test
         @DisplayName("존재하지 않는 경로를 전달해도 예외를 던지지 않는다.")
         void doesNothing_whenPathDoesNotExist() {
         	//given
@@ -263,7 +337,7 @@ class LedgerImageStorageTest {
             assertThat(notExists).doesNotExist();
 
             //when
-            assertDoesNotThrow(() -> target.delete(notExists));
+            assertDoesNotThrow(() -> target.deleteFile(notExists));
         }
 
         @Test
@@ -277,7 +351,7 @@ class LedgerImageStorageTest {
             Files.createFile(file);
         	
         	//when
-           assertDoesNotThrow(() -> target.delete(directory));
+           assertDoesNotThrow(() -> target.deleteFile(directory));
         }
 
     }

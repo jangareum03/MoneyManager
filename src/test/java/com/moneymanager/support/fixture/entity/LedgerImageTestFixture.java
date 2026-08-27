@@ -11,13 +11,13 @@ public final class LedgerImageTestFixture {
 	private String imagePath;
 	private int sortOrder;
 
-	private LedgerImageTestFixture(Long ledgerId, Path root) {
+	private LedgerImageTestFixture(Long ledgerId, Path imagePath) {
 		this.ledgerId = ledgerId;
-		this.imagePath = root.toString();
+		this.imagePath = imagePath.toString();
 	}
 
-	public static LedgerImageTestFixture builder(Long ledgerId, Path root) {
-		return new LedgerImageTestFixture(ledgerId, root);
+	public static LedgerImageTestFixture builder(Long ledgerId, Path relativePath) {
+		return new LedgerImageTestFixture(ledgerId, relativePath);
 	}
 
 	public LedgerImageTestFixture imagePath(String imagePath) {

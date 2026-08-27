@@ -195,10 +195,4 @@ public class MemberRepository {
         }
     }
 
-    public void deleteAll() {
-        String query = "DELETE FROM member";
-
-        jdbcTemplate.update(query);
-    }
-
 }

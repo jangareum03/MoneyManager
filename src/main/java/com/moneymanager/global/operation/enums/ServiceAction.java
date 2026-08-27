@@ -40,7 +40,8 @@ public enum ServiceAction {
 
 	//API 요청
 	LEDGER_CATEGORY("하위 카테고리 목록 조회 API"),
-	LEDGER_REGISTER_DATE("작성할 가계부 날짜 목록 조회 API");
+	LEDGER_REGISTER_DATE("작성할 가계부 날짜 목록 조회 API"),
+	LEDGER_DELETE("가계부 삭제 API");
 
 	private final String description;
 	private final String path;

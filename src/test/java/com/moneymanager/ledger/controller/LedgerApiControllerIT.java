@@ -19,11 +19,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,6 +34,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -74,7 +79,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
     @Autowired
     private LedgerImageRepository imageRepository;
 
-    @Autowired
+    @SpyBean
     private LedgerImageStorage imageStorage;
 
     private final String BASE_URI = "/api/ledgers";
@@ -470,6 +475,118 @@ public class LedgerApiControllerIT extends IntegrationTest {
                         .andExpect(status().isUnsupportedMediaType());
             }
 
+        }
+
+    }
+
+
+    @Nested
+    @Sql("/sql/ledger-delete-test.sql")
+    @DisplayName("가계부를 삭제할 때")
+    class Delete {
+
+        String URI = BASE_URI;
+        
+        @Test
+        @DisplayName("자신의 가계부를 삭제하면 데이터와 이미지가 함께 삭제한다.")
+        void returnsSuccessMessage_whenUserDeletesOwnAccountBook() throws Exception {
+        	//given
+            LedgerImage image = imageRepository.findByLedgerId(1L).get(0);
+
+            Path path = tempDir.resolve(image.getImagePath());
+            Files.createDirectories(path.getParent());
+            Files.createFile(path);
+        	
+        	//when
+            mockMvc.perform(
+                    delete(URI)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    ["code-1", "code-2"]
+                                    """)
+                            .cookie(accessTokenCookie("member1"))
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("2건의 내역이 삭제되었습니다."));
+        	
+        	//then
+        	assertThat(ledgerRepository.findByCodeIn(List.of("code-1", "code-2")).size())
+                    .isZero();
+
+            assertThat(imageRepository.findByLedgerId(1L).size())
+                    .isZero();
+
+            assertThat(Files.exists(path)).isFalse();
+        }
+        
+        @Test
+        @DisplayName("이미지 삭제에 실패해도 데이터는 삭제한다.")
+        void returnsSuccessMessage_whenImageDeletionFails() throws Exception {
+            //given
+            LedgerImage image = imageRepository.findByLedgerId(1L).get(0);
+
+            Path path = tempDir.resolve(image.getImagePath());
+            Files.createDirectories(path.getParent());
+            Files.createFile(path);
+
+            doThrow(IOException.class)
+                    .when(imageStorage)
+                            .deleteOrThrow(any());
+
+            //when
+            mockMvc.perform(
+                            delete(URI)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content("""
+                                    ["code-1", "code-2"]
+                                    """)
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("2건의 내역이 삭제되었습니다."));
+
+            //then
+            assertThat(ledgerRepository.findByCodeIn(List.of("code-1", "code-2")).size())
+                    .isZero();
+
+            assertThat(imageRepository.findByLedgerId(1L).size())
+                    .isZero();
+
+            assertThat(Files.exists(path)).isFalse();
+            assertThat(Files.exists(tempDir.resolve("temp").resolve("test.png"))).isTrue();
+        }
+        
+        @Test
+        @DisplayName("존재하지 않는 가계부면 아무것도 삭제되지 않는다.")
+        void returnsNotFoundMessage_whenAccountBookDoesNotExist() throws Exception {
+            //when
+            mockMvc.perform(
+                            delete(URI)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content("""
+                                    ["no-exist", "code-2"]
+                                    """)
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("1건의 내역이 삭제되었습니다."));
+        }
+        
+        @Test
+        @DisplayName("타인의 가계부는 아무것도 삭제되지 않는다.")
+        void rejectsRequest_whenUserIsNotOwner() throws Exception {
+            //when
+            mockMvc.perform(
+                            delete(URI)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content("""
+                                    ["code-2", "code-3"]
+                                    """)
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("1건의 내역이 삭제되었습니다."));
         }
 
     }

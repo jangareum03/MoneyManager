@@ -3,8 +3,10 @@ package com.moneymanager.ledger.service.application;
 import com.moneymanager.global.domain.FileMetadata;
 import com.moneymanager.global.exception.code.ErrorCode;
 import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
+import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
@@ -22,7 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static com.moneymanager.global.exception.code.ErrorCode.*;
+import static com.moneymanager.global.exception.code.ErrorCode.FILE_UPLOAD_FAILED;
+import static com.moneymanager.global.exception.code.ErrorCode.INTERVAL_SERVER_ERROR;
 
 /**
  * <p>
@@ -69,24 +72,27 @@ public class LedgerImageService {
                 .map(ImageSlot::getStatus)
                 .toList();
 
-        int index = 0;
         List<FileMetadata> metadataList = new ArrayList<>();
 
-        try{
+        int index = 0;
+        try {
             for (; index < images.size(); index++) {
-                switch (slots.get(index)) {
-                    case LOCKED:
-                        continue;
-                    case FILLED:
-                    case EMPTY:
-                        metadataList.add(imageStorage.store(images.get(index), memberId));
+                if (slots.get(index) == SlotStatus.LOCKED) {
+                    continue;
                 }
+
+                MultipartFile image = images.get(index);
+
+                FileMetadata metadata = imageStorage.createFileMetadata(memberId, image);
+
+                imageStorage.saveFile(image, metadata);
+
+                metadataList.add(metadata);
             }
 
-            //이미지 정보 저장
             List<LedgerImage> ledgerImages = createLedgerImage(ledgerId, metadataList);
             imageRepository.saveAll(ledgerImages);
-        }catch (IOException e) {
+        } catch (IOException e) {
             cleanFiles(metadataList);
 
             throwException(
@@ -97,7 +103,7 @@ public class LedgerImageService {
                     "memberId", memberId,
                     "originalFilename", images.get(index).getOriginalFilename()
             );
-        }catch (DataAccessException e) {
+        } catch (DataAccessException e) {
             cleanFiles(metadataList);
 
             throwException(
@@ -109,6 +115,35 @@ public class LedgerImageService {
                     "ledgerId", ledgerId,
                     "imageCount", images.size()
             );
+        }
+    }
+
+    void processImagesDelete(List<Ledger> ledgers) {
+        for(Ledger ledger : ledgers) {
+
+            List<LedgerImage> images = imageRepository.findByLedgerId(ledger.getId());
+
+            if(images.isEmpty()) {
+                continue;
+            }
+
+            for(LedgerImage image : images) {
+                Path absolutePath =  imageStorage.resolveAbsolutePath(image);
+
+                try{
+                    imageStorage.deleteOrThrow(absolutePath);
+                }catch (IOException e){
+                    try{
+                        imageStorage.moveToTemp(absolutePath);
+                    }catch (IOException tempException) {
+                        AuditLogger.warn(
+                                "파일 삭제 및 temp 이동에 실패했습니다.",
+                                null,
+                                null
+                        );
+                    }
+                }
+            }
         }
     }
 
@@ -124,14 +159,16 @@ public class LedgerImageService {
                 .toList();
     }
 
+    //===== processImagesDelete 보조 메서드 =====
+
 
     //===== 유틸 메서ㅓ드 =====
     private void cleanFiles(List<FileMetadata> metadataList) {
-        for(FileMetadata fileMetadata : metadataList){
+        for (FileMetadata fileMetadata : metadataList) {
             Path path = fileMetadata.getAbsolutePath();
 
-            imageStorage.delete(path);
-        };
+            imageStorage.deleteFile(path);
+        }
     }
 
     private void throwException(ErrorCode errorCode, String work, Class target, Throwable e, Object... values) {

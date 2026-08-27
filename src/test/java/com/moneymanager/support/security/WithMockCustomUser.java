@@ -20,6 +20,6 @@ public @interface WithMockCustomUser {
 
 	String password() default MemberTestData.DEFAULT_PASSWORD;
 
-	String role() default "USER";
+	String role() default "ROLE_USER";
 
 }
