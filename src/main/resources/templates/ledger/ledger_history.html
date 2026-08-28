@@ -43,8 +43,8 @@
                 <nav class="ledger-menu__filter">
                     <ul class="ledger-menu__list">
                         <li class="ledger-menu__item" th:each="menu : ${history.menu}"
-                            th:classappend="${menu.value == activeMenu} ? 'ledger-menu__item--active'"
-                            th:attr="data-mode=${menu.value}">
+                            th:classappend="${menu.name == 'ALL'} ? 'ledger-menu__item--active'"
+                            th:attr="data-mode=${menu.name}">
 
                             <button class="button" th:text="${menu.label}"></button>
                         </li>
@@ -63,9 +63,9 @@
         </section>
 
         <!-- 내역 리스트 -->
-        <article class="ledger-list" th:classappend="${#maps.isEmpty(summary)} ? 'empty' : 'filled'" th:with="summary=${history.historyGroups}">
+        <article class="ledger-list" th:classappend="${#lists.isEmpty(summary)} ? 'empty' : 'filled'" th:with="summary=${history.historyGroups}">
             <!-- 내역 없는 상태 -->
-            <div th:if="${summary == null or #maps.isEmpty(summary)}">
+            <div th:if="${summary == null or #lists.isEmpty(summary)}">
                 <span>아직 등록된 내역이 없어요.</span>
                 <svg class="icon icon--sad" viewBox="0 0 51 51" xmlns="http://www.w3.org/2000/svg">
                     <path d="M25.625 6.74967C23.1628 6.74967 20.7246 7.23466 18.4497 8.17693C16.1749 9.11921 14.1079 10.5003 12.3668 12.2414C10.6257 13.9825 9.24457 16.0495 8.3023 18.3244C7.36002 20.5992 6.87504 23.0374 6.87504 25.4997C6.87504 27.962 7.36002 30.4001 8.3023 32.675C9.24457 34.9498 10.6257 37.0168 12.3668 38.7579C14.1079 40.499 16.1749 41.8801 18.4497 42.8224C20.7246 43.7647 23.1628 44.2497 25.625 44.2497C30.5978 44.2497 35.367 42.2742 38.8833 38.7579C42.3996 35.2416 44.375 30.4725 44.375 25.4997C44.375 20.5269 42.3996 15.7577 38.8833 12.2414C35.367 8.72511 30.5978 6.74967 25.625 6.74967ZM2.70837 25.4997C2.70837 12.8434 12.9688 2.58301 25.625 2.58301C38.2813 2.58301 48.5417 12.8434 48.5417 25.4997C48.5417 38.1559 38.2813 48.4163 25.625 48.4163C12.9688 48.4163 2.70837 38.1559 2.70837 25.4997ZM21.9438 21.0538L14.7271 25.2205L12.6438 21.6122L19.8605 17.4455L21.9438 21.0538ZM31.3938 17.4455L38.6105 21.6122L36.5271 25.2205L29.3105 21.0538L31.3938 17.4455ZM16.6021 32.7893C17.5168 31.2058 18.8322 29.8911 20.416 28.9772C21.9999 28.0633 23.7964 27.5825 25.625 27.583C27.4535 27.5831 29.2497 28.0644 30.8332 28.9786C32.4167 29.8929 33.7316 31.2078 34.6459 32.7913L35.6896 34.5934L32.0834 36.6788L31.0417 34.8768C30.4931 33.9257 29.7036 33.1359 28.7527 32.5869C27.8018 32.038 26.723 31.7492 25.625 31.7497C24.5273 31.749 23.4487 32.0374 22.4978 32.586C21.5469 33.1346 20.7573 33.924 20.2084 34.8747L19.1667 36.6788L15.5605 34.5934L16.6021 32.7893Z"/>
@@ -73,11 +73,11 @@
             </div>
 
             <!-- 내역 있는 상태 -->
-            <div th:unless="${summary == null or #maps.isEmpty(summary)}" th:each="entry : ${summary}" th:with="cardChunk=${entry.value}">
-                <h2 class="ledger-list__title" th:text="${entry.key}"></h2>
+            <div th:unless="${summary == null or #lists.isEmpty(summary)}" th:each="entry : ${summary}" th:with="cardChunk=${entry.rows}">
+                <h2 class="ledger-list__title" th:text="${entry.date}"></h2>
 
                 <ul th:each="cardList : ${cardChunk}" class="ledger-list__cards">
-                    <li th:each="card : ${cardList}" class="ledger-card" th:classappend="${card == null ? 'empty' : card.categoryType.name()}">
+                    <li th:each="card : ${cardList}" class="ledger-card" th:classappend="${card == null ? 'empty' : #strings.toLowerCase(card.categoryType.name())}">
                         <div class="ledger-card__type"></div>
                         <div th:if="${card != null}" class="ledger-card__icon" th:attr="data-pk=${card.code}">
                             <svg class="icon icon--box" viewBox="0 0 8 9"  xmlns="http://www.w3.org/2000/svg">

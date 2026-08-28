@@ -1,10 +1,12 @@
 package com.moneymanager.ledger.service.policy;
 
 import com.moneymanager.global.config.MutableClock;
+import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;
 import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.support.ApplicationExceptionAssert;
-import com.moneymanager.support.stream.StringTestStream;
 import com.moneymanager.support.fixture.entity.LedgerTestFixture;
+import com.moneymanager.support.stream.StringTestStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,8 +20,11 @@ import java.time.LocalDate;
 import java.util.stream.Stream;
 
 import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * <p>
@@ -53,27 +58,116 @@ class LedgerPolicyTest {
     private LedgerPolicy target;
 
     private LedgerDatePolicy datePolicy;
+    private LedgerHistoryPeriodPolicy historyPeriodPolicy;
+
     private MutableClock clock;
 
     @BeforeEach
     void setUp() {
         clock = new MutableClock();
-        clock.set(LocalDate.of(2026, 1, 1));
 
         datePolicy = new LedgerDatePolicy(clock);
+        historyPeriodPolicy = spy(new LedgerHistoryPeriodPolicy(clock));
+
         LedgerDateOptionPolicy dateOptionPolicy = new LedgerDateOptionPolicy(datePolicy, clock);
         ImageSlotPolicy imageSlotPolicy = new ImageSlotPolicy();
 
         target = new LedgerPolicy(
+                clock,
                 datePolicy,
                 dateOptionPolicy,
+                historyPeriodPolicy,
                 imageSlotPolicy
         );
+    }
+
+
+    @Nested
+    @DisplayName("유형별로 내역기간을 생성할 때")
+    class HistoryPeriod {
+
+        @Test
+        @DisplayName("YEAR이면 연도 기간 메서드를 호출한다.")
+        void callsYearlyPeriodMethod_whenPeriodTypeIsYear() {
+            //when
+            LedgerPeriod result = target.resolveHistoryPeriod(HistoryType.YEAR);
+
+            //then
+            verify(historyPeriodPolicy).resolveYear();
+        }
+
+        @Test
+        @DisplayName("MONTH이면 월 기간 메서드를 호출한다")
+        void callsMonthlyPeriodMethod_whenPeriodTypeIsMonth() {
+            //when
+            LedgerPeriod result = target.resolveHistoryPeriod(HistoryType.MONTH);
+
+            //then
+            verify(historyPeriodPolicy).resolveMonth();
+        }
+
+        @Test
+        @DisplayName("WEEK면 주 기간 메서드를 호출한다.")
+        void callsWeeklyPeriodMethod_whenPeriodTypeIsWeek() {
+            //when
+            LedgerPeriod result = target.resolveHistoryPeriod(HistoryType.WEEK);
+
+            //then
+            verify(historyPeriodPolicy).resolveWeek();
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("내역 유형별로 제목을 생성할 때")
+    class TitleByHistoryType {
+
+        @BeforeEach
+        void setUp() {
+            clock.set(LocalDate.of(2026, 3, 2));
+        }
+        
+        @Test
+        @DisplayName("YEAR이면 연도만 반환한다.")
+        void returnsYearOnly_whenHistoryTypeIsYear() {
+        	//when
+            String result = target.getTitleByHistoryType(HistoryType.YEAR);
+        	
+        	//then
+        	assertThat(result).isEqualTo("2026년");
+        }
+        
+        @Test
+        @DisplayName("MONTH면 연도+월을 반환한다.")
+        void returnsYearAndMonth_whenHistoryTypeIsMonth() {
+            //when
+            String result = target.getTitleByHistoryType(HistoryType.MONTH);
+
+            //then
+            assertThat(result).isEqualTo("2026년 03월");
+        }
+        
+        @Test
+        @DisplayName("WEEK면 연도+월+주를 반환한다.")
+        void returnsYearMonthAndWeek_whenHistoryTypeIsWeek() {
+            //when
+            String result = target.getTitleByHistoryType(HistoryType.WEEK);
+
+            //then
+            assertThat(result).isEqualTo("2026년 03월 2주");
+        }
+
     }
 
     @Nested
     @DisplayName("가계부 생성 비즈니스 규칙 검증할 때")
     class ValidateCreate {
+
+        @BeforeEach
+        void setUp() {
+            clock.set(LocalDate.of(2026, 1, 1));
+        }
 
         @Test
         @DisplayName("가계부 거래날짜가 작성이 가능하면 검증에 통과한다.")
@@ -173,6 +267,5 @@ class LedgerPolicyTest {
         }
 
     }
-
 
 }

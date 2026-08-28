@@ -14,7 +14,6 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
@@ -52,7 +51,6 @@ import static org.mockito.Mockito.verify;
  * </table>
  */
 @EnableCaching
-@Transactional
 public class CategoryCacheServiceIT extends IntegrationTest {
 
 	@Autowired

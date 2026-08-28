@@ -3,6 +3,7 @@ package com.moneymanager.ledger.repository;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.domain.enums.PaymentType;
+import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
@@ -333,6 +335,137 @@ class LedgerRepositoryIT extends IntegrationTest {
                     .hasSize(2)
                     .extracting(Ledger::getCode)
                     .contains("code-1", "code-3");
+        }
+
+    }
+
+
+    @Nested
+    @Sql("/sql/ledger-history-test.sql")
+    @DisplayName("가계부 거래날짜로 조회할 때")
+    class FindByTransactionDate {
+        
+        @Test
+        @DisplayName("시작일과 종료일 내에 작성한 가계부가 있으면 조회한다.")
+        void findsAccountBooks_whenDatesAreInRange() {
+        	//given
+            String memberId = "member1";
+            LocalDate fromDate = LocalDate.of(2026, 1, 1);
+            LocalDate toDate = LocalDate.of(2026, 1, 3);
+        	
+        	//when
+            List<LedgerHistoryQuery> result = target.findByTransactionDateBetween(memberId, fromDate, toDate);
+        	
+        	//then
+        	assertThat(result).hasSize(4);
+            assertThat(result)
+                    .extracting(LedgerHistoryQuery::getCode)
+                    .contains("code3", "code4", "code5", "code6");
+        }
+        
+        @Test
+        @DisplayName("시작일에 작성한 가계부가 있으면 조회한다.")
+        void findsAccountBooks_whenFromDateIsGiven() {
+        	//given
+            String memberId = "member1";
+            LocalDate fromDate = LocalDate.of(2026, 1, 1);
+            LocalDate toDate = LocalDate.of(2026, 1, 2);
+
+            //when
+            List<LedgerHistoryQuery> result = target.findByTransactionDateBetween(memberId, fromDate, toDate);
+
+            //then
+            assertThat(result).hasSize(1);
+            assertThat(result)
+                    .extracting(LedgerHistoryQuery::getCode)
+                    .containsOnly("code3");
+        }
+        
+        @Test
+        @DisplayName("종료일에 작성한 가계부가 있으면 조회한다.")
+        void findsAccountBooks_whentoDateIsGiven() {
+            //given
+            String memberId = "member1";
+            LocalDate fromDate = LocalDate.of(2026, 1, 2);
+            LocalDate toDate = LocalDate.of(2026, 1, 3);
+
+            //when
+            List<LedgerHistoryQuery> result = target.findByTransactionDateBetween(memberId, fromDate, toDate);
+
+            //then
+            assertThat(result).hasSize(3);
+            assertThat(result)
+                    .extracting(LedgerHistoryQuery::getCode)
+                    .containsOnly("code4", "code5", "code6");
+        }
+        
+        @Test
+        @DisplayName("시작일과 종료일 내에 작성한 가계부가 없으면 빈 리스트를 조회한다.")
+        void returnsEmptyList_whenAccountBooksDoNotExistInRange() {
+            //given
+            String memberId = "member1";
+            LocalDate fromDate = LocalDate.of(2026, 1, 6);
+            LocalDate toDate = LocalDate.of(2026, 1, 10);
+
+            //when
+            List<LedgerHistoryQuery> result = target.findByTransactionDateBetween(memberId, fromDate, toDate);
+
+            //then
+            assertThat(result).isEmpty();
+        }
+        
+        @Test
+        @DisplayName("회원번호 외에 다른 회원의 가계부는 조회되지 않는다.")
+        void findsOnlyUserAccountBooks_whenUserIdIsGiven() {
+            //given
+            String memberId = "member1";
+            LocalDate fromDate = LocalDate.of(2026, 1, 2);
+            LocalDate toDate = LocalDate.of(2026, 1, 3);
+
+            //when
+            List<LedgerHistoryQuery> result = target.findByTransactionDateBetween(memberId, fromDate, toDate);
+
+            //then
+            assertThat(result).hasSize(3);
+            assertThat(result)
+                    .extracting(LedgerHistoryQuery::getCode)
+                    .contains("code4", "code5", "code6");
+        }
+        
+        @Test
+        @DisplayName("조회된 가계부는 거래날짜 내림차순으로 정렬된다.")
+        void sortsAccountBooksByTransactionDateDesc_whenAccountBooksExist() {
+            //given
+            String memberId = "member1";
+            LocalDate fromDate = LocalDate.of(2026, 1, 4);
+            LocalDate toDate = LocalDate.of(2026, 1, 5);
+
+            //when
+            List<LedgerHistoryQuery> result = target.findByTransactionDateBetween(memberId, fromDate, toDate);
+
+            //then
+            assertThat(result).hasSize(2);
+            assertThat(result)
+                    .extracting(LedgerHistoryQuery::getCode)
+                    .containsExactly("code8", "code7");
+        }
+        
+        @Test
+        @DisplayName("조회된 가계부의 거래날짜가 동일하면 등록일 내림차순으로 정렬된다.")
+        void sortsAccountBooksByCreatedDateDesc_whenTransactionDatesAreEqual() {
+            //given
+            String memberId = "member1";
+            LocalDate fromDate = LocalDate.of(2026, 1, 1);
+            LocalDate toDate = LocalDate.of(2026, 1, 3);
+
+            //when
+            List<LedgerHistoryQuery> result = target.findByTransactionDateBetween(memberId, fromDate, toDate);
+
+            //then
+            assertThat(result).hasSize(4);
+            assertThat(result)
+                    .extracting(LedgerHistoryQuery::getCode)
+                    .containsExactly("code6", "code5", "code4", "code3");
         }
 
     }

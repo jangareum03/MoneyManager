@@ -52,14 +52,17 @@ class LedgerDatePolicyTest {
 
 	@BeforeEach
 	void setUp() {
-		clock.set(LocalDate.of(2026, 3, 10));
-
 		target = new LedgerDatePolicy(clock);
 	}
 
 	@Nested
 	@DisplayName("작성 가능한 날짜를 조회할 때")
 	class GetWriteDate {
+
+		@BeforeEach
+		void setUp() {
+			clock.set(LocalDate.of(2026, 3, 10));
+		}
 
 		@Test
 		@DisplayName("최소날짜는 5년 전을 반환한다.")
@@ -87,6 +90,11 @@ class LedgerDatePolicyTest {
 	@Nested
 	@DisplayName("날짜 범위 검증할 때")
 	class ValidDate {
+
+		@BeforeEach
+		void setUp() {
+			clock.set(LocalDate.of(2026, 3, 10));
+		}
 
 		@ParameterizedTest
 		@MethodSource("validDates")

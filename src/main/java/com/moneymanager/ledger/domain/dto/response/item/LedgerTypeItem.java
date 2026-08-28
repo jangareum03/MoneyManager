@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.domain.dto.response.item;
 
-import com.moneymanager.ledger.domain.enums.CategoryType;
+import com.moneymanager.ledger.domain.enums.LedgerType;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -45,14 +45,14 @@ public class LedgerTypeItem {
 	}
 
 	public static List<LedgerTypeItem> findAll() {
-		return Arrays.stream(CategoryType.values())
+		return Arrays.stream(LedgerType.values())
 				.map(LedgerTypeItem::from)
 				.toList();
 	}
 
 
 	//===== findAll 보조 메서드 ======
-	private static LedgerTypeItem from(CategoryType type) {
+	private static LedgerTypeItem from(LedgerType type) {
 		return new LedgerTypeItem(type.getLabel(), type.name());
 	}
 

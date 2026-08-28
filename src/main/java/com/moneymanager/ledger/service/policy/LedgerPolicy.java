@@ -4,14 +4,20 @@ import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
+import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.DateUnit;
+import com.moneymanager.ledger.domain.enums.HistoryType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static com.moneymanager.global.domain.enums.DatePatterns.KOREAN_YEAR;
+import static com.moneymanager.global.domain.enums.DatePatterns.KOREAN_YEAR_MONTH;
 import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
 
 /**
@@ -45,8 +51,11 @@ import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
 @AllArgsConstructor
 public class LedgerPolicy {
 
+    private final Clock clock;
+
     private final LedgerDatePolicy datePolicy;
     private final LedgerDateOptionPolicy dateOptionPolicy;
+    private final LedgerHistoryPeriodPolicy historyPeriodPolicy;
     private final ImageSlotPolicy imageSlotPolicy;
 
     public LocalDate minimumDate() {
@@ -55,6 +64,28 @@ public class LedgerPolicy {
 
     public LocalDate maximumDate() {
         return datePolicy.maximum();
+    }
+
+    public LedgerPeriod resolveHistoryPeriod(HistoryType type) {
+        return switch (type) {
+            case YEAR -> historyPeriodPolicy.resolveYear();
+            case MONTH -> historyPeriodPolicy.resolveMonth();
+            case WEEK -> historyPeriodPolicy.resolveWeek();
+        };
+    }
+
+    public String getTitleByHistoryType(HistoryType type) {
+        LocalDate date = LocalDate.now(clock);
+
+        return switch (type) {
+            case YEAR -> date.format(DateTimeFormatter.ofPattern(KOREAN_YEAR.getPattern()));
+            case MONTH -> date.format(DateTimeFormatter.ofPattern(KOREAN_YEAR_MONTH.getPattern()));
+            case WEEK -> {
+                int weekOfMonth = historyPeriodPolicy.getWeekOfMonth(date);
+
+                yield String.format("%d년 %02d월 %d주", date.getYear(), date.getMonthValue(), weekOfMonth);
+            }
+        };
     }
 
     public List<Integer> dateOptions(DateUnit unit, String date) {

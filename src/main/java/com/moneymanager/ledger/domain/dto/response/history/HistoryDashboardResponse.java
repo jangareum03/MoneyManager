@@ -1,16 +1,10 @@
 package com.moneymanager.ledger.domain.dto.response.history;
 
-import com.moneymanager.global.domain.enums.DatePatterns;
-import com.moneymanager.global.util.date.DateTimeUtil;
-import com.moneymanager.ledger.domain.dto.response.item.HistoryItem;
-import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
+import com.moneymanager.ledger.domain.enums.HistoryMenu;
 import lombok.Getter;
 
-import java.time.LocalDate;
-import java.util.LinkedHashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -41,27 +35,23 @@ import java.util.stream.Collectors;
  */
 @Getter
 public class HistoryDashboardResponse {
-	private final String title;
-	private final List<MenuItem> menu;
-	private final LedgerStatistics statistics;
-	private final Map<String, List<HistoryItem>> historyGroups;
 
-	private HistoryDashboardResponse(String title, List<MenuItem> menus, LedgerStatistics statistics, Map<String, List<HistoryItem>> historyGroups) {
+	private final String title;
+	private final List<HistoryMenu> menu;
+	private final LedgerStatistics statistics;
+	private final List<LedgerHistoryDisplay> historyGroups;
+
+	private HistoryDashboardResponse(String title, List<HistoryMenu> menus, LedgerStatistics statistics, List<LedgerHistoryDisplay> historyGroups) {
 		this.title = title;
 		this.menu = menus;
 		this.statistics = statistics;
 		this.historyGroups = historyGroups;
 	}
 
-	public static HistoryDashboardResponse of(String title, List<MenuItem> menus, LedgerStatistics statistics, Map<LocalDate, List<HistoryItem>> historyGroups) {
-		Map<String, List<HistoryItem>> formattedGroups = historyGroups.entrySet().stream()
-				.collect(Collectors.toMap(
-						entry -> DateTimeUtil.formatDate(entry.getKey(), DatePatterns.DATE_DOT_WITH_DAY.getPattern()),
-						Map.Entry::getValue,
-						(a, b) -> a,
-						LinkedHashMap::new
-				));
+	public static HistoryDashboardResponse of(String title, LedgerStatistics statistics, List<LedgerHistoryDisplay> historyGroups) {
+		List<HistoryMenu> menus = Arrays.stream(HistoryMenu.values()).toList();
 
-		return new HistoryDashboardResponse(title, menus, statistics, formattedGroups);
+		return new HistoryDashboardResponse(title, menus, statistics, historyGroups);
 	}
+
 }

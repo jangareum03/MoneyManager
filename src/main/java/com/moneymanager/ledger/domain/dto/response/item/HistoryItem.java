@@ -1,7 +1,7 @@
 package com.moneymanager.ledger.domain.dto.response.item;
 
+import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
-import com.moneymanager.ledger.domain.enums.CategoryType;
 import lombok.Getter;
 
 /**
@@ -37,10 +37,10 @@ public class HistoryItem {
 	private final String code;												//가계부 코드
 	private final Long amount;											//가계부 금액
 	private final String memo;												//가계부 메모
-	private final CategoryType categoryType;					//카테고리 타입
+	private final LedgerType categoryType;						//카테고리 타입
 	private final String categoryName;								//카테고리 이름
 
-	private HistoryItem(String code, Long amount, String memo, CategoryType categoryType, String categoryName) {
+	private HistoryItem(String code, Long amount, String memo, LedgerType categoryType, String categoryName) {
 		this.code = code;
 		this.amount = amount;
 		this.memo = memo;
@@ -53,7 +53,7 @@ public class HistoryItem {
 				query.getCode(),
 				query.getAmount(),
 				query.getMemo(),
-				CategoryType.fromCode(query.getCategoryCode()),
+				LedgerType.fromCode(query.getCategoryCode()),
 				query.getCategoryName()
 		);
 	}

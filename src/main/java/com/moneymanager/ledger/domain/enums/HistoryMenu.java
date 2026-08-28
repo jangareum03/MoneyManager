@@ -1,14 +1,14 @@
-package com.moneymanager.ledger.domain.dto.response.item;
+package com.moneymanager.ledger.domain.enums;
 
 import lombok.Getter;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.domain.ledger.dto.response<br>
- * 파일이름       : MenuItem<br>
+ * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
+ * 파일이름       : HistoryMenu<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 4. 5<br>
- * 설명              : 가계부 내역에서 조건부 검색하기 위한 검색 메뉴 정보를 담은 객체
+ * 생성날짜       : 26. 4. 22<br>
+ * 설명              : 가계부 내역 메뉴를 정의한 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -22,7 +22,7 @@ import lombok.Getter;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 4. 5</td>
+ * 		 	  <td>26. 4. 22</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
@@ -30,12 +30,18 @@ import lombok.Getter;
  * </table>
  */
 @Getter
-public class MenuItem {
-	private final String label;
-	private final String value;
+public enum HistoryMenu {
 
-	public MenuItem(String label, String value) {
+	ALL("전체"),
+	CATEGORY("수입/지출"),
+	SUB_CATEGORY("카테고리"),
+	MEMO("메모"),
+	DATE("기간");
+
+	private final String label;
+
+	HistoryMenu(String label) {
 		this.label = label;
-		this.value = value;
 	}
+
 }

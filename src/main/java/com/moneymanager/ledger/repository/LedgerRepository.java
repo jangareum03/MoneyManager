@@ -16,7 +16,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -74,15 +73,6 @@ public class LedgerRepository {
             Place.ofOrNull(rs.getString("place_name"), rs.getString("road_address"), rs.getString("detail_address")),
             rs.getTimestamp("created_at").toLocalDateTime(),
             ObjectUtils.getValueOrNull(rs.getTimestamp("updated_at"), Timestamp::toLocalDateTime)
-    );
-
-    private final RowMapper<LedgerHistoryQuery> ledgerHistoryQueryRowMapper = (rs, rowNum) -> new LedgerHistoryQuery(
-            rs.getString("code"),
-            rs.getDate("transaction_date").toLocalDate(),
-            rs.getLong("amount"),
-            rs.getString("memo"),
-            rs.getString("category_name"),
-            rs.getString("category_code")
     );
 
 
@@ -165,26 +155,29 @@ public class LedgerRepository {
         );
     }
 
-
-    public List<LedgerHistoryQuery> findHistoriesByMemberAndDateBetween(String memberId, LocalDate startDate, LocalDate endDate) {
+    public List<LedgerHistoryQuery> findByTransactionDateBetween(String memberId, LocalDate fromDate, LocalDate toDate) {
         String query = """
-                SELECT l.code, transaction_date, c.code AS category_code, c.name AS category_name, amount, memo
+                SELECT l.code, l.transaction_date, l.category_id, lc.name AS category_name, l.amount, l.memo
                 FROM ledger l
-                JOIN ledger_category  c ON l.category_id = c.code
+                    JOIN ledger_category lc
+                    ON l.category_id = lc.code
                 WHERE l.member_id = ?
-                	AND l.transaction_date >= ?
-                	AND l.transaction_date < ?
-                ORDER BY l.transaction_date DESC, l.id DESC
-                """;
+                    AND l.transaction_date >= ?
+                    AND l.transaction_date < ?
+                ORDER BY l.transaction_date DESC, l.created_at DESC, l.id DESC
+        """;
 
         return jdbcTemplate.query(
                 query,
-
-                ledgerHistoryQueryRowMapper,
-
-                memberId,
-                Date.valueOf(startDate),
-                Date.valueOf(endDate.plusDays(1))
+                (rs, rowNum) -> LedgerHistoryQuery.of(
+                        rs.getString("code"),
+                        rs.getDate("transaction_date").toLocalDate(),
+                        rs.getString("category_id"),
+                        rs.getString("category_name"),
+                        rs.getLong("amount"),
+                        rs.getString("memo")
+                ),
+                memberId, fromDate, toDate.plusDays(1)
         );
     }
 

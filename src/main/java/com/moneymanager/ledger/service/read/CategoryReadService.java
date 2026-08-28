@@ -4,7 +4,7 @@ import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.entity.Category;
-import com.moneymanager.ledger.domain.enums.CategoryType;
+import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.service.cache.CategoryCacheService;
 import org.springframework.stereotype.Service;
 
@@ -57,12 +57,12 @@ public class CategoryReadService {
                 .collect(Collectors.toList());
     }
 
-    public List<CategoryItem> getMiddleCategories(CategoryType type) {
+    public List<CategoryItem> getMiddleCategories(LedgerType type) {
         return categoryMap.values().stream()
                 .filter(c -> c.getParentCode() != null)
                 .filter(c -> c.getParentCode().endsWith("0000"))
                 .filter(
-                        c -> type == CategoryType.INCOME
+                        c -> type == LedgerType.INCOME
                                 ? c.getCode().startsWith("01")
                                 : c.getCode().startsWith("02")
                 )
@@ -71,7 +71,7 @@ public class CategoryReadService {
                 .toList();
     }
 
-    public List<CategoryItem> getLowCategories(CategoryType type) {
+    public List<CategoryItem> getLowCategories(LedgerType type) {
         return categoryMap.values().stream()
                 .filter(c ->
                         c.getParentCode() != null
@@ -79,7 +79,7 @@ public class CategoryReadService {
                                 && !c.getParentCode().endsWith("0000")
                 )
                 .filter(
-                        c -> type == CategoryType.INCOME
+                        c -> type == LedgerType.INCOME
                                 ? c.getCode().startsWith("01")
                                 : c.getCode().startsWith("02")
                 )

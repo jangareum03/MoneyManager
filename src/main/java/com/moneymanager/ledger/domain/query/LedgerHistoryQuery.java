@@ -1,6 +1,5 @@
 package com.moneymanager.ledger.domain.query;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -33,12 +32,26 @@ import java.time.LocalDate;
  * </table>
  */
 @Getter
-@AllArgsConstructor
 public class LedgerHistoryQuery {
+	
 	private final String code;												//가계부 코드
 	private final LocalDate date;										//가계부 거래 날짜
 	private final Long amount;											//가계부 금액
 	private final String memo;												//가계부 메모
 	private final String categoryName;								//카테고리 이름
 	private final String categoryCode;								//카테고리 코드
+
+	private LedgerHistoryQuery(String ledgerCode, LocalDate date, String categoryCode, String categoryName, Long amount, String memo) {
+		this.code = ledgerCode;
+		this.date = date;
+		this.categoryCode = categoryCode;
+		this.categoryName = categoryName;
+		this.amount = amount;
+		this.memo = memo;
+	}
+
+	public static LedgerHistoryQuery of(String ledgerCode, LocalDate date, String categoryCode, String categoryName, Long amount, String memo) {
+		return new LedgerHistoryQuery(ledgerCode, date, categoryCode, categoryName, amount, memo);
+	}
+
 }

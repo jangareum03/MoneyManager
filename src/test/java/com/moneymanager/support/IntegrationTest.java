@@ -5,7 +5,6 @@ import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.member.repository.MemberRepository;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.Cookie;
 import java.io.IOException;
@@ -54,6 +54,7 @@ import java.util.stream.Stream;
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
+@Transactional
 public abstract class IntegrationTest {
 
 	@Autowired
@@ -82,11 +83,6 @@ public abstract class IntegrationTest {
 	void prepareTestEnvironment() throws IOException {
 		cleanTempDir();
 		insertTestData();
-	}
-
-	@AfterEach
-	void cleanupTestEnvironment() {
-		deleteTestData();
 	}
 
 	protected Cookie accessTokenCookie(String username) {
@@ -127,11 +123,6 @@ public abstract class IntegrationTest {
 						}
 					});
 		}
-	}
-
-	private void deleteTestData() {
-		jdbcTemplate.execute("DELETE FROM ledger");
-		jdbcTemplate.execute("DELETE FROM member");
 	}
 
 }

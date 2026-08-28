@@ -11,8 +11,8 @@ import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.entity.Ledger;
-import com.moneymanager.ledger.domain.enums.CategoryType;
 import com.moneymanager.ledger.domain.enums.DateUnit;
+import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
 import com.moneymanager.ledger.service.read.CategoryReadService;
@@ -34,7 +34,7 @@ import java.util.NoSuchElementException;
  * 파일이름       : LedgerService<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 8. 13<br>
- * 설명              : 가계부 로직 흐름을 관리하는 클래스
+ * 설명              : 가계부 변경 로직 흐름을 관리하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -59,7 +59,7 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class LedgerService {
 
-	private final CurrentUser currentUser;
+    private final CurrentUser currentUser;
 
     private final LedgerImageService imageService;
     private final CategoryReadService categoryReadService;
@@ -85,7 +85,7 @@ public class LedgerService {
 
     public LedgerWriteStep2Response getStep2(String type, String date) {
         //1. 가계부 유형과 날짜 확인
-        CategoryType ledgerType = parseCategoryTypeOrDefault(type);
+        LedgerType ledgerType = parseLedgerTypeOrDefault(type);
         LocalDate localDate = DateTimeUtil.parseDateOrToday(date);
 
         //2. 카테고리 목록 조회
@@ -147,10 +147,10 @@ public class LedgerService {
     }
 
     @Transactional
-    public int  processLedgerDelete(List<String> codes) {
+    public int processLedgerDelete(List<String> codes) {
         String memberId = currentUser.getMemberId();
 
-        if(codes == null || codes.isEmpty()) {
+        if (codes == null || codes.isEmpty()) {
             return 0;
         }
 
@@ -162,11 +162,11 @@ public class LedgerService {
 
 
     //===== getStep2 보조 메서드 =====
-    private CategoryType parseCategoryTypeOrDefault(String type) {
+    private LedgerType parseLedgerTypeOrDefault(String type) {
         try {
-            return CategoryType.from(type);
+            return LedgerType.from(type);
         } catch (NoSuchElementException e) {
-            return CategoryType.INCOME;
+            return LedgerType.INCOME;
         }
     }
 

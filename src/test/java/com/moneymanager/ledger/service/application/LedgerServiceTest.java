@@ -14,7 +14,7 @@ import com.moneymanager.ledger.domain.dto.response.item.FixedTypeItem;
 import com.moneymanager.ledger.domain.dto.response.item.LedgerTypeItem;
 import com.moneymanager.ledger.domain.dto.response.item.PaymentTypeItem;
 import com.moneymanager.ledger.domain.entity.Ledger;
-import com.moneymanager.ledger.domain.enums.CategoryType;
+import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.domain.enums.DateUnit;
 import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
@@ -183,7 +183,7 @@ class LedgerServiceTest {
             @DisplayName("가계부 유형이 INCOME이면 수입 카테고리를 포함한 응답 객체가 반환된다.")
             void returnsResponseWithIncomeCategory_whenTypeIsIncome() {
                 //given
-                CategoryType type = CategoryType.INCOME;
+                LedgerType type = LedgerType.INCOME;
                 String date = "20260115";
 
                 when(categoryReadService.getMiddleCategories(type))
@@ -235,7 +235,7 @@ class LedgerServiceTest {
             @DisplayName("가계부 유형이 OUTLAY이면 지출 카테고리를 포함한 응답 객체가 반환된다.")
             void returnsResponseWithOutlayCategory_whenTypeIsOutlay() {
                 //given
-                CategoryType type = CategoryType.OUTLAY;
+                LedgerType type = LedgerType.OUTLAY;
                 String date = "20260115";
 
                 when(categoryReadService.getMiddleCategories(type))
@@ -271,7 +271,7 @@ class LedgerServiceTest {
                 String type = "none";
                 String date = "20261001";
 
-                when(categoryReadService.getMiddleCategories(eq(CategoryType.INCOME)))
+                when(categoryReadService.getMiddleCategories(eq(LedgerType.INCOME)))
                         .thenReturn(CategoryItem.from(IncomeCategoryFixture.createMiddleAll()));
 
                 when(memberReadService.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
@@ -348,7 +348,7 @@ class LedgerServiceTest {
             @DisplayName("카테고리가 존재하지 않으면 InternalException 예외를 전파한다.")
             void throwsInternalException_whenCategoryDoesNotExist() {
                 //given
-                when(categoryReadService.getMiddleCategories(any(CategoryType.class)))
+                when(categoryReadService.getMiddleCategories(any(LedgerType.class)))
                         .thenThrow(ApplicationException.class);
 
                 //when & then

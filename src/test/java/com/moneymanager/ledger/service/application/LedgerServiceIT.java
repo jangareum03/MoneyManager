@@ -7,7 +7,7 @@ import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
-import com.moneymanager.ledger.domain.enums.CategoryType;
+import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.ledger.service.storage.LedgerImageStorage;
 import com.moneymanager.member.domain.entity.Member;
@@ -100,7 +100,7 @@ class LedgerServiceIT extends IntegrationTest {
                 assertThat(result).isNotNull();
 
                 assertThat(result.getTitle()).isEqualTo("2026년 01월 15일 목요일");
-                assertThat(result.getType()).isEqualTo(CategoryType.INCOME);
+                assertThat(result.getType()).isEqualTo(LedgerType.INCOME);
 
                 assertThat(result.getFixed()).hasSize(2);
                 assertThat(result.getPaymentTypes()).hasSize(4);

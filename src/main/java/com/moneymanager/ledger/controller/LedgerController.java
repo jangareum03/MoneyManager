@@ -6,6 +6,8 @@ import com.moneymanager.global.operation.enums.ServiceAction;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
+import com.moneymanager.ledger.service.application.LedgerHistoryService;
 import com.moneymanager.ledger.service.application.LedgerService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -45,9 +47,22 @@ import org.springframework.web.bind.annotation.*;
 public class LedgerController {
 
 	private final LedgerService ledgerService;
+	private final LedgerHistoryService ledgerHistoryService;
 
-	public  LedgerController(LedgerService ledgerService) {
+	public  LedgerController(LedgerService ledgerService, LedgerHistoryService ledgerHistoryService) {
 		this.ledgerService = ledgerService;
+		this.ledgerHistoryService = ledgerHistoryService;
+	}
+
+	@GetMapping
+	@Operation(ServiceAction.LEDGER_HISTORY_VIEW)
+	public String ledgers(@RequestParam String type, Model model) {
+		HistoryDashboardResponse response = ledgerHistoryService.searchLedgersByDate(type);
+
+		model.addAttribute("history", response);
+		model.addAttribute("type", type);
+
+		return "/ledger/ledger_history";
 	}
 
 	@GetMapping("/new/step1")

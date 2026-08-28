@@ -9,7 +9,7 @@ import java.util.Arrays;
 /**
  * <p>
  *  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
- *  * 파일이름       : CategoryType<br>
+ *  * 파일이름       : LedgerType<br>
  *  * 작성자          : areum Jang<br>
  *  * 생성날짜       : 22. 7. 15<br>
  *  * 설명              : 가계부 유형을 정의한 클래스
@@ -34,7 +34,7 @@ import java.util.Arrays;
  * </table>
  */
 @Getter
-public enum CategoryType {
+public enum LedgerType {
 
 	INCOME("수입", "01"),
 	OUTLAY("지출", "02");
@@ -43,19 +43,19 @@ public enum CategoryType {
 	private final String prefix;			//카테고리 코드 (앞 2자리)
 
 
-	CategoryType(String label, String prefix) {
+	LedgerType(String label, String prefix) {
 		this.label = label;
 		this.prefix= prefix;
 	}
 
-	public static CategoryType from(String name) {
+	public static LedgerType from(String name) {
 		return Arrays.stream(values())
 				.filter(t -> t.name().equalsIgnoreCase(name))
 				.findFirst()
 				.orElseThrow();
 	}
 
-	public static CategoryType fromCode(String prefix) {
+	public static LedgerType fromCode(String prefix) {
 		return Arrays.stream(values())
 				.filter(t -> prefix.startsWith(t.prefix))
 				.findFirst()

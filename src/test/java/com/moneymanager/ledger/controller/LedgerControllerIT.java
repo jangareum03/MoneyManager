@@ -1,5 +1,9 @@
 package com.moneymanager.ledger.controller;
 
+import com.moneymanager.global.config.TimeConfig;
+import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
+import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
+import com.moneymanager.ledger.domain.dto.response.history.LedgerStatistics;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.CategoryTestData;
@@ -11,13 +15,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,7 +60,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 		</tbody>
  * </table>
  */
-@Transactional
 public class LedgerControllerIT extends IntegrationTest {
 
     @Autowired
@@ -60,10 +67,10 @@ public class LedgerControllerIT extends IntegrationTest {
 
     private Member member;
 
-	@BeforeEach
-	void setUp() {
+    @BeforeEach
+    void setUp() {
         member = memberRepository.findById(MemberTestData.DEFAULT_ID);
-	}
+    }
 
     @Nested
     @DisplayName("가계부 작성 1단계 화면 요청할 때")
@@ -222,7 +229,7 @@ public class LedgerControllerIT extends IntegrationTest {
                                     .param("fixed", LedgerTestData.DEFAULT_FIX.getValue().toLowerCase())
                                     .param("amount", LedgerTestData.DEFAULT_AMOUNT.toString())
                                     .param("paymentType", LedgerTestData.DEFAULT_PAYMENT_TYPE.name().toLowerCase())
-									.cookie(accessTokenCookie(member.getUsername()))
+                                    .cookie(accessTokenCookie(member.getUsername()))
                     )
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/ledgers"));
@@ -233,7 +240,7 @@ public class LedgerControllerIT extends IntegrationTest {
                             ledger.getCategory().equals(LedgerTestData.DEFAULT_CATEGORY)
                     );
 
-            try(Stream<Path> files = Files.walk(tempDir)) {
+            try (Stream<Path> files = Files.walk(tempDir)) {
                 boolean exist = files
                         .filter(Files::isRegularFile)
                         .anyMatch(path -> {
@@ -292,6 +299,184 @@ public class LedgerControllerIT extends IntegrationTest {
             assertThat(ledgerRepository.count()).isEqualTo(0);
             assertThat(Files.exists(tempDir.resolve(member.getId()))).isFalse();
         }
+    }
+
+
+    @Nested
+    @Import(TimeConfig.class)
+    @Sql(
+            scripts = {"/sql/ledger-history-test.sql"},
+            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+    )
+    @Sql(
+            scripts = "/sql/clear-test.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+    )
+    @DisplayName("가계부 내역을 조회할 때")
+    class GetHistories {
+
+        final String URI = "/ledgers";
+
+        @Test
+        @DisplayName("연 범위 요청 시 연간 가계부 내역을 반환한다.")
+        void returnsYearlyLedger_whenRangeIsYearly() throws Exception {
+            //given
+            String type = "year";
+
+            //when
+            MvcResult result = mockMvc.perform(
+                            get(URI)
+                                    .param("type", type)
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            //then
+            ModelAndView mav = result.getModelAndView();
+            assertThat(mav).isNotNull();
+
+            HistoryDashboardResponse history = (HistoryDashboardResponse) mav.getModel().get("history");
+            assertThat(history).isNotNull();
+
+            LedgerStatistics statistics = history.getStatistics();
+            assertThat(statistics)
+                    .isNotNull()
+                    .extracting(LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay)
+                    .containsExactly(2994000L, 2522000L, 472000L);
+
+            List<LedgerHistoryDisplay> historyDisplays = history.getHistoryGroups();
+            assertThat(historyDisplays)
+                    .isNotEmpty()
+                    .hasSize(5);
+        }
+
+        @Test
+        @DisplayName("월 범위 요청 시 월간 가계부 내역을 반환한다.")
+        void returnsMonthlyLedger_whenRangeIsMonthly() throws Exception {
+            //given
+            String type = "month";
+
+            //when
+            MvcResult result = mockMvc.perform(
+                            get(URI)
+                                    .param("type", type)
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            //then
+            ModelAndView mav = result.getModelAndView();
+            assertThat(mav).isNotNull();
+
+            HistoryDashboardResponse history = (HistoryDashboardResponse) mav.getModel().get("history");
+            assertThat(history).isNotNull();
+
+            List<LedgerHistoryDisplay> historyDisplays = history.getHistoryGroups();
+            assertThat(historyDisplays)
+                    .isNotEmpty()
+                    .hasSize(4)
+                    .extracting(LedgerHistoryDisplay::getDate)
+                    .doesNotContain("2026. 02. 05 (목)");
+        }
+
+        @Test
+        @DisplayName("주 범위 요청 시 주간 가계부 내역을 반환한다.")
+        void returnsWeeklyLedger_whenRangeIsWeekly() throws Exception {
+            //given
+            String type = "week";
+
+            //when
+            MvcResult result = mockMvc.perform(
+                            get(URI)
+                                    .param("type", type)
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            //then
+            ModelAndView mav = result.getModelAndView();
+            assertThat(mav).isNotNull();
+
+            HistoryDashboardResponse history = (HistoryDashboardResponse) mav.getModel().get("history");
+            assertThat(history).isNotNull();
+
+            List<LedgerHistoryDisplay> historyDisplays = history.getHistoryGroups();
+            assertThat(historyDisplays)
+                    .isNotEmpty()
+                    .hasSize(3)
+                    .extracting(LedgerHistoryDisplay::getDate)
+                    .doesNotContain("2026. 01. 05 (월)");
+        }
+
+        @Test
+        @DisplayName("조회할 가계부 내역이 없으면 빈 목록을 반환한다.")
+        void returnsEmptyList_whenLedgerDoesNotExist() throws Exception {
+            //given
+            String type = "week";
+
+            //when
+            MvcResult result = mockMvc.perform(
+                            get(URI)
+                                    .param("type", type)
+                                    .cookie(accessTokenCookie("member2"))
+                    )
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            //then
+            ModelAndView mav = result.getModelAndView();
+            assertThat(mav).isNotNull();
+
+            HistoryDashboardResponse history = (HistoryDashboardResponse) mav.getModel().get("history");
+            assertThat(history).isNotNull();
+
+            LedgerStatistics statistics = history.getStatistics();
+            assertThat(statistics)
+                    .isNotNull()
+                    .extracting(LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay)
+                    .containsExactly(0L, 0L, 0L);
+
+            List<LedgerHistoryDisplay> historyDisplays = history.getHistoryGroups();
+            assertThat(historyDisplays).isEmpty();
+        }
+
+        @Test
+        @DisplayName("잘못된 내역 유형 요청 시 월간 가계부 내역을 반화한다.")
+        void returnsMonthlyLedger_whenTypeIsInvalid() throws Exception {
+            //given
+            String type = "none";
+
+            //when
+            MvcResult result = mockMvc.perform(
+                            get(URI)
+                                    .param("type", type)
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            //then
+            ModelAndView mav = result.getModelAndView();
+            assertThat(mav).isNotNull();
+
+            HistoryDashboardResponse history = (HistoryDashboardResponse) mav.getModel().get("history");
+            assertThat(history).isNotNull();
+
+            List<LedgerHistoryDisplay> historyDisplays = history.getHistoryGroups();
+            assertThat(historyDisplays)
+                    .isNotEmpty()
+                    .hasSize(4);
+        }
+
     }
 
 }

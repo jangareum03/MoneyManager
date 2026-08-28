@@ -3,7 +3,7 @@ package com.moneymanager.ledger.service.validation;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
-import com.moneymanager.ledger.domain.enums.CategoryType;
+import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.domain.enums.FixCycle;
 import com.moneymanager.ledger.domain.enums.FixedType;
 import org.springframework.stereotype.Component;
@@ -73,8 +73,8 @@ public class LedgerFieldValidator {
             throwFormatException(work, "category", categoryCode, "6자리 숫자 (예: 123456)");
         }
 
-        List<String> codes = Arrays.stream(CategoryType.values())
-                .map(CategoryType::getPrefix)
+        List<String> codes = Arrays.stream(LedgerType.values())
+                .map(LedgerType::getPrefix)
                 .toList();
 
         if (!codes.contains(categoryCode.substring(0, 2))) {

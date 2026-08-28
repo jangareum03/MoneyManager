@@ -4,7 +4,7 @@ import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.dto.response.item.FixCycleItem;
 import com.moneymanager.ledger.domain.dto.response.item.FixedTypeItem;
 import com.moneymanager.ledger.domain.dto.response.item.PaymentTypeItem;
-import com.moneymanager.ledger.domain.enums.CategoryType;
+import com.moneymanager.ledger.domain.enums.LedgerType;
 import lombok.Getter;
 
 import java.util.List;
@@ -39,14 +39,14 @@ import java.util.List;
 @Getter
 public class LedgerWriteStep2Response {
 	private final String title;														//제목
-	private final CategoryType type;											//가계부 유형
+	private final LedgerType type;												//가계부 유형
 	private final List<FixedTypeItem> fixed;								//고정여부
 	private final List<FixCycleItem> fixCycle;								//고정주기
 	private final List<CategoryItem> categories;						//카테고리 리스트
 	private final List<PaymentTypeItem> paymentTypes;			//결제유형
 	private final List<ImageSlot> imageSlot;								//이미지 슬롯 정보
 
-	private LedgerWriteStep2Response(String title, CategoryType type, List<CategoryItem> categories, List<ImageSlot> imageSlot) {
+	private LedgerWriteStep2Response(String title, LedgerType type, List<CategoryItem> categories, List<ImageSlot> imageSlot) {
 		this.title = title;
 		this.categories = categories;
 		this.imageSlot =imageSlot;
@@ -57,7 +57,7 @@ public class LedgerWriteStep2Response {
 		this.paymentTypes = PaymentTypeItem.findAll();
 	}
 
-	public static LedgerWriteStep2Response of(String title, CategoryType type, List<CategoryItem> categoryItems, List<ImageSlot> imageSlot) {
+	public static LedgerWriteStep2Response of(String title, LedgerType type, List<CategoryItem> categoryItems, List<ImageSlot> imageSlot) {
 		return new LedgerWriteStep2Response(title, type, categoryItems, imageSlot);
 	}
 

@@ -3,7 +3,6 @@ package com.moneymanager.ledger.domain.enums;
 import lombok.Getter;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -34,16 +33,10 @@ import java.util.stream.Collectors;
  */
 @Getter
 public enum HistoryType {
-    WEEK("yyyy년 MM월 W주"),
-    MONTH("yyyy년 MM월"),
-    YEAR("yyyy년");
 
-    private final String format;
-
-    HistoryType(String format) {
-        this.format = format;
-    }
-
+    WEEK,
+    MONTH,
+    YEAR;
 
     public static HistoryType from(String type) {
         return Arrays.stream(values())
@@ -52,9 +45,4 @@ public enum HistoryType {
                 .orElseThrow();
     }
 
-    private static String getAllowedValues() {
-        return Arrays.stream(HistoryType.values())
-                .map(Enum::name)
-                .collect(Collectors.joining(", "));
-    }
 }

@@ -37,6 +37,7 @@ public enum ServiceAction {
 	LEDGER_REGISTER_STEP2_VIEW("가계부 작성 2단계 화면 조회", "/ledgers/new/step1"),
 	LEDGER_REGISTER("가계부 등록", "/ledgers/new/step2"),
 	LEDGER_MAP_VIEW("가계부 장소 작성 화면 조회", "/ledgers/new/step2"),
+	LEDGER_HISTORY_VIEW("가계부 내역 화면 조회", "/error/404"),
 
 	//API 요청
 	LEDGER_CATEGORY("하위 카테고리 목록 조회 API"),

@@ -4,10 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.Year;
-import java.time.YearMonth;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -41,39 +38,41 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 public final class LedgerDatePolicy {
 
-	@Getter
-	private static final int MIN_YEAR = 5;
-	public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+    @Getter
+    private static final int MIN_YEAR = 5;
 
-	private final Clock clock;
+    public static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyyMMdd");
 
-	LocalDate minimum() {
-		return LocalDate.now(clock).minusYears(MIN_YEAR);
-	}
+    private final Clock clock;
 
-	LocalDate maximum() {
-		return LocalDate.now(clock);
-	}
+    LocalDate minimum() {
+        return LocalDate.now(clock).minusYears(MIN_YEAR);
+    }
 
-	boolean isValidDate(LocalDate date) {
-		LocalDate min = minimum();
-		LocalDate max = maximum();
+    LocalDate maximum() {
+        return LocalDate.now(clock);
+    }
 
-		return !date.isBefore(min) && !date.isAfter(max);
-	}
+    boolean isValidDate(LocalDate date) {
+        LocalDate min = minimum();
+        LocalDate max = maximum();
 
-	boolean isValidYear(Year year) {
-		Year minYear = Year.of(minimum().getYear());
-		Year maxYear = Year.of(maximum().getYear());
+        return !date.isBefore(min) && !date.isAfter(max);
+    }
 
-		return !year.isBefore(minYear) && !year.isAfter(maxYear);
-	}
+    boolean isValidYear(Year year) {
+        Year minYear = Year.of(minimum().getYear());
+        Year maxYear = Year.of(maximum().getYear());
 
-	boolean isValidYearMonth(YearMonth yearMonth) {
-		YearMonth minYearMonth = YearMonth.of(minimum().getYear(), minimum().getMonthValue());
-		YearMonth maxYearMonth = YearMonth.of(maximum().getYear(), maximum().getMonthValue());
+        return !year.isBefore(minYear) && !year.isAfter(maxYear);
+    }
 
-		return !yearMonth.isBefore(minYearMonth) && !yearMonth.isAfter(maxYearMonth);
-	}
+    boolean isValidYearMonth(YearMonth yearMonth) {
+        YearMonth minYearMonth = YearMonth.of(minimum().getYear(), minimum().getMonthValue());
+        YearMonth maxYearMonth = YearMonth.of(maximum().getYear(), maximum().getMonthValue());
+
+        return !yearMonth.isBefore(minYearMonth) && !yearMonth.isAfter(maxYearMonth);
+    }
 
 }

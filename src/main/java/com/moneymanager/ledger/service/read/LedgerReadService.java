@@ -4,11 +4,13 @@ import com.moneymanager.global.exception.code.ErrorCode;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
@@ -51,6 +53,10 @@ import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 public class LedgerReadService {
 
 	private final LedgerRepository ledgerRepository;
+
+	public List<LedgerHistoryQuery> findLedgerByDate(String memberId, LocalDate fromDate, LocalDate toDate) {
+		return ledgerRepository.findByTransactionDateBetween(memberId, fromDate, toDate);
+	}
 
 	public List<Ledger> getOwnerLedgers(String memberId, List<String> codes) {
 		List<Ledger> ledgerList = ledgerRepository.findByCodeIn(codes);

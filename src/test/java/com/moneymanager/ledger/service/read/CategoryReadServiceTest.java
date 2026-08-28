@@ -2,7 +2,7 @@ package com.moneymanager.ledger.service.read;
 
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.entity.Category;
-import com.moneymanager.ledger.domain.enums.CategoryType;
+import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.service.cache.CategoryCacheService;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.CategoryTestData;
@@ -81,7 +81,7 @@ class CategoryReadServiceTest {
             @DisplayName("수입 유형이면 수입 중간 카테고리들만 조회된다.")
             void returnsIncomeSubCategories_whenTypeIsIncome() {
                 //when
-                List<CategoryItem> result = target.getMiddleCategories(CategoryType.INCOME);
+                List<CategoryItem> result = target.getMiddleCategories(LedgerType.INCOME);
 
                 //then: 수입 카테고리만 조회된다.
                 assertThat(result)
@@ -96,7 +96,7 @@ class CategoryReadServiceTest {
             @DisplayName("지출 유형이면 지출 중간 카테고리들만 조회된다.")
             void returnsExpenseSubCategories_whenTypeIsExpense() {
                 //when
-                List<CategoryItem> result = target.getMiddleCategories(CategoryType.OUTLAY);
+                List<CategoryItem> result = target.getMiddleCategories(LedgerType.OUTLAY);
 
                 //then: 지출 카테고리만 조회된다.
                 assertThat(result)
@@ -111,7 +111,7 @@ class CategoryReadServiceTest {
             @DisplayName("카테고리 코드 오름차순으로 정렬되어 조회된다.")
             void returnsCategoriesSortedByCodeAsc_whenCategoriesExist() {
                 //when
-                List<CategoryItem> result = target.getMiddleCategories(CategoryType.OUTLAY);
+                List<CategoryItem> result = target.getMiddleCategories(LedgerType.OUTLAY);
 
                 //then: 조회된 카테고리 코드가 오름차순으로 조회된다.
                 assertThat(result)
