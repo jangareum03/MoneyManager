@@ -1,6 +1,5 @@
 package com.moneymanager.ledger.service.read;
 
-import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.service.cache.CategoryCacheService;
@@ -81,13 +80,13 @@ class CategoryReadServiceTest {
             @DisplayName("수입 유형이면 수입 중간 카테고리들만 조회된다.")
             void returnsIncomeSubCategories_whenTypeIsIncome() {
                 //when
-                List<CategoryItem> result = target.getMiddleCategories(LedgerType.INCOME);
+                List<Category> result = target.getMiddleCategories(LedgerType.INCOME);
 
                 //then: 수입 카테고리만 조회된다.
                 assertThat(result)
                         .isNotNull()
                         .doesNotHaveDuplicates()
-                        .extracting(CategoryItem::getCode)
+                        .extracting(Category::getCode)
                         .allMatch(code -> code.startsWith("01"))
                         .allMatch(code -> code.endsWith("00"));
             }
@@ -96,13 +95,13 @@ class CategoryReadServiceTest {
             @DisplayName("지출 유형이면 지출 중간 카테고리들만 조회된다.")
             void returnsExpenseSubCategories_whenTypeIsExpense() {
                 //when
-                List<CategoryItem> result = target.getMiddleCategories(LedgerType.OUTLAY);
+                List<Category> result = target.getMiddleCategories(LedgerType.OUTLAY);
 
                 //then: 지출 카테고리만 조회된다.
                 assertThat(result)
                         .isNotNull()
                         .doesNotHaveDuplicates()
-                        .extracting(CategoryItem::getCode)
+                        .extracting(Category::getCode)
                         .allMatch(code -> code.startsWith("02"))
                         .allMatch(code -> code.endsWith("00"));
             }
@@ -111,11 +110,11 @@ class CategoryReadServiceTest {
             @DisplayName("카테고리 코드 오름차순으로 정렬되어 조회된다.")
             void returnsCategoriesSortedByCodeAsc_whenCategoriesExist() {
                 //when
-                List<CategoryItem> result = target.getMiddleCategories(LedgerType.OUTLAY);
+                List<Category> result = target.getMiddleCategories(LedgerType.OUTLAY);
 
                 //then: 조회된 카테고리 코드가 오름차순으로 조회된다.
                 assertThat(result)
-                        .extracting(CategoryItem::getCode)
+                        .extracting(Category::getCode)
                         .isSorted();
             }
 
@@ -136,12 +135,12 @@ class CategoryReadServiceTest {
             @DisplayName("최상위 카테고리 코드면 중간 단계 카테고리들을 반환한다.")
             void returnsSubCategories_whenTopCategoryCodeIsGiven() {
                 //when
-                List<CategoryItem> result = target.getChildrenByParentCode(CategoryTestData.INCOME_CODE);
+                List<Category> result = target.getChildrenByParentCode(CategoryTestData.INCOME_CODE);
 
                 //then
                 assertThat(result)
                         .hasSize(2)
-                        .extracting(CategoryItem::getCode)
+                        .extracting(Category::getCode)
                         .containsExactly("010100", "010200");
             }
 
@@ -149,12 +148,12 @@ class CategoryReadServiceTest {
             @DisplayName("중간 카테고리 코드면 하위 단계 카테고리들을 반환한다.")
             void returnsSubCategories_whenMiddleCategoryCodeIsGiven() {
                 //when
-                List<CategoryItem> result = target.getChildrenByParentCode(CategoryTestData.FOOD_CODE);
+                List<Category> result = target.getChildrenByParentCode(CategoryTestData.FOOD_CODE);
 
                 //then
                 assertThat(result)
                         .singleElement()
-                        .extracting(CategoryItem::getCode, CategoryItem::getName)
+                        .extracting(Category::getCode, Category::getName)
                         .containsExactly("020101", "하위1");
             }
 
@@ -162,7 +161,7 @@ class CategoryReadServiceTest {
             @DisplayName("하위 카테고리 코드면 빈 리스트를 반환한다.")
             void returnsEmptyList_whenLowestCategoryCodeIsGiven() {
                 //when
-                List<CategoryItem> result = target.getChildrenByParentCode(CategoryTestData.SALARY_CODE);
+                List<Category> result = target.getChildrenByParentCode(CategoryTestData.SALARY_CODE);
 
                 //then
                 assertThat(result).isEmpty();
@@ -178,8 +177,7 @@ class CategoryReadServiceTest {
             @DisplayName("코드가 존재하지 않으면 예외가 발생한다.")
             void throwsValidationException_whenCodeDoesNotExist() {
                 //when & then
-                assertThatThrownBy(() -> target.getChildrenByParentCode("nonExistentCode"))
-                        ;
+                assertThatThrownBy(() -> target.getChildrenByParentCode("nonExistentCode"));
             }
 
         }

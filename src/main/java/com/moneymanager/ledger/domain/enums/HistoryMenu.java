@@ -2,6 +2,8 @@ package com.moneymanager.ledger.domain.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.enums<br>
@@ -32,16 +34,25 @@ import lombok.Getter;
 @Getter
 public enum HistoryMenu {
 
-	ALL("전체"),
-	CATEGORY("수입/지출"),
-	SUB_CATEGORY("카테고리"),
-	MEMO("메모"),
-	DATE("기간");
+	ALL("전체", "all"),
+	CATEGORY("수입/지출", "type"),
+	SUB_CATEGORY("카테고리", "category"),
+	MEMO("메모", "memo"),
+	PERIOD("기간", "period");
 
 	private final String label;
+	private final String value;
 
-	HistoryMenu(String label) {
+	HistoryMenu(String label, String value) {
 		this.label = label;
+		this.value = value;
+	}
+
+	public static HistoryMenu from(String name) {
+		return Arrays.stream(values())
+				.filter(m -> m.value.equalsIgnoreCase(name))
+				.findFirst()
+				.orElseThrow();
 	}
 
 }

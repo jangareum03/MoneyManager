@@ -1,7 +1,9 @@
 package com.moneymanager.ledger.repository;
 
+import com.moneymanager.ledger.domain.dto.response.history.LedgerSearchCondition;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
+import com.moneymanager.ledger.domain.enums.HistoryMenu;
 import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.support.ApplicationExceptionAssert;
@@ -13,6 +15,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.junit.jupiter.api.Named.named;
 
 /**
  * <p>
@@ -466,6 +472,101 @@ class LedgerRepositoryIT extends IntegrationTest {
             assertThat(result)
                     .extracting(LedgerHistoryQuery::getCode)
                     .containsExactly("code6", "code5", "code4", "code3");
+        }
+
+    }
+
+
+    @Nested
+    @Sql("/sql/ledger-history-test.sql")
+    @DisplayName("가계부 검색 조건으로 조회할 때")
+    class FindBySearch {
+
+        String memberId = "member1";
+        LocalDate fromDate = LocalDate.of(2026, 1, 1);
+        LocalDate toDate = LocalDate.of(2026, 1, 3);
+        
+        @ParameterizedTest
+        @EnumSource(
+                value = HistoryMenu.class,
+                names = {"ALL", "PERIOD"}
+        )
+        @DisplayName("전체(ALL) 및 기간(PERIOD) 검색이면 기간 내에 가계부 내역만 조회한다.")
+        void returnsAccountBookEntries_whenTypeIsAllOrPeriod(HistoryMenu menu) {
+        	//given
+            LedgerSearchCondition searchCondition = LedgerSearchCondition.of(menu);
+        	
+        	//when
+            List<LedgerHistoryQuery> result = target.findAllByConditionAndDateRange(memberId, fromDate, toDate, searchCondition);
+        	
+        	//then
+        	assertThat(result).hasSize(4);
+        }
+        
+        @Test
+        @DisplayName("수입(CATEGORY) 검색이면 기간 내에 수입 가계부 내역만 조회한다.")
+        void returnsIncomeEntries_whenTypeIsCategoryAndIncome() {
+            //given
+            LedgerSearchCondition searchCondition = LedgerSearchCondition.ofKeyword(HistoryMenu.CATEGORY, "010000");
+
+            //when
+            List<LedgerHistoryQuery> result = target.findAllByConditionAndDateRange(memberId, fromDate, toDate, searchCondition);
+
+            //then
+            assertThat(result).hasSize(2);
+        }
+        
+        @Test
+        @DisplayName("지출(CATEGORY) 검색이면 기간 내에 지출 가계부 내역만 조회한다.")
+        void returnsExpenseEntries_whenTypeIsCategoryAndExpense() {
+            //given
+            LedgerSearchCondition searchCondition = LedgerSearchCondition.ofKeyword(HistoryMenu.CATEGORY, "020000");
+
+            //when
+            List<LedgerHistoryQuery> result = target.findAllByConditionAndDateRange(memberId, fromDate, toDate, searchCondition);
+
+            //then
+            assertThat(result).hasSize(2);
+        }
+        
+        @ParameterizedTest
+        @MethodSource("validCategories")
+        @DisplayName("카테고리(SUB_CATEGORY) 검색이면 기간 내에 카테고리가 포함된 가계부 내역만 조회한다.")
+        void returnsEntries_whenSubCategoryIsGiven(List<String> keywords, int expected) {
+            //given
+            LedgerSearchCondition searchCondition = LedgerSearchCondition.ofKeywords(HistoryMenu.SUB_CATEGORY, keywords);
+
+            //when
+            List<LedgerHistoryQuery> result = target.findAllByConditionAndDateRange(memberId, fromDate, toDate, searchCondition);
+
+            //then
+            assertThat(result).hasSize(expected);
+        }
+
+        static Stream<Arguments> validCategories() {
+            return Stream.of(
+                    Arguments.of(
+                            named("카테고리 1개인 경우 (코드: 020202)", List.of("020202")),
+                            1
+                    ),
+                    Arguments.of(
+                            named("카테고리 2개인 경우 (코드: 010101, 020301)", List.of("010101", "020301")),
+                            3
+                    )
+            );
+        }
+        
+        @Test
+        @DisplayName("메모(MEMO) 검색이면 기간 내에 메모 내용이 포함된 가계부 내역만 조회한다.")
+        void returnsEntries_whenMemoIsGiven() {
+            //given
+            LedgerSearchCondition searchCondition = LedgerSearchCondition.ofKeyword(HistoryMenu.MEMO, "이");
+
+            //when
+            List<LedgerHistoryQuery> result = target.findAllByConditionAndDateRange(memberId, fromDate, toDate, searchCondition);
+
+            //then
+            assertThat(result).hasSize(2);
         }
 
     }

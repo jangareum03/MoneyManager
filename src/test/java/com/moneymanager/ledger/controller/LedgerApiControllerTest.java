@@ -1,7 +1,11 @@
 package com.moneymanager.ledger.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.log.LogContent;
+import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
+import com.moneymanager.ledger.service.application.LedgerHistoryService;
 import com.moneymanager.ledger.service.application.LedgerService;
 import com.moneymanager.ledger.service.read.CategoryReadService;
 import com.moneymanager.support.UnitTest;
@@ -21,11 +25,12 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -72,7 +77,65 @@ public class LedgerApiControllerTest extends UnitTest {
     private LedgerService ledgerService;
 
     @MockBean
+    private LedgerHistoryService ledgerHistoryService;
+
+    @MockBean
     private CategoryReadService categoryReadService;
+
+
+    @Nested
+    @DisplayName("가계부 검색할 때")
+    class Search {
+        
+        @Test
+        @DisplayName("정상적인 요청이면 서비스를 호출한다.")
+        void invokesService_whenRequestIsValid() throws Exception {
+        	//given
+            String type = "month";
+            String menu = "all";
+
+            when(ledgerHistoryService.searchLedgersByCondition(any(LedgerSearchRequest.class)))
+                    .thenReturn(List.of());
+        	
+        	//when
+            mockMvc.perform(
+                    get(BASE_URI)
+                            .param("type", type)
+                            .param("menu", menu)
+            )
+                    .andDo(print())
+                    .andExpect(status().isOk());
+        	
+        	//then
+        	verify(ledgerHistoryService).searchLedgersByCondition(any(LedgerSearchRequest.class));
+        }
+        
+        @Test
+        @DisplayName("요청이 누락되면 실패한다.")
+        void rejectsRequest_whenRequestIsInvalid() throws Exception {
+            //given
+            when(ledgerHistoryService.searchLedgersByCondition(any(LedgerSearchRequest.class)))
+                    .thenThrow(new ApplicationException(
+                            POLICY_VIOLATION,
+                            LogContent.of(
+                                    "가계부 내역 검색 검증",
+                                    LedgerSearchRequest.class,
+                                    "memo",
+                                    ""
+                            ).withCause("메모 누락")
+                    ));
+
+            //when
+            mockMvc.perform(
+                            get(BASE_URI)
+                                    .param("type", "month")
+                                    .param("menu", "memo")
+                    )
+                    .andDo(print())
+                    .andExpect(status().isForbidden());
+        }
+
+    }
 
     @Nested
     @DisplayName("가계부 수정할 때")

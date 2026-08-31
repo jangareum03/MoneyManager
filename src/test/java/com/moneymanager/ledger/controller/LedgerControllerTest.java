@@ -15,6 +15,7 @@ import com.moneymanager.support.UnitTest;
 import com.moneymanager.support.fixture.entity.category.IncomeCategoryFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
 import com.moneymanager.support.fixture.response.HistoryItemTestFixture;
+import com.moneymanager.support.fixture.response.MenuResponseTestFixture;
 import com.moneymanager.support.security.WithMockCustomUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -257,6 +259,9 @@ class LedgerControllerTest extends UnitTest {
                                     )
                             )
                     );
+
+            when(ledgerHistoryService.buildSubMenu(anyString()))
+                    .thenReturn(MenuResponseTestFixture.builder().build());
         }
 
         @Test
@@ -270,8 +275,9 @@ class LedgerControllerTest extends UnitTest {
                             get(URI)
                                     .param("type", type)
                     )
+                    .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("history", "type"))
+                    .andExpect(model().attributeExists("history", "type", "menu"))
                     .andExpect(view().name("/ledger/ledger_history"));
         }
 

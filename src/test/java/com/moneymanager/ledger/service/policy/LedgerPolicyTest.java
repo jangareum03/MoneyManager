@@ -1,8 +1,10 @@
 package com.moneymanager.ledger.service.policy;
 
 import com.moneymanager.global.config.MutableClock;
+import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;
 import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.enums.HistoryMenu;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.fixture.entity.LedgerTestFixture;
@@ -17,6 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
@@ -264,6 +267,142 @@ class LedgerPolicyTest {
 
         static Stream<Arguments> invalidMemo() {
             return StringTestStream.invalidLengths("가", 0, 300);
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("가계부 내역 검색 규칙 검증할 때")
+    class ValidateSearch {
+        
+        @Test
+        @DisplayName("ALL이면 검증을 진행하지 않는다.")
+        void doesNothing_whenTypeIsAll() {
+            //given
+            LedgerSearchRequest request = LedgerSearchRequest.builder()
+                    .type("month")
+                    .menu("all")
+                    .build();
+
+        	//when
+            assertDoesNotThrow(() -> target.validateSearchCondition(HistoryMenu.ALL, request));
+        }
+        
+        @ParameterizedTest
+        @NullAndEmptySource
+        @DisplayName("CATEGORY이고 카테고리 목록이 null이거나 비어있으면 예외를 발생시킨다.")
+        void throwsException_whenCategoryTypeAndCategoryListIsNull(List<String> categories) {
+            //given
+            LedgerSearchRequest request = LedgerSearchRequest.builder()
+                    .type("month")
+                    .menu("type")
+                    .categories(categories)
+                    .build();
+        	
+        	//when
+            Throwable throwable = catchThrowable(() -> target.validateSearchCondition(HistoryMenu.CATEGORY, request));
+        	
+        	//then
+        	ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                    .hasErrorCode(POLICY_VIOLATION)
+                    .hasWork("가계부 내역 검색 검증")
+                    .hasCauseMessage("선택한 카테고리 누락")
+                    .hasTarget(LedgerSearchRequest.class)
+                    .hasValue("categories", categories);
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        @DisplayName("SUB_CATEGORY이고 카테고리 목록이 null이거나 비어있으면 예외를 발생시킨다.")
+        void throwsException_whenSubCategoryTypeAndCategoryListIsNull(List<String> categories) {
+            //given
+            LedgerSearchRequest request = LedgerSearchRequest.builder()
+                    .type("month")
+                    .menu("category")
+                    .categories(categories)
+                    .build();
+
+            //when
+            Throwable throwable = catchThrowable(() -> target.validateSearchCondition(HistoryMenu.SUB_CATEGORY, request));
+
+            //then
+            ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                    .hasErrorCode(POLICY_VIOLATION)
+                    .hasWork("가계부 내역 검색 검증")
+                    .hasCauseMessage("선택한 카테고리 누락")
+                    .hasTarget(LedgerSearchRequest.class)
+                    .hasValue("categories", categories);
+        }
+        
+        @ParameterizedTest
+        @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
+        @DisplayName("MEMO이고 메모 내용이 null이거나 비어있으면 예외를 발생시킨다.")
+        void throwsException_whenMemoTypeAndMemoIsNullOrBlank(String memo) {
+            //given
+            LedgerSearchRequest request = LedgerSearchRequest.builder()
+                    .type("month")
+                    .menu("memo")
+                    .memo(memo)
+                    .build();
+
+            //when
+            Throwable throwable = catchThrowable(() -> target.validateSearchCondition(HistoryMenu.MEMO, request));
+        	
+        	//then
+            ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                    .hasErrorCode(POLICY_VIOLATION)
+                    .hasWork("가계부 내역 검색 검증")
+                    .hasCauseMessage("메모 누락")
+                    .hasTarget(LedgerSearchRequest.class)
+                    .hasValue("memo", memo);
+        }
+
+        @ParameterizedTest
+        @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
+        @DisplayName("DATE이고 시작일이 null이거나 비어있으면 예외를 발생시킨다.")
+        void throwsException_whenDateTypeAndStartDateIsNullOrBlank(String date) {
+            //given
+            LedgerSearchRequest request = LedgerSearchRequest.builder()
+                    .type("month")
+                    .menu("period")
+                    .fromDate(date)
+                    .build();
+
+            //when
+            Throwable throwable = catchThrowable(() -> target.validateSearchCondition(HistoryMenu.PERIOD, request));
+        	
+        	//then
+            ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                    .hasErrorCode(POLICY_VIOLATION)
+                    .hasWork("가계부 내역 검색 검증")
+                    .hasCauseMessage("시작일 누락")
+                    .hasTarget(LedgerSearchRequest.class)
+                    .hasValue("fromDate", date);
+        }
+
+        @ParameterizedTest
+        @MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
+        @DisplayName("DATE이고 종료일이 null이거나 비어있으면 예외를 발생시킨다.")
+        void throwsException_whenDateTypeAndEndDateIsNullOrBlank(String date) {
+            //given
+            LedgerSearchRequest request = LedgerSearchRequest.builder()
+                    .type("month")
+                    .menu("period")
+                    .fromDate("20260101")
+                    .toDate(date)
+                    .build();
+
+            //when
+            Throwable throwable = catchThrowable(() -> target.validateSearchCondition(HistoryMenu.PERIOD, request));
+
+        	//then
+            ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                    .hasErrorCode(POLICY_VIOLATION)
+                    .hasWork("가계부 내역 검색 검증")
+                    .hasCauseMessage("종료일 누락")
+                    .hasTarget(LedgerSearchRequest.class)
+                    .hasValue("toDate", date);
         }
 
     }

@@ -89,7 +89,10 @@ public class LedgerService {
         LocalDate localDate = DateTimeUtil.parseDateOrToday(date);
 
         //2. 카테고리 목록 조회
-        List<CategoryItem> categories = categoryReadService.getMiddleCategories(ledgerType);
+        List<CategoryItem> categories
+                = categoryReadService.getMiddleCategories(ledgerType).stream()
+                    .map(CategoryItem::from)
+                    .toList();
 
         //3. 제목 변환
         String title = DateTimeUtil.formatDate(localDate, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());

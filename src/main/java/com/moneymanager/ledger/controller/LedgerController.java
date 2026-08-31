@@ -7,6 +7,7 @@ import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
+import com.moneymanager.ledger.domain.dto.response.history.MenuResponse;
 import com.moneymanager.ledger.service.application.LedgerHistoryService;
 import com.moneymanager.ledger.service.application.LedgerService;
 import org.springframework.stereotype.Controller;
@@ -58,8 +59,10 @@ public class LedgerController {
 	@Operation(ServiceAction.LEDGER_HISTORY_VIEW)
 	public String ledgers(@RequestParam String type, Model model) {
 		HistoryDashboardResponse response = ledgerHistoryService.searchLedgersByDate(type);
+		MenuResponse menu = ledgerHistoryService.buildSubMenu(type);
 
 		model.addAttribute("history", response);
+		model.addAttribute("menu", menu);
 		model.addAttribute("type", type);
 
 		return "/ledger/ledger_history";

@@ -3,6 +3,7 @@ package com.moneymanager.ledger.service.read;
 import com.moneymanager.global.exception.code.ErrorCode;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.ledger.domain.dto.response.history.LedgerSearchCondition;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.ledger.repository.LedgerRepository;
@@ -56,6 +57,10 @@ public class LedgerReadService {
 
 	public List<LedgerHistoryQuery> findLedgerByDate(String memberId, LocalDate fromDate, LocalDate toDate) {
 		return ledgerRepository.findByTransactionDateBetween(memberId, fromDate, toDate);
+	}
+
+	public List<LedgerHistoryQuery> findLedgerByCondiction(String memberId, LocalDate fromDate, LocalDate toDate, LedgerSearchCondition searchCondition) {
+		return ledgerRepository.findAllByConditionAndDateRange(memberId, fromDate, toDate, searchCondition);
 	}
 
 	public List<Ledger> getOwnerLedgers(String memberId, List<String> codes) {

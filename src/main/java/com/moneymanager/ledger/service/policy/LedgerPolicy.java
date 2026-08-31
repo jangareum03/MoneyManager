@@ -3,10 +3,12 @@ package com.moneymanager.ledger.service.policy;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
+import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
 import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.DateUnit;
+import com.moneymanager.ledger.domain.enums.HistoryMenu;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -123,6 +125,68 @@ public class LedgerPolicy {
                             ).withCause("메모 길이 초과")
                             .withOption("min", 0)
                             .withOption("max", 300)
+            );
+        }
+    }
+
+    public void validateSearchCondition(HistoryMenu menu, LedgerSearchRequest request) {
+        switch (menu) {
+            case CATEGORY, SUB_CATEGORY -> validateCategory(request.getCategories());
+            case MEMO -> validateMemo(request.getMemo());
+            case PERIOD -> validatePeriod(request.getFromDate(), request.getToDate());
+        }
+    }
+
+    private void validateCategory(List<String> categories) {
+        if(categories == null || categories.isEmpty()) {
+            throw new ApplicationException(
+                    POLICY_VIOLATION,
+                    LogContent.of(
+                            "가계부 내역 검색 검증",
+                            LedgerSearchRequest.class,
+                            "categories",
+                            categories
+                    ).withCause("선택한 카테고리 누락")
+            );
+        }
+    }
+
+    private void validateMemo(String memo) {
+        if(StringUtil.isNullOrBlank(memo)) {
+            throw new ApplicationException(
+                    POLICY_VIOLATION,
+                    LogContent.of(
+                            "가계부 내역 검색 검증",
+                            LedgerSearchRequest.class,
+                            "memo",
+                            memo
+                    ).withCause("메모 누락")
+            );
+        }
+    }
+
+    private void validatePeriod(String fromDate, String toDate) {
+        if(StringUtil.isNullOrBlank(fromDate)) {
+            throw new ApplicationException(
+                    POLICY_VIOLATION,
+                    LogContent.of(
+                            "가계부 내역 검색 검증",
+                            LedgerSearchRequest.class,
+                            "fromDate",
+                            fromDate
+                    ).withCause("시작일 누락")
+            );
+        }
+
+        if(StringUtil.isNullOrBlank(toDate)) {
+            throw new ApplicationException(
+                    POLICY_VIOLATION,
+                    LogContent.of(
+                            "가계부 내역 검색 검증",
+                            LedgerSearchRequest.class,
+                            "toDate",
+                            toDate
+                    ).withCause("종료일 누락")
             );
         }
     }

@@ -4,6 +4,9 @@ import com.moneymanager.global.config.TimeConfig;
 import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerStatistics;
+import com.moneymanager.ledger.domain.dto.response.history.MenuResponse;
+import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
+import com.moneymanager.ledger.domain.enums.HistoryMenu;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.CategoryTestData;
@@ -351,6 +354,17 @@ public class LedgerControllerIT extends IntegrationTest {
             assertThat(historyDisplays)
                     .isNotEmpty()
                     .hasSize(5);
+
+            MenuResponse menu = (MenuResponse) mav.getModel().get("menu");
+            assertThat(menu.getMenus())
+                    .extracting(MenuItem::getType)
+                    .containsExactly(
+                            HistoryMenu.ALL,
+                            HistoryMenu.CATEGORY,
+                            HistoryMenu.SUB_CATEGORY,
+                            HistoryMenu.MEMO,
+                            HistoryMenu.PERIOD
+                    );
         }
 
         @Test
@@ -382,6 +396,16 @@ public class LedgerControllerIT extends IntegrationTest {
                     .hasSize(4)
                     .extracting(LedgerHistoryDisplay::getDate)
                     .doesNotContain("2026. 02. 05 (목)");
+
+            MenuResponse menu = (MenuResponse) mav.getModel().get("menu");
+            assertThat(menu.getMenus())
+                    .extracting(MenuItem::getType)
+                    .containsExactly(
+                            HistoryMenu.ALL,
+                            HistoryMenu.CATEGORY,
+                            HistoryMenu.SUB_CATEGORY,
+                            HistoryMenu.MEMO
+                    );
         }
 
         @Test

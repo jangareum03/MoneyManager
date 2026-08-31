@@ -42,11 +42,10 @@
                 <!-- 탭 -->
                 <nav class="ledger-menu__filter">
                     <ul class="ledger-menu__list">
-                        <li class="ledger-menu__item" th:each="menu : ${history.menu}"
-                            th:classappend="${menu.name == 'ALL'} ? 'ledger-menu__item--active'"
-                            th:attr="data-mode=${menu.name}">
-
-                            <button class="button" th:text="${menu.label}"></button>
+                        <li class="ledger-menu__item" th:each="menu : ${menu.menus}"
+                            th:classappend="${#bools.isTrue(menu.selected)} ? 'ledger-menu__item--active'"
+                            th:attr="data-mode=${menu.type.value}">
+                            <button class="button" th:text="${menu.type.label}"></button>
                         </li>
                     </ul>
                 </nav>

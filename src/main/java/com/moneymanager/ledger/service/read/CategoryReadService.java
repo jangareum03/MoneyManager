@@ -2,13 +2,14 @@ package com.moneymanager.ledger.service.read;
 
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
-import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.service.cache.CategoryCacheService;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
@@ -49,15 +50,14 @@ public class CategoryReadService {
         this.categoryMap = categoryCacheService.getCategoryMap();
     }
 
-    public List<CategoryItem> getRootCategories() {
+    public List<Category> getRootCategories() {
         return categoryMap.values().stream()
                 .filter(c -> c.getParentCode() == null)
-                .map(CategoryItem::from)
-                .sorted(Comparator.comparing(CategoryItem::getCode))
+                .sorted(Comparator.comparing(Category::getCode))
                 .collect(Collectors.toList());
     }
 
-    public List<CategoryItem> getMiddleCategories(LedgerType type) {
+    public List<Category> getMiddleCategories(LedgerType type) {
         return categoryMap.values().stream()
                 .filter(c -> c.getParentCode() != null)
                 .filter(c -> c.getParentCode().endsWith("0000"))
@@ -66,12 +66,11 @@ public class CategoryReadService {
                                 ? c.getCode().startsWith("01")
                                 : c.getCode().startsWith("02")
                 )
-                .map(CategoryItem::from)
-                .sorted(Comparator.comparing(CategoryItem::getCode))
+                .sorted(Comparator.comparing(Category::getCode))
                 .toList();
     }
 
-    public List<CategoryItem> getLowCategories(LedgerType type) {
+    public List<Category> getLowCategories(LedgerType type) {
         return categoryMap.values().stream()
                 .filter(c ->
                         c.getParentCode() != null
@@ -83,12 +82,11 @@ public class CategoryReadService {
                                 ? c.getCode().startsWith("01")
                                 : c.getCode().startsWith("02")
                 )
-                .map(CategoryItem::from)
-                .sorted(Comparator.comparing(CategoryItem::getCode))
+                .sorted(Comparator.comparing(Category::getCode))
                 .collect(Collectors.toList());
     }
 
-    public List<CategoryItem> getChildrenByParentCode(String code) {
+    public List<Category> getChildrenByParentCode(String code) {
         Category current = getCategory(code);
 
         return categoryMap.values().stream()
@@ -96,30 +94,9 @@ public class CategoryReadService {
                         c.getParentCode() != null
                                 && c.getParentCode().equals(current.getCode())
                 )
-                .map(CategoryItem::from)
-                .sorted(Comparator.comparing(CategoryItem::getCode))
+                .sorted(Comparator.comparing(Category::getCode))
                 .collect(Collectors.toList());
     }
-
-    public List<CategoryItem> findCategoryHierarchy(String code) {
-        List<Category> result = new ArrayList<>();
-
-        Category current = getCategory(code);
-
-        while (current != null) {
-            result.add(current);
-
-            String parentCode = current.getParentCode();
-            current = (parentCode != null) ? getCategory(parentCode) : null;
-        }
-
-        Collections.reverse(result);
-
-        return result.stream()
-                .map(CategoryItem::from)
-                .toList();
-    }
-
 
     public Category getCategory(String code) {
         Category category = categoryMap.get(code);

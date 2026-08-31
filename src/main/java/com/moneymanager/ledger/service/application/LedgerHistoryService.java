@@ -2,24 +2,31 @@ package com.moneymanager.ledger.service.application;
 
 import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.global.security.CurrentUser;
-import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
-import com.moneymanager.ledger.domain.dto.response.history.HistoryGroup;
-import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
-import com.moneymanager.ledger.domain.dto.response.history.LedgerStatistics;
+import com.moneymanager.global.util.date.DateTimeUtil;
+import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
+import com.moneymanager.ledger.domain.dto.response.history.*;
+import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.dto.response.item.HistoryItem;
+import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
+import com.moneymanager.ledger.domain.dto.response.item.SubMenuItem;
 import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;
+import com.moneymanager.ledger.domain.entity.Category;
+import com.moneymanager.ledger.domain.enums.HistoryMenu;
 import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
+import com.moneymanager.ledger.service.read.CategoryReadService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * <p>
@@ -58,6 +65,7 @@ public class LedgerHistoryService {
     private final LedgerPolicy ledgerPolicy;
 
     private final LedgerReadService ledgerReadService;
+    private final CategoryReadService categoryReadService;
 
 
     public HistoryDashboardResponse searchLedgersByDate(String type) {
@@ -84,26 +92,73 @@ public class LedgerHistoryService {
         );
     }
 
+    public List<LedgerHistoryDisplay> searchLedgersByCondition(LedgerSearchRequest request) {
+        //1. 인증된 회원 조회
+        String memberId = currentUser.getMemberId();
+
+        //2, 내역 유형 및 메뉴 조회 (기본값 세팅)
+        HistoryType historyType = parseHistoryTypeOrDefault(request.getType());
+        HistoryMenu historyMenu = parseHistoryMenuDefault(request.getMenu());
+
+        //3. 메뉴별 조건 검증
+        ledgerPolicy.validateSearchCondition(historyMenu, request);
+
+        //4. 내역 유형 및 메뉴로 시작일과 종료일 기간 계산
+        LedgerPeriod period = ledgerPolicy.resolveHistoryPeriod(historyType);
+        if (historyMenu.equals(HistoryMenu.PERIOD)) {
+            LocalDate fromDate = DateTimeUtil.parseDateOrToday(request.getFromDate());
+            LocalDate toDate = DateTimeUtil.parseDateOrToday(request.getToDate());
+
+            period = LedgerPeriod.of(fromDate, toDate);
+        }
+
+        LedgerSearchCondition searchCondition = getSearchCondition(historyMenu, request);
+
+        //5. 기간 별 회원이 작성한 가계부 내역 조회
+        List<LedgerHistoryQuery> historyQueries = ledgerReadService.findLedgerByCondiction(memberId, period.getFromDate(), period.getToDate(), searchCondition);
+
+        return chunkLedgersByRow(historyQueries, HISTORY_MAX_ROW);
+    }
+
+    public MenuResponse buildSubMenu(String type) {
+        HistoryType historyType = parseHistoryTypeOrDefault(type);
+
+        return switch (historyType) {
+            case YEAR -> MenuResponse.from(
+                    Arrays.stream(HistoryMenu.values())
+                            .map(this::createMenuByType)
+                            .toList()
+            );
+            case MONTH, WEEK -> MenuResponse.from(
+                    Arrays.stream(HistoryMenu.values())
+                            .filter(m -> m != HistoryMenu.PERIOD)
+                            .map(this::createMenuByType)
+                            .toList()
+            );
+        };
+    }
+
 
     //===== searchLedgersByDateAndConditions 보조 메서드 =====
-    private HistoryType parseHistoryTypeOrDefault(String type) {
+    private HistoryMenu parseHistoryMenuDefault(String menu) {
         try {
-            return HistoryType.from(type);
+            return HistoryMenu.from(menu);
         } catch (NoSuchElementException e) {
-            return HistoryType.MONTH;
+            return HistoryMenu.ALL;
         }
     }
 
-    private List<LedgerHistoryDisplay> chunkLedgersByRow(List<LedgerHistoryQuery> historyQueries, int size) {
-        if(historyQueries.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<HistoryGroup> groups = groupByDate(historyQueries);
-
-        return toGridRows(groups, size);
+    private LedgerSearchCondition getSearchCondition(HistoryMenu menu, LedgerSearchRequest request) {
+        return switch (menu) {
+            case ALL, PERIOD -> LedgerSearchCondition.of(menu);
+            case CATEGORY -> LedgerSearchCondition.ofKeyword(menu, request.getCategories().get(0));
+            case SUB_CATEGORY-> LedgerSearchCondition.ofKeywords(menu, request.getCategories());
+            case MEMO ->  LedgerSearchCondition.ofKeyword(menu, request.getMemo());
+        };
     }
 
+
+    //===== searchLedgersByDate 보조 메서드 =====
     private List<HistoryGroup> groupByDate(List<LedgerHistoryQuery> historyQueries) {
         return historyQueries.stream()
                 .filter(query -> query.getDate() != null)
@@ -159,6 +214,72 @@ public class LedgerHistoryService {
         long outlay = amounts.getOrDefault(LedgerType.OUTLAY, 0L);
 
         return LedgerStatistics.of(income, outlay);
+    }
+
+
+    //===== buildSubMenu 보조 메서드 =====
+    private MenuItem createMenuByType(HistoryMenu menu) {
+        HistoryMenu selected = HistoryMenu.ALL;
+
+        return MenuItem.from(
+                menu,
+                switch (menu) {
+                    case ALL, MEMO, PERIOD -> SubMenuItem.of();
+                    case CATEGORY -> createCategorySubMenu();
+                    case SUB_CATEGORY -> createSubCategorySubMenu();
+                },
+                selected
+        );
+    }
+
+    private SubMenuItem createCategorySubMenu() {
+        Map<String, List<CategoryItem>> subItems = categoryReadService.getRootCategories()
+                .stream()
+                .collect(Collectors.toMap(
+                        Category::getName,
+                        category -> List.of(CategoryItem.from(category))
+                ));
+
+        return SubMenuItem.of(subItems);
+    }
+
+    private SubMenuItem createSubCategorySubMenu() {
+        List<Category> income = categoryReadService.getMiddleCategories(LedgerType.INCOME);
+        List<Category> outlay = categoryReadService.getMiddleCategories(LedgerType.OUTLAY);
+
+        Map<String, List<CategoryItem>> subItems =
+                Stream.concat(income.stream(), outlay.stream())
+                        .collect(Collectors.toMap(
+                                Category::getName,
+                                category ->
+                                        categoryReadService.getChildrenByParentCode(category.getCode())
+                                                .stream()
+                                                .map(CategoryItem::from)
+                                                .toList()
+                        ));
+
+
+        return SubMenuItem.of(subItems);
+    }
+
+
+    //===== 유틸 메서드 =====
+    private HistoryType parseHistoryTypeOrDefault(String type) {
+        try {
+            return HistoryType.from(type);
+        } catch (NoSuchElementException e) {
+            return HistoryType.MONTH;
+        }
+    }
+
+    private List<LedgerHistoryDisplay> chunkLedgersByRow(List<LedgerHistoryQuery> historyQueries, int size) {
+        if (historyQueries.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<HistoryGroup> groups = groupByDate(historyQueries);
+
+        return toGridRows(groups, size);
     }
 
 }

@@ -4,8 +4,11 @@ import com.moneymanager.global.domain.dto.response.api.ApiBody;
 import com.moneymanager.global.exception.annotation.ApiController;
 import com.moneymanager.global.operation.annotation.Operation;
 import com.moneymanager.global.operation.enums.ServiceAction;
+import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
+import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
+import com.moneymanager.ledger.service.application.LedgerHistoryService;
 import com.moneymanager.ledger.service.application.LedgerService;
 import com.moneymanager.ledger.service.read.CategoryReadService;
 import lombok.RequiredArgsConstructor;
@@ -48,12 +51,22 @@ import java.util.List;
 public class LedgerApiController {
 
     private final LedgerService ledgerService;
+    private final LedgerHistoryService ledgerHistoryService;
     private final CategoryReadService categoryReadService;
+
+    @GetMapping
+    public ApiBody<List<LedgerHistoryDisplay>> getLedgerHistory(LedgerSearchRequest request) {
+        List<LedgerHistoryDisplay> history = ledgerHistoryService.searchLedgersByCondition(request);
+
+        return ApiBody.data("", history);
+    }
 
     @GetMapping("/category/{code}/children")
     @Operation(ServiceAction.LEDGER_CATEGORY)
     public List<CategoryItem> getCategories(@PathVariable String code) {
-        return categoryReadService.getChildrenByParentCode(code);
+        return categoryReadService.getChildrenByParentCode(code).stream()
+                .map(CategoryItem::from)
+                .toList();
     }
 
     @GetMapping("/dates")
@@ -79,11 +92,11 @@ public class LedgerApiController {
     public ApiBody<Void> deleteLedger(@RequestBody List<String> codes) {
         int delCount = ledgerService.processLedgerDelete(codes);
 
-        if(delCount == 0) {
+        if (delCount == 0) {
             return ApiBody.message("삭제된 내역이 없습니다.");
         }
 
-        return ApiBody.message(delCount +"건의 내역이 삭제되었습니다.");
+        return ApiBody.message(delCount + "건의 내역이 삭제되었습니다.");
     }
 
 }

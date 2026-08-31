@@ -1,6 +1,7 @@
 package com.moneymanager.ledger.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
@@ -24,7 +25,6 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -67,7 +67,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 		</tbody>
  * </table>
  */
-@Transactional
 public class LedgerApiControllerIT extends IntegrationTest {
 
     @Autowired
@@ -88,6 +87,82 @@ public class LedgerApiControllerIT extends IntegrationTest {
     @BeforeEach
     void setUp() {
         member = memberRepository.findById(MemberTestData.DEFAULT_ID);
+    }
+
+
+    @Nested
+    @Sql("/sql/ledger-history-test.sql")
+    @DisplayName("가계부 검색할 때")
+    class Search {
+        
+        @Test
+        @DisplayName("정상적인 검색 요청이면 내역 목록을 반환한다.")
+        void returnsHistoryList_whenSearchRequestIsValid() throws Exception {
+        	//given
+            LedgerSearchRequest request = LedgerSearchRequest.builder()
+                    .type("month")
+                    .menu("memo")
+                    .memo("이")
+                    .build();
+        	
+        	//when
+            mockMvc.perform(
+                    get(BASE_URI)
+                            .param("type", request.getType())
+                            .param("menu", request.getMenu())
+                            .param("memo", request.getMemo())
+                            .cookie(accessTokenCookie("member1"))
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").isEmpty())
+                    .andExpect(jsonPath("$.data").isNotEmpty());
+        }
+        
+        @Test
+        @DisplayName("내역이 없으면 빈 목록을 반환한다.")
+        void returnsEmptyList_whenHistoryDoesNotExist() throws Exception {
+            //given
+            LedgerSearchRequest request = LedgerSearchRequest.builder()
+                    .type("month")
+                    .menu("memo")
+                    .memo("가")
+                    .build();
+
+            //when
+            mockMvc.perform(
+                            get(BASE_URI)
+                                    .param("type", request.getType())
+                                    .param("menu", request.getMenu())
+                                    .param("memo", request.getMemo())
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").isEmpty())
+                    .andExpect(jsonPath("$.data").isEmpty());
+        }
+
+        @Test
+        @DisplayName("검색에 실패하면 안내 메시지를 반환한다.")
+        void returnsErrorMessage_whenSearchFails() throws Exception {
+            //given
+            LedgerSearchRequest request = LedgerSearchRequest.builder()
+                    .type("month")
+                    .menu("memo")
+                    .build();
+
+            //when
+            mockMvc.perform(
+                            get(BASE_URI)
+                                    .param("type", request.getType())
+                                    .param("menu", request.getMenu())
+                                    .param("memo", request.getMemo())
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.message").isEmpty());
+        }
+
     }
 
     @Nested

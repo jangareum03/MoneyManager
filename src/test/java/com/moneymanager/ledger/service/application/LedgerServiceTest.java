@@ -187,7 +187,7 @@ class LedgerServiceTest {
                 String date = "20260115";
 
                 when(categoryReadService.getMiddleCategories(type))
-                        .thenReturn(CategoryItem.from(IncomeCategoryFixture.createMiddleAll()));
+                        .thenReturn(IncomeCategoryFixture.createMiddleAll());
 
                 when(memberReadService.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
                         .thenReturn(1);
@@ -239,7 +239,7 @@ class LedgerServiceTest {
                 String date = "20260115";
 
                 when(categoryReadService.getMiddleCategories(type))
-                        .thenReturn(CategoryItem.from(OutlayCategoryFixture.createMiddleAll()));
+                        .thenReturn(OutlayCategoryFixture.createMiddleAll());
 
                 when(memberReadService.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
                         .thenReturn(1);
@@ -272,7 +272,7 @@ class LedgerServiceTest {
                 String date = "20261001";
 
                 when(categoryReadService.getMiddleCategories(eq(LedgerType.INCOME)))
-                        .thenReturn(CategoryItem.from(IncomeCategoryFixture.createMiddleAll()));
+                        .thenReturn(IncomeCategoryFixture.createMiddleAll());
 
                 when(memberReadService.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
                         .thenReturn(1);
