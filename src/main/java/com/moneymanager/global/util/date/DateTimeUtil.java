@@ -53,7 +53,7 @@ public class DateTimeUtil {
 		LocalDate today = LocalDate.now();
 
 		if(StringUtil.isNullOrBlank(date)) {
-			AuditLogger.warn("날짜 값이 없어 현재 날짜로 대체합니다.", date, DATE_FORMAT);
+			AuditLogger.warn("날짜가 없어 현재 날짜 {}로 대체합니다.", today.toString());
 			return today;
 		}
 
@@ -68,7 +68,7 @@ public class DateTimeUtil {
 			}
 		}
 
-		AuditLogger.warn("날짜 형식이 올바르지 않아 현재 날짜로 대체합니다.", date, DATE_FORMAT);
+		AuditLogger.warn("{} 날짜 형식은 지원하지 않아 현재 날짜 {}로 대체합니다.", date, today.toString());
 		return today;
 	}
 

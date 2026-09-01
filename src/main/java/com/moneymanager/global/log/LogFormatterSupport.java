@@ -31,6 +31,9 @@ import java.util.Map;
  */
 public final class LogFormatterSupport {
 
+	private static final int KEY_WIDTH = 12;
+	private static final int VALUE_WIDTH = 20;
+
 	private LogFormatterSupport() {};
 
 	public static void append(StringBuilder sb, Map<String, Object> options) {
@@ -45,10 +48,16 @@ public final class LogFormatterSupport {
 	}
 
 	public static void append(StringBuilder sb, String key, Object value) {
-		sb.append(key)
-				.append("=")
-				.append(value)
-				.append("   |   ");
+		if(value == null) {
+			return;
+		}
+
+		sb.append(
+				String.format(
+						"%-" + KEY_WIDTH + "s = %-" + VALUE_WIDTH + "s   |   ",
+						key, value
+				)
+		);
 	}
 
 }

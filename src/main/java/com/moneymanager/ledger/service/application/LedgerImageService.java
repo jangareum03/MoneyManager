@@ -136,11 +136,7 @@ public class LedgerImageService {
                     try{
                         imageStorage.moveToTemp(absolutePath);
                     }catch (IOException tempException) {
-                        AuditLogger.warn(
-                                "파일 삭제 및 temp 이동에 실패했습니다.",
-                                null,
-                                null
-                        );
+                        AuditLogger.warn("{} 경로로 파일이 이동 불가", absolutePath.toString());
                     }
                 }
             }

@@ -50,6 +50,10 @@ public class ApiBody<T> {
       return new ApiBody<>(message, next, null);
     }
 
+    public static <T> ApiBody<T> data(T data) {
+        return new ApiBody<>(null, null, data);
+    }
+
     public static <T> ApiBody<T> data(String message, T data) {
         return new ApiBody<>(message, null, data);
     }

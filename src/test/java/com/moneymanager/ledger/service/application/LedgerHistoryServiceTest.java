@@ -4,6 +4,7 @@ import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.response.history.*;
+import com.moneymanager.ledger.domain.dto.response.item.ChartBarItem;
 import com.moneymanager.ledger.domain.dto.response.item.HistoryItem;
 import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
 import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;
@@ -482,6 +483,148 @@ class LedgerHistoryServiceTest {
                         .isInstanceOf(ApplicationException.class);
             }
 
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("유형별 차트 데이터를 조회할 때")
+    class GetChart {
+
+        @BeforeEach
+        void setUp() {
+            when(currentUser.getMemberId()).thenReturn(MemberTestData.DEFAULT_ID);
+        }
+
+        @Test
+        @DisplayName("인증된 회원 ID를 사용한다.")
+        void fetchesLedgerHistory_whenUserIdIsAuthenticated() {
+        	//given
+            when(ledgerPolicy.resolveChartPeriod(any(HistoryType.class)))
+                    .thenReturn(LedgerPeriod.of(
+                            LocalDate.of(2026, 3, 1),
+                            LocalDate.of(2026, 3, 31)
+                    ));
+
+            when(ledgerReadService.generateChartDataByType(
+                    eq(MemberTestData.DEFAULT_ID),
+                    any(HistoryType.class),
+                    eq(LocalDate.of(2026, 3, 1)),
+                    eq(LocalDate.of(2026, 3, 31))
+            ))
+                    .thenReturn(List.of());
+        	
+        	//when
+        	List<ChartBarItem> result = target.fetchChartDataByType("month");
+
+        	//then
+        	verify(ledgerReadService).generateChartDataByType(
+                    eq(MemberTestData.DEFAULT_ID),
+                    eq(HistoryType.MONTH),
+                    any(),
+                    any()
+            );
+        }
+        
+        @Test
+        @DisplayName("type을 올바른 HistoryType으로 변환해서 전달한다.")
+        void convertsAndPassesHistoryType_whenTypeGiven() {
+        	//given
+            String type = "week";
+
+            when(ledgerPolicy.resolveChartPeriod(any(HistoryType.class)))
+                    .thenReturn(LedgerPeriod.of(
+                            LocalDate.of(2026, 3, 1),
+                            LocalDate.of(2026, 3, 31)
+                    ));
+
+            when(ledgerReadService.generateChartDataByType(
+                    eq(MemberTestData.DEFAULT_ID),
+                    any(HistoryType.class),
+                    eq(LocalDate.of(2026, 3, 1)),
+                    eq(LocalDate.of(2026, 3, 31))
+            ))
+                    .thenReturn(List.of());
+        	
+        	//when
+            List<ChartBarItem> result = target.fetchChartDataByType(type);
+        	
+        	//then
+        	verify(ledgerPolicy).resolveChartPeriod(eq(HistoryType.WEEK));
+        }
+        
+        @ParameterizedTest
+        @MethodSource("validPeriods")
+        @DisplayName("type별로 반환한 기간을 LedgerReadService에 전달한다.")
+        void passesCalculatedPeriodToLedgerReadService_whenTypeGiven(HistoryType type, LocalDate fromDate, LocalDate toDate) {
+        	//given
+            when(ledgerPolicy.resolveChartPeriod(eq(type)))
+                    .thenReturn(LedgerPeriod.of(fromDate, toDate));
+
+            when(ledgerReadService.generateChartDataByType(
+                    eq(MemberTestData.DEFAULT_ID),
+                    eq(type),
+                    eq(fromDate),
+                    eq(toDate)
+            ))
+                    .thenReturn(List.of());
+        	
+        	//when
+            List<ChartBarItem> result = target.fetchChartDataByType(type.name());
+        	
+        	//then
+        	verify(ledgerReadService).generateChartDataByType(
+                    eq(MemberTestData.DEFAULT_ID),
+                    eq(type),
+                    eq(fromDate),
+                    eq(toDate)
+            );
+        }
+
+        static Stream<Arguments> validPeriods() {
+            return Stream.of(
+                    Arguments.of(
+                            named("year인 경우", HistoryType.YEAR),
+                            LocalDate.of(2026, 1, 1),
+                            LocalDate.of(2026, 12, 31)
+                    ),
+                    Arguments.of(
+                            named("month인 경우", HistoryType.MONTH),
+                            LocalDate.of(2026, 8, 1),
+                            LocalDate.of(2026, 8, 31)
+                    ),
+                    Arguments.of(
+                            named("week인 경우", HistoryType.WEEK),
+                            LocalDate.of(2026, 8, 1),
+                            LocalDate.of(2026, 8, 31)
+                    )
+            );
+        }
+        
+        @Test
+        @DisplayName("데이터 조회 결과를 그대로 반환한다.")
+        void returnsLedgerHistory_whenRequestIsValid() {
+            //given
+            when(ledgerPolicy.resolveChartPeriod(any(HistoryType.class)))
+                    .thenReturn(LedgerPeriod.of(
+                            LocalDate.of(2026, 3, 1),
+                            LocalDate.of(2026, 3, 31)
+                    ));
+
+            when(ledgerReadService.generateChartDataByType(
+                    eq(MemberTestData.DEFAULT_ID),
+                    any(HistoryType.class),
+                    eq(LocalDate.of(2026, 3, 1)),
+                    eq(LocalDate.of(2026, 3, 31))
+            ))
+                    .thenReturn(List.of());
+
+        	//when
+            List<ChartBarItem> result = target.fetchChartDataByType("week");
+
+        	//then
+        	assertThat(result).isEmpty();;
         }
 
     }

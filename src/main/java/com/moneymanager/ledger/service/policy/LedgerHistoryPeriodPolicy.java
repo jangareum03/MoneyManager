@@ -56,6 +56,13 @@ public class LedgerHistoryPeriodPolicy {
         );
     }
 
+    LedgerPeriod resolveYear(LocalDate date) {
+        return LedgerPeriod.of(
+                date.with(TemporalAdjusters.firstDayOfYear()),
+                date.with(TemporalAdjusters.lastDayOfYear())
+        );
+    }
+
     LedgerPeriod resolveMonth() {
         LocalDate today = LocalDate.now(clock);
 

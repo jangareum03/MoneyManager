@@ -1,14 +1,12 @@
 package com.moneymanager.ledger.service.application;
 
 import com.moneymanager.global.domain.enums.DatePatterns;
+import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.global.util.date.DateTimeUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.response.history.*;
-import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
-import com.moneymanager.ledger.domain.dto.response.item.HistoryItem;
-import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
-import com.moneymanager.ledger.domain.dto.response.item.SubMenuItem;
+import com.moneymanager.ledger.domain.dto.response.item.*;
 import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;
 import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.domain.enums.HistoryMenu;
@@ -118,6 +116,20 @@ public class LedgerHistoryService {
         List<LedgerHistoryQuery> historyQueries = ledgerReadService.findLedgerByCondiction(memberId, period.getFromDate(), period.getToDate(), searchCondition);
 
         return chunkLedgersByRow(historyQueries, HISTORY_MAX_ROW);
+    }
+
+    public List<ChartBarItem> fetchChartDataByType(String type) {
+        //1. 인증된 회원 조회
+        String memberId = currentUser.getMemberId();
+
+        //2, 내역 유형 조회 (기본값 세팅)
+        HistoryType historyType = parseHistoryTypeOrDefault(type);
+
+        //3. 내역 유형별로 시작일과 종료일 기간 계산
+        LedgerPeriod period = ledgerPolicy.resolveChartPeriod(historyType);
+
+        //4. 유형별 조회된 통계 정보를 응답 객체로 구성
+        return ledgerReadService.generateChartDataByType(memberId, historyType, period.getFromDate(), period.getToDate());
     }
 
     public MenuResponse buildSubMenu(String type) {
@@ -263,11 +275,15 @@ public class LedgerHistoryService {
     }
 
 
+    //===== fetchChartDataByType 보조 메서드 =====
+
+
     //===== 유틸 메서드 =====
     private HistoryType parseHistoryTypeOrDefault(String type) {
         try {
             return HistoryType.from(type);
         } catch (NoSuchElementException e) {
+            AuditLogger.warn("지원하지 않는 HistoryType, MONTH 반환 - type: {}", type);
             return HistoryType.MONTH;
         }
     }

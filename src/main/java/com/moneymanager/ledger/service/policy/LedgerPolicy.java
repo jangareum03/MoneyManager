@@ -76,6 +76,13 @@ public class LedgerPolicy {
         };
     }
 
+    public LedgerPeriod resolveChartPeriod(HistoryType type) {
+        return switch (type) {
+            case YEAR -> historyPeriodPolicy.resolveYear(maximumDate());
+            case MONTH, WEEK -> historyPeriodPolicy.resolveMonth();
+        };
+    }
+
     public String getTitleByHistoryType(HistoryType type) {
         LocalDate date = LocalDate.now(clock);
 

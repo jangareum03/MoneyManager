@@ -8,6 +8,7 @@ import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
+import com.moneymanager.ledger.domain.dto.response.item.ChartBarItem;
 import com.moneymanager.ledger.service.application.LedgerHistoryService;
 import com.moneymanager.ledger.service.application.LedgerService;
 import com.moneymanager.ledger.service.read.CategoryReadService;
@@ -55,10 +56,11 @@ public class LedgerApiController {
     private final CategoryReadService categoryReadService;
 
     @GetMapping
+    @Operation(ServiceAction.LEDGER_SEARCH)
     public ApiBody<List<LedgerHistoryDisplay>> getLedgerHistory(LedgerSearchRequest request) {
         List<LedgerHistoryDisplay> history = ledgerHistoryService.searchLedgersByCondition(request);
 
-        return ApiBody.data("", history);
+        return ApiBody.data(history);
     }
 
     @GetMapping("/category/{code}/children")
@@ -67,6 +69,14 @@ public class LedgerApiController {
         return categoryReadService.getChildrenByParentCode(code).stream()
                 .map(CategoryItem::from)
                 .toList();
+    }
+
+    @GetMapping("/chart/{type}")
+    @Operation(ServiceAction.LEDGER_CHART)
+    public ApiBody<List<ChartBarItem>> getLedgerChart(@PathVariable String type) {
+        List<ChartBarItem> chartData = ledgerHistoryService.fetchChartDataByType(type);
+
+        return ApiBody.data(chartData);
     }
 
     @GetMapping("/dates")

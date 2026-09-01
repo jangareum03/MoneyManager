@@ -116,11 +116,7 @@ public class LedgerImageStorage {
         try{
             deleteOrThrow(path);
         }catch (IOException e) {
-            AuditLogger.warn(
-                    "파일 경로가 잘못되거나 존재하지 않은 파일이어서 삭제가 불가능합니다.",
-                    path.toString(),
-                    path +" 파일 삭제"
-            );
+            AuditLogger.warn("{} 파일은 잘못되거나 존재하지 않아 삭제 불가", path.toString());
         }
     }
 

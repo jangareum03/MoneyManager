@@ -4,14 +4,20 @@ import com.moneymanager.global.exception.code.ErrorCode;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerSearchCondition;
+import com.moneymanager.ledger.domain.dto.response.item.ChartBarItem;
 import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.enums.HistoryType;
+import com.moneymanager.ledger.domain.query.LedgerCategoryStatQuery;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
+import com.moneymanager.ledger.domain.query.LedgerMonthlyStatQuery;
+import com.moneymanager.ledger.domain.query.LedgerWeeklyStatQuery;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
@@ -53,57 +59,98 @@ import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 @RequiredArgsConstructor
 public class LedgerReadService {
 
-	private final LedgerRepository ledgerRepository;
+    private final LedgerRepository ledgerRepository;
 
-	public List<LedgerHistoryQuery> findLedgerByDate(String memberId, LocalDate fromDate, LocalDate toDate) {
-		return ledgerRepository.findByTransactionDateBetween(memberId, fromDate, toDate);
-	}
+    public List<Ledger> getOwnerLedgers(String memberId, List<String> codes) {
+        List<Ledger> ledgerList = ledgerRepository.findByCodeIn(codes);
 
-	public List<LedgerHistoryQuery> findLedgerByCondiction(String memberId, LocalDate fromDate, LocalDate toDate, LedgerSearchCondition searchCondition) {
-		return ledgerRepository.findAllByConditionAndDateRange(memberId, fromDate, toDate, searchCondition);
-	}
+        return ledgerList.stream()
+                .filter(ledger -> isLedgerAuthor(memberId, ledger))
+                .toList();
+    }
 
-	public List<Ledger> getOwnerLedgers(String memberId, List<String> codes) {
-		List<Ledger> ledgerList = ledgerRepository.findByCodeIn(codes);
+    public Ledger getOwnerLedger(String memberId, String code) {
+        Ledger ledger = ledgerRepository.findByCode(code);
 
-		return ledgerList.stream()
-				.filter(ledger -> isLedgerAuthor(memberId, ledger))
-				.toList();
-	}
+        if (ledger == null) {
+            throw new ApplicationException(
+                    DATA_NOT_FOUND,
+                    LogContent.of(
+                            "가계부 조회",
+                            Ledger.class,
+                            "code", code
+                    )
+            );
+        }
 
-	public Ledger getOwnerLedger(String memberId, String code) {
-		Ledger ledger = ledgerRepository.findByCode(code);
+        if (!isLedgerAuthor(memberId, ledger)) {
+            throw new ApplicationException(
+                    ErrorCode.OWNER_ONLY,
+                    LogContent.of(
+                            "가계부 작성자 확인",
+                            Ledger.class,
+                            "code", code,
+                            "requester", memberId
+                    )
+            );
+        }
 
-		if(ledger == null) {
-			throw new ApplicationException(
-					DATA_NOT_FOUND,
-					LogContent.of(
-							"가계부 조회",
-							Ledger.class,
-							"code", code
-					)
-			);
-		}
+        return ledger;
+    }
 
-		if(!isLedgerAuthor(memberId, ledger)) {
-			throw new ApplicationException(
-					ErrorCode.OWNER_ONLY,
-					LogContent.of(
-							"가계부 작성자 확인",
-							Ledger.class,
-							"code", code,
-							"requester", memberId
-					)
-			);
-		}
+    public List<LedgerHistoryQuery> findLedgerByDate(String memberId, LocalDate fromDate, LocalDate toDate) {
+        return ledgerRepository.findByTransactionDateBetween(memberId, fromDate, toDate);
+    }
 
-		return ledger;
-	}
+    public List<LedgerHistoryQuery> findLedgerByCondiction(String memberId, LocalDate fromDate, LocalDate toDate, LedgerSearchCondition searchCondition) {
+        return ledgerRepository.findAllByConditionAndDateRange(memberId, fromDate, toDate, searchCondition);
+    }
+
+    public List<ChartBarItem> generateChartDataByType(String memberId, HistoryType type, LocalDate fromDate, LocalDate toDate) {
+        List<ChartBarItem> chartBarItemList = new ArrayList<>();
+
+        switch (type) {
+            case YEAR -> {
+                List<LedgerMonthlyStatQuery> queries = ledgerRepository.findMonthlyAmountSum(memberId, fromDate, toDate);
+
+                chartBarItemList = queries.stream()
+                        .map(query -> ChartBarItem.ofYear(
+                                query.getMonth() + "월",
+                                query.getIncome(),
+                                query.getOutlay()
+                        ))
+                        .toList();
+            }
+            case MONTH -> {
+                List<LedgerCategoryStatQuery> queries = ledgerRepository.findOutlayStatsByCategory(memberId, fromDate, toDate);
+
+                chartBarItemList = queries.stream()
+                        .map(query -> ChartBarItem.ofMonth(
+                                query.getCategory(),
+                                query.getAmount()
+                        ))
+                        .toList();
+            }
+            case WEEK -> {
+                List<LedgerWeeklyStatQuery> queries = ledgerRepository.findMonthlyAmountForWeeklyStats(memberId, fromDate, toDate);
+
+                chartBarItemList = queries.stream()
+                        .map(query -> ChartBarItem.ofWeek(
+                                query.getWeek() + "주",
+                                query.getIncome(),
+                                query.getOutlay()
+                        ))
+                        .toList();
+            }
+        }
+
+        return chartBarItemList;
+    }
 
 
-	//===== 유틸 메서드 =====
-	private boolean isLedgerAuthor(String memberId, Ledger ledger) {
-		return  ledger.getMemberId().equals(memberId);
-	}
+    //===== 유틸 메서드 =====
+    private boolean isLedgerAuthor(String memberId, Ledger ledger) {
+        return ledger.getMemberId().equals(memberId);
+    }
 
 }

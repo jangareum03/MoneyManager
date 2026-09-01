@@ -5,11 +5,15 @@ import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.domain.enums.HistoryMenu;
 import com.moneymanager.ledger.domain.enums.PaymentType;
+import com.moneymanager.ledger.domain.query.LedgerCategoryStatQuery;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
+import com.moneymanager.ledger.domain.query.LedgerMonthlyStatQuery;
+import com.moneymanager.ledger.domain.query.LedgerWeeklyStatQuery;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerTestFixture;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,15 +25,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Named.named;
 
 /**
@@ -59,7 +61,6 @@ import static org.junit.jupiter.api.Named.named;
  * 		</tbody>
  * </table>
  */
-@Transactional
 class LedgerRepositoryIT extends IntegrationTest {
 
     @Autowired
@@ -571,6 +572,105 @@ class LedgerRepositoryIT extends IntegrationTest {
 
     }
 
+
+    @Nested
+    @Sql("/sql/ledger-stat-test.sql")
+    @DisplayName("가계부 유형별로 통계할 때")
+    class FindStatByType {
+        
+        @Test
+        @DisplayName("YEAR이면 기간 내의 월별로 수입과 지출 합계를 계산한다.")
+        void findsMonthlyIncomeAndExpenseSum_whenDateRangeIsGiven() {
+        	//given
+            String memberId = "member1";
+            LocalDate fromDate = LocalDate.of(2026, 1, 1);
+            LocalDate toDate = LocalDate.of(2026, 12, 31);
+
+        	//when
+            List<LedgerMonthlyStatQuery> result = target.findMonthlyAmountSum(memberId, fromDate, toDate);
+        	
+        	//then
+        	assertThat(result).hasSize(12);
+
+
+            assertThat(result)
+                    .extracting(LedgerMonthlyStatQuery::getMonth, LedgerMonthlyStatQuery::getIncome, LedgerMonthlyStatQuery::getOutlay)
+                    .containsExactly(
+                            Tuple.tuple(1, 10000L, 0L),
+                            Tuple.tuple(2, 10000L, 5000L),
+                            Tuple.tuple(3, 0L, 0L),
+                            Tuple.tuple(4, 0L, 5000L),
+                            Tuple.tuple(5, 5000L, 20200L),
+                            Tuple.tuple(6, 0L, 0L),
+                            Tuple.tuple(7, 0L, 0L),
+                            Tuple.tuple(8, 2000L, 9500L),
+                            Tuple.tuple(9, 0L, 0L),
+                            Tuple.tuple(10, 0L, 0L),
+                            Tuple.tuple(11, 0L, 0L),
+                            Tuple.tuple(12, 0L, 0L)
+                    );
+        }
+
+        @Test
+        @DisplayName("MONTH면 카테고리별 지출 합계를 계산한다.")
+        void findsCategoryExpenseSums_whenPeriodIsMonth() {
+        	//given
+            String memberId = "member1";
+            LocalDate fromDate = LocalDate.of(2026, 8, 1);
+            LocalDate toDate = LocalDate.of(2026, 8, 31);
+
+            //when
+            List<LedgerCategoryStatQuery> result = target.findOutlayStatsByCategory(memberId, fromDate, toDate);
+
+        	//then
+        	assertThat(result).hasSize(9);
+
+            assertThat(result)
+                    .extracting(
+                            LedgerCategoryStatQuery::getCategory, LedgerCategoryStatQuery::getAmount
+                    )
+                    .containsExactly(
+                            tuple("식비", 3000L),
+                            tuple("교통", 0L),
+                            tuple("문화생활", 1500L),
+                            tuple("미용·패선", 0L),
+                            tuple("교육", 0L),
+                            tuple("주거", 0L),
+                            tuple("통신", 0L),
+                            tuple("의료", 0L),
+                            tuple("저축", 0L)
+                    );
+        }
+        
+        @Test
+        @DisplayName("WEEK면 주차별 수입 및 지출 합계를 계산한다.")
+        void findsWeeklyIncomeAndExpenseSum_whenDateRangeIsGiven() {
+        	//given
+            String memberId = "member1";
+            LocalDate fromDate = LocalDate.of(2026, 8, 1);
+            LocalDate toDate = LocalDate.of(2026, 8, 31);
+        	
+        	//when
+            List<LedgerWeeklyStatQuery> result = target.findMonthlyAmountForWeeklyStats(memberId, fromDate, toDate);
+        	
+        	//then
+        	assertThat(result).hasSize(6);
+
+            assertThat(result)
+                    .extracting(
+                            LedgerWeeklyStatQuery::getWeek, LedgerWeeklyStatQuery::getIncome, LedgerWeeklyStatQuery::getOutlay
+                    )
+                    .containsExactly(
+                            tuple(1, 500L, 0L),
+                            tuple(2, 1500L, 0L),
+                            tuple(3, 0L, 1000L),
+                            tuple(4, 0L, 3500L),
+                            tuple(5, 0L, 5000L),
+                            tuple(6, 0L, 0L)
+                    );
+        }
+
+    }
 
     @Nested
     @Sql("/sql/ledger-delete-test.sql")

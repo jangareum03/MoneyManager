@@ -1,6 +1,8 @@
 package com.moneymanager.ledger.service.read;
 
+import com.moneymanager.ledger.domain.dto.response.item.ChartBarItem;
 import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.fixture.entity.LedgerTestFixture;
@@ -12,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,7 +22,8 @@ import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 import static com.moneymanager.global.exception.code.ErrorCode.OWNER_ONLY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * <p>
@@ -189,6 +193,68 @@ class LedgerReadServiceTest {
                     .hasWork("가계부 작성자 확인")
                     .hasTarget(Ledger.class)
                     .hasValue("code", code, "requester", memberId);
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("차트 데이터를 조회할 때")
+    class GenerateChartDate {
+
+        String memberId = "member";
+        LocalDate fromDate = LocalDate.now();
+        LocalDate toDate = LocalDate.now();
+
+        @Test
+        @DisplayName("연간 조회 시 월별 통계 메서드를 호출한다.")
+        void callsMonthlyStatistics_whenPeriodIsYearly() {
+            //given
+            when(ledgerRepository.findMonthlyAmountSum(anyString(), any(LocalDate.class), any(LocalDate.class)))
+                    .thenReturn(List.of());
+
+        	//when
+            List<ChartBarItem> result = target.generateChartDataByType(memberId, HistoryType.YEAR,  fromDate, toDate);
+        	
+        	//then
+        	verify(ledgerRepository).findMonthlyAmountSum(eq(memberId), eq(fromDate), eq(toDate));
+
+            verify(ledgerRepository, never()).findOutlayStatsByCategory(any(), any(), any());
+            verify(ledgerRepository, never()).findMonthlyAmountForWeeklyStats(any(), any(), any());
+        }
+
+        @Test
+        @DisplayName("월간 조회 시 카테고리별 통계 메서드를 호출한다.")
+        void callsCategoryStatistics_whenPeriodIsMonthly() {
+            //given
+            when(ledgerRepository.findOutlayStatsByCategory(anyString(), any(LocalDate.class), any(LocalDate.class)))
+                    .thenReturn(List.of());
+
+            //when
+            List<ChartBarItem> result = target.generateChartDataByType(memberId, HistoryType.MONTH,  fromDate, toDate);
+
+            //then
+            verify(ledgerRepository).findOutlayStatsByCategory(eq(memberId), eq(fromDate), eq(toDate));
+
+            verify(ledgerRepository, never()).findMonthlyAmountSum(any(), any(), any());
+            verify(ledgerRepository, never()).findMonthlyAmountForWeeklyStats(any(), any(), any());
+        }
+
+        @Test
+        @DisplayName("주간 조회 시 주별 통계 메서드를 호출한다.")
+        void callsWeeklyStatistics_whenPeriodIsWeekly() {
+            //given
+            when(ledgerRepository.findMonthlyAmountForWeeklyStats(anyString(), any(LocalDate.class), any(LocalDate.class)))
+                    .thenReturn(List.of());
+
+            //when
+            List<ChartBarItem> result = target.generateChartDataByType(memberId, HistoryType.WEEK,  fromDate, toDate);
+
+            //then
+            verify(ledgerRepository).findMonthlyAmountForWeeklyStats(eq(memberId), eq(fromDate), eq(toDate));
+
+            verify(ledgerRepository, never()).findOutlayStatsByCategory(any(), any(), any());
+            verify(ledgerRepository, never()).findMonthlyAmountSum(any(), any(), any());
         }
 
     }

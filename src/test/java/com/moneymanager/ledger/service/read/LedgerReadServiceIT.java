@@ -1,6 +1,8 @@
 package com.moneymanager.ledger.service.read;
 
+import com.moneymanager.ledger.domain.dto.response.item.ChartBarItem;
 import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.support.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -114,6 +117,103 @@ class LedgerReadServiceIT extends IntegrationTest {
 
         	//then
         	assertThat(result).isEmpty();
+        }
+
+    }
+
+
+    @Nested
+    @Sql("/sql/ledger-stat-test.sql")
+    @DisplayName("유형별 차트 데이터를 조회할 때")
+    class GetChart {
+
+        String member = "member1";
+
+        @Test
+        @DisplayName("연간 조회 시 월별 수입 및 지출 금액을 반환한다.")
+        void returnsMonthlyIncomeAndExpense_whenYearlySearchIsRequested() {
+            //given
+            LocalDate fromDate = LocalDate.of(2026, 1, 1);
+            LocalDate toDate = LocalDate.of(2026, 12, 31);
+
+            //when
+            List<ChartBarItem> result = target.generateChartDataByType(member, HistoryType.YEAR, fromDate, toDate);
+
+            //then
+            assertThat(result).hasSize(12);
+
+            assertThat(result.get(0))
+                    .extracting(
+                            ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "1월", 10000L, 0L
+                    );
+            assertThat(result.get(11))
+                    .extracting(
+                            ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "12월", 0L, 0L
+                    );
+        }
+
+        @Test
+        @DisplayName("월간 조회 시 카테고리별 지출 금액을 반환한다.")
+        void returnsCategoryExpenses_whenMonthlySearchIsRequested() {
+            //given
+            LocalDate fromDate = LocalDate.of(2026, 8, 1);
+            LocalDate toDate = LocalDate.of(2026, 8, 31);
+
+            //when
+            List<ChartBarItem> result = target.generateChartDataByType(member, HistoryType.MONTH, fromDate, toDate);
+
+            //then
+            assertThat(result).hasSize(9);
+
+            assertThat(result.get(0))
+                    .extracting(
+                            ChartBarItem::getLabel, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "식비", 3000L
+                    );
+            assertThat(result.get(8))
+                    .extracting(
+                            ChartBarItem::getLabel, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "저축", 0L
+                    );
+        }
+
+        @Test
+        @DisplayName("주간 조회 시 주별 수입 및 지출 금액을 반환한다.")
+        void returnsWeeklyIncomeAndExpense_whenWeeklySearchIsRequested() {
+            //given
+            LocalDate fromDate = LocalDate.of(2026, 8, 1);
+            LocalDate toDate = LocalDate.of(2026, 8, 31);
+
+            //when
+            List<ChartBarItem> result = target.generateChartDataByType(member, HistoryType.WEEK, fromDate, toDate);
+
+            //then
+            assertThat(result).hasSize(6);
+
+            assertThat(result.get(0))
+                    .extracting(
+                            ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "1주", 500L, 0L
+                    );
+            assertThat(result.get(5))
+                    .extracting(
+                            ChartBarItem::getLabel,  ChartBarItem::getIncome, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "6주", 0L, 0L
+                    );
         }
 
     }

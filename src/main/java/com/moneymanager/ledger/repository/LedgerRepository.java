@@ -11,7 +11,10 @@ import com.moneymanager.ledger.domain.enums.FixCycle;
 import com.moneymanager.ledger.domain.enums.FixedType;
 import com.moneymanager.ledger.domain.enums.HistoryMenu;
 import com.moneymanager.ledger.domain.enums.PaymentType;
+import com.moneymanager.ledger.domain.query.LedgerCategoryStatQuery;
 import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
+import com.moneymanager.ledger.domain.query.LedgerMonthlyStatQuery;
+import com.moneymanager.ledger.domain.query.LedgerWeeklyStatQuery;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -242,6 +245,188 @@ public class LedgerRepository {
                         rs.getString("memo")
                 ),
                 params.toArray()
+        );
+    }
+
+    public List<LedgerMonthlyStatQuery> findMonthlyAmountSum(String memberId, LocalDate fromDate, LocalDate toDate) {
+        String query = """
+                WITH
+                    MONTH_TABLE as (
+                        SELECT
+                            LEVEL as month,
+                                CASE
+                                    WHEN LEVEL = 1 THEN first_date
+                                    ELSE ADD_MONTHS(first_date, LEVEL - 1)
+                                END as start_date,
+                                CASE
+                                    WHEN LEVEL = 1 THEN last_date + 1
+                                    ELSE ADD_MONTHS(last_date, LEVEL -1) + 1
+                                END as end_date
+                        FROM (
+                            SELECT
+                                TRUNC(?, 'YYYY') as first_date,
+                                LAST_DAY(TRUNC(?, 'YYYY')) as last_date
+                            FROM DUAL
+                        )
+                        CONNECT BY LEVEL <= 12
+                    )
+
+                SELECT
+                    month,
+                    NVL(
+                        SUM(
+                            CASE
+                                WHEN root.name = '수입' THEN l.amount
+                                ELSE 0
+                            END
+                        ),
+                    0
+                    ) as income,
+                    NVL(
+                        SUM(
+                            CASE
+                                WHEN root.name = '지출' THEN l.amount
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) as outlay
+                FROM month_table m
+                    LEFT JOIN ledger l
+                        ON l.transaction_date >= m.start_date
+                        AND l.transaction_date < m.end_date
+                        AND l.member_id = ?
+                    LEFT JOIN ledger_category low
+                        ON low.code = l.category_id
+                    LEFT JOIN ledger_category mid
+                        ON mid.code = low.parent_code
+                    LEFT JOIN ledger_category root
+                        ON root.code = mid.parent_code
+                WHERE root.parent_code IS NULL
+                GROUP BY m.month
+                ORDER BY m.month
+                """;
+
+        return jdbcTemplate.query(
+                query,
+                (rs, rowNum) -> LedgerMonthlyStatQuery.of(
+                        rs.getInt("month"),
+                        rs.getLong("income"),
+                        rs.getLong("outlay")
+                ),
+                fromDate, toDate, memberId
+        );
+    }
+
+    public List<LedgerWeeklyStatQuery> findMonthlyAmountForWeeklyStats(String memberId, LocalDate fromDate, LocalDate toDate) {
+        String query = """
+                WITH
+                    DATE_TABLE as (
+                        SELECT
+                            TRUNC(?, 'MM') as first_day,
+                            LAST_DAY(?) as last_day,
+                            TRUNC(TRUNC(?, 'MM'), 'IW') + 7 AS first_monday
+                        FROM DUAL
+                    ),
+                    PERIOD_TABLE AS (
+                        SELECT
+                            LEVEL as week,
+                
+                            CASE
+                                WHEN LEVEL = 1
+                                THEN first_day
+                                ELSE first_monday + (LEVEL - 2) * 7
+                            END AS start_date,
+                
+                            CASE
+                                WHEN LEVEL = 1
+                                THEN first_monday - 1
+                                ELSE LEAST(
+                                    first_monday + (LEVEL - 2) * 7 + 6,
+                                    last_day
+                                )
+                            END AS end_date
+                        FROM DATE_TABLE
+                        CONNECT BY LEVEL <= (
+                            1 + CEIL((last_day - first_monday + 1) / 7)
+                        )
+                    )
+                
+                SELECT
+                    week,
+                    NVL(
+                        SUM(
+                            CASE
+                                WHEN root.name = '수입'
+                                THEN l.amount
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) as income,
+                    NVL(
+                        SUM(
+                            CASE
+                                WHEN root.name = '지출'
+                                THEN l.amount
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) as outlay
+                FROM PERIOD_TABLE p
+                    LEFT JOIN ledger l
+                        ON l.transaction_date  >= p.start_date
+                        AND l.transaction_date < end_date + 1
+                        AND l.member_id = ?
+                    LEFT JOIN ledger_category low
+                        ON low.code = l.category_id
+                    LEFT JOIN ledger_category mid
+                        ON mid.code = low.parent_code
+                    LEFT JOIN ledger_category root
+                        ON root.code = mid.parent_code
+                GROUP BY p.week
+                ORDER BY p.week
+                """;
+
+        return jdbcTemplate.query(
+                query,
+                (rs, rowNum) -> LedgerWeeklyStatQuery.of(
+                        rs.getInt("week"),
+                        rs.getLong("income"),
+                        rs.getLong("outlay")
+                ),
+                fromDate, toDate, fromDate, memberId
+        );
+    }
+
+    public List<LedgerCategoryStatQuery> findOutlayStatsByCategory(String memberId, LocalDate fromDate, LocalDate toDate) {
+        String query = """
+                SELECT
+                    mid.name as category,
+                    NVL(SUM(l.amount), 0) as amount
+                FROM ledger_category root
+                    JOIN ledger_category mid
+                        ON mid.parent_code = root.code
+                    LEFT JOIN ledger_category low
+                        ON low.parent_code = mid.code
+                    LEFT JOIN ledger l
+                        ON l.category_id = low.code
+                        AND l.member_id = ?
+                        AND transaction_date >= ?
+                        AND transaction_date < ?
+                WHERE root.name = '지출'
+                GROUP BY mid.code, mid.name
+                ORDER BY mid.code
+                """;
+
+        return jdbcTemplate.query(
+                query,
+                (rs, rowNum) -> LedgerCategoryStatQuery.of(
+                        rs.getString("category"),
+                        rs.getLong("amount")
+                ),
+                memberId, fromDate, toDate.plusDays(1)
         );
     }
 

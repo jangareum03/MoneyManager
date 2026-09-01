@@ -74,7 +74,22 @@ class LedgerHistoryPeriodPolicyTest {
             assertThat(result.getToDate()).isEqualTo(LocalDate.of(2026, 12, 31));
         }
 
+        @Test
+        @DisplayName("날짜가 주어지면 시작일 연초날짜와 종료일 연말날짜로 생성한다.")
+        void createsYearPeriod_whenDateAreGiven() {
+        	//given
+            LocalDate date = LocalDate.of(2026, 3, 22);
+
+        	//when
+            LedgerPeriod result = target.resolveYear(date);
+        	
+        	//then
+        	assertThat(result.getFromDate()).isEqualTo(LocalDate.of(2026, 1, 1));
+        	assertThat(result.getToDate()).isEqualTo(LocalDate.of(2026, 12, 31));
+        }
+
     }
+
 
     @Nested
     @DisplayName("월 기간을 결정할 때")
@@ -121,6 +136,7 @@ class LedgerHistoryPeriodPolicyTest {
         }
 
     }
+
 
     @Nested
     @DisplayName("주 기간을 결정할 때")

@@ -1,14 +1,17 @@
 package com.moneymanager.ledger.service.application;
 
+import com.moneymanager.global.config.MutableClock;
 import com.moneymanager.global.config.TimeConfig;
 import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
 import com.moneymanager.ledger.domain.dto.response.history.MenuResponse;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
+import com.moneymanager.ledger.domain.dto.response.item.ChartBarItem;
 import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
 import com.moneymanager.ledger.domain.enums.HistoryMenu;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.security.WithMockCustomUser;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +22,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +59,9 @@ class LedgerHistoryServiceIT extends IntegrationTest {
 
     @Autowired
     LedgerHistoryService target;
+
+    @Autowired
+    private MutableClock clock;
 
     @Nested
     @DisplayName("메뉴를 생성할 때")
@@ -336,6 +343,126 @@ class LedgerHistoryServiceIT extends IntegrationTest {
             
         }
         
+    }
+
+
+    @Nested
+    @Import(TimeConfig.class)
+    @WithMockCustomUser(memberId = "member1")
+    @Sql(
+            scripts = {"/sql/ledger-stat-test.sql"},
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+    )
+    @Sql(
+            scripts = "/sql/clear-test.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+    )
+    @DisplayName("유형별 차트 데이터를 조회할 때")
+    class GetChart {
+        
+        @Test
+        @DisplayName("연간 내역을 조회하면 월별 수입과 지출 통계를 반환한다.")
+        void returnsMonthlyStatistics_whenYearIsGiven() {
+        	//when
+        	List<ChartBarItem> result = target.fetchChartDataByType("year");
+
+        	//then
+        	assertThat(result)
+                    .isNotEmpty()
+                    .hasSize(12);
+
+
+            assertThat(result.get(0))
+                    .extracting(
+                            ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "1월", 10000L, 0L
+                    );
+
+            assertThat(result.get(11))
+                    .extracting(
+                            ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "12월", 0L, 0L
+                    );
+        }
+        
+        @Test
+        @DisplayName("월간 내역을 조회하면 카테고리별 지출 통계를 반환한다.")
+        void returnsCategoryStatistics_whenMonthIsGiven() {
+            //given
+            clock.set(LocalDate.of(2026, 8, 1));
+
+            //when
+            List<ChartBarItem> result = target.fetchChartDataByType("month");
+
+            //then
+            assertThat(result.get(0))
+                    .extracting(
+                            ChartBarItem::getLabel, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "식비", 3000L
+                    );
+            assertThat(result.get(8))
+                    .extracting(
+                            ChartBarItem::getLabel, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "저축", 0L
+                    );
+        }
+        
+        @Test
+        @DisplayName("주간 내역을 조회하면 주별 수입과 지출 통계를 반환한다.")
+        void returnsWeeklyStatistics_whenWeekIsGiven() {
+            //given
+            clock.set(LocalDate.of(2026, 8, 1));
+
+            //when
+            List<ChartBarItem> result = target.fetchChartDataByType("week");
+
+            //then
+            assertThat(result.get(0))
+                    .extracting(
+                            ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "1주", 500L, 0L
+                    );
+
+            assertThat(result.get(5))
+                    .extracting(
+                            ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
+                    )
+                    .containsExactly(
+                            "6주", 0L, 0L
+                    );
+        }
+        
+        @Test
+        @DisplayName("내역이 없으면 빈 목록을 반화한다.")
+        void returnsEmptyList_whenDataDoesNotExist() {
+            //given
+            clock.set(LocalDate.of(2026, 9, 1));
+
+            //when
+            List<ChartBarItem> result = target.fetchChartDataByType("week");
+        	
+        	//then
+            assertThat(result).hasSize(5);
+
+            assertThat(result)
+                    .extracting(ChartBarItem::getIncome, ChartBarItem::getOutlay)
+                    .containsOnly(
+                            Tuple.tuple(0L, 0L)
+                    );
+        }
+
     }
 
 }

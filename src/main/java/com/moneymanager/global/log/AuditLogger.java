@@ -5,6 +5,7 @@ import com.moneymanager.global.operation.enums.OperationResult;
 import com.moneymanager.global.operation.enums.ServiceAction;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  * <p>
@@ -43,9 +44,7 @@ public class AuditLogger {
 
 		StringBuilder message = new StringBuilder();
 
-		message.append("[")
-				.append(trace)
-				.append("]	");
+		message.append(String.format("[%-36s]", trace));
 
 		LogFormatterSupport.append(message, "action", action.name());
 		LogFormatterSupport.append(message, "result", result);
@@ -61,20 +60,12 @@ public class AuditLogger {
 		log.info(message.toString());
 	}
 
-	public static void warn(String message, String actual, String expect) {
+	public static void warn(String message, String... values) {
 		String trace = MDC.get("traceId");
 
-		StringBuilder sb = new StringBuilder();
+		String formattedMessage = MessageFormatter.arrayFormat(message, values).getMessage();
 
-		sb.append("[")
-			.append(trace)
-			.append("] ");
-
-		LogFormatterSupport.append(sb, "message", message);
-		LogFormatterSupport.append(sb, "actual", actual);
-		LogFormatterSupport.append(sb, "expect", expect);
-
-		log.warn(sb.toString());
+		log.warn("[{}] {}", trace, formattedMessage);
 	}
 
 }
