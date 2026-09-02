@@ -3,11 +3,17 @@ package com.moneymanager.ledger.service.application;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
+import com.moneymanager.ledger.domain.dto.response.ImageSlot;
+import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.ledger.domain.dto.response.edit.LedgerEditResponse;
+import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.domain.enums.LedgerType;
+import com.moneymanager.ledger.domain.enums.PaymentType;
+import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.ledger.service.storage.LedgerImageStorage;
 import com.moneymanager.member.domain.entity.Member;
@@ -27,7 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -69,7 +74,6 @@ import static org.mockito.Mockito.doThrow;
  * 		</tbody>
  * </table>
  */
-@Transactional
 class LedgerServiceIT extends IntegrationTest {
 
     @Autowired
@@ -115,6 +119,200 @@ class LedgerServiceIT extends IntegrationTest {
 
     }
 
+
+    @Nested
+    @Sql("/sql/ledger-get-test.sql")
+    @WithMockCustomUser(memberId = "member1")
+    @DisplayName("가계부 상세 정보를 조회할 때")
+    class GetDetailData {
+        
+        @Test
+        @DisplayName("정상적인 가계부 상세 정보를 조회한다.")
+        void returnsLedgerDetail_whenExists() {
+            //given
+            String code = "code2";
+
+        	//when
+            LedgerDetailResponse result = target.getDetail(code);
+
+        	//then
+        	assertThat(result).isNotNull();
+
+            assertThat(result.getType()).isEqualTo(LedgerType.INCOME);
+            assertThat(result.getDate()).isEqualTo("2026. 01. 01 (목)");
+            assertThat(result.getAmount()).isEqualTo("10000");
+            assertThat(result.getCategory()).isEqualTo("월급");
+            assertThat(result.getPayment()).isEqualTo(PaymentType.NONE);
+            assertThat(result.getMemo()).isEqualTo("메모");
+            assertThat(result.getPlace()).isNull();
+        }
+
+        @Test
+        @DisplayName("이미지가 있는 상세 정보를 조회한다.")
+        void returnsLedgerDetailWithImages_whenImageExists() {
+            //given
+            String code = "code1";
+
+            //when
+            LedgerDetailResponse result = target.getDetail(code);
+
+        	//then
+            List<ImageSlot> imageSlots = result.getImages();
+
+            assertThat(imageSlots)
+                    .isNotEmpty()
+                    .hasSize(3);
+
+            assertThat(imageSlots)
+                    .filteredOn(slot -> slot.getStatus() == SlotStatus.EMPTY)
+                    .hasSize(1)
+                    .allSatisfy(image -> {
+                        assertThat(image.getFilePath()).isEqualTo("/image/ledger/image-empty.svg");
+                    });
+
+            assertThat(imageSlots)
+                    .filteredOn(slot -> slot.getStatus() == SlotStatus.FILLED)
+                    .hasSize(2)
+                    .element(0)
+                    .extracting(
+                            ImageSlot::getFilePath
+                    )
+                    .isEqualTo("/uploads/ledger/member1/2026/01/test1.jpg");
+        }
+        
+        @Test
+        @DisplayName("이미지가 없는 상세 정보를 조회한다.")
+        void returnsLedgerDetailWithoutImages_whenImageDoesNotExist() {
+            //given
+            String code = "code2";
+
+            //when
+            LedgerDetailResponse result = target.getDetail(code);
+
+        	//then
+            assertThat(result.getImages())
+                    .hasSize(3)
+                    .allSatisfy(image -> {
+                        assertThat(image.getStatus()).isEqualTo(SlotStatus.EMPTY);
+                        assertThat(image.getFilePath()).isEqualTo("/image/ledger/image-empty.svg");
+                    });
+        }
+        
+        @Test
+        @DisplayName("다른 회원의 가계부는 조회할 수 없다.")
+        void throwsException_whenUserIsNotOwner() {
+        	//given
+            String code = "code3";
+        	
+        	//when
+            assertThatThrownBy(() -> target.getDetail(code))
+                    .isInstanceOf(ApplicationException.class);
+        }
+        
+        @Test
+        @DisplayName("존재하지 않은 가계부는 조회할 수 없다.")
+        void throwsException_whenLedgerDoesNotExist() {
+            //given
+            String code = "noExist";
+
+            //when
+            assertThatThrownBy(() -> target.getDetail(code))
+                    .isInstanceOf(ApplicationException.class);
+        }
+        
+    }
+
+
+    @Nested
+    @Sql("/sql/ledger-get-test.sql")
+    @WithMockCustomUser(memberId = "member1")
+    @DisplayName("가계부 수정 정보를 조회할 때")
+    class GetEditData {
+        
+        @Test
+        @DisplayName("이미지가 없는 가계부 정보를 조회한다.")
+        void returnsLedger_whenLedgerHasNoImage() {
+        	//given
+            String code = "code2";
+        	
+        	//when
+            LedgerEditResponse result = target.getEdit(code);
+        	
+        	//then
+        	assertThat(result).isNotNull();
+
+            assertThat(result.getType()).isEqualTo(LedgerType.INCOME);
+            assertThat(result.getDate()).isEqualTo("2026년 01월 01일 목요일");
+            assertThat(result.getMemo()).isEqualTo("메모");
+            assertThat(result.getPlace()).isNull();
+
+            assertThat(result.getMoney())
+                    .extracting(Money::getAmount, Money::getPaymentType)
+                            .containsExactly(10000L, PaymentType.NONE);
+
+            assertThat(result.getCategoryOptions().getSelected())
+                    .hasSize(2)
+                    .containsExactly("010100", "010101");
+
+            assertThat(result.getCategoryOptions().getMiddleOptions()).hasSize(3);
+            assertThat(result.getCategoryOptions().getLowOptions()).hasSize(3);
+        }
+        
+        @Test
+        @DisplayName("이미지가 있는 가계부 정보를 조회한다.")
+        void returnsAccountBook_whenAccountBookHasImage() {
+            //given
+            String code = "code1";
+
+            //when
+            LedgerEditResponse result = target.getEdit(code);
+
+            //then
+            List<ImageSlot> imageSlots = result.getImageSlot();
+
+            assertThat(imageSlots)
+                    .isNotEmpty()
+                    .hasSize(3);
+
+            assertThat(imageSlots)
+                    .filteredOn(slot -> slot.getStatus() == SlotStatus.FILLED)
+                    .hasSize(2)
+                    .element(0)
+                    .extracting(
+                            ImageSlot::getFilePath
+                    )
+                    .isEqualTo("/uploads/ledger/member1/2026/01/test1.jpg");
+
+            assertThat(imageSlots)
+                    .filteredOn(slot -> slot.getStatus() == SlotStatus.LOCKED)
+                    .hasSize(1)
+                    .allSatisfy(image -> {
+                        assertThat(image.getFilePath()).isEqualTo("/image/ledger/slot-lock.svg");
+                    });
+        }
+
+        @Test
+        @DisplayName("다른 회원의 가계부는 조회할 수 없다.")
+        void throwsException_whenUserIsNotOwner() {
+            //given
+            String code = "code3";
+
+            //when
+            assertThatThrownBy(() -> target.getDetail(code))
+                    .isInstanceOf(ApplicationException.class);
+        }
+
+        @Test
+        @DisplayName("존재하지 않은 가계부는 조회할 수 없다.")
+        void throwsException_whenLedgerDoesNotExist() {
+            //given
+            String code = "noExist";
+
+            //when
+            assertThatThrownBy(() -> target.getDetail(code))
+                    .isInstanceOf(ApplicationException.class);
+        }
+    }
 
     @Nested
     @WithMockCustomUser

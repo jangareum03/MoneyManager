@@ -4,6 +4,7 @@ import com.moneymanager.global.domain.FileMetadata;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
+import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
 import com.moneymanager.ledger.service.storage.LedgerImageStorage;
@@ -99,9 +100,9 @@ public class LedgerImageServiceTest {
 
             when(ledgerPolicy.imageSlots(2))
                     .thenReturn(List.of(
-                            ImageSlot.ofEmptySlot(),
-                            ImageSlot.ofEmptySlot(),
-                            ImageSlot.ofLockedSlot()
+                            ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/slot-unlock.svg"),
+                            ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/slot-unlock.svg"),
+                            ImageSlot.of(SlotStatus.LOCKED, "/image/ledger/slot-lock.svg")
                     ));
         }
 

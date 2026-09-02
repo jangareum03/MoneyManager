@@ -18,18 +18,18 @@
                     <label class="form__label">고정/변동</label>
                     <div class="form__input-container form__input-container--fix">
                         <section class="form__input-box form__input-box--main">
-                            <label class="form__label" th:each="fix : ${fixes}">
+                            <label class="form__label" th:each="fix : ${T(com.moneymanager.ledger.domain.enums.FixedType).values()}">
                                 <input class="form__input form__input--radio" name="fix" type="radio"
-                                       th:value="${fix.value}"
-                                       th:checked="${fix == ledger.fixed.fix}">
+                                       th:value="${#strings.toLowerCase(fix.value)}"
+                                       th:checked="${fix == ledger.fixed}">
                                 [[${fix.label}]]
                             </label>
                         </section>
-                        <section th:if="${ledger.fixed.fix.name() == 'REPEAT'}" class="form__input-box form__input-box--option">
-                            <label class="form__label" th:each="cycle : ${fixCycles}">
+                        <section th:if="${ledger.fixed == T(com.moneymanager.ledger.domain.enums.FixedType).REPEAT}" class="form__input-box form__input-box--option">
+                            <label class="form__label" th:each="cycle : ${T(com.moneymanager.ledger.domain.enums.FixCycle).values()}">
                                 <input class="form__input form__input--radio" name="cycle" type="radio"
-                                       th:value="${cycle.value}"
-                                       th:checked="${cycle == ledger.fixed.cycle}">
+                                       th:value="${#strings.toLowerCase(cycle.value)}"
+                                       th:checked="${cycle == ledger.fixCycle}">
                                 [[${cycle.label}]]
                             </label>
                         </section>
@@ -43,25 +43,25 @@
                         <select class="form__select form__select--middle">
                             <option value="" disabled>-- 선택없음 --</option>
                             <option
-                                    th:each="category : *{categoryEditInfo.middleOptions}"
-                                    th:value="${category.code}"
-                                    th:text="${category.name}"
+                                    th:each="middle : *{categoryOptions.middleOptions}"
+                                    th:value="${middle.code}"
+                                    th:text="${middle.name}"
                                     th:selected="${
-                                        !#lists.isEmpty(ledger.categoryEditInfo.selected)
+                                        !#lists.isEmpty(ledger.categoryOptions.selected)
                                         and
-                                        category.code == ledger.categoryEditInfo.selected[0]
+                                        middle.code == ledger.categoryOptions.selected[0]
                                     }"></option>
                         </select>
                         <select class="form__select form__select--sub" name="category">
                             <option value="" disabled>-- 선택없음 --</option>
                             <option
-                                    th:each="category : *{categoryEditInfo.lowOptions}"
-                                    th:value="${category.code}"
-                                    th:text="${category.name}"
+                                    th:each="low : *{categoryOptions.lowOptions}"
+                                    th:value="${low.code}"
+                                    th:text="${low.name}"
                                     th:selected="${
-                                        !#lists.isEmpty(ledger.categoryEditInfo.selected)
+                                        !#lists.isEmpty(ledger.categoryOptions.selected)
                                         and
-                                        category.code == ledger.categoryEditInfo.selected[1]
+                                        low.code == ledger.categoryOptions.selected[1]
                                     }"></option>
                         </select>
                     </div>
@@ -84,16 +84,16 @@
                         <!-- 금액 입력 -->
                         <section class="form__input-box form__input-box--main">
                             <label>
-                                <input class="form__input form__input--text" type="text" placeholder="금액을 입력해주세요." th:field="*{amount}">
+                                <input class="form__input form__input--text" type="text" placeholder="금액을 입력해주세요." th:field="*{money.amount}">
                             </label>
                         </section>
 
                         <!-- 금액 유형 -->
                         <div class="form__input-box form__input-box--type">
-                            <label th:each="type : ${paymentTypes}">
+                            <label th:each="type : ${T(com.moneymanager.ledger.domain.enums.PaymentType).values()}">
                                 <input class="form__input form__input--radio" name="paymentType" type="radio"
-                                            th:value="${type}"
-                                            th:checked="${ledger.paymentType == type}">
+                                            th:value="${#strings.toLowerCase(type.name)}"
+                                            th:checked="${ledger.money.paymentType == type}">
 
                                 <span th:utext="${type.svg}"></span>
                             </label>
@@ -105,18 +105,18 @@
                 <div class="form__field form__field--photo">
                     <label class="form__label">사진</label>
                     <div class="form__input-box form__input-box--photo">
-                        <label th:each="image : *{images}" class="form__label">
-                            <input th:if="${image.status.name() != 'LOCKED'}"
+                        <label th:each="image : *{imageSlot}" class="form__label">
+                            <input th:if="${image.status != T(com.moneymanager.ledger.domain.enums.SlotStatus).LOCKED}"
                                         class="form__input form__input--file" type="file" accept=".gif, .jpg, .png">
 
                             <img alt=""
                                     th:src="${image.filePath}"
-                                    th:classappend="${image.status.name() == 'FILLED'
+                                    th:classappend="${image.status == T(com.moneymanager.ledger.domain.enums.SlotStatus).FILLED
                                         ? 'photo_preview'
                                         : 'icon'
                                     }">
 
-                            <button th:if="${image.status.name() == 'FILLED'}"
+                            <button th:if="${image.status == T(com.moneymanager.ledger.domain.enums.SlotStatus).FILLED}"
                                             class="button button--nano button--danger">
                                 삭제
                             </button>
@@ -125,7 +125,7 @@
                 </div>
 
                 <!-- 위치 -->
-                <div class="form__field form__field--location" th:with="hasLocation=*{placeName != null}">
+                <div class="form__field form__field--location" th:with="hasLocation=*{place != null}">
                     <label class="form__label">위치</label>
                     <div class="form__input-container form__input-container--location">
                         <div th:unless="${hasLocation}"
@@ -135,9 +135,9 @@
                         </div>
                         <div th:if ="${hasLocation}"
                                 class="form__input-box form__input-box--filled">
-                            <span class="location__name" th:text="*{placeName}"></span>
-                            <span class="location__road" th:text="*{roadAddress}"></span>
-                            <span class="location__add" th:text="*{detailAddress}"></span>
+                            <span class="location__name" th:text="*{place.placeName}"></span>
+                            <span class="location__road" th:text="*{place.roadAddress}"></span>
+                            <span class="location__add" th:text="*{place.detailAddress}"></span>
                         </div>
                         <svg th:if="${hasLocation}"
                                 class="icon icon--del" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

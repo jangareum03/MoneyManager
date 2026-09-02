@@ -40,15 +40,8 @@ public class ImageSlot {
 		this.filePath = filePath;
 	}
 
-	public static ImageSlot ofLockedSlot() {
-		return new ImageSlot(SlotStatus.LOCKED, "/image/ledger/slot-lock.svg");
+	public static ImageSlot of(SlotStatus status, String filePath) {
+		return new ImageSlot(status, filePath);
 	}
 
-	public static ImageSlot ofEmptySlot() {
-		return new ImageSlot(SlotStatus.EMPTY, "/image/ledger/slot-unlock.svg");
-	}
-
-	public static ImageSlot ofFilledSlot(String fileName) {
-		return new ImageSlot(SlotStatus.FILLED, "/uploads/ledger/" + fileName);
-	}
 }

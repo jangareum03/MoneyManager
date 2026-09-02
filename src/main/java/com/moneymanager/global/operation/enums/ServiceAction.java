@@ -38,6 +38,8 @@ public enum ServiceAction {
 	LEDGER_REGISTER("가계부 등록", "/ledgers/new/step2"),
 	LEDGER_MAP_VIEW("가계부 장소 작성 화면 조회", "/ledgers/new/step2"),
 	LEDGER_HISTORY_VIEW("가계부 내역 화면 조회", "/error/404"),
+	LEDGER_DETAIL_VIEW("가계부 상세 화면 조회", "/ledgers"),
+	LEDGER_EDIT_VIEW("가계부 수정 화면 조회", "/ledgers"),
 
 	//API 요청
 	LEDGER_CATEGORY("하위 카테고리 목록 조회 API"),

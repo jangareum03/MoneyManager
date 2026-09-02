@@ -7,12 +7,18 @@ import com.moneymanager.global.util.date.DateTimeUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
+import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.ledger.domain.dto.response.edit.CategoryOptions;
+import com.moneymanager.ledger.domain.dto.response.edit.LedgerEditResponse;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
+import com.moneymanager.ledger.domain.entity.Category;
 import com.moneymanager.ledger.domain.entity.Ledger;
+import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.domain.enums.DateUnit;
 import com.moneymanager.ledger.domain.enums.LedgerType;
+import com.moneymanager.ledger.domain.enums.PaymentType;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
 import com.moneymanager.ledger.service.read.CategoryReadService;
@@ -27,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 /**
  * <p>
@@ -91,8 +98,8 @@ public class LedgerService {
         //2. 카테고리 목록 조회
         List<CategoryItem> categories
                 = categoryReadService.getMiddleCategories(ledgerType).stream()
-                    .map(CategoryItem::from)
-                    .toList();
+                .map(CategoryItem::from)
+                .toList();
 
         //3. 제목 변환
         String title = DateTimeUtil.formatDate(localDate, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
@@ -109,6 +116,83 @@ public class LedgerService {
                 imageSlots
         );
 
+    }
+
+    public LedgerDetailResponse getDetail(String code) {
+        String memberId = currentUser.getMemberId();
+
+        Ledger ledger = ledgerReadService.getOwnerLedger(memberId, code);
+
+        LedgerType type = LedgerType.fromCode(ledger.getCategory());
+        Category category = categoryReadService.getCategory(ledger.getCategory());
+        PaymentType paymentType = ledger.getMoney().getPaymentType();
+
+        List<LedgerImage> images = imageService.getLedgerImages(ledger.getId());
+        List<ImageSlot> imageSlots = ledgerPolicy.imageSlots(
+                images.stream()
+                        .map(LedgerImage::getImagePath)
+                        .toList()
+        );
+
+        String title = DateTimeUtil.formatDate(ledger.getDate(), DatePatterns.DATE_DOT_WITH_DAY.getPattern());
+
+        return LedgerDetailResponse.of(
+                type,
+                title,
+                ledger.getMoney().getAmount(),
+                category.getName(),
+                paymentType,
+                ledger.getMemo(),
+                imageSlots,
+                ledger.getPlace()
+        );
+    }
+
+    public LedgerEditResponse getEdit(String code) {
+        String memberId = currentUser.getMemberId();
+
+        Ledger ledger = ledgerReadService.getOwnerLedger(memberId, code);
+        LedgerType type = LedgerType.fromCode(ledger.getCategory());
+
+        String title = DateTimeUtil.formatDate(ledger.getDate(), DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
+
+        int availImgCnt = memberReadService.getAvailableImageCount(currentUser.getMemberId());
+        List<LedgerImage> images = imageService.getLedgerImages(ledger.getId());
+        List<ImageSlot> imageSlots = ledgerPolicy.imageSlots(
+                availImgCnt,
+                images.stream().map(LedgerImage::getImagePath).toList()
+        );
+
+        List<String> categories
+                = categoryReadService.getAncestorsByCode(ledger.getCategory()).stream()
+                .filter(category -> category.getParentCode() != null)
+                .map(Category::getCode)
+                .toList();
+
+        CategoryOptions options = CategoryOptions.of(
+                categories,
+                categoryReadService.getMiddleCategories(type)
+                        .stream()
+                        .map(CategoryItem::from)
+                        .toList(),
+                categoryReadService.getLowCategories(type)
+                        .stream()
+                        .filter(low -> Objects.equals(low.getParentCode(), categories.get(0)))
+                        .map(CategoryItem::from)
+                        .toList()
+        );
+
+        return LedgerEditResponse.of(
+                type,
+                title,
+                ledger.getFix(),
+                ledger.getFixCycle(),
+                ledger.getMoney(),
+                ledger.getMemo(),
+                imageSlots,
+                ledger.getPlace(),
+                options
+        );
     }
 
     public List<Integer> fetchDateOptionsByUnit(String unit, String date) {

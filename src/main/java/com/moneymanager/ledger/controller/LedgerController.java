@@ -4,6 +4,8 @@ import com.moneymanager.global.exception.annotation.WebController;
 import com.moneymanager.global.operation.annotation.Operation;
 import com.moneymanager.global.operation.enums.ServiceAction;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
+import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
+import com.moneymanager.ledger.domain.dto.response.edit.LedgerEditResponse;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
@@ -66,6 +68,25 @@ public class LedgerController {
 		model.addAttribute("type", type);
 
 		return "/ledger/ledger_history";
+	}
+
+	@GetMapping("/{code}")
+	@Operation(ServiceAction.LEDGER_DETAIL_VIEW)
+	public String showDetailView(@PathVariable String code, Model model) {
+		LedgerDetailResponse response = ledgerService.getDetail(code);
+		model.addAttribute("ledger", response);
+
+		return  "/ledger/ledger_detail";
+	}
+
+	@GetMapping("/{code}/edit")
+	@Operation(ServiceAction.LEDGER_EDIT_VIEW)
+	public String showEditView(@PathVariable String code, Model model) {
+		LedgerEditResponse response = ledgerService.getEdit(code);
+
+		model.addAttribute("ledger", response);
+
+		return  "/ledger/ledger_edit";
 	}
 
 	@GetMapping("/new/step1")

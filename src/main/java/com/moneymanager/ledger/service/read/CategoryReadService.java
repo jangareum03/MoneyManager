@@ -7,9 +7,7 @@ import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.service.cache.CategoryCacheService;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
@@ -84,6 +82,26 @@ public class CategoryReadService {
                 )
                 .sorted(Comparator.comparing(Category::getCode))
                 .collect(Collectors.toList());
+    }
+
+    public List<Category> getAncestorsByCode(String code) {
+        List<Category> ancestors = new ArrayList<>();
+
+        Category current = getCategory(code);
+
+        while (current != null) {
+            ancestors.add(current);
+
+            String parentCode = current.getParentCode();
+
+            if(parentCode == null) {break;}
+
+            current = categoryMap.get(parentCode);
+        }
+
+        Collections.reverse(ancestors);
+
+        return ancestors;
     }
 
     public List<Category> getChildrenByParentCode(String code) {

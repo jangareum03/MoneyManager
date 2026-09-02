@@ -1,14 +1,16 @@
 package com.moneymanager.ledger.controller;
 
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
-import com.moneymanager.ledger.domain.dto.response.ImageSlot;
-import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
-import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.ledger.domain.dto.response.*;
+import com.moneymanager.ledger.domain.dto.response.edit.CategoryOptions;
+import com.moneymanager.ledger.domain.dto.response.edit.LedgerEditResponse;
 import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerStatistics;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
-import com.moneymanager.ledger.domain.enums.LedgerType;
+import com.moneymanager.ledger.domain.dto.vo.Money;
+import com.moneymanager.ledger.domain.dto.vo.Place;
+import com.moneymanager.ledger.domain.enums.*;
 import com.moneymanager.ledger.service.application.LedgerHistoryService;
 import com.moneymanager.ledger.service.application.LedgerService;
 import com.moneymanager.support.UnitTest;
@@ -142,8 +144,8 @@ class LedgerControllerTest extends UnitTest {
                                 IncomeCategoryFixture.createMiddleAll()
                         ),
                         List.of(
-                                ImageSlot.ofEmptySlot(),
-                                ImageSlot.ofEmptySlot()
+                                ImageSlot.of(SlotStatus.EMPTY,"/image/ledger/slot-unlock.svg" ),
+                                ImageSlot.of(SlotStatus.EMPTY,"/image/ledger/slot-unlock.svg" )
                         )
                 );
 
@@ -220,8 +222,8 @@ class LedgerControllerTest extends UnitTest {
 
 
     @Nested
-    @DisplayName("가계부 내역을 조회할 때")
     @WithMockCustomUser
+    @DisplayName("가계부 내역을 조회할 때")
     class GetHistories {
 
         private String URI = BASE_URI;
@@ -294,6 +296,91 @@ class LedgerControllerTest extends UnitTest {
                     )
                     .andExpect(status().isOk())
                     .andExpect(view().name("/ledger/ledger_history"));
+        }
+
+    }
+
+
+    @Nested
+    @WithMockCustomUser
+    @DisplayName("가계부 상세 정보를 요청할 때")
+    class GetDetail {
+        final String URI = BASE_URI + "/{code}";
+
+        @Test
+        @DisplayName("정상적인 요청이면 서비스 메서드를 호출한다.")
+        void callsService_whenRequestIsValid() throws Exception {
+        	//given
+            String code = "code1";
+
+            when(ledgerService.getDetail(code))
+                    .thenReturn(LedgerDetailResponse.of(
+                            LedgerType.INCOME,
+                            "날짜",
+                            10000L,
+                            "카테고리",
+                            PaymentType.BANK,
+                            "얏호~",
+                            List.of(
+                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
+                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
+                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg")
+                            ),
+                            null
+                    ));
+        	
+        	//when
+            mockMvc.perform(
+                    get(URI, code)
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(model().attributeExists("ledger"))
+                    .andExpect(view().name("/ledger/ledger_detail"));
+        }
+
+    }
+
+
+    @Nested
+    @WithMockCustomUser
+    @DisplayName("가계부 수정 정보를 요청할 때")
+    class GetEdit {
+        final String URI = BASE_URI + "/{code}/edit";
+
+        @Test
+        @DisplayName("정상적인 요청이면 서비스 메서드를 호출한다.")
+        void callsService_whenRequestIsValid() throws Exception {
+            //given
+            String code = "code1";
+
+            when(ledgerService.getEdit(code))
+                    .thenReturn(LedgerEditResponse.of(
+                            LedgerType.INCOME,
+                            "날짜",
+                            FixedType.REPEAT,
+                            FixCycle.WEEKLY,
+                            Money.of(10000L, PaymentType.BANK),
+                            "얏호~",
+                            List.of(
+                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
+                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
+                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg")
+                            ),
+                            Place.ofOrNull("장소", "기본주소", null),
+                            CategoryOptions.of(
+                                    List.of("010100", "010101"),
+                                    IncomeCategoryFixture.createMiddleAll().stream().map(CategoryItem::from).toList(),
+                                    IncomeCategoryFixture.createLowAll().stream().map(CategoryItem::from).toList()
+                            )
+                    ));
+
+            //when
+            mockMvc.perform(
+                            get(URI, code)
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(model().attributeExists("ledger"))
+                    .andExpect(view().name("/ledger/ledger_edit"));
         }
 
     }

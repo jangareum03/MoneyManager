@@ -14,8 +14,8 @@ import com.moneymanager.ledger.domain.dto.response.item.FixedTypeItem;
 import com.moneymanager.ledger.domain.dto.response.item.LedgerTypeItem;
 import com.moneymanager.ledger.domain.dto.response.item.PaymentTypeItem;
 import com.moneymanager.ledger.domain.entity.Ledger;
-import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.domain.enums.DateUnit;
+import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.ledger.service.command.LedgerCommandService;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
@@ -195,9 +195,9 @@ class LedgerServiceTest {
                 when(ledgerPolicy.imageSlots(1))
                         .thenReturn(
                                 List.of(
-                                        ImageSlot.ofEmptySlot(),
-                                        ImageSlot.ofLockedSlot(),
-                                        ImageSlot.ofLockedSlot()
+                                        ImageSlot.of(SlotStatus.EMPTY,"/image/ledger/slot-unlock.svg"),
+                                        ImageSlot.of(SlotStatus.LOCKED,"/image/ledger/slot-lock.svg"),
+                                        ImageSlot.of(SlotStatus.LOCKED,"/image/ledger/slot-lock.svg")
                                 )
                         );
 
@@ -247,9 +247,9 @@ class LedgerServiceTest {
                 when(ledgerPolicy.imageSlots(1))
                         .thenReturn(
                                 List.of(
-                                        ImageSlot.ofEmptySlot(),
-                                        ImageSlot.ofLockedSlot(),
-                                        ImageSlot.ofLockedSlot()
+                                        ImageSlot.of(SlotStatus.EMPTY,"/image/ledger/slot-unlock.svg"),
+                                        ImageSlot.of(SlotStatus.LOCKED,"/image/ledger/slot-lock.svg"),
+                                        ImageSlot.of(SlotStatus.LOCKED,"/image/ledger/slot-lock.svg")
                                 )
                         );
 
@@ -280,9 +280,9 @@ class LedgerServiceTest {
                 when(ledgerPolicy.imageSlots(1))
                         .thenReturn(
                                 List.of(
-                                        ImageSlot.ofEmptySlot(),
-                                        ImageSlot.ofLockedSlot(),
-                                        ImageSlot.ofLockedSlot()
+                                        ImageSlot.of(SlotStatus.EMPTY,"/image/ledger/slot-unlock.svg"),
+                                        ImageSlot.of(SlotStatus.LOCKED,"/image/ledger/slot-lock.svg"),
+                                        ImageSlot.of(SlotStatus.LOCKED,"/image/ledger/slot-lock.svg")
                                 )
                         );
 

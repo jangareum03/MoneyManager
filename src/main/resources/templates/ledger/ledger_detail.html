@@ -27,10 +27,10 @@
                         </time>
 
                         <div class="detail-essential__meta">
-                            <span class="detail-essential__category">[[${ledger.category.name}]]</span>
-                            <div class="detail-essential__payment" th:each="payType : ${paymentTypes}" th:if="${ledger.paymentType.value == payType.value}">
-                                <th:block th:utext="${payType.svg}"></th:block>
-                                [[${payType.label}]]
+                            <span class="detail-essential__category">[[${ledger.category}]]</span>
+                            <div class="detail-essential__payment" th:each="type : ${T(com.moneymanager.ledger.domain.enums.PaymentType).values()}" th:if="${ledger.payment == type}">
+                                <th:block th:utext="${type.svg}"></th:block>
+                                [[${type.label}]]
                             </div>
                         </div>
                     </div>
@@ -58,12 +58,10 @@
                     </h2>
                     <ul class="detail-additional__photo-list">
                         <li th:each="image : ${ledger.images} " class="detail-additional__photo-item">
-                            <img th:if="${image}" class="detail-additional__photo--filled" src="" th:src="@{/image/ledger/{fileName}(fileName=${image})}" alt=""  title="사진 크게보기">
+                            <img th:if="${image.status == T(com.moneymanager.ledger.domain.enums.SlotStatus).FILLED}" class="detail-additional__photo--filled" src="" th:src="@{${image.filePath}}" alt=""  title="사진 크게보기">
 
-                            <div th:unless="${image}" class="detail-additional__photo--empty">
-                                <svg class="icon icon--photo" xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24">
-                                    <path d="M9 3h6l2 2h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h4zm3 16a6 6 0 1 0 0-12a6 6 0 0 0 0 12m0-2a4 4 0 1 1 0-8a4 4 0 0 1 0 8"/>
-                                </svg>
+                            <div th:unless="${image.status == T(com.moneymanager.ledger.domain.enums.SlotStatus).FILLED}" class="detail-additional__photo--empty">
+                                <img th:src="@{${image.filePath}}" alt="사진 없음"></img>
                                 등록된 사진이 없습니다.
                             </div>
                         </li>
@@ -76,12 +74,12 @@
                             <path d="M7.5 7.1875C7.0856 7.1875 6.68817 7.02288 6.39515 6.72985C6.10212 6.43683 5.9375 6.0394 5.9375 5.625C5.9375 5.2106 6.10212 4.81317 6.39515 4.52015C6.68817 4.22712 7.0856 4.0625 7.5 4.0625C7.9144 4.0625 8.31183 4.22712 8.60485 4.52015C8.89788 4.81317 9.0625 5.2106 9.0625 5.625C9.0625 5.83019 9.02209 6.03337 8.94356 6.22294C8.86504 6.41251 8.74995 6.58476 8.60485 6.72985C8.45976 6.87495 8.28751 6.99004 8.09794 7.06856C7.90837 7.14709 7.70519 7.1875 7.5 7.1875ZM7.5 1.25C6.33968 1.25 5.22688 1.71094 4.40641 2.53141C3.58594 3.35188 3.125 4.46468 3.125 5.625C3.125 8.90625 7.5 13.75 7.5 13.75C7.5 13.75 11.875 8.90625 11.875 5.625C11.875 4.46468 11.4141 3.35188 10.5936 2.53141C9.77312 1.71094 8.66032 1.25 7.5 1.25Z"/>
                         </svg>
                     </h2>
-                    <address th:if="${ledger.placeName != null }" class="detail-additional__location--filled">
+                    <address th:if="${ledger.place != null }" class="detail-additional__location--filled">
                         <strong class="location__name" th:text="${ledger.placeName}"></strong>
                         <span class="location__road" th:text="${ledger.roadAddress}"></span>
                         <span class="location__road" th:text="${ledger.detailAddress}"></span>
                     </address>
-                    <span th:unless="${ledger.placeName != null}" class="detail-additional__location--empty">등록된 위치가 없습니다.</span>
+                    <span th:unless="${ledger.place != null}" class="detail-additional__location--empty">등록된 위치가 없습니다.</span>
                 </div>
             </div>
         </section>

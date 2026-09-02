@@ -64,6 +64,10 @@ public class LedgerImageService {
     private final LedgerPolicy ledgerPolicy;
     private final LedgerImageStorage imageStorage;
 
+    List<LedgerImage> getLedgerImages(Long id) {
+        return imageRepository.findByLedgerId(id);
+    }
+
     void processImageUpload(String memberId, Long ledgerId, List<MultipartFile> images) {
         int availImgCnt = memberReadService.getAvailableImageCount(memberId);
 
@@ -154,8 +158,6 @@ public class LedgerImageService {
                 ))
                 .toList();
     }
-
-    //===== processImagesDelete 보조 메서드 =====
 
 
     //===== 유틸 메서ㅓ드 =====

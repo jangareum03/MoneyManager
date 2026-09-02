@@ -1,7 +1,6 @@
-package com.moneymanager.ledger.domain.dto.response.category;
+package com.moneymanager.ledger.domain.dto.response.edit;
 
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
-import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
@@ -9,7 +8,7 @@ import java.util.List;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.domain.ledger.dto.response<br>
- * 파일이름       : CategoryEditInfo<br>
+ * 파일이름       : CategoryOptions<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 5. 2<br>
  * 설명              : 가계부 수정에 필요한 카테고리 정보를 담은 데이터 클래스
@@ -33,10 +32,20 @@ import java.util.List;
  * 		</tbody>
  * </table>
  */
-@Builder
 @Getter
-public class CategoryEditInfo {
+public class CategoryOptions {
 	private final List<String> selected;
 	private final List<CategoryItem> middleOptions;
 	private final List<CategoryItem> lowOptions;
+
+	private CategoryOptions(List<String> selected, List<CategoryItem> middleOptions, List<CategoryItem> lowOptions) {
+		this.selected = selected;
+		this.middleOptions = middleOptions;
+		this.lowOptions = lowOptions;
+	}
+
+	public static CategoryOptions of(List<String> selected, List<CategoryItem> middleOptions, List<CategoryItem> lowOptions) {
+		return new CategoryOptions(selected, middleOptions, lowOptions);
+	}
+
 }

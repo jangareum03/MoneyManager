@@ -102,7 +102,15 @@ public class LedgerPolicy {
     }
 
     public List<ImageSlot> imageSlots(int count) {
-        return imageSlotPolicy.createSlots(count);
+        return imageSlotPolicy.buildCreatableImageSlots(count);
+    }
+
+    public List<ImageSlot> imageSlots(List<String> images) {
+        return imageSlotPolicy.buildDisplayImageSlots(images);
+    }
+
+    public List<ImageSlot> imageSlots(int count, List<String> images) {
+        return imageSlotPolicy.buildEditableImageSlots(count, images);
     }
 
     public void validateCreatable(Ledger ledger) {

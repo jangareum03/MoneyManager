@@ -503,4 +503,123 @@ public class LedgerControllerIT extends IntegrationTest {
 
     }
 
+
+    @Nested
+    @Import(TimeConfig.class)
+    @Sql(
+            scripts = {"/sql/ledger-get-test.sql"},
+            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+    )
+    @Sql(
+            scripts = "/sql/clear-test.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+    )
+    @DisplayName("가계부 상세 정보를 요청할 때")
+    class GetDetail {
+
+        String URI = "/ledgers/{code}";
+        
+        @Test
+        @DisplayName("작성된 가계부 요청하면 상세 정보를 반환한다.")
+        void returnsLedgerDetail_whenExists() throws Exception {
+        	//when
+            mockMvc.perform(
+                    get(URI, "code1")
+                            .cookie(accessTokenCookie("member1"))
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(model().attributeExists("ledger"))
+                    .andExpect(view().name("/ledger/ledger_detail"));
+        }
+        
+        @Test
+        @DisplayName("존재하지 않은 가계부로 요청하면 내역 조회 화면으로 이동한다.")
+        void redirectsToLedgerHistories_whenLedgerDoesNotExist() throws Exception {
+        	//when
+            mockMvc.perform(
+                            get(URI, "code5")
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/ledgers"));
+        }
+        
+        @Test
+        @DisplayName("타인의 가계부로 요청하면 내역 조회 화면으로 이동한다.")
+        void redirectsToAccountBookList_whenUserIsNotOwner() throws Exception {
+        	//given
+            String code = "code3";
+        	
+        	//when
+            mockMvc.perform(
+                    get(URI, code)
+                            .cookie(accessTokenCookie("member1"))
+            )
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/ledgers"));
+        }
+        
+    }
+
+
+    @Nested
+    @Import(TimeConfig.class)
+    @Sql(
+            scripts = {"/sql/ledger-get-test.sql"},
+            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+    )
+    @Sql(
+            scripts = "/sql/clear-test.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+    )
+    @DisplayName("가계부 수정 정보를 요청할 때")
+    class GetEdit {
+
+        String URI = "/ledgers/{code}/edit";
+
+        @Test
+        @DisplayName("작성된 가계부 요청하면 수정 정보를 반환한다.")
+        void returnsLedgerDetail_whenExists() throws Exception {
+            //when
+            mockMvc.perform(
+                            get(URI, "code1")
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(model().attributeExists("ledger"))
+                    .andExpect(view().name("/ledger/ledger_edit"));
+        }
+
+        @Test
+        @DisplayName("존재하지 않은 가계부로 요청하면 내역 조회 화면으로 이동한다.")
+        void redirectsToLedgerHistories_whenLedgerDoesNotExist() throws Exception {
+            //when
+            mockMvc.perform(
+                            get(URI, "code5")
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/ledgers"));
+        }
+
+        @Test
+        @DisplayName("타인의 가계부로 요청하면 내역 조회 화면으로 이동한다.")
+        void redirectsToAccountBookList_whenUserIsNotOwner() throws Exception {
+            //given
+            String code = "code3";
+
+            //when
+            mockMvc.perform(
+                            get(URI, code)
+                                    .cookie(accessTokenCookie("member1"))
+                    )
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/ledgers"));
+        }
+
+    }
+
 }

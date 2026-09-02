@@ -124,6 +124,55 @@ class CategoryReadServiceTest {
 
 
     @Nested
+    @DisplayName("하위 카테고리를 조회할 때")
+    class GetLowCategories {
+
+        @Test
+        @DisplayName("수입 유형이면 수입 하위 카테고리들만 조회된다.")
+        void returnsIncomeSubCategories_whenTypeIsIncome() {
+            //when
+            List<Category> result = target.getLowCategories(LedgerType.INCOME);
+
+            //then: 수입 카테고리만 조회된다.
+            assertThat(result)
+                    .isNotNull()
+                    .doesNotHaveDuplicates()
+                    .extracting(Category::getCode)
+                    .allMatch(code -> code.startsWith("01"))
+                    .allMatch(code -> !code.substring(4).equals("00"));
+        }
+
+        @Test
+        @DisplayName("지출 유형이면 지출 하위 카테고리들만 조회된다.")
+        void returnsExpenseSubCategories_whenTypeIsExpense() {
+            //when
+            List<Category> result = target.getLowCategories(LedgerType.OUTLAY);
+
+            //then: 지출 카테고리만 조회된다.
+            assertThat(result)
+                    .isNotNull()
+                    .doesNotHaveDuplicates()
+                    .extracting(Category::getCode)
+                    .allMatch(code -> code.startsWith("02"))
+                    .allMatch(code -> !code.substring(4).equals("00"));
+        }
+
+        @Test
+        @DisplayName("카테고리 코드 오름차순으로 정렬되어 조회된다.")
+        void returnsCategoriesSortedByCodeAsc_whenCategoriesExist() {
+            //when
+            List<Category> result = target.getLowCategories(LedgerType.OUTLAY);
+
+            //then: 조회된 카테고리 코드가 오름차순으로 조회된다.
+            assertThat(result)
+                    .extracting(Category::getCode)
+                    .isSorted();
+        }
+
+    }
+
+
+    @Nested
     @DisplayName("자식 카테고리들을 조회할 때")
     class GetChildrenCategories {
 
@@ -186,6 +235,60 @@ class CategoryReadServiceTest {
 
 
     @Nested
+    @DisplayName("자신의 조상 카테고리를 조회할 때")
+    class GetAncestorsCategories {
+
+        @Test
+        @DisplayName("최하위 카테고리면 최상위 카테고리까지 조회한다.")
+        void fetchesParentCategories_whenCategoryIsLowestLevel() {
+            //given
+            String code = "020303";
+
+            //when
+            List<Category> result = target.getAncestorsByCode(code);
+
+            //then
+            assertThat(result).hasSize(3);
+            assertThat(result)
+                    .extracting(Category::getCode)
+                    .containsExactly("020000", "020300", "020303");
+        }
+
+        @Test
+        @DisplayName("중간 카테고리면 최상위 카테고리까지 조회한다.")
+        void fetchesParentCategories_whenCategoryIsMiddleLevel() {
+            //given
+            String code = "010200";
+
+            //when
+            List<Category> result = target.getAncestorsByCode(code);
+
+            //then
+            assertThat(result).hasSize(2);
+            assertThat(result)
+                    .extracting(Category::getCode)
+                    .containsExactly("010000", "010200");
+        }
+
+        @Test
+        @DisplayName("최상위 카테고리면 자신만 조회한다.")
+        void returnsOnlySelf_whenCategoryIsTopLevel() {
+            //given
+            String code = "010000";
+
+            //when
+            List<Category> result = target.getAncestorsByCode(code);
+
+            //then
+            assertThat(result).hasSize(1);
+            assertThat(result)
+                    .extracting(Category::getCode)
+                    .containsExactly(code);
+        }
+
+    }
+
+    @Nested
     @DisplayName("카테고리 조회할 때")
     class GetCategory {
 
@@ -221,7 +324,7 @@ class CategoryReadServiceTest {
                 ApplicationExceptionAssert.assertThatApplicationException(
                                 catchThrowable(() -> target.getCategory(code))
                         )
-                        
+
                         .hasErrorCode(DATA_NOT_FOUND)
                         .hasWork("카테고리 조회")
                         .hasTarget(Category.class)
