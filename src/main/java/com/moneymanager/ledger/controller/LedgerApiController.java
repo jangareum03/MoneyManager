@@ -8,7 +8,6 @@ import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
-import com.moneymanager.ledger.domain.dto.response.item.ChartBarItem;
 import com.moneymanager.ledger.service.application.LedgerHistoryService;
 import com.moneymanager.ledger.service.application.LedgerService;
 import com.moneymanager.ledger.service.read.CategoryReadService;
@@ -71,14 +70,6 @@ public class LedgerApiController {
                 .toList();
     }
 
-    @GetMapping("/chart/{type}")
-    @Operation(ServiceAction.LEDGER_CHART)
-    public ApiBody<List<ChartBarItem>> getLedgerChart(@PathVariable String type) {
-        List<ChartBarItem> chartData = ledgerHistoryService.fetchChartDataByType(type);
-
-        return ApiBody.data(chartData);
-    }
-
     @GetMapping("/dates")
     @Operation(ServiceAction.LEDGER_REGISTER_DATE)
     public List<Integer> getDateList(@RequestParam String unit, @RequestParam String date) {
@@ -86,6 +77,7 @@ public class LedgerApiController {
     }
 
     @PutMapping("/{code}")
+    @Operation(ServiceAction.LEDGER_EDIT)
     public ApiBody<Void> updateLedger(@PathVariable String code, @RequestPart("ledger") LedgerUpdateRequest request, @RequestPart(value = "images", required = false) List<MultipartFile> files) {
         request.attachImages(files);
 

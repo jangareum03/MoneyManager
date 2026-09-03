@@ -1,8 +1,6 @@
 package com.moneymanager.ledger.service.policy;
 
-import com.moneymanager.global.config.MutableClock;
 import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -45,47 +43,24 @@ import static org.junit.jupiter.api.Named.named;
  */
 class LedgerHistoryPeriodPolicyTest {
 
-    LedgerHistoryPeriodPolicy target;
-
-    MutableClock clock;
-
-    @BeforeEach
-    void setUp() {
-        clock = new MutableClock();
-
-        target = new LedgerHistoryPeriodPolicy(clock);
-    }
+    LedgerHistoryPeriodPolicy target = new LedgerHistoryPeriodPolicy();
 
     @Nested
     @DisplayName("연도 기간을 결정할 때")
     class ResolveYear {
 
         @Test
-        @DisplayName("현재 날짜의 연초와 연말로 생성한다.")
+        @DisplayName("날짜의 연초와 연말로 생성한다.")
         void createsStartAndEndOfYearPeriod_whenDateIsGiven() {
             //given
-            clock.set(LocalDate.of(2026, 6, 10));
+            LocalDate date = LocalDate.of(2026, 3, 20);
 
             //when
-            LedgerPeriod result = target.resolveYear();
+            LedgerPeriod result = target.resolveYear(date);
 
             //then
             assertThat(result.getFromDate()).isEqualTo(LocalDate.of(2026, 1, 1));
             assertThat(result.getToDate()).isEqualTo(LocalDate.of(2026, 12, 31));
-        }
-
-        @Test
-        @DisplayName("날짜가 주어지면 시작일 연초날짜와 종료일 연말날짜로 생성한다.")
-        void createsYearPeriod_whenDateAreGiven() {
-        	//given
-            LocalDate date = LocalDate.of(2026, 3, 22);
-
-        	//when
-            LedgerPeriod result = target.resolveYear(date);
-        	
-        	//then
-        	assertThat(result.getFromDate()).isEqualTo(LocalDate.of(2026, 1, 1));
-        	assertThat(result.getToDate()).isEqualTo(LocalDate.of(2026, 12, 31));
         }
 
     }
@@ -99,11 +74,8 @@ class LedgerHistoryPeriodPolicyTest {
         @MethodSource("validMonthDates")
         @DisplayName("현재 날짜의 첫날과 마지막날로 생성한다.")
         void createsFirstAndLastDayOfMonthPeriod_whenDateIsGiven(LocalDate date, LocalDate fromDate, LocalDate toDate) {
-            //given
-            clock.set(date);
-
             //when
-            LedgerPeriod result = target.resolveMonth();
+            LedgerPeriod result = target.resolveMonth(date);
 
             //then
             assertThat(result.getFromDate()).isEqualTo(fromDate);
@@ -146,11 +118,8 @@ class LedgerHistoryPeriodPolicyTest {
         @MethodSource("validWeekDates")
         @DisplayName("현재 날짜가 포함된 주의 월요일과 일요일로 생성한다.")
         void createsWeeklyRange_whenCurrentDateIsGiven(LocalDate date, LocalDate fromDate, LocalDate toDate) {
-            //given
-            clock.set(date);
-
             //when
-            LedgerPeriod result = target.resolveWeek();
+            LedgerPeriod result = target.resolveWeek(date);
 
             //then
             assertThat(result.getFromDate()).isEqualTo(fromDate);
@@ -191,10 +160,10 @@ class LedgerHistoryPeriodPolicyTest {
         @DisplayName("현재 날짜가 1일이면 시작일을 1일로 지정하여 생성한다.")
         void createsWeeklyRangeWithFirstDay_whenCurrentDateIsFirstDayOfMonth() {
             //given
-            clock.set(LocalDate.of(2026, 3, 1));
+            LocalDate date = LocalDate.of(2026, 3, 1);
 
             //when
-            LedgerPeriod result = target.resolveWeek();
+            LedgerPeriod result = target.resolveWeek(date);
 
             //then
             assertThat(result.getFromDate()).isEqualTo(LocalDate.of(2026, 3, 1));
@@ -205,10 +174,10 @@ class LedgerHistoryPeriodPolicyTest {
         @DisplayName("현재 날짜가 월의 마지막 날이면 종료일을 말일로 지정하여 생성한다.")
         void createsWeeklyRangeWithLastDay_whenCurrentDateIsLastDayOfMonth() {
             //given
-            clock.set(LocalDate.of(2026, 8, 31));
+            LocalDate date = LocalDate.of(2026, 8, 31);
 
             //when
-            LedgerPeriod result = target.resolveWeek();
+            LedgerPeriod result = target.resolveWeek(date);
 
             //then
             assertThat(result.getFromDate()).isEqualTo(LocalDate.of(2026, 8, 31));

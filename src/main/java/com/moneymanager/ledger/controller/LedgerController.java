@@ -5,9 +5,9 @@ import com.moneymanager.global.operation.annotation.Operation;
 import com.moneymanager.global.operation.enums.ServiceAction;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
-import com.moneymanager.ledger.domain.dto.response.edit.LedgerEditResponse;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
 import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
+import com.moneymanager.ledger.domain.dto.response.edit.LedgerEditResponse;
 import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
 import com.moneymanager.ledger.domain.dto.response.history.MenuResponse;
 import com.moneymanager.ledger.service.application.LedgerHistoryService;
@@ -57,19 +57,6 @@ public class LedgerController {
 		this.ledgerHistoryService = ledgerHistoryService;
 	}
 
-	@GetMapping
-	@Operation(ServiceAction.LEDGER_HISTORY_VIEW)
-	public String ledgers(@RequestParam String type, Model model) {
-		HistoryDashboardResponse response = ledgerHistoryService.searchLedgersByDate(type);
-		MenuResponse menu = ledgerHistoryService.buildSubMenu(type);
-
-		model.addAttribute("history", response);
-		model.addAttribute("menu", menu);
-		model.addAttribute("type", type);
-
-		return "/ledger/ledger_history";
-	}
-
 	@GetMapping("/{code}")
 	@Operation(ServiceAction.LEDGER_DETAIL_VIEW)
 	public String showDetailView(@PathVariable String code, Model model) {
@@ -107,6 +94,19 @@ public class LedgerController {
 		model.addAttribute("ledger", response);
 
 		return "/ledger/ledger_writeStep2";
+	}
+
+	@GetMapping("/histories")
+	@Operation(ServiceAction.LEDGER_HISTORY_VIEW)
+	public String showHistoryView(@RequestParam(defaultValue = "month") String type, @RequestParam(required = false) Integer year, @RequestParam(required = false) Integer month, @RequestParam(required = false) Integer week, Model model) {
+		HistoryDashboardResponse response = ledgerHistoryService.findHistories(type, year, month, week);
+		MenuResponse menu = ledgerHistoryService.buildSubMenu(type);
+
+		model.addAttribute("history", response);
+		model.addAttribute("menu", menu);
+		model.addAttribute("type", type);
+
+		return "/ledger/ledger_history";
 	}
 
 	@GetMapping("/map")

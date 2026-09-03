@@ -1,19 +1,22 @@
 package com.moneymanager.ledger.controller;
 
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
-import com.moneymanager.ledger.domain.dto.response.*;
+import com.moneymanager.ledger.domain.dto.response.ImageSlot;
+import com.moneymanager.ledger.domain.dto.response.LedgerDetailResponse;
+import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep1Response;
+import com.moneymanager.ledger.domain.dto.response.LedgerWriteStep2Response;
 import com.moneymanager.ledger.domain.dto.response.edit.CategoryOptions;
 import com.moneymanager.ledger.domain.dto.response.edit.LedgerEditResponse;
 import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerStatistics;
+import com.moneymanager.ledger.domain.dto.response.history.MenuResponse;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.dto.vo.Money;
 import com.moneymanager.ledger.domain.dto.vo.Place;
 import com.moneymanager.ledger.domain.enums.*;
 import com.moneymanager.ledger.service.application.LedgerHistoryService;
 import com.moneymanager.ledger.service.application.LedgerService;
-import com.moneymanager.support.UnitTest;
 import com.moneymanager.support.fixture.entity.category.IncomeCategoryFixture;
 import com.moneymanager.support.fixture.request.LedgerWriteRequestFixture;
 import com.moneymanager.support.fixture.response.HistoryItemTestFixture;
@@ -23,22 +26,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
 
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * <p>
@@ -67,27 +67,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 		</tbody>
  * </table>
  */
-@WebMvcTest(LedgerController.class)
-@AutoConfigureMockMvc(addFilters = false)
-class LedgerControllerTest extends UnitTest {
+@ExtendWith(MockitoExtension.class)
+class LedgerControllerTest {
 
-    private static final String BASE_URI = "/ledgers";
+    @InjectMocks
+    private LedgerController target;
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private LedgerService ledgerService;
 
-    @MockBean
+    @Mock
     private LedgerHistoryService ledgerHistoryService;
+
+    private Model model;
+
+    @BeforeEach
+    void setUp() {
+        model = new ExtendedModelMap();
+    }
+
 
     @Nested
     @DisplayName("가계부 작성 1단계 화면 요청할 때")
-    @WithMockCustomUser
     class Step1View {
-
-        private static final String URI = BASE_URI + "/new/step1";
 
         @Nested
         @DisplayName("성공")
@@ -97,7 +99,7 @@ class LedgerControllerTest extends UnitTest {
             @DisplayName("가계부 작성 1단계 페이지를 반환한다.")
             @WithMockCustomUser
             void returnView_whenGetRequestIsGiven() throws Exception {
-                //given: 화면에 필요한 데이터를 조회하는 동작이 정의되어 있다.
+                //given
                 LedgerWriteStep1Response response = LedgerWriteStep1Response.of(
                         List.of(2026, 2025),
                         List.of(1, 2),
@@ -107,10 +109,14 @@ class LedgerControllerTest extends UnitTest {
                 when(ledgerService.getStep1()).thenReturn(response);
 
                 //when: 가계부 작성 1단계 페이지를 요청한다.
-                mockMvc.perform(
-                                get(URI)
-                        )
-                        .andExpect(status().isOk());
+                String result = target.showWriteStep1Form(model);
+
+                //then
+                assertThat(result).isEqualTo("/ledger/ledger_writeStep1");
+
+                assertThat(model.getAttribute("ledger")).isEqualTo(response);
+
+                verify(ledgerService).getStep1();
             }
 
         }
@@ -119,11 +125,8 @@ class LedgerControllerTest extends UnitTest {
 
 
     @Nested
-    @WithMockCustomUser
     @DisplayName("가계부 작성 2단계 화면을 요청할 때")
     class Step2View {
-
-        private static final String URI = BASE_URI + "/new/step2";
 
         @Nested
         @DisplayName("성공")
@@ -144,8 +147,8 @@ class LedgerControllerTest extends UnitTest {
                                 IncomeCategoryFixture.createMiddleAll()
                         ),
                         List.of(
-                                ImageSlot.of(SlotStatus.EMPTY,"/image/ledger/slot-unlock.svg" ),
-                                ImageSlot.of(SlotStatus.EMPTY,"/image/ledger/slot-unlock.svg" )
+                                ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/slot-unlock.svg"),
+                                ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/slot-unlock.svg")
                         )
                 );
 
@@ -153,14 +156,12 @@ class LedgerControllerTest extends UnitTest {
                         .thenReturn(response);
 
                 //when
-                mockMvc.perform(
-                                get(URI)
-                                        .param("type", type)
-                                        .param("date", date)
-                        )
-                        .andExpect(status().isOk())
-                        .andExpect(model().attribute("ledger", response))
-                        .andExpect(view().name("/ledger/ledger_writeStep2"));
+                String result = target.showWriteStep2Form(type, date, model);
+
+                //then
+                assertThat(result).isEqualTo("/ledger/ledger_writeStep2");
+
+                assertThat(model.getAttribute("ledger")).isEqualTo(response);
 
                 verify(ledgerService).getStep2(type, date);
             }
@@ -174,22 +175,14 @@ class LedgerControllerTest extends UnitTest {
     @DisplayName("카카오 지도를 오청할 때")
     class GetKakaoMap {
 
-        @Nested
-        @DisplayName("성공")
-        class Success {
+        @Test
+        @DisplayName("장소를 선택할 수 있는 화면을 보여준다.")
+        void loadsLocationSelectionView_whenRequested() {
+            //when
+            String result = target.getMapByKakao();
 
-            @Test
-            @DisplayName("장소를 선택할 수 있는 화면을 보여준다.")
-            void loadsLocationSelectionView_whenRequested() throws Exception {
-                //when
-                String URI = BASE_URI + "/map";
-                mockMvc.perform(
-                                get(URI)
-                        )
-                        .andExpect(status().isOk())
-                        .andExpect(view().name("/map/kakao_map"));
-            }
-
+            //then
+            assertThat(result).isEqualTo("/map/kakao_map");
         }
 
     }
@@ -198,8 +191,6 @@ class LedgerControllerTest extends UnitTest {
     @Nested
     @DisplayName("가계부 등록 요청할 때")
     class Create {
-
-        final String URI = BASE_URI;
 
         @Test
         @DisplayName("등록 요청을 서비스에 전달하고 목록으로 리디렉션한다.")
@@ -210,12 +201,10 @@ class LedgerControllerTest extends UnitTest {
                     .build();
 
             //when
-            mockMvc.perform(
-                            post(URI)
-                                    .requestAttr("ledger", request)
-                    )
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/ledgers"));
+            String result = target.createLedger(request);
+
+            //then
+            assertThat(result).isEqualTo("redirect:/ledgers");
         }
 
     }
@@ -226,116 +215,144 @@ class LedgerControllerTest extends UnitTest {
     @DisplayName("가계부 내역을 조회할 때")
     class GetHistories {
 
-        private String URI = BASE_URI;
+        HistoryDashboardResponse response = HistoryDashboardResponse.of(
+                "제목",
+                LedgerStatistics.of(10000L, 5000L),
+                List.of(
+                        LedgerHistoryDisplay.of(
+                                "2026. 03. 01 (일)",
+                                List.of(
+                                        List.of(
+                                                HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 1), "0101010"),
+                                                HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 1), "0101010"),
+                                                HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 1), "0101010")
+                                        ),
+                                        List.of(
+                                                HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 1), "0101010"),
+                                                HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 1), "0101010")
+                                        )
+                                )
+                        ),
+                        LedgerHistoryDisplay.of(
+                                "2026. 03. 02(월)",
+                                List.of(
+                                        List.of(
+                                                HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 2), "0102010")
+                                        )
+                                )
+                        )
+                ),
+                List.of()
+        );
 
-        @BeforeEach
-        void setUp() {
-            when(ledgerHistoryService.searchLedgersByDate(anyString()))
-                    .thenReturn(
-                            HistoryDashboardResponse.of(
-                                    "제목",
-                                    LedgerStatistics.of(10000L, 5000L),
-                                    List.of(
-                                            LedgerHistoryDisplay.of(
-                                                    "2026. 03. 01 (일)",
-                                                    List.of(
-                                                            List.of(
-                                                                    HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 1), "0101010"),
-                                                                    HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 1), "0101010"),
-                                                                    HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 1), "0101010")
-                                                            ),
-                                                            List.of(
-                                                                    HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 1), "0101010"),
-                                                                    HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 1), "0101010")
-                                                            )
-                                                    )
-                                            ),
-                                            LedgerHistoryDisplay.of(
-                                                    "2026. 03. 02(월)",
-                                                    List.of(
-                                                            List.of(
-                                                                    HistoryItemTestFixture.builder().build(LocalDate.of(2026, 3, 2), "0102010")
-                                                            )
-                                                    )
-                                            )
-                                    )
-                            )
-                    );
-
-            when(ledgerHistoryService.buildSubMenu(anyString()))
-                    .thenReturn(MenuResponseTestFixture.builder().build());
-        }
+        MenuResponse menu = MenuResponseTestFixture.builder().build();
+        
 
         @Test
-        @DisplayName("정상적인 내역 유형이면 내역 조회 서비스를 호출하고 응답 객체를 반환한다.")
-        void returnsHistoryResponse_whenHistoryTypeIsValid() throws Exception {
+        @DisplayName("날짜 파라미터가 없으면 서비스에 그대로 전달한다.")
+        void passesNullDateToService_whenDateParameterIsMissing() {
+        	//given
+        	String type = "year";
+            
+        	//when
+            String result = target.showHistoryView(type, null, null, null, model);
+        	
+        	//then
+        	verify(ledgerHistoryService).findHistories(type, null, null, null);
+        	verify(ledgerHistoryService).buildSubMenu(type);
+        }
+        
+        @Test
+        @DisplayName("날짜 파라미터가 있으면 서비스에 그대로 전달한다.")
+        void passesDateToService_whenDateParameterIsGiven() {
+            //given
+            String type = "week";
+
+            //when
+            String result = target.showHistoryView(type, 2026, 8, 1, model);
+
+            //then
+            verify(ledgerHistoryService).findHistories(type, 2026, 8, 1);
+            verify(ledgerHistoryService).buildSubMenu(type);
+        }
+        
+        @Test
+        @DisplayName("내역 조회 및 메뉴 데이터를 model에 추가한다.")
+        void addsHistoryAndMenuToModel_whenRequestIsValid() {
+        	//given
+            String type = "month";
+            
+            when(ledgerHistoryService.findHistories(type, 2026, 8, 1))
+                    .thenReturn(response);
+            
+            when(ledgerHistoryService.buildSubMenu(type))
+                    .thenReturn(menu);
+            
+        	//when
+            String result = target.showHistoryView(type, 2026, 8, 1, model);
+        	
+        	//then
+        	assertThat(model.getAttribute("history")).isEqualTo(response);
+        	assertThat(model.getAttribute("menu")).isEqualTo(menu);
+        	assertThat(model.getAttribute("type")).isEqualTo(type);
+        }
+        
+        @Test
+        @DisplayName("내역 조회 페이지를 반환한다.")
+        void returnsHistoryPage_whenRequestIsValid() {
             //given
             String type = "month";
 
-            //when
-            mockMvc.perform(
-                            get(URI)
-                                    .param("type", type)
-                    )
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("history", "type", "menu"))
-                    .andExpect(view().name("/ledger/ledger_history"));
-        }
+            when(ledgerHistoryService.findHistories(type, 2026, 8, 1))
+                    .thenReturn(response);
 
-        @Test
-        @DisplayName("내역 유형이 누락되면 MONTH으로 진행한다.")
-        void returnsMonthlyList_whenTypeIsMissing() throws Exception {
-            //given
-            String type = "error";
+            when(ledgerHistoryService.buildSubMenu(type))
+                    .thenReturn(menu);
 
             //when
-            mockMvc.perform(
-                            get(URI)
-                                    .param("type", type)
-                    )
-                    .andExpect(status().isOk())
-                    .andExpect(view().name("/ledger/ledger_history"));
+            String result = target.showHistoryView(type, 2026, 8, 1, model);
+        	
+        	//then
+        	assertThat(result).isEqualTo("/ledger/ledger_history");
         }
 
     }
 
 
     @Nested
-    @WithMockCustomUser
     @DisplayName("가계부 상세 정보를 요청할 때")
     class GetDetail {
-        final String URI = BASE_URI + "/{code}";
 
         @Test
         @DisplayName("정상적인 요청이면 서비스 메서드를 호출한다.")
         void callsService_whenRequestIsValid() throws Exception {
-        	//given
+            //given
             String code = "code1";
+            LedgerDetailResponse response = LedgerDetailResponse.of(
+                    LedgerType.INCOME,
+                    "날짜",
+                    10000L,
+                    "카테고리",
+                    PaymentType.BANK,
+                    "얏호~",
+                    List.of(
+                            ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
+                            ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
+                            ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg")
+                    ),
+                    null
+            );
 
             when(ledgerService.getDetail(code))
-                    .thenReturn(LedgerDetailResponse.of(
-                            LedgerType.INCOME,
-                            "날짜",
-                            10000L,
-                            "카테고리",
-                            PaymentType.BANK,
-                            "얏호~",
-                            List.of(
-                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
-                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
-                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg")
-                            ),
-                            null
-                    ));
-        	
-        	//when
-            mockMvc.perform(
-                    get(URI, code)
-            )
-                    .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("ledger"))
-                    .andExpect(view().name("/ledger/ledger_detail"));
+                    .thenReturn(response);
+
+            //when
+            String result = target.showDetailView(code, model);
+
+            //then
+            assertThat(result).isEqualTo("/ledger/ledger_detail");
+
+            assertThat(model.getAttribute("ledger")).isEqualTo(response);
         }
 
     }
@@ -343,44 +360,44 @@ class LedgerControllerTest extends UnitTest {
 
     @Nested
     @WithMockCustomUser
-    @DisplayName("가계부 수정 정보를 요청할 때")
+    @DisplayName("가계부 수정 화면를 요청할 때")
     class GetEdit {
-        final String URI = BASE_URI + "/{code}/edit";
 
         @Test
         @DisplayName("정상적인 요청이면 서비스 메서드를 호출한다.")
         void callsService_whenRequestIsValid() throws Exception {
             //given
             String code = "code1";
+            LedgerEditResponse response = LedgerEditResponse.of(
+                    LedgerType.INCOME,
+                    "날짜",
+                    FixedType.REPEAT,
+                    FixCycle.WEEKLY,
+                    Money.of(10000L, PaymentType.BANK),
+                    "얏호~",
+                    List.of(
+                            ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
+                            ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
+                            ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg")
+                    ),
+                    Place.ofOrNull("장소", "기본주소", null),
+                    CategoryOptions.of(
+                            List.of("010100", "010101"),
+                            IncomeCategoryFixture.createMiddleAll().stream().map(CategoryItem::from).toList(),
+                            IncomeCategoryFixture.createLowAll().stream().map(CategoryItem::from).toList()
+                    )
+            );
 
             when(ledgerService.getEdit(code))
-                    .thenReturn(LedgerEditResponse.of(
-                            LedgerType.INCOME,
-                            "날짜",
-                            FixedType.REPEAT,
-                            FixCycle.WEEKLY,
-                            Money.of(10000L, PaymentType.BANK),
-                            "얏호~",
-                            List.of(
-                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
-                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg"),
-                                    ImageSlot.of(SlotStatus.EMPTY, "/image/ledger/image-empty.svg")
-                            ),
-                            Place.ofOrNull("장소", "기본주소", null),
-                            CategoryOptions.of(
-                                    List.of("010100", "010101"),
-                                    IncomeCategoryFixture.createMiddleAll().stream().map(CategoryItem::from).toList(),
-                                    IncomeCategoryFixture.createLowAll().stream().map(CategoryItem::from).toList()
-                            )
-                    ));
+                    .thenReturn(response);
 
             //when
-            mockMvc.perform(
-                            get(URI, code)
-                    )
-                    .andExpect(status().isOk())
-                    .andExpect(model().attributeExists("ledger"))
-                    .andExpect(view().name("/ledger/ledger_edit"));
+            String result = target.showEditView(code, model);
+
+            //then
+            assertThat(result).isEqualTo("/ledger/ledger_edit");
+
+            assertThat(model.getAttribute("ledger")).isEqualTo(response);
         }
 
     }

@@ -1,12 +1,6 @@
 package com.moneymanager.ledger.controller;
 
 import com.moneymanager.global.config.TimeConfig;
-import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
-import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
-import com.moneymanager.ledger.domain.dto.response.history.LedgerStatistics;
-import com.moneymanager.ledger.domain.dto.response.history.MenuResponse;
-import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
-import com.moneymanager.ledger.domain.enums.HistoryMenu;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.CategoryTestData;
@@ -23,15 +17,13 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -68,6 +60,7 @@ public class LedgerControllerIT extends IntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private final String BASE_URI = "/ledgers";
     private Member member;
 
     @BeforeEach
@@ -319,186 +312,106 @@ public class LedgerControllerIT extends IntegrationTest {
     @DisplayName("가계부 내역을 조회할 때")
     class GetHistories {
 
-        final String URI = "/ledgers";
+        final String URI = BASE_URI + "/histories";
 
-        @Test
-        @DisplayName("연 범위 요청 시 연간 가계부 내역을 반환한다.")
-        void returnsYearlyLedger_whenRangeIsYearly() throws Exception {
-            //given
-            String type = "year";
+        @Nested
+        @DisplayName("성공")
+        class Success {
 
-            //when
-            MvcResult result = mockMvc.perform(
-                            get(URI)
-                                    .param("type", type)
-                                    .cookie(accessTokenCookie("member1"))
-                    )
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andReturn();
+            @Test
+            @DisplayName("요청에서 type이 누락되면 month으로 진행한다.")
+            void returnsHistoryWithDefaultMonthType_whenTypeIsMissing() throws Exception {
+            	//when
+                mockMvc.perform(
+                        get(URI)
+                                .cookie(accessTokenCookie("member1"))
+                )
+                        .andExpect(status().isOk())
+                        .andExpect(model().attribute("type", "month"))
+                        .andExpect(model().attribute("history", hasProperty("title", is("2026년 01월"))))
+                        .andExpect(view().name("/ledger/ledger_history"));
+            }
 
-            //then
-            ModelAndView mav = result.getModelAndView();
-            assertThat(mav).isNotNull();
+            @Test
+            @DisplayName("요청에서 type만 있어도 현재 날짜 기준으로 내역을 조회한다.")
+            void returnsHistoryForCurrentDate_whenOnlyTypeIsGiven() throws Exception {
+            	//given
+                String type = "month";
+            	
+            	//when
+                mockMvc.perform(
+                        get(URI)
+                                .param("type", type)
+                                .cookie(accessTokenCookie("member1"))
+                )
+                        .andExpect(status().isOk())
+                        .andExpect(model().attribute("history",
+                                hasProperty("historyGroups", hasSize(4))));
+            }
+            
+            @Test
+            @DisplayName("요청에서 날짜가 있으면 날짜별로 내역을 조회한다.")
+            void returnsHistoryByDate_whenDateIsGiven() throws Exception {
+            	//given
+                String type = "month";
+                Integer year = 2026;
+                Integer month = 3;
+            	
+            	//when
+                mockMvc.perform(
+                        get(URI)
+                                .param("type", type)
+                                .param("year", String.valueOf(year))
+                                .param("month", String.valueOf(month))
+                                .cookie(accessTokenCookie("member1"))
+                )
+                        .andDo(print())
+                        .andExpect(status().isOk())
+                        .andExpect(model().attribute("history", hasProperty("title", is("2026년 03월"))))
+                        .andExpect(model().attribute("history", hasProperty("historyGroups", empty())));
+            }
+            
+            @Test
+            @DisplayName("type이 YEAR이면 기간 메뉴가 존재한다.")
+            void returnsHistoryWithPeriodMenu_whenTypeIsYear() throws Exception {
+            	//given
+                String type = "year";
+            	
+            	//when
+                mockMvc.perform(
+                        get(URI)
+                                .param("type", type)
+                                .cookie(accessTokenCookie("member1"))
+                )
+                        .andExpect(status().isOk())
+                        .andExpect(model().attribute("menu", hasProperty("menus", hasSize(5))));
+            }
 
-            HistoryDashboardResponse history = (HistoryDashboardResponse) mav.getModel().get("history");
-            assertThat(history).isNotNull();
-
-            LedgerStatistics statistics = history.getStatistics();
-            assertThat(statistics)
-                    .isNotNull()
-                    .extracting(LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay)
-                    .containsExactly(2994000L, 2522000L, 472000L);
-
-            List<LedgerHistoryDisplay> historyDisplays = history.getHistoryGroups();
-            assertThat(historyDisplays)
-                    .isNotEmpty()
-                    .hasSize(5);
-
-            MenuResponse menu = (MenuResponse) mav.getModel().get("menu");
-            assertThat(menu.getMenus())
-                    .extracting(MenuItem::getType)
-                    .containsExactly(
-                            HistoryMenu.ALL,
-                            HistoryMenu.CATEGORY,
-                            HistoryMenu.SUB_CATEGORY,
-                            HistoryMenu.MEMO,
-                            HistoryMenu.PERIOD
-                    );
         }
 
-        @Test
-        @DisplayName("월 범위 요청 시 월간 가계부 내역을 반환한다.")
-        void returnsMonthlyLedger_whenRangeIsMonthly() throws Exception {
-            //given
-            String type = "month";
+        @Nested
+        @DisplayName("실패")
+        class Failure {
 
-            //when
-            MvcResult result = mockMvc.perform(
-                            get(URI)
-                                    .param("type", type)
-                                    .cookie(accessTokenCookie("member1"))
-                    )
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andReturn();
+            @Test
+            @DisplayName("type과 날짜 값이 다르면 403을 발생시킨다.")
+            void returns403Forbidden_whenTypeAndDateMismatch() throws Exception {
+            	//given: WEEK 타입에 month와 week날짜 값이 없다.
+                String type = "week";
+                Integer year = 2026;
+            	
+            	//when
+                mockMvc
+                        .perform(
+                                get(URI)
+                                        .param("type", type)
+                                        .param("year", String.valueOf(year))
+                                        .cookie(accessTokenCookie("member1"))
+                        )
+                        .andExpect(status().is3xxRedirection())
+                        .andExpect(redirectedUrl("/ledgers/histories?type=month"));
+            }
 
-            //then
-            ModelAndView mav = result.getModelAndView();
-            assertThat(mav).isNotNull();
-
-            HistoryDashboardResponse history = (HistoryDashboardResponse) mav.getModel().get("history");
-            assertThat(history).isNotNull();
-
-            List<LedgerHistoryDisplay> historyDisplays = history.getHistoryGroups();
-            assertThat(historyDisplays)
-                    .isNotEmpty()
-                    .hasSize(4)
-                    .extracting(LedgerHistoryDisplay::getDate)
-                    .doesNotContain("2026. 02. 05 (목)");
-
-            MenuResponse menu = (MenuResponse) mav.getModel().get("menu");
-            assertThat(menu.getMenus())
-                    .extracting(MenuItem::getType)
-                    .containsExactly(
-                            HistoryMenu.ALL,
-                            HistoryMenu.CATEGORY,
-                            HistoryMenu.SUB_CATEGORY,
-                            HistoryMenu.MEMO
-                    );
-        }
-
-        @Test
-        @DisplayName("주 범위 요청 시 주간 가계부 내역을 반환한다.")
-        void returnsWeeklyLedger_whenRangeIsWeekly() throws Exception {
-            //given
-            String type = "week";
-
-            //when
-            MvcResult result = mockMvc.perform(
-                            get(URI)
-                                    .param("type", type)
-                                    .cookie(accessTokenCookie("member1"))
-                    )
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andReturn();
-
-            //then
-            ModelAndView mav = result.getModelAndView();
-            assertThat(mav).isNotNull();
-
-            HistoryDashboardResponse history = (HistoryDashboardResponse) mav.getModel().get("history");
-            assertThat(history).isNotNull();
-
-            List<LedgerHistoryDisplay> historyDisplays = history.getHistoryGroups();
-            assertThat(historyDisplays)
-                    .isNotEmpty()
-                    .hasSize(3)
-                    .extracting(LedgerHistoryDisplay::getDate)
-                    .doesNotContain("2026. 01. 05 (월)");
-        }
-
-        @Test
-        @DisplayName("조회할 가계부 내역이 없으면 빈 목록을 반환한다.")
-        void returnsEmptyList_whenLedgerDoesNotExist() throws Exception {
-            //given
-            String type = "week";
-
-            //when
-            MvcResult result = mockMvc.perform(
-                            get(URI)
-                                    .param("type", type)
-                                    .cookie(accessTokenCookie("member2"))
-                    )
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andReturn();
-
-            //then
-            ModelAndView mav = result.getModelAndView();
-            assertThat(mav).isNotNull();
-
-            HistoryDashboardResponse history = (HistoryDashboardResponse) mav.getModel().get("history");
-            assertThat(history).isNotNull();
-
-            LedgerStatistics statistics = history.getStatistics();
-            assertThat(statistics)
-                    .isNotNull()
-                    .extracting(LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay)
-                    .containsExactly(0L, 0L, 0L);
-
-            List<LedgerHistoryDisplay> historyDisplays = history.getHistoryGroups();
-            assertThat(historyDisplays).isEmpty();
-        }
-
-        @Test
-        @DisplayName("잘못된 내역 유형 요청 시 월간 가계부 내역을 반화한다.")
-        void returnsMonthlyLedger_whenTypeIsInvalid() throws Exception {
-            //given
-            String type = "none";
-
-            //when
-            MvcResult result = mockMvc.perform(
-                            get(URI)
-                                    .param("type", type)
-                                    .cookie(accessTokenCookie("member1"))
-                    )
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andReturn();
-
-            //then
-            ModelAndView mav = result.getModelAndView();
-            assertThat(mav).isNotNull();
-
-            HistoryDashboardResponse history = (HistoryDashboardResponse) mav.getModel().get("history");
-            assertThat(history).isNotNull();
-
-            List<LedgerHistoryDisplay> historyDisplays = history.getHistoryGroups();
-            assertThat(historyDisplays)
-                    .isNotEmpty()
-                    .hasSize(4);
         }
 
     }

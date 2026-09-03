@@ -1,12 +1,16 @@
 package com.moneymanager.ledger.service.policy;
 
+import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.log.LogContent;
+import com.moneymanager.ledger.domain.dto.response.history.HistoryDateFilter;
 import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;
 import org.springframework.stereotype.Component;
 
-import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
+
+import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
 
 /**
  * <p>
@@ -41,21 +45,6 @@ public class LedgerHistoryPeriodPolicy {
     private static final DayOfWeek START_DAY_OF_WEEK = DayOfWeek.MONDAY;
     private static final DayOfWeek END_DAY_OF_WEEK = DayOfWeek.SUNDAY;
 
-    private final Clock clock;
-
-    public LedgerHistoryPeriodPolicy(Clock clock) {
-        this.clock = clock;
-    }
-
-    LedgerPeriod resolveYear() {
-        LocalDate today = LocalDate.now(clock);
-
-        return LedgerPeriod.of(
-                today.with(TemporalAdjusters.firstDayOfYear()),
-                today.with(TemporalAdjusters.lastDayOfYear())
-        );
-    }
-
     LedgerPeriod resolveYear(LocalDate date) {
         return LedgerPeriod.of(
                 date.with(TemporalAdjusters.firstDayOfYear()),
@@ -63,21 +52,17 @@ public class LedgerHistoryPeriodPolicy {
         );
     }
 
-    LedgerPeriod resolveMonth() {
-        LocalDate today = LocalDate.now(clock);
-
+    LedgerPeriod resolveMonth(LocalDate date) {
         return LedgerPeriod.of(
-                today.with(TemporalAdjusters.firstDayOfMonth()),
-                today.with(TemporalAdjusters.lastDayOfMonth())
+                date.with(TemporalAdjusters.firstDayOfMonth()),
+                date.with(TemporalAdjusters.lastDayOfMonth())
         );
     }
 
-    LedgerPeriod resolveWeek() {
-        LocalDate today = LocalDate.now(clock);
-
+    LedgerPeriod resolveWeek(LocalDate date) {
         return LedgerPeriod.of(
-                getFromDate(today),
-                getToDate(today)
+                getFromDate(date),
+                getToDate(date)
         );
     }
 
@@ -87,6 +72,45 @@ public class LedgerHistoryPeriodPolicy {
         int value = firstDay.getDayOfWeek().getValue() -  START_DAY_OF_WEEK.getValue() - 1;
 
         return (date.getDayOfMonth() + value) / 7 + 1;
+    }
+
+    void validateYear(HistoryDateFilter dateFilter) {
+        if(dateFilter.getYear() == null) {
+            throw new ApplicationException(
+                    POLICY_VIOLATION,
+                    LogContent.of(
+                            "연도 검증",
+                            HistoryDateFilter.class,
+                            "year", null
+                    ).withCause("내역 조회에 필요한 연도 누락")
+            );
+        }
+    }
+
+    void validateMonth(HistoryDateFilter dateFilter) {
+        if(dateFilter.getMonth() == null) {
+            throw new ApplicationException(
+                    POLICY_VIOLATION,
+                    LogContent.of(
+                            "월 검증",
+                            HistoryDateFilter.class,
+                            "month", null
+                    ).withCause("내역 조회에 필요한 월 누락")
+            );
+        }
+    }
+
+    void validateWeek(HistoryDateFilter dateFilter) {
+        if(dateFilter.getWeek() == null) {
+            throw new ApplicationException(
+                    POLICY_VIOLATION,
+                    LogContent.of(
+                            "주 검증",
+                            HistoryDateFilter.class,
+                            "week", null
+                    ).withCause("내역 조회에 필요한 주 누락")
+            );
+        }
     }
 
 

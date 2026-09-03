@@ -1,5 +1,6 @@
 package com.moneymanager.ledger.domain.dto.response.history;
 
+import com.moneymanager.ledger.domain.dto.response.item.ChartBarItem;
 import lombok.Getter;
 
 import java.util.List;
@@ -37,15 +38,17 @@ public class HistoryDashboardResponse {
 	private final String title;
 	private final LedgerStatistics statistics;
 	private final List<LedgerHistoryDisplay> historyGroups;
+	private final List<ChartBarItem> chartBarItems;
 
-	private HistoryDashboardResponse(String title, LedgerStatistics statistics, List<LedgerHistoryDisplay> historyGroups) {
+	private HistoryDashboardResponse(String title, LedgerStatistics statistics, List<LedgerHistoryDisplay> historyGroups, List<ChartBarItem> chartBarItems) {
 		this.title = title;
 		this.statistics = statistics;
 		this.historyGroups = historyGroups;
+		this.chartBarItems = chartBarItems;
 	}
 
-	public static HistoryDashboardResponse of(String title, LedgerStatistics statistics, List<LedgerHistoryDisplay> historyGroups) {
-		return new HistoryDashboardResponse(title, statistics, historyGroups);
+	public static HistoryDashboardResponse of(String title, LedgerStatistics statistics, List<LedgerHistoryDisplay> historyGroups, List<ChartBarItem> chartBarItems) {
+		return new HistoryDashboardResponse(title, statistics, historyGroups, chartBarItems);
 	}
 
 }

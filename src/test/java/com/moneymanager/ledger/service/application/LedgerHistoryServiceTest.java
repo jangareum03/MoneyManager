@@ -1,15 +1,19 @@
 package com.moneymanager.ledger.service.application;
 
+import com.moneymanager.global.config.MutableClock;
 import com.moneymanager.global.exception.exception.ApplicationException;
 import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
-import com.moneymanager.ledger.domain.dto.response.history.*;
+import com.moneymanager.ledger.domain.dto.response.history.HistoryDateFilter;
+import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
+import com.moneymanager.ledger.domain.dto.response.history.LedgerSearchCondition;
+import com.moneymanager.ledger.domain.dto.response.history.MenuResponse;
 import com.moneymanager.ledger.domain.dto.response.item.ChartBarItem;
-import com.moneymanager.ledger.domain.dto.response.item.HistoryItem;
 import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
 import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;
 import com.moneymanager.ledger.domain.enums.HistoryMenu;
 import com.moneymanager.ledger.domain.enums.HistoryType;
+import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
 import com.moneymanager.ledger.service.read.CategoryReadService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
@@ -24,7 +28,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
@@ -67,7 +74,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class LedgerHistoryServiceTest {
 
-    @InjectMocks
     LedgerHistoryService target;
 
     @Mock
@@ -82,122 +88,178 @@ class LedgerHistoryServiceTest {
     @Mock
     CategoryReadService categoryReadService;
 
+    MutableClock clock = new MutableClock();
+
+    @BeforeEach
+    void setUp() {
+        target = new LedgerHistoryService(
+                clock,
+                currentUser,
+                ledgerPolicy,
+                ledgerReadService,
+                categoryReadService
+        );
+    }
+
     @Nested
     @DisplayName("내역 유형별 가계부 조회할 때")
     class GetHistories {
 
-        @BeforeEach
-        void setUp() {
-            when(currentUser.getMemberId())
-                    .thenReturn(MemberTestData.DEFAULT_ID);
+        LedgerPeriod period = LedgerPeriod.of(
+                LocalDate.now(),
+                LocalDate.now()
+        );
 
-            when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class)))
-                    .thenReturn(LedgerPeriod.of(
-                            LocalDate.of(2026, 3, 1),
-                            LocalDate.of(2026, 3, 31)
-                    ));
+        List<LedgerHistoryQuery> historyQueries = List.of();
+        List<ChartBarItem> charts = List.of();
+        String title = "제목";
 
-            when(ledgerReadService.findLedgerByDate(
-                    MemberTestData.DEFAULT_ID,
-                    LocalDate.of(2026, 3, 1),
-                    LocalDate.of(2026, 3, 31)
-            ))
-                    .thenReturn(List.of(
-                            LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 1)).amount(5000L).build(),
-                            LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 1)).amount(5000L).build(),
-                            LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).categoryCode("020101").amount(20000L).build(),
-                            LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).amount(30000L).build(),
-                            LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).categoryCode("020201").amount(10000L).build(),
-                            LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).categoryCode("020301").amount(500L).build(),
-                            LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 31)).categoryCode("020202").amount(50000L).build()
-                    ));
+        @Nested
+        @DisplayName("성공")
+        class Success {
 
-            when(ledgerPolicy.getTitleByHistoryType(any(HistoryType.class)))
-                    .thenReturn("2026년 03월");
+            @BeforeEach
+            void setUp() {
+                when(currentUser.getMemberId())
+                        .thenReturn(MemberTestData.DEFAULT_ID);
+
+                when(ledgerPolicy.resolveHistoryPeriod(any(), any()))
+                        .thenReturn(period);
+
+                when(ledgerReadService.findLedgerByDate(any(), any(), any()))
+                        .thenReturn(historyQueries);
+
+                when(ledgerPolicy.getTitleByHistoryType(any(), any()))
+                        .thenReturn(title);
+
+                when(ledgerPolicy.resolveChartPeriod(any(), any()))
+                        .thenReturn(period);
+
+                when(ledgerReadService.generateChartDataByType(any(), any(), any(), any()))
+                        .thenReturn(charts);
+            }
+
+            @Test
+            @DisplayName("지정된 날짜가 없다면 현재 날짜로 진행한다.")
+            void defaultsToCurrentDate_whenDateIsNull() {
+                //given
+                String type = "month";
+                LocalDate date = LocalDate.of(2026, 3, 10);
+
+                clock.set(date);
+
+                when(ledgerPolicy.resolveHistoryPeriod(eq(HistoryType.MONTH), any(LocalDate.class)))
+                        .thenReturn(
+                                LedgerPeriod.of(
+                                        date.withDayOfMonth(1),
+                                        date.withDayOfMonth(31)
+                                )
+                        );
+
+                //when
+                target.findHistories(type, null, null, null);
+
+                //then
+                verify(ledgerPolicy).resolveHistoryPeriod(eq(HistoryType.MONTH), eq(date));
+                verify(ledgerPolicy, never()).validateHistoryDate(any(HistoryType.class), any(HistoryDateFilter.class));
+            }
+
+            @ParameterizedTest
+            @MethodSource("validHistoryDateFilters")
+            @DisplayName("지정된 날짜가 하나라도 있다면 지정된 날짜로 진행한다.")
+            void usesGivenDates_whenAtLeastOneDateIsGiven(LocalDate expected, Integer year, Integer month, Integer week) {
+                //given
+                LocalDate fromDate = expected.withDayOfMonth(1);
+                LocalDate toDate = expected.withDayOfMonth(expected.lengthOfMonth());
+
+                when(ledgerPolicy.resolveHistoryPeriod(eq(HistoryType.WEEK), eq(expected)))
+                        .thenReturn(
+                                LedgerPeriod.of(
+                                        fromDate,
+                                        toDate
+                                )
+                        );
+
+                when(ledgerReadService.findLedgerByDate(
+                        MemberTestData.DEFAULT_ID,
+                        fromDate,
+                        toDate
+                ))
+                        .thenReturn(List.of());
+
+                //when
+                target.findHistories("week", year, month, week);
+
+                //then
+                verify(ledgerPolicy).resolveHistoryPeriod(eq(HistoryType.WEEK), eq(expected));
+                verify(ledgerPolicy, times(1)).validateHistoryDate(eq(HistoryType.WEEK), any(HistoryDateFilter.class));
+            }
+
+            static Stream<Arguments> validHistoryDateFilters() {
+                return Stream.of(
+                        Arguments.of(
+                                named(
+                                        "연도만 있는 경우 (year: 2026)", LocalDate.of(2026, 1, 1)
+                                ),
+                                2026, null, null
+                        ),
+                        Arguments.of(
+                                named(
+                                        "연도와 월이 있는 경우 (year: 2026, month: 5)", LocalDate.of(2026, 5, 1)
+                                ),
+                                2026, 5, null
+                        ),
+                        Arguments.of(
+                                named(
+                                        "연도,월, 주 모두 있는 경우 (year: 2026, month: 8: week: 2)", LocalDate.of(2026, 8, 8)
+                                ),
+                                2026, 8, 2
+                        )
+                );
+            }
+
         }
 
-        @Test
-        @DisplayName("기간내 작성한 가계부 내역을 조회한다.")
-        void fetchesLedgerHistories_whenDateRangeIsValid() {
-            //given
-            String type = "month";
+        @Nested
+        @DisplayName("실패")
+        class Failure {
 
-            //when
-            HistoryDashboardResponse result = target.searchLedgersByDate(type);
+            @ParameterizedTest
+            @MethodSource("invalidDateByType")
+            @DisplayName("TYPE별 날짜값이 주어지지 않으면 예외를 전파한다.")
+            void throwsException_whenDateIsIsNullByTypes(String type, int year, Integer month, Integer week) {
+                //given
+                clock.set(LocalDate.of(2026, 8, 5));
 
-            //then
-            assertThat(result).isNotNull();
+                when(currentUser.getMemberId())
+                        .thenReturn(MemberTestData.DEFAULT_ID);
 
-            assertThat(result.getTitle()).isEqualTo("2026년 03월");
+                doThrow(ApplicationException.class)
+                        .when(ledgerPolicy)
+                                .validateHistoryDate(any(HistoryType.class), any(HistoryDateFilter.class));
 
-            assertThat(result.getStatistics())
-                    .extracting(
-                            LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay
-                    )
-                    .containsExactly(120500L, 40000L, 80500L);
+                //when
+                assertThatThrownBy(() -> target.findHistories(type, year, month, week))
+                        .isInstanceOf(ApplicationException.class);
+            }
 
-            //then: 가계부 내역 그룹 검증
-            List<LedgerHistoryDisplay> historyDisplays = result.getHistoryGroups();
+            static Stream<Arguments> invalidDateByType() {
+                return Stream.of(
+                        Arguments.of(
+                                named("MONTH인데 월이 없는 경우", "month"),
+                                2026, null, null
+                        ),
+                        Arguments.of(
+                                named("WEEK인데 주가 없는 경우", "week"),
+                                2026, 5, null
+                        ),
+                        Arguments.of(
+                                named("WEEK인데 월이 없는 경우", "week"),
+                                2026, null, 2
+                        )
+                );
+            }
 
-            assertThat(historyDisplays).hasSize(3);
-
-            //then: 날짜 그룹 검증
-            assertThat(historyDisplays)
-                    .extracting(LedgerHistoryDisplay::getDate)
-                    .containsExactly("2026. 03. 01 (일)", "2026. 03. 17 (화)", "2026. 03. 31 (화)");
-
-            //then: 각 그룹별 요소 검증
-            assertThat(historyDisplays.get(1).getRows()).hasSize(2);
-
-            assertThat(historyDisplays.get(1).getRows().get(0))
-                    .extracting(HistoryItem::getAmount)
-                    .containsExactly(20000L, 30000L, 10000L);
-
-            assertThat(historyDisplays.get(1).getRows().get(1))
-                    .extracting(HistoryItem::getAmount)
-                    .containsExactly(500L);
-        }
-
-        @Test
-        @DisplayName("잘못된 내역 유형이면 MONTH으로 진행하여 내역을 조회한다.")
-        void fetchesLedgerHistoriesByMonth_whenHistoryTypeIsInvalid() {
-            //given
-            String type = "none";
-
-            //when
-            HistoryDashboardResponse result = target.searchLedgersByDate(type);
-
-            //then
-            verify(ledgerPolicy).resolveHistoryPeriod(eq(HistoryType.MONTH));
-        }
-
-        @Test
-        @DisplayName("기간 내 작성한 가계부가 없으면 빈 목록과 통계가 0으로 조회한다.")
-        void returnsEmptyListAndZeroStatistics_whenLedgerDoesNotExist() {
-            //given
-            String type = "week";
-
-            when(ledgerReadService.findLedgerByDate(
-                    MemberTestData.DEFAULT_ID,
-                    LocalDate.of(2026, 3, 1),
-                    LocalDate.of(2026, 3, 31)
-            ))
-                    .thenReturn(List.of());
-
-            //when
-            HistoryDashboardResponse result = target.searchLedgersByDate(type);
-
-            //then
-            assertThat(result.getStatistics())
-                    .extracting(
-                            LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay
-                    )
-                    .containsExactly(0L, 0L, 0L);
-
-            //then: 가계부 내역 그룹 검증
-            List<LedgerHistoryDisplay> historyDisplays = result.getHistoryGroups();
-
-            assertThat(historyDisplays).hasSize(0);
         }
 
     }
@@ -226,7 +288,7 @@ class LedgerHistoryServiceTest {
                         .menu(null)
                         .build();
 
-                when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class)))
+                when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class), any(LocalDate.class)))
                         .thenReturn(LedgerPeriod.of(
                                 LocalDate.of(2026, 3, 1),
                                 LocalDate.of(2026, 3, 31)
@@ -256,7 +318,7 @@ class LedgerHistoryServiceTest {
 
                 inOrder.verify(currentUser).getMemberId();
                 inOrder.verify(ledgerPolicy).validateSearchCondition(eq(HistoryMenu.ALL), any(LedgerSearchRequest.class));
-                inOrder.verify(ledgerPolicy).resolveHistoryPeriod(eq(HistoryType.MONTH));
+                inOrder.verify(ledgerPolicy).resolveHistoryPeriod(eq(HistoryType.MONTH), any(LocalDate.class));
                 inOrder.verify(ledgerReadService).findLedgerByCondiction(eq(MemberTestData.DEFAULT_ID), any(LocalDate.class), any(LocalDate.class), any(LedgerSearchCondition.class));
             }
 
@@ -296,7 +358,7 @@ class LedgerHistoryServiceTest {
             @DisplayName("메뉴별 LedgerSearchCondition을 다르게 생성한다.")
             void createsLedgerSearchCondition_whenMenuTypeIsGiven(LedgerSearchRequest request, HistoryMenu menu, String keyword, List<String> keywords) {
                 //given
-                when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class)))
+                when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class), any(LocalDate.class)))
                         .thenReturn(LedgerPeriod.of(
                                 LocalDate.of(2026, 3, 1),
                                 LocalDate.of(2026, 3, 31)
@@ -374,7 +436,7 @@ class LedgerHistoryServiceTest {
                         .menu("all")
                         .build();
 
-                when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class)))
+                when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class), any(LocalDate.class)))
                         .thenReturn(LedgerPeriod.of(
                                 LocalDate.of(2026, 3, 1),
                                 LocalDate.of(2026, 3, 31)
@@ -422,7 +484,7 @@ class LedgerHistoryServiceTest {
                         .menu("all")
                         .build();
 
-                when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class)))
+                when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class), any(LocalDate.class)))
                         .thenReturn(LedgerPeriod.of(
                                 LocalDate.of(2026, 3, 1),
                                 LocalDate.of(2026, 3, 31)
@@ -483,148 +545,6 @@ class LedgerHistoryServiceTest {
                         .isInstanceOf(ApplicationException.class);
             }
 
-        }
-
-    }
-
-
-    @Nested
-    @DisplayName("유형별 차트 데이터를 조회할 때")
-    class GetChart {
-
-        @BeforeEach
-        void setUp() {
-            when(currentUser.getMemberId()).thenReturn(MemberTestData.DEFAULT_ID);
-        }
-
-        @Test
-        @DisplayName("인증된 회원 ID를 사용한다.")
-        void fetchesLedgerHistory_whenUserIdIsAuthenticated() {
-        	//given
-            when(ledgerPolicy.resolveChartPeriod(any(HistoryType.class)))
-                    .thenReturn(LedgerPeriod.of(
-                            LocalDate.of(2026, 3, 1),
-                            LocalDate.of(2026, 3, 31)
-                    ));
-
-            when(ledgerReadService.generateChartDataByType(
-                    eq(MemberTestData.DEFAULT_ID),
-                    any(HistoryType.class),
-                    eq(LocalDate.of(2026, 3, 1)),
-                    eq(LocalDate.of(2026, 3, 31))
-            ))
-                    .thenReturn(List.of());
-        	
-        	//when
-        	List<ChartBarItem> result = target.fetchChartDataByType("month");
-
-        	//then
-        	verify(ledgerReadService).generateChartDataByType(
-                    eq(MemberTestData.DEFAULT_ID),
-                    eq(HistoryType.MONTH),
-                    any(),
-                    any()
-            );
-        }
-        
-        @Test
-        @DisplayName("type을 올바른 HistoryType으로 변환해서 전달한다.")
-        void convertsAndPassesHistoryType_whenTypeGiven() {
-        	//given
-            String type = "week";
-
-            when(ledgerPolicy.resolveChartPeriod(any(HistoryType.class)))
-                    .thenReturn(LedgerPeriod.of(
-                            LocalDate.of(2026, 3, 1),
-                            LocalDate.of(2026, 3, 31)
-                    ));
-
-            when(ledgerReadService.generateChartDataByType(
-                    eq(MemberTestData.DEFAULT_ID),
-                    any(HistoryType.class),
-                    eq(LocalDate.of(2026, 3, 1)),
-                    eq(LocalDate.of(2026, 3, 31))
-            ))
-                    .thenReturn(List.of());
-        	
-        	//when
-            List<ChartBarItem> result = target.fetchChartDataByType(type);
-        	
-        	//then
-        	verify(ledgerPolicy).resolveChartPeriod(eq(HistoryType.WEEK));
-        }
-        
-        @ParameterizedTest
-        @MethodSource("validPeriods")
-        @DisplayName("type별로 반환한 기간을 LedgerReadService에 전달한다.")
-        void passesCalculatedPeriodToLedgerReadService_whenTypeGiven(HistoryType type, LocalDate fromDate, LocalDate toDate) {
-        	//given
-            when(ledgerPolicy.resolveChartPeriod(eq(type)))
-                    .thenReturn(LedgerPeriod.of(fromDate, toDate));
-
-            when(ledgerReadService.generateChartDataByType(
-                    eq(MemberTestData.DEFAULT_ID),
-                    eq(type),
-                    eq(fromDate),
-                    eq(toDate)
-            ))
-                    .thenReturn(List.of());
-        	
-        	//when
-            List<ChartBarItem> result = target.fetchChartDataByType(type.name());
-        	
-        	//then
-        	verify(ledgerReadService).generateChartDataByType(
-                    eq(MemberTestData.DEFAULT_ID),
-                    eq(type),
-                    eq(fromDate),
-                    eq(toDate)
-            );
-        }
-
-        static Stream<Arguments> validPeriods() {
-            return Stream.of(
-                    Arguments.of(
-                            named("year인 경우", HistoryType.YEAR),
-                            LocalDate.of(2026, 1, 1),
-                            LocalDate.of(2026, 12, 31)
-                    ),
-                    Arguments.of(
-                            named("month인 경우", HistoryType.MONTH),
-                            LocalDate.of(2026, 8, 1),
-                            LocalDate.of(2026, 8, 31)
-                    ),
-                    Arguments.of(
-                            named("week인 경우", HistoryType.WEEK),
-                            LocalDate.of(2026, 8, 1),
-                            LocalDate.of(2026, 8, 31)
-                    )
-            );
-        }
-        
-        @Test
-        @DisplayName("데이터 조회 결과를 그대로 반환한다.")
-        void returnsLedgerHistory_whenRequestIsValid() {
-            //given
-            when(ledgerPolicy.resolveChartPeriod(any(HistoryType.class)))
-                    .thenReturn(LedgerPeriod.of(
-                            LocalDate.of(2026, 3, 1),
-                            LocalDate.of(2026, 3, 31)
-                    ));
-
-            when(ledgerReadService.generateChartDataByType(
-                    eq(MemberTestData.DEFAULT_ID),
-                    any(HistoryType.class),
-                    eq(LocalDate.of(2026, 3, 1)),
-                    eq(LocalDate.of(2026, 3, 31))
-            ))
-                    .thenReturn(List.of());
-
-        	//when
-            List<ChartBarItem> result = target.fetchChartDataByType("week");
-
-        	//then
-        	assertThat(result).isEmpty();;
         }
 
     }

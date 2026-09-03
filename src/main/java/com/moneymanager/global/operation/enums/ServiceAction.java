@@ -37,7 +37,7 @@ public enum ServiceAction {
 	LEDGER_REGISTER_STEP2_VIEW("가계부 작성 2단계 화면 조회", "/ledgers/new/step1"),
 	LEDGER_REGISTER("가계부 등록", "/ledgers/new/step2"),
 	LEDGER_MAP_VIEW("가계부 장소 작성 화면 조회", "/ledgers/new/step2"),
-	LEDGER_HISTORY_VIEW("가계부 내역 화면 조회", "/error/404"),
+	LEDGER_HISTORY_VIEW("가계부 내역 화면 조회", "/ledgers/histories?type=month"),
 	LEDGER_DETAIL_VIEW("가계부 상세 화면 조회", "/ledgers"),
 	LEDGER_EDIT_VIEW("가계부 수정 화면 조회", "/ledgers"),
 
@@ -46,6 +46,7 @@ public enum ServiceAction {
 	LEDGER_REGISTER_DATE("작성할 가계부 날짜 목록 조회 API"),
 	LEDGER_SEARCH("가계부 내역 검색 API"),
 	LEDGER_CHART("가계부 차트 조회 API"),
+	LEDGER_EDIT("가계부 수정 API"),
 	LEDGER_DELETE("가계부 삭제 API");
 
 	private final String description;

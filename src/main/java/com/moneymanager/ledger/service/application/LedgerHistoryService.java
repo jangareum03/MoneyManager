@@ -1,7 +1,9 @@
 package com.moneymanager.ledger.service.application;
 
 import com.moneymanager.global.domain.enums.DatePatterns;
-import com.moneymanager.global.log.AuditLogger;
+import com.moneymanager.global.exception.code.ErrorCode;
+import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.global.util.date.DateTimeUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
@@ -19,6 +21,7 @@ import com.moneymanager.ledger.service.read.LedgerReadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -59,6 +62,7 @@ public class LedgerHistoryService {
 
     private final static int HISTORY_MAX_ROW = 3;
 
+    private final Clock clock;
     private final CurrentUser currentUser;
     private final LedgerPolicy ledgerPolicy;
 
@@ -66,15 +70,21 @@ public class LedgerHistoryService {
     private final CategoryReadService categoryReadService;
 
 
-    public HistoryDashboardResponse searchLedgersByDate(String type) {
+    public HistoryDashboardResponse findHistories(String type, Integer year, Integer month, Integer week) {
         //1. 인증된 회원 조회
         String memberId = currentUser.getMemberId();
 
-        //2, 내역 유형 조회 (기본값 세팅)
-        HistoryType historyType = parseHistoryTypeOrDefault(type);
+        //2. 유형값 설정
+        HistoryType historyType = parseHistoryTypeOrThrows(type);
+        HistoryDateFilter dateFilter = new HistoryDateFilter(year, month, week);
+
+        if(dateFilter.hasDate()) {
+            ledgerPolicy.validateHistoryDate(historyType, dateFilter);
+        }
 
         //3. 내역 유형별로 시작일과 종료일 기간 계산
-        LedgerPeriod period = ledgerPolicy.resolveHistoryPeriod(historyType);
+        LocalDate date = dateFilter.hasDate() ? getLocalDate(dateFilter) :  LocalDate.now(clock);
+        LedgerPeriod period = ledgerPolicy.resolveHistoryPeriod(historyType, date);
 
         //4. 기간 별 회원이 작성한 가계부 내역 조회
         List<LedgerHistoryQuery> historyQueries = ledgerReadService.findLedgerByDate(memberId, period.getFromDate(), period.getToDate());
@@ -82,11 +92,15 @@ public class LedgerHistoryService {
         //5. 날짜별로 3개로 나열하여 그룹화
         List<LedgerHistoryDisplay> chunkHistory = chunkLedgersByRow(historyQueries, HISTORY_MAX_ROW);
 
-        //6. 기간 내 조회된 가계부 정보를 응답 객체로 구성
+        //6. 차트 데이터 조회
+        List<ChartBarItem> chart = fetchChartDataByType(memberId, historyType, date);
+
+        //7. 기간 내 조회된 가계부 정보를 응답 객체로 구성
         return HistoryDashboardResponse.of(
-                ledgerPolicy.getTitleByHistoryType(historyType),
+                ledgerPolicy.getTitleByHistoryType(historyType, date),
                 calculateTotalAmount(historyQueries),
-                chunkHistory
+                chunkHistory,
+                chart
         );
     }
 
@@ -95,14 +109,14 @@ public class LedgerHistoryService {
         String memberId = currentUser.getMemberId();
 
         //2, 내역 유형 및 메뉴 조회 (기본값 세팅)
-        HistoryType historyType = parseHistoryTypeOrDefault(request.getType());
+        HistoryType historyType = parseHistoryTypeOrThrows(request.getType());
         HistoryMenu historyMenu = parseHistoryMenuDefault(request.getMenu());
 
         //3. 메뉴별 조건 검증
         ledgerPolicy.validateSearchCondition(historyMenu, request);
 
         //4. 내역 유형 및 메뉴로 시작일과 종료일 기간 계산
-        LedgerPeriod period = ledgerPolicy.resolveHistoryPeriod(historyType);
+        LedgerPeriod period = ledgerPolicy.resolveHistoryPeriod(historyType, LocalDate.now(clock));
         if (historyMenu.equals(HistoryMenu.PERIOD)) {
             LocalDate fromDate = DateTimeUtil.parseDateOrToday(request.getFromDate());
             LocalDate toDate = DateTimeUtil.parseDateOrToday(request.getToDate());
@@ -118,22 +132,8 @@ public class LedgerHistoryService {
         return chunkLedgersByRow(historyQueries, HISTORY_MAX_ROW);
     }
 
-    public List<ChartBarItem> fetchChartDataByType(String type) {
-        //1. 인증된 회원 조회
-        String memberId = currentUser.getMemberId();
-
-        //2, 내역 유형 조회 (기본값 세팅)
-        HistoryType historyType = parseHistoryTypeOrDefault(type);
-
-        //3. 내역 유형별로 시작일과 종료일 기간 계산
-        LedgerPeriod period = ledgerPolicy.resolveChartPeriod(historyType);
-
-        //4. 유형별 조회된 통계 정보를 응답 객체로 구성
-        return ledgerReadService.generateChartDataByType(memberId, historyType, period.getFromDate(), period.getToDate());
-    }
-
     public MenuResponse buildSubMenu(String type) {
-        HistoryType historyType = parseHistoryTypeOrDefault(type);
+        HistoryType historyType = parseHistoryTypeOrThrows(type);
 
         return switch (historyType) {
             case YEAR -> MenuResponse.from(
@@ -170,7 +170,20 @@ public class LedgerHistoryService {
     }
 
 
-    //===== searchLedgersByDate 보조 메서드 =====
+    //===== findHistories 보조 메서드 =====
+    private LocalDate getLocalDate(HistoryDateFilter dateFilter) {
+        int month =  dateFilter.getMonth() == null ? 1 : dateFilter.getMonth();
+        int week =  dateFilter.getWeek() == null ? 1 : dateFilter.getWeek();
+
+        int day = 1 + 7 * (week - 1);
+        int lastDay = LocalDate.of(dateFilter.getYear(), month, 1).lengthOfMonth();
+        if(day > lastDay) {
+            day = lastDay;
+        }
+
+        return LocalDate.of(dateFilter.getYear(), month, day);
+    }
+
     private List<HistoryGroup> groupByDate(List<LedgerHistoryQuery> historyQueries) {
         return historyQueries.stream()
                 .filter(query -> query.getDate() != null)
@@ -228,6 +241,14 @@ public class LedgerHistoryService {
         return LedgerStatistics.of(income, outlay);
     }
 
+    private List<ChartBarItem> fetchChartDataByType(String memberId, HistoryType type, LocalDate date) {
+        //1. 내역 유형별로 시작일과 종료일 기간 계산
+        LedgerPeriod period = ledgerPolicy.resolveChartPeriod(type, date);
+
+        //2. 유형별 조회된 통계 정보를 응답 객체로 구성
+        return ledgerReadService.generateChartDataByType(memberId, type, period.getFromDate(), period.getToDate());
+    }
+
 
     //===== buildSubMenu 보조 메서드 =====
     private MenuItem createMenuByType(HistoryMenu menu) {
@@ -279,12 +300,18 @@ public class LedgerHistoryService {
 
 
     //===== 유틸 메서드 =====
-    private HistoryType parseHistoryTypeOrDefault(String type) {
+    private HistoryType parseHistoryTypeOrThrows(String type) {
         try {
             return HistoryType.from(type);
         } catch (NoSuchElementException e) {
-            AuditLogger.warn("지원하지 않는 HistoryType, MONTH 반환 - type: {}", type);
-            return HistoryType.MONTH;
+           throw new ApplicationException(
+                   ErrorCode.POLICY_VIOLATION,
+                   LogContent.of(
+                           "HistoryType 변환",
+                           HistoryType.class,
+                           type
+                   ).withCause("지원하지 않은 HistoryType")
+           );
         }
     }
 

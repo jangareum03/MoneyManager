@@ -3,15 +3,18 @@ package com.moneymanager.ledger.service.application;
 import com.moneymanager.global.config.MutableClock;
 import com.moneymanager.global.config.TimeConfig;
 import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
+import com.moneymanager.ledger.domain.dto.response.history.HistoryDashboardResponse;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
+import com.moneymanager.ledger.domain.dto.response.history.LedgerStatistics;
 import com.moneymanager.ledger.domain.dto.response.history.MenuResponse;
 import com.moneymanager.ledger.domain.dto.response.item.CategoryItem;
 import com.moneymanager.ledger.domain.dto.response.item.ChartBarItem;
 import com.moneymanager.ledger.domain.dto.response.item.MenuItem;
 import com.moneymanager.ledger.domain.enums.HistoryMenu;
+import com.moneymanager.ledger.domain.enums.HistoryType;
+import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.security.WithMockCustomUser;
-import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,7 +29,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 /**
  * <p>
@@ -173,6 +178,291 @@ class LedgerHistoryServiceIT extends IntegrationTest {
             assertThat(subItem.get("식비")).hasSize(6);
             assertThat(subItem.get("교육")).hasSize(5);
             assertThat(subItem.get("저축")).hasSize(4);
+        }
+
+    }
+
+
+    @Nested
+    @Import(TimeConfig.class)
+    @WithMockCustomUser(memberId = "member1")
+    @Sql(
+            scripts = {"/sql/ledger-history-test.sql"},
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+    )
+    @Sql(
+            scripts = "/sql/clear-test.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+    )
+    @DisplayName("내역 유형별 가계부 조회할 때")
+    class FindHistories {
+
+        @Nested
+        @DisplayName("성공")
+        class Success {
+            
+            @Test
+            @DisplayName("YEAR이면서 선택한 날짜가 없으면 현재 날짜의 연초와 연말 기간의 내역만 조회한다.")
+            void fetchesHistoryByCurrentYear_whenTypeIsYearAndSelectedDateIsNull() {
+            	//when
+                HistoryDashboardResponse result = target.findHistories("year", null, null, null);
+            	
+            	//then
+                assertThat(result).isNotNull();
+
+                assertThat(result.getTitle()).isEqualTo("2026년");
+                assertThat(result.getStatistics())
+                        .extracting(
+                                LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay
+                        )
+                        .containsExactly(2994000L, 2522000L, 472000L);
+
+                assertThat(result.getHistoryGroups()).hasSize(5);
+
+                //then: 차트 데이터 검증
+                List<ChartBarItem> chart = result.getChartBarItems();
+
+                assertThat(chart).hasSize(12);
+
+                assertThat(chart).element(0)
+                        .extracting(
+                                ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
+                        )
+                        .containsExactly(
+                                "1월", 2512000L, 442000L
+                        );
+
+                assertThat(chart).element(11)
+                        .extracting(
+                                ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
+                        )
+                        .containsExactly(
+                                "12월", 0L, 0L
+                        );
+            }
+            
+            @Test
+            @DisplayName("MONTH이면서 선택한 날짜가 없으면 현재 날짜의 월초와 월말 기간의 내역만 조회한다.")
+            void fetchesHistoryByCurrentMonth_whenTypeIsMonthAndSelectedDateIsNull() {
+            	//given
+                clock.set(LocalDate.of(2026, 2, 10));
+
+                //when
+                HistoryDashboardResponse result = target.findHistories("month", null, null, null);
+
+                //then
+                assertThat(result).isNotNull();
+
+                assertThat(result.getTitle()).isEqualTo("2026년 02월");
+                assertThat(result.getStatistics())
+                        .extracting(
+                                LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay
+                        )
+                        .containsExactly(40000L, 10000L, 30000L);
+
+                assertThat(result.getHistoryGroups()).hasSize(1);
+
+                //then: 차트 데이터 검증
+                List<ChartBarItem> chart = result.getChartBarItems();
+
+                assertThat(chart).hasSize(9);
+
+                assertThat(chart).element(0)
+                        .extracting(
+                                ChartBarItem::getLabel, ChartBarItem::getOutlay
+                        )
+                        .containsExactly(
+                                "식비", 10000L
+                        );
+                assertThat(chart).element(8)
+                        .extracting(
+                                ChartBarItem::getLabel, ChartBarItem::getOutlay
+                        )
+                        .containsExactly(
+                                "저축", 0L
+                        );
+            }
+            
+            @Test
+            @DisplayName("WEEK이면서 선택한 날짜가 없으면 현재 날짜의 주 시작일과 종료일 기간의 내역만 조회한다.")
+            void fetchesHistoryByCurrentWeek_whenTypeIsWeekAndSelectedDateIsNull() {
+                //when
+                HistoryDashboardResponse result = target.findHistories("week", null, null, null);
+
+                //then
+                assertThat(result).isNotNull();
+
+                assertThat(result.getTitle()).isEqualTo("2026년 01월 1주");
+                assertThat(result.getStatistics())
+                        .extracting(
+                                LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay
+                        )
+                        .containsExactly(2654000L, 2512000L, 142000L);
+
+                assertThat(result.getHistoryGroups()).hasSize(3);
+
+                //then: 차트 데이터 검증
+                List<ChartBarItem> chart = result.getChartBarItems();
+
+                assertThat(chart).hasSize(5);
+
+                assertThat(chart).element(0)
+                        .extracting(
+                                ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
+                        )
+                        .containsExactly(
+                                "1주", 2512000L, 142000L
+                        );
+
+                assertThat(chart).element(4)
+                        .extracting(
+                                ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
+                        )
+                        .containsExactly(
+                                "5주", 0L, 0L
+                        );
+            }
+            
+            @Test
+            @DisplayName("선택한 날짜가 있으면 해당 날짜의 type별 기간의 내역만 조회한다.")
+            void fetchesHistoryBySelectedDateAndType_whenSelectedDateIsGiven() {
+            	//given
+                String type = "month";
+                Integer year = 2025;
+                Integer month = 12;
+            	
+            	//when
+                HistoryDashboardResponse result = target.findHistories(type, year, month, null);
+            	
+            	//then
+                assertThat(result).isNotNull();
+
+                assertThat(result.getTitle()).isEqualTo("2025년 12월");
+                assertThat(result.getStatistics())
+                        .extracting(
+                                LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay
+                        )
+                        .containsExactly(65000L, 50000L, 15000L);
+
+                assertThat(result.getHistoryGroups()).hasSize(1);
+
+                //then: 차트 데이터 검증
+                List<ChartBarItem> chart = result.getChartBarItems();
+
+                assertThat(chart).hasSize(9);
+
+                assertThat(chart).element(0)
+                        .extracting(
+                                ChartBarItem::getLabel, ChartBarItem::getOutlay
+                        )
+                        .containsExactly(
+                                "식비", 15000L
+                        );
+                assertThat(chart).element(8)
+                        .extracting(
+                                ChartBarItem::getLabel, ChartBarItem::getOutlay
+                        )
+                        .containsExactly(
+                                "저축", 0L
+                        );
+            }
+
+            @Test
+            @DisplayName("기간 내 내역이 없어도 정상적으로 조회된다.")
+            void returnsEmptyList_whenNoDataInPeriod() {
+            	//given
+                String type = "week";
+                Integer year = 2024;
+                Integer month = 6;
+                Integer week = 3;
+
+                //when
+                HistoryDashboardResponse result = target.findHistories(type,  year, month, week);
+
+                //then
+                assertThat(result).isNotNull();
+
+                assertThat(result.getTitle()).isEqualTo("2024년 06월 3주");
+                assertThat(result.getStatistics())
+                        .extracting(
+                                LedgerStatistics::getTotal, LedgerStatistics::getIncome, LedgerStatistics::getOutlay
+                        )
+                        .containsOnly(0L);
+
+                assertThat(result.getHistoryGroups()).isEmpty();
+            }
+
+        }
+
+        @Nested
+        @DisplayName("실패")
+        class Failure {
+
+            @Test
+            @DisplayName("유효하지 않은 type이면 예외를 발생시킨다.")
+            void defaultToMonthType_whenTypeIsInvalid() {
+                //given
+                String type = "none";
+
+                //when
+                Throwable throwable = catchThrowable(() -> target.findHistories(type, null, null, null));
+
+                //then
+                ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(POLICY_VIOLATION)
+                        .hasWork("HistoryType 변환")
+                        .hasCauseMessage("지원하지 않은 HistoryType")
+                        .hasTarget(HistoryType.class)
+                        .hasValue(type);
+            }
+
+            @Test
+            @DisplayName("연이 없고 다른 날짜가 있으면 예외를 발생시킨다.")
+            void throwsException_whenYearIsMissingAndOtherDateExists() {
+            	//given
+                int month = 2;
+            	
+            	//when
+                Throwable throwable = catchThrowable(() -> target.findHistories(HistoryType.YEAR.name(), null, month, null));
+            	
+            	//then
+                ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(POLICY_VIOLATION)
+                        .hasWork("연도 검증")
+                        .hasValue("year", null)
+                        .hasCauseMessage("내역 조회에 필요한 연도 누락");
+            }
+
+            @Test
+            @DisplayName("월이 없고 다른 날짜가 있으면 예외를 발생시킨다")
+            void throwsException_whenMonthIsMissingAndOtherDateExists() {
+                //when
+                Throwable throwable = catchThrowable(() -> target.findHistories(HistoryType.MONTH.name(), 2026, null, 2));
+
+                //then
+                ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(POLICY_VIOLATION)
+                        .hasWork("월 검증")
+                        .hasValue("month", null)
+                        .hasCauseMessage("내역 조회에 필요한 월 누락");
+            }
+
+            @Test
+            @DisplayName("주가 없고 다른 날짜가 있으면 예외를 발생시킨다")
+            void throwsException_whenWeekIsMissingAndOtherDateExists() {
+                //when
+                Throwable throwable = catchThrowable(() -> target.findHistories(HistoryType.WEEK.name(), 2026, 2, null));
+
+                //then
+                ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(POLICY_VIOLATION)
+                        .hasWork("주 검증")
+                        .hasValue("week", null)
+                        .hasCauseMessage("내역 조회에 필요한 주 누락");
+            }
+
         }
 
     }
@@ -343,126 +633,6 @@ class LedgerHistoryServiceIT extends IntegrationTest {
             
         }
         
-    }
-
-
-    @Nested
-    @Import(TimeConfig.class)
-    @WithMockCustomUser(memberId = "member1")
-    @Sql(
-            scripts = {"/sql/ledger-stat-test.sql"},
-            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
-    )
-    @Sql(
-            scripts = "/sql/clear-test.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
-    )
-    @DisplayName("유형별 차트 데이터를 조회할 때")
-    class GetChart {
-        
-        @Test
-        @DisplayName("연간 내역을 조회하면 월별 수입과 지출 통계를 반환한다.")
-        void returnsMonthlyStatistics_whenYearIsGiven() {
-        	//when
-        	List<ChartBarItem> result = target.fetchChartDataByType("year");
-
-        	//then
-        	assertThat(result)
-                    .isNotEmpty()
-                    .hasSize(12);
-
-
-            assertThat(result.get(0))
-                    .extracting(
-                            ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
-                    )
-                    .containsExactly(
-                            "1월", 10000L, 0L
-                    );
-
-            assertThat(result.get(11))
-                    .extracting(
-                            ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
-                    )
-                    .containsExactly(
-                            "12월", 0L, 0L
-                    );
-        }
-        
-        @Test
-        @DisplayName("월간 내역을 조회하면 카테고리별 지출 통계를 반환한다.")
-        void returnsCategoryStatistics_whenMonthIsGiven() {
-            //given
-            clock.set(LocalDate.of(2026, 8, 1));
-
-            //when
-            List<ChartBarItem> result = target.fetchChartDataByType("month");
-
-            //then
-            assertThat(result.get(0))
-                    .extracting(
-                            ChartBarItem::getLabel, ChartBarItem::getOutlay
-                    )
-                    .containsExactly(
-                            "식비", 3000L
-                    );
-            assertThat(result.get(8))
-                    .extracting(
-                            ChartBarItem::getLabel, ChartBarItem::getOutlay
-                    )
-                    .containsExactly(
-                            "저축", 0L
-                    );
-        }
-        
-        @Test
-        @DisplayName("주간 내역을 조회하면 주별 수입과 지출 통계를 반환한다.")
-        void returnsWeeklyStatistics_whenWeekIsGiven() {
-            //given
-            clock.set(LocalDate.of(2026, 8, 1));
-
-            //when
-            List<ChartBarItem> result = target.fetchChartDataByType("week");
-
-            //then
-            assertThat(result.get(0))
-                    .extracting(
-                            ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
-                    )
-                    .containsExactly(
-                            "1주", 500L, 0L
-                    );
-
-            assertThat(result.get(5))
-                    .extracting(
-                            ChartBarItem::getLabel, ChartBarItem::getIncome, ChartBarItem::getOutlay
-                    )
-                    .containsExactly(
-                            "6주", 0L, 0L
-                    );
-        }
-        
-        @Test
-        @DisplayName("내역이 없으면 빈 목록을 반화한다.")
-        void returnsEmptyList_whenDataDoesNotExist() {
-            //given
-            clock.set(LocalDate.of(2026, 9, 1));
-
-            //when
-            List<ChartBarItem> result = target.fetchChartDataByType("week");
-        	
-        	//then
-            assertThat(result).hasSize(5);
-
-            assertThat(result)
-                    .extracting(ChartBarItem::getIncome, ChartBarItem::getOutlay)
-                    .containsOnly(
-                            Tuple.tuple(0L, 0L)
-                    );
-        }
-
     }
 
 }

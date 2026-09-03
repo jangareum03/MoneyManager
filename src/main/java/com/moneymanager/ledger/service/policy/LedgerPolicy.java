@@ -5,6 +5,7 @@ import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
+import com.moneymanager.ledger.domain.dto.response.history.HistoryDateFilter;
 import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.enums.DateUnit;
@@ -13,7 +14,6 @@ import com.moneymanager.ledger.domain.enums.HistoryType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -53,8 +53,6 @@ import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
 @AllArgsConstructor
 public class LedgerPolicy {
 
-    private final Clock clock;
-
     private final LedgerDatePolicy datePolicy;
     private final LedgerDateOptionPolicy dateOptionPolicy;
     private final LedgerHistoryPeriodPolicy historyPeriodPolicy;
@@ -68,24 +66,22 @@ public class LedgerPolicy {
         return datePolicy.maximum();
     }
 
-    public LedgerPeriod resolveHistoryPeriod(HistoryType type) {
+    public LedgerPeriod resolveHistoryPeriod(HistoryType type, LocalDate date) {
         return switch (type) {
-            case YEAR -> historyPeriodPolicy.resolveYear();
-            case MONTH -> historyPeriodPolicy.resolveMonth();
-            case WEEK -> historyPeriodPolicy.resolveWeek();
+            case YEAR -> historyPeriodPolicy.resolveYear(date);
+            case MONTH -> historyPeriodPolicy.resolveMonth(date);
+            case WEEK -> historyPeriodPolicy.resolveWeek(date);
         };
     }
 
-    public LedgerPeriod resolveChartPeriod(HistoryType type) {
+    public LedgerPeriod resolveChartPeriod(HistoryType type, LocalDate date) {
         return switch (type) {
-            case YEAR -> historyPeriodPolicy.resolveYear(maximumDate());
-            case MONTH, WEEK -> historyPeriodPolicy.resolveMonth();
+            case YEAR -> historyPeriodPolicy.resolveYear(date);
+            case MONTH, WEEK -> historyPeriodPolicy.resolveMonth(date);
         };
     }
 
-    public String getTitleByHistoryType(HistoryType type) {
-        LocalDate date = LocalDate.now(clock);
-
+    public String getTitleByHistoryType(HistoryType type, LocalDate date) {
         return switch (type) {
             case YEAR -> date.format(DateTimeFormatter.ofPattern(KOREAN_YEAR.getPattern()));
             case MONTH -> date.format(DateTimeFormatter.ofPattern(KOREAN_YEAR_MONTH.getPattern()));
@@ -144,6 +140,18 @@ public class LedgerPolicy {
         }
     }
 
+    public void validateHistoryDate(HistoryType type, HistoryDateFilter dateFilter) {
+        historyPeriodPolicy.validateYear(dateFilter);
+
+        if(type == HistoryType.MONTH || type == HistoryType.WEEK) {
+            historyPeriodPolicy.validateMonth(dateFilter);
+        }
+
+        if(type == HistoryType.WEEK) {
+            historyPeriodPolicy.validateWeek(dateFilter);
+        }
+    }
+
     public void validateSearchCondition(HistoryMenu menu, LedgerSearchRequest request) {
         switch (menu) {
             case CATEGORY, SUB_CATEGORY -> validateCategory(request.getCategories());
@@ -152,6 +160,8 @@ public class LedgerPolicy {
         }
     }
 
+
+    //===== validateSearchCondition 보조 메서드 =====
     private void validateCategory(List<String> categories) {
         if(categories == null || categories.isEmpty()) {
             throw new ApplicationException(
