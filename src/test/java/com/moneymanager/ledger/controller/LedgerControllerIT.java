@@ -1,25 +1,24 @@
 package com.moneymanager.ledger.controller;
 
-import com.moneymanager.global.config.TimeConfig;
+import com.moneymanager.global.config.MutableClock;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.CategoryTestData;
 import com.moneymanager.support.data.LedgerTestData;
-import com.moneymanager.support.data.MemberTestData;
+import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,12 +59,17 @@ public class LedgerControllerIT extends IntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private MutableClock clock;
+
     private final String BASE_URI = "/ledgers";
     private Member member;
 
     @BeforeEach
     void setUp() {
-        member = memberRepository.findById(MemberTestData.DEFAULT_ID);
+        member = MemberTestFixture.builder().build(passwordEncoder);
+
+        insertMember(member);
     }
 
     @Nested
@@ -299,15 +303,12 @@ public class LedgerControllerIT extends IntegrationTest {
 
 
     @Nested
-    @Import(TimeConfig.class)
     @Sql(
-            scripts = {"/sql/ledger-history-test.sql"},
-            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+            scripts = {"/sql/ledger-history-test.sql"}
     )
     @Sql(
             scripts = "/sql/clear-test.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
     )
     @DisplayName("가계부 내역을 조회할 때")
     class GetHistories {
@@ -321,11 +322,14 @@ public class LedgerControllerIT extends IntegrationTest {
             @Test
             @DisplayName("요청에서 type이 누락되면 month으로 진행한다.")
             void returnsHistoryWithDefaultMonthType_whenTypeIsMissing() throws Exception {
-            	//when
+                //given
+                clock.set(LocalDate.of(2026, 1, 1));
+
+                //when
                 mockMvc.perform(
-                        get(URI)
-                                .cookie(accessTokenCookie("member1"))
-                )
+                                get(URI)
+                                        .cookie(accessTokenCookie("member1"))
+                        )
                         .andExpect(status().isOk())
                         .andExpect(model().attribute("type", "month"))
                         .andExpect(model().attribute("history", hasProperty("title", is("2026년 01월"))))
@@ -335,54 +339,57 @@ public class LedgerControllerIT extends IntegrationTest {
             @Test
             @DisplayName("요청에서 type만 있어도 현재 날짜 기준으로 내역을 조회한다.")
             void returnsHistoryForCurrentDate_whenOnlyTypeIsGiven() throws Exception {
-            	//given
+                //given
+                clock.set(LocalDate.of(2026, 1, 1));
+
                 String type = "month";
-            	
-            	//when
+
+                //when
                 mockMvc.perform(
-                        get(URI)
-                                .param("type", type)
-                                .cookie(accessTokenCookie("member1"))
-                )
+                                get(URI)
+                                        .param("type", type)
+                                        .cookie(accessTokenCookie("member1"))
+                        )
                         .andExpect(status().isOk())
                         .andExpect(model().attribute("history",
-                                hasProperty("historyGroups", hasSize(4))));
+                                hasProperty("historyGroups", hasSize(4))
+                        ));
             }
-            
+
             @Test
             @DisplayName("요청에서 날짜가 있으면 날짜별로 내역을 조회한다.")
             void returnsHistoryByDate_whenDateIsGiven() throws Exception {
-            	//given
+                //given
                 String type = "month";
                 Integer year = 2026;
                 Integer month = 3;
-            	
-            	//when
+
+                //when
                 mockMvc.perform(
-                        get(URI)
-                                .param("type", type)
-                                .param("year", String.valueOf(year))
-                                .param("month", String.valueOf(month))
-                                .cookie(accessTokenCookie("member1"))
-                )
+                                get(URI)
+                                        .param("type", type)
+                                        .param("year", String.valueOf(year))
+                                        .param("month", String.valueOf(month))
+                                        .cookie(accessTokenCookie("member1"))
+                        )
                         .andDo(print())
                         .andExpect(status().isOk())
                         .andExpect(model().attribute("history", hasProperty("title", is("2026년 03월"))))
                         .andExpect(model().attribute("history", hasProperty("historyGroups", empty())));
             }
-            
+
             @Test
             @DisplayName("type이 YEAR이면 기간 메뉴가 존재한다.")
             void returnsHistoryWithPeriodMenu_whenTypeIsYear() throws Exception {
-            	//given
+                //given
                 String type = "year";
-            	
-            	//when
+
+                //when
                 mockMvc.perform(
-                        get(URI)
-                                .param("type", type)
-                                .cookie(accessTokenCookie("member1"))
-                )
+                                get(URI)
+                                        .param("type", type)
+                                        .cookie(accessTokenCookie("member1"))
+                        )
                         .andExpect(status().isOk())
                         .andExpect(model().attribute("menu", hasProperty("menus", hasSize(5))));
             }
@@ -396,11 +403,11 @@ public class LedgerControllerIT extends IntegrationTest {
             @Test
             @DisplayName("type과 날짜 값이 다르면 403을 발생시킨다.")
             void returns403Forbidden_whenTypeAndDateMismatch() throws Exception {
-            	//given: WEEK 타입에 month와 week날짜 값이 없다.
+                //given: WEEK 타입에 month와 week날짜 값이 없다.
                 String type = "week";
                 Integer year = 2026;
-            	
-            	//when
+
+                //when
                 mockMvc
                         .perform(
                                 get(URI)
@@ -418,38 +425,35 @@ public class LedgerControllerIT extends IntegrationTest {
 
 
     @Nested
-    @Import(TimeConfig.class)
     @Sql(
-            scripts = {"/sql/ledger-get-test.sql"},
-            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+            scripts = {"/sql/ledger-get-test.sql"}
     )
     @Sql(
             scripts = "/sql/clear-test.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
     )
     @DisplayName("가계부 상세 정보를 요청할 때")
     class GetDetail {
 
         String URI = "/ledgers/{code}";
-        
+
         @Test
         @DisplayName("작성된 가계부 요청하면 상세 정보를 반환한다.")
         void returnsLedgerDetail_whenExists() throws Exception {
-        	//when
+            //when
             mockMvc.perform(
-                    get(URI, "code1")
-                            .cookie(accessTokenCookie("member1"))
-            )
+                            get(URI, "code1")
+                                    .cookie(accessTokenCookie("member1"))
+                    )
                     .andExpect(status().isOk())
                     .andExpect(model().attributeExists("ledger"))
                     .andExpect(view().name("/ledger/ledger_detail"));
         }
-        
+
         @Test
         @DisplayName("존재하지 않은 가계부로 요청하면 내역 조회 화면으로 이동한다.")
         void redirectsToLedgerHistories_whenLedgerDoesNotExist() throws Exception {
-        	//when
+            //when
             mockMvc.perform(
                             get(URI, "code5")
                                     .cookie(accessTokenCookie("member1"))
@@ -457,35 +461,32 @@ public class LedgerControllerIT extends IntegrationTest {
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/ledgers"));
         }
-        
+
         @Test
         @DisplayName("타인의 가계부로 요청하면 내역 조회 화면으로 이동한다.")
         void redirectsToAccountBookList_whenUserIsNotOwner() throws Exception {
-        	//given
+            //given
             String code = "code3";
-        	
-        	//when
+
+            //when
             mockMvc.perform(
-                    get(URI, code)
-                            .cookie(accessTokenCookie("member1"))
-            )
+                            get(URI, code)
+                                    .cookie(accessTokenCookie("member1"))
+                    )
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/ledgers"));
         }
-        
+
     }
 
 
     @Nested
-    @Import(TimeConfig.class)
     @Sql(
-            scripts = {"/sql/ledger-get-test.sql"},
-            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+            scripts = {"/sql/ledger-get-test.sql"}
     )
     @Sql(
             scripts = "/sql/clear-test.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-            config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
     )
     @DisplayName("가계부 수정 정보를 요청할 때")
     class GetEdit {

@@ -53,7 +53,7 @@ public class ImageSlotPolicy {
 		for(int i=0; i<MAX_SLOT; i++){
 			ImageSlot slot = createLockedSlot();
 
-			if(i <= availImgCnt) {
+			if(i < availImgCnt) {
 				slot = createEmptySlot("/image/ledger/slot-unlock.svg");
 			}
 

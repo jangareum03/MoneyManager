@@ -2,9 +2,12 @@ package com.moneymanager.ledger.repository;
 
 import com.moneymanager.ledger.domain.entity.Ledger;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
+import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.fixture.entity.LedgerImageTestFixture;
 import com.moneymanager.support.fixture.entity.LedgerTestFixture;
+import com.moneymanager.support.fixture.entity.MemberTestFixture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -49,6 +52,15 @@ class LedgerImageRepositoryIT extends IntegrationTest {
 
     @Autowired
     LedgerImageRepository imageRepository;
+
+    Member member;
+
+    @BeforeEach
+    void setUp() {
+        member = MemberTestFixture.builder().build(passwordEncoder);
+
+        insertMember(member);
+    }
 
     @Nested
     @DisplayName("가계부 코드로 이미지 조회할 때")

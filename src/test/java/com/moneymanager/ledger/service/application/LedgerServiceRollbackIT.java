@@ -6,6 +6,7 @@ import com.moneymanager.ledger.domain.entity.LedgerImage;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.fixture.entity.LedgerTestFixture;
+import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +59,11 @@ public class LedgerServiceRollbackIT extends IntegrationTest {
 
     @SpyBean
     LedgerImageRepository imageRepository;
+
+    @BeforeEach
+    void setUp() {
+        insertMember(MemberTestFixture.builder().build(passwordEncoder));
+    }
 
     @Nested
     @DisplayName("가계부 수정 요청할 때")

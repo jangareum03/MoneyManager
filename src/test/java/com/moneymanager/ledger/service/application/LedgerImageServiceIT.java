@@ -7,6 +7,7 @@ import com.moneymanager.ledger.service.storage.LedgerImageStorage;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerTestFixture;
+import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import com.moneymanager.support.fixture.file.ImageFixture;
 import com.moneymanager.support.security.WithMockCustomUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,6 +71,11 @@ public class LedgerImageServiceIT extends IntegrationTest {
 
     @SpyBean
     private LedgerImageStorage imageStorage;
+
+    @BeforeEach
+    void setUp() {
+        insertMember(MemberTestFixture.builder().build(passwordEncoder));
+    }
 
 
     @Nested

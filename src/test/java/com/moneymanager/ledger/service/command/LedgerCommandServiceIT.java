@@ -8,6 +8,7 @@ import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.LedgerTestData;
 import com.moneymanager.support.fixture.entity.LedgerTestFixture;
+import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import com.moneymanager.support.fixture.request.LedgerUpdateRequestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,6 +55,11 @@ class LedgerCommandServiceIT extends IntegrationTest {
 
     @Autowired
     LedgerCommandService target;
+
+    @BeforeEach
+    void setUp() {
+        insertMember(MemberTestFixture.builder().build(passwordEncoder));
+    }
 
     @Nested
     @DisplayName("가계부 수정할 때")

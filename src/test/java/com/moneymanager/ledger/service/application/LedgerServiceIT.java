@@ -85,6 +85,12 @@ class LedgerServiceIT extends IntegrationTest {
     @SpyBean
     private LedgerImageStorage imageStorage;
 
+    @BeforeEach
+    void setUp() {
+        insertMember(MemberTestFixture.builder().build(passwordEncoder));
+    }
+
+
     @Nested
     @WithMockCustomUser
     @DisplayName("작성 2단계에 필요한 정보를 조회할 때")

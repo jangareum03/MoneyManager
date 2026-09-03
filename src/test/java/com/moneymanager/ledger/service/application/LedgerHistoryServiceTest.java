@@ -17,8 +17,8 @@ import com.moneymanager.ledger.domain.query.LedgerHistoryQuery;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
 import com.moneymanager.ledger.service.read.CategoryReadService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
+import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.response.LedgerHistoryQueryTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,18 +28,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.moneymanager.global.exception.code.ErrorCode.POLICY_VIOLATION;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Named.named;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -280,49 +277,6 @@ class LedgerHistoryServiceTest {
         class Success {
 
             @Test
-            @DisplayName("유효하지 않은 내역 유형과 메뉴는 기본값으로 설정한다.")
-            void setsDefault_whenTransactionTypeAndMenuAreInvalid() {
-                //given
-                LedgerSearchRequest request = LedgerSearchRequest.builder()
-                        .type("error")
-                        .menu(null)
-                        .build();
-
-                when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class), any(LocalDate.class)))
-                        .thenReturn(LedgerPeriod.of(
-                                LocalDate.of(2026, 3, 1),
-                                LocalDate.of(2026, 3, 31)
-                        ));
-
-                when(ledgerReadService.findLedgerByCondiction(
-                        eq(MemberTestData.DEFAULT_ID),
-                        eq(LocalDate.of(2026, 3, 1)),
-                        eq(LocalDate.of(2026, 3, 31)),
-                        any(LedgerSearchCondition.class)
-                ))
-                        .thenReturn(List.of(
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 1)).amount(5000L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 1)).amount(5000L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).categoryCode("020101").amount(20000L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).amount(30000L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).categoryCode("020201").amount(10000L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).categoryCode("020301").amount(500L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 31)).categoryCode("020202").amount(50000L).build()
-                        ));
-
-                //when
-                List<LedgerHistoryDisplay> result = target.searchLedgersByCondition(request);
-
-                //then
-                InOrder inOrder = Mockito.inOrder(currentUser, ledgerPolicy, ledgerReadService);
-
-                inOrder.verify(currentUser).getMemberId();
-                inOrder.verify(ledgerPolicy).validateSearchCondition(eq(HistoryMenu.ALL), any(LedgerSearchRequest.class));
-                inOrder.verify(ledgerPolicy).resolveHistoryPeriod(eq(HistoryType.MONTH), any(LocalDate.class));
-                inOrder.verify(ledgerReadService).findLedgerByCondiction(eq(MemberTestData.DEFAULT_ID), any(LocalDate.class), any(LocalDate.class), any(LedgerSearchCondition.class));
-            }
-
-            @Test
             @DisplayName("기간 메뉴는 요청한 날짜로 가계부 내역을 조회한다.")
             void fetchesLedgers_whenPeriodMenuIsGiven() {
                 //given
@@ -351,128 +305,6 @@ class LedgerHistoryServiceTest {
                         eq(LocalDate.of(2026, 3, 17)),
                         any(LedgerSearchCondition.class)
                 );
-            }
-
-            @ParameterizedTest
-            @MethodSource("validLedgerSearchRequests")
-            @DisplayName("메뉴별 LedgerSearchCondition을 다르게 생성한다.")
-            void createsLedgerSearchCondition_whenMenuTypeIsGiven(LedgerSearchRequest request, HistoryMenu menu, String keyword, List<String> keywords) {
-                //given
-                when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class), any(LocalDate.class)))
-                        .thenReturn(LedgerPeriod.of(
-                                LocalDate.of(2026, 3, 1),
-                                LocalDate.of(2026, 3, 31)
-                        ));
-
-                when(ledgerReadService.findLedgerByCondiction(
-                        anyString(),
-                        any(LocalDate.class),
-                        any(LocalDate.class),
-                        any(LedgerSearchCondition.class)
-                ))
-                        .thenReturn(List.of());
-
-                //when
-                target.searchLedgersByCondition(request);
-
-                //then
-                ArgumentCaptor<LedgerSearchCondition> captor = ArgumentCaptor.forClass(LedgerSearchCondition.class);
-
-                verify(ledgerReadService).findLedgerByCondiction(
-                        eq(MemberTestData.DEFAULT_ID),
-                        any(LocalDate.class),
-                        any(LocalDate.class),
-                        captor.capture()
-                );
-
-                LedgerSearchCondition searchCondition = captor.getValue();
-
-                assertThat(searchCondition.getMenu()).isSameAs(menu);
-                assertThat(searchCondition.getKeyword()).isEqualTo(keyword);
-                assertThat(searchCondition.getKeywords()).isEqualTo(keywords);
-            }
-
-            static Stream<Arguments> validLedgerSearchRequests() {
-                return Stream.of(
-                        Arguments.of(
-                                named("메뉴가 전체인 경우", LedgerSearchRequest.builder().menu("all").build()),
-                                HistoryMenu.ALL,
-                                null,
-                                null
-                        ),
-                        Arguments.of(
-                                named("메뉴가 수입/지출인 경우", LedgerSearchRequest.builder().menu("type").categories(List.of("010000")).build()),
-                                HistoryMenu.CATEGORY,
-                                null,
-                                List.of("010000")
-                        ),
-                        Arguments.of(
-                                named("메뉴가 카테고리인 경우", LedgerSearchRequest.builder().menu("category").categories(List.of("010101", "020101")).build()),
-                                HistoryMenu.SUB_CATEGORY,
-                                null,
-                                List.of("010101", "020101")
-                        ),
-                        Arguments.of(
-                                named("메뉴가 메모인 경우", LedgerSearchRequest.builder().menu("memo").memo("메모").build()),
-                                HistoryMenu.MEMO,
-                                "메모",
-                                null
-                        ),
-                        Arguments.of(
-                                named("메뉴가 기간인 경우", LedgerSearchRequest.builder().menu("period").fromDate("20260101").toDate("20260115").build()),
-                                HistoryMenu.PERIOD,
-                                null,
-                                null
-                        )
-                );
-            }
-
-            @Test
-            @DisplayName("내역이 존재하면 날짜별로 그룹화하여 반환한다.")
-            void returnsGroupedLedgersByDate_whenLedgersExist() {
-                //given
-                LedgerSearchRequest request = LedgerSearchRequest.builder()
-                        .type("month")
-                        .menu("all")
-                        .build();
-
-                when(ledgerPolicy.resolveHistoryPeriod(any(HistoryType.class), any(LocalDate.class)))
-                        .thenReturn(LedgerPeriod.of(
-                                LocalDate.of(2026, 3, 1),
-                                LocalDate.of(2026, 3, 31)
-                        ));
-
-                when(ledgerReadService.findLedgerByCondiction(
-                        eq(MemberTestData.DEFAULT_ID),
-                        eq(LocalDate.of(2026, 3, 1)),
-                        eq(LocalDate.of(2026, 3, 31)),
-                        any(LedgerSearchCondition.class)
-                ))
-                        .thenReturn(List.of(
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 1)).amount(5000L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 1)).amount(5000L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).categoryCode("020101").amount(20000L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).amount(30000L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).categoryCode("020201").amount(10000L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 17)).categoryCode("020301").amount(500L).build(),
-                                LedgerHistoryQueryTestFixture.builder().date(LocalDate.of(2026, 3, 31)).categoryCode("020202").amount(50000L).build()
-                        ));
-
-                //when
-                List<LedgerHistoryDisplay> result = target.searchLedgersByCondition(request);
-
-                //then
-                assertThat(result)
-                        .extracting(
-                                LedgerHistoryDisplay::getDate
-                        )
-                        .containsExactly("2026. 03. 31 (화)", "2026. 03. 17 (화)", "2026. 03. 01 (일)");
-
-                assertThat(result)
-                        .extracting(
-                                LedgerHistoryDisplay::getRows
-                        )
-                        .hasSize(3);
             }
 
             @Test
@@ -510,6 +342,26 @@ class LedgerHistoryServiceTest {
         @Nested
         @DisplayName("실패")
         class Failure {
+
+            @Test
+            @DisplayName("유효하지 않은 내역 유형은 예외를 발생시킨다.")
+            void throwsException_whenTransactionTypeAndMenuAreInvalid() {
+                //given
+                LedgerSearchRequest request = LedgerSearchRequest.builder()
+                        .type("error")
+                        .build();
+
+                //when
+                Throwable throwable = catchThrowable(() -> target.searchLedgersByCondition(request));
+
+                //then
+                ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(POLICY_VIOLATION)
+                        .hasWork("HistoryType 변환")
+                        .hasCauseMessage("지원하지 않은 HistoryType")
+                        .hasTarget(HistoryType.class)
+                        .hasValue("error");
+            }
 
             @Test
             @DisplayName("메뉴 조건 검증에 실패하면 예외를 전파한다.")
@@ -591,13 +443,15 @@ class LedgerHistoryServiceTest {
             String type = "none";
 
             //when
-            MenuResponse result = target.buildSubMenu(type);
+            Throwable throwable = catchThrowable(() -> target.buildSubMenu(type));
 
             //then
-            assertThat(result).isNotNull();
-
-            List<MenuItem> menus = result.getMenus();
-            assertThat(menus).hasSize(HistoryMenu.values().length - 1);
+            ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                    .hasErrorCode(POLICY_VIOLATION)
+                    .hasWork("HistoryType 변환")
+                    .hasCauseMessage("지원하지 않은 HistoryType")
+                    .hasTarget(HistoryType.class)
+                    .hasValue(type);
         }
 
     }

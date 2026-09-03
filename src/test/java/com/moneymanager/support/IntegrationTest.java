@@ -2,9 +2,8 @@ package com.moneymanager.support;
 
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.ledger.repository.LedgerRepository;
+import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.repository.MemberRepository;
-import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -82,7 +81,6 @@ public abstract class IntegrationTest {
 	@BeforeEach
 	void prepareTestEnvironment() throws IOException {
 		cleanTempDir();
-		insertTestData();
 	}
 
 	protected Cookie accessTokenCookie(String username) {
@@ -101,16 +99,6 @@ public abstract class IntegrationTest {
 		}
 	}
 
-	private void insertTestData() {
-		String username = MemberTestData.DEFAULT_USERNAME;
-
-		if(memberRepository.findAuthByUsername(username).isEmpty()) {
-			memberRepository.save(
-					MemberTestFixture.builder().build(passwordEncoder)
-			);
-		}
-	}
-
 	private void cleanTempDir() throws IOException {
 		try (Stream<Path> paths = Files.walk(tempDir)) {
 			paths.sorted(Comparator.reverseOrder())
@@ -123,6 +111,34 @@ public abstract class IntegrationTest {
 						}
 					});
 		}
+	}
+
+
+	//==== 유틸 메서드 =====
+	protected void insertMember(Member member) {
+		jdbcTemplate.update(
+				"""
+						INSERT INTO member(id, type, username, password, name, birthdate, nickname, email)
+							VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+						""",
+				member.getId(),
+				member.getType().getValue(),
+				member.getUsername(),
+				member.getPassword(),
+				member.getName(),
+				member.getBirthdate(),
+				member.getNickname(),
+				member.getEmail()
+		);
+
+		jdbcTemplate.update(
+				"""
+						INSERT INTO member_info(id, gender)
+							VALUES (?, ?)
+						""",
+				member.getInfo().getId(),
+				member.getInfo().getGender().getValue()
+		);
 	}
 
 }

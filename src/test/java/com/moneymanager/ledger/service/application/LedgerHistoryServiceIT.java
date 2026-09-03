@@ -15,6 +15,7 @@ import com.moneymanager.ledger.domain.enums.HistoryType;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.security.WithMockCustomUser;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -67,6 +68,7 @@ class LedgerHistoryServiceIT extends IntegrationTest {
 
     @Autowired
     private MutableClock clock;
+
 
     @Nested
     @DisplayName("메뉴를 생성할 때")
@@ -288,6 +290,9 @@ class LedgerHistoryServiceIT extends IntegrationTest {
             @Test
             @DisplayName("WEEK이면서 선택한 날짜가 없으면 현재 날짜의 주 시작일과 종료일 기간의 내역만 조회한다.")
             void fetchesHistoryByCurrentWeek_whenTypeIsWeekAndSelectedDateIsNull() {
+                //given
+                clock.set(LocalDate.of(2026, 1, 1));
+
                 //when
                 HistoryDashboardResponse result = target.findHistories("week", null, null, null);
 
@@ -487,6 +492,11 @@ class LedgerHistoryServiceIT extends IntegrationTest {
         @Nested
         @DisplayName("성공")
         class Success {
+
+            @BeforeEach
+            void setUp() {
+                clock.set(LocalDate.of(2026, 1, 1));
+            }
 
             @Test
             @DisplayName("전체 검색이면 기간 내에 작성된 내역을 조회한다.")

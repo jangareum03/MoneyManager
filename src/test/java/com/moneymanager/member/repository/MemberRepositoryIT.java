@@ -4,6 +4,7 @@ import com.moneymanager.member.domain.dto.MemberAuth;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.support.ApplicationExceptionAssert;
+import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,11 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -51,19 +47,10 @@ import static org.assertj.core.api.Assertions.*;
  * 		</tbody>
  * </table>
  */
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-class MemberRepositoryIT {
+class MemberRepositoryIT extends IntegrationTest {
 
 	@Autowired
 	private MemberRepository target;
-
-	@Autowired
-	private PasswordEncoder passwordEncoder;
-
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
 
 	private Member member;
 

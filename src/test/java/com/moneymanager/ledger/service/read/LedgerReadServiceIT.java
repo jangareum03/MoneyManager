@@ -59,7 +59,7 @@ class LedgerReadServiceIT extends IntegrationTest {
         void addsToList_whenLedgerIsValidAndOwner() {
             //given
             String memberId = "member1";
-            List<String> codes = List.of("code-1", "code-2", "code-4");
+            List<String> codes = List.of("code1", "code2", "code4");
 
             //when
             List<Ledger> result = target.getOwnerLedgers(memberId, codes);
@@ -76,7 +76,7 @@ class LedgerReadServiceIT extends IntegrationTest {
         void excludesList_whenLedgerBelongsToOtherUser() {
             //given
             String memberId = "member1";
-            List<String> codes = List.of("code-1", "code-2", "code-3");
+            List<String> codes = List.of("code1", "code2", "code3");
 
             //when
             List<Ledger> result = target.getOwnerLedgers(memberId, codes);
@@ -93,7 +93,7 @@ class LedgerReadServiceIT extends IntegrationTest {
         void excludesList_whenCodeDoesNotExist() {
             //given
             String memberId = "member1";
-            List<String> codes = List.of("no-exist", "code-2");
+            List<String> codes = List.of("no-exist", "code2");
 
             //when
             List<Ledger> result = target.getOwnerLedgers(memberId, codes);

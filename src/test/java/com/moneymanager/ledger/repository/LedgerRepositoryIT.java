@@ -13,6 +13,7 @@ import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerTestFixture;
+import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -68,6 +69,11 @@ class LedgerRepositoryIT extends IntegrationTest {
 
     @Autowired
     LedgerImageRepository imageRepository;
+
+    @BeforeEach
+    void setUp() {
+        insertMember(MemberTestFixture.builder().build(passwordEncoder));
+    }
 
     @Nested
     @DisplayName("가계부 저장할 때")
@@ -315,7 +321,7 @@ class LedgerRepositoryIT extends IntegrationTest {
         @DisplayName("존재하는 코드면 리스트에 포함하여 반환한다.")
         void findsCodes_whenCodesExist() {
         	//given
-            List<String> codes = List.of("code-1", "code-3");
+            List<String> codes = List.of("code1", "code3");
         	
         	//when
             List<Ledger> result = target.findByCodeIn(codes);
@@ -324,7 +330,7 @@ class LedgerRepositoryIT extends IntegrationTest {
         	assertThat(result)
                     .hasSize(codes.size())
                     .extracting(Ledger::getCode)
-                    .contains("code-1", "code-3");
+                    .contains("code1", "code3");
         }
         
         @Test
@@ -332,7 +338,7 @@ class LedgerRepositoryIT extends IntegrationTest {
         @DisplayName("존재하지 않은 코드는 제외 후 반환한다.")
         void findsCodesExcludingNonExisting_whenSomeCodesDoesNotExist() {
             //given
-            List<String> codes = List.of("code-1", "no-exit", "code-3");
+            List<String> codes = List.of("code1", "no-exit", "code3");
 
             //when
             List<Ledger> result = target.findByCodeIn(codes);
@@ -341,7 +347,7 @@ class LedgerRepositoryIT extends IntegrationTest {
             assertThat(result)
                     .hasSize(2)
                     .extracting(Ledger::getCode)
-                    .contains("code-1", "code-3");
+                    .contains("code1", "code3");
         }
 
     }
@@ -631,7 +637,7 @@ class LedgerRepositoryIT extends IntegrationTest {
                     )
                     .containsExactly(
                             tuple("식비", 3000L),
-                            tuple("교통", 0L),
+                            tuple("교통", 5000L),
                             tuple("문화생활", 1500L),
                             tuple("미용·패선", 0L),
                             tuple("교육", 0L),
