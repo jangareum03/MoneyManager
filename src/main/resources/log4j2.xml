@@ -3,7 +3,7 @@
     <!--공통 속성 설정 -->
     <Properties>
         <Property name="consoleLayout">%highlight{[%-5level]}{FATAL=bg_red, ERROR=red, INFO=green, DEBUG=blue} %style{%d{yyyy-MM-dd HH:mm:ss}:%-3relative}{cyan}    %style{[%M]}{yellow} %logger{35} - %msg%n</Property>
-        <Property name="fileLayout">%d  %m%n</Property>
+        <Property name="fileLayout">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t]    %m%n</Property>
     </Properties>
 
     <!-- 로그 출력 방법 및 file 생성 설정 -->
@@ -14,22 +14,8 @@
 
         <!--ConsoleAppender, RollingFileAppneder -->
         <RollingFile name="info-file"
-                            fileName="logs/info/system-info.log"
-                            filePattern="logs/info/system-info-%d{yyyy-MM-dd}-%i.log">
-
-            <PatternLayout pattern="${fileLayout}"/>
-
-            <Policies>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
-                <SizeBasedTriggeringPolicy size="20MB"/>
-            </Policies>
-
-            <DefaultRolloverStrategy max="30"/>
-        </RollingFile>
-
-        <RollingFile name="error-file"
-                            fileName="logs/error/system-error.log"
-                     filePattern="logs/error/system-error-%d{yyyy-MM-dd}-%i.log">
+                            fileName="logs/system/info.log"
+                            filePattern="logs/system/history/%d{yyyy-MM-dd}/info-%i.log">
 
             <PatternLayout pattern="${fileLayout}"/>
 
@@ -42,8 +28,36 @@
         </RollingFile>
 
         <RollingFile name="debug-file"
-                            fileName="logs/debug/developer-debug.log"
-                     filePattern="logs/debug/system-debug-%d{yyyy-MM-dd}-%i.log">
+                     fileName="logs/system/debug/debug.log"
+                     filePattern="logs/system/history/%d{yyyy-MM-dd}/debug-%i.log">
+
+            <PatternLayout pattern="${fileLayout}"/>
+
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="20MB"/>
+            </Policies>
+
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+
+        <RollingFile name="warn-file"
+                     fileName="logs/system/warn.log"
+                     filePattern="logs/system/history/%d{yyyy-MM-dd}/warn-%i.log">
+
+            <PatternLayout pattern="${fileLayout}"/>
+
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="20MB"/>
+            </Policies>
+
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+
+        <RollingFile name="error-file"
+                            fileName="logs/system/error.log"
+                     filePattern="logs/system/error/history/%d{yyyy-MM-dd}/error-%i.log">
 
             <PatternLayout pattern="${fileLayout}"/>
 
@@ -66,7 +80,7 @@
 
             <AppenderRef ref="info-file">
                 <LevelRangeFilter
-                        minLevel="WARN"
+                        minLevel="INFO"
                         maxLevel="INFO"
                         onMatch="ACCEPT"
                         onMismatch="DENY"/>
@@ -78,6 +92,14 @@
                     maxLevel="DEBUG"
                     onMatch="ACCEPT"
                     onMismatch="DENY"/>
+            </AppenderRef>
+
+            <AppenderRef ref="warn-file">
+                <LevelRangeFilter
+                        minLevel="WARN"
+                        maxLevel="WARN"
+                        onMatch="ACCEPT"
+                        onMismatch="DENY"/>
             </AppenderRef>
 
             <AppenderRef ref="error-file">

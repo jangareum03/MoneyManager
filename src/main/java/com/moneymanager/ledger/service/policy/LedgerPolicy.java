@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.service.policy;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;

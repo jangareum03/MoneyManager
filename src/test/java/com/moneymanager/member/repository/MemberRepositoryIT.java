@@ -6,12 +6,14 @@ import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
+import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -52,120 +54,121 @@ class MemberRepositoryIT extends IntegrationTest {
 	@Autowired
 	private MemberRepository target;
 
-	private Member member;
-
-	@BeforeEach
-	void setUp() {
-		member = MemberTestFixture.builder().build(passwordEncoder);
-
-		target.save(member);
-	}
-
 	@Nested
 	@DisplayName("회원을 저장할 때")
-	class SaveMemberTest {
+	class Insert {
 
-		@BeforeEach
-		void setUp() {
-			jdbcTemplate.update(
-					"DELETE FROM member WHERE id =? ",
-					MemberTestData.DEFAULT_ID
-			);
-		}
+		Member member = MemberTestFixture.builder()
+				.withMemberInfo(MemberInfoTestFixture.builder())
+				.buildWithEncodePassword((passwordEncoder.encode("password123")));
 
 		@Nested
 		@DisplayName("성공")
 		class Success {
 
 			@Test
-			@DisplayName("사용자가 입력한 정보로 저장된다.")
-			void savesUser_whenUserInfoIsGiven() {
+			@DisplayName("회원 기본 정보를 저장한다.")
+			void savesMember_whenMemberIsGiven() {
 				//when
-				target.save(member);
+				target.insert(member);
 
 				//then
 				Map<String, Object> saved = jdbcTemplate.queryForMap(
 						"""
-									SELECT id, type, status, role, username, password, name, birthdate, nickname, email, created_at, deleted_at
+									SELECT id, member_number, type, username, password, name, birthdate, nickname, email
 									FROM member
 									WHERE id = ?
+								""",
+						member.getId()
+				);
+
+				assertThat(saved.get("id")).isEqualTo(member.getId());
+				assertThat(saved.get("member_number")).isEqualTo(member.getMemberNumber());
+				assertThat(saved.get("type")).isEqualTo(member.getType().getValue());
+				assertThat(saved.get("username")).isEqualTo(member.getUsername());
+				assertThat(saved.get("password")).isEqualTo(member.getPassword());
+				assertThat(saved.get("name")).isEqualTo(member.getName());
+				assertThat(saved.get("birthdate")).isEqualTo(member.getBirthdate());
+				assertThat(saved.get("nickname")).isEqualTo(member.getNickname());
+				assertThat(saved.get("email")).isEqualTo(member.getEmail());
+			}
+
+			@Test
+			@DisplayName("회원 상세 정보를 저장한다.")
+			void savesMemberInfo_whenMemberIsGiven() {
+				//given
+				target.insert(member);
+
+				//when
+				target.insert(member.getInfo());
+
+				//then
+				Map<String, Object> saved = jdbcTemplate.queryForMap(
+						"""
+									SELECT member_id, gender
+									FROM member_info
+									WHERE member_id = ?
+								""",
+						member.getId()
+				);
+
+				assertThat(saved.get("member_id")).isEqualTo(member.getInfo().getId());
+				assertThat(saved.get("gender")).isEqualTo(member.getInfo().getGender().getValue());
+			}
+
+			@Test
+			@DisplayName("입력하지 않은 정보는 기본값으로 저장된다.")
+			void insertsUserWithDefaultValues_whenOptionalFieldsAreNull() {
+				//when
+				target.insert(member);
+				target.insert(member.getInfo());
+
+				//then
+				Map<String, Object> saved = jdbcTemplate.queryForMap(
+						"""
+									SELECT status, role, created_at, deleted_at, profile, point, consecutive_days, image_limit, login_at, failure_count
+									FROM member m JOIN member_info mi
+										ON m.id = mi.member_id
+									WHERE m.id = ?
+								""",
+						member.getId()
+				);
+
+				assertThat(saved.get("status")).isEqualTo("A");
+				assertThat(saved.get("role")).isEqualTo("ROLE_USER");
+				assertThat(saved.get("point")).isEqualTo(BigDecimal.ZERO);
+				assertThat(saved.get("consecutive_days")).isEqualTo(BigDecimal.ZERO);
+				assertThat(saved.get("image_limit")).isEqualTo(BigDecimal.ONE);
+				assertThat(saved.get("failure_count")).isEqualTo(BigDecimal.ZERO);
+
+				assertThat(saved.get("profile")).isNull();
+				assertThat(saved.get("login_at")).isNull();
+				assertThat(saved.get("deleted_at")).isNull();
+
+				assertThat(saved.get("created_at")).isNotNull();
+			}
+
+			@Test
+			@DisplayName("회원 상세정보의 id가 일치한다.")
+			void findsMemberInfo_whenIdMatches() {
+				//when
+				target.insert(member);
+				target.insert(member.getInfo());
+
+				//then
+				Map<String, Object> saved = jdbcTemplate.queryForMap(
+						"""
+									SELECT m.id
+										FROM member m JOIN member_info mi
+											ON m.id = mi.member_id
+										WHERE m.id = ?
 								""",
 						member.getId()
 				);
 
 				//then: 입력한 정보가 저장된다.
 				assertThat(saved.get("id")).isEqualTo(member.getId());
-				assertThat(saved.get("type")).isEqualTo(member.getType().getValue());
-				assertThat(saved.get("username")).isEqualTo(member.getUsername());
-				assertThat(saved.get("name")).isEqualTo(member.getName());
-				assertThat(saved.get("birthdate")).isEqualTo(member.getBirthdate());
-				assertThat(saved.get("nickname")).isEqualTo(member.getNickname());
-				assertThat(saved.get("email")).isEqualTo(member.getEmail());
-				assertThat(saved.get("password")).isEqualTo(member.getPassword());
-			}
-
-			@Test
-			@DisplayName("상세정보도 사용자가 입력한 정보로 저장된다.")
-			void savesUserDetail_whenUserDetailIsGiven() {
-				//when
-				target.save(member);
-
-				//then
-				Map<String, Object> saved = jdbcTemplate.queryForMap(
-						"""
-									SELECT id, gender, profile, point, consecutive_days, image_limit, login_at, failure_count
-									FROM member_info
-									WHERE id = ?
-								""",
-						member.getId()
-				);
-
-				MemberInfo memberInfo = member.getInfo();
-
-				//then: 입력한 정보가 저장된다.
-				assertThat(saved.get("id")).isEqualTo(memberInfo.getId());
-				assertThat(saved.get("gender")).isEqualTo(memberInfo.getGender().getValue());
-			}
-
-			@Test
-			@DisplayName("미입력 정보는 기본값으로 저장된다.")
-			void savesDefaultValues_whenInputsAreOmitted() {
-				//when
-				target.save(member);
-
-				//then: 회원정보 일부가 기본 정보로 저장된다.
-				Map<String, Object> savedMember = jdbcTemplate.queryForMap(
-						"""
-									SELECT id, type, status, role, username, password, name, birthdate, nickname, email, created_at, deleted_at
-									FROM member
-									WHERE id = ?
-								""",
-						member.getId()
-				);
-
-				assertThat(savedMember.get("status")).isEqualTo(member.getStatus().getValue());
-				assertThat(savedMember.get("role")).isEqualTo(member.getRole());
-				assertThat(savedMember.get("created_at")).isNotNull();
-				assertThat(savedMember.get("deleted_at")).isNull();
-
-				//then: 회원 상세정보 일부가 기본 정보로 저장된다.
-				Map<String, Object> savedMemberInfo = jdbcTemplate.queryForMap(
-						"""
-									SELECT id, gender, profile, point, consecutive_days, image_limit, login_at, failure_count
-									FROM member_info
-									WHERE id = ?
-								""",
-						member.getId()
-				);
-
-				MemberInfo memberInfo = member.getInfo();
-
-				assertThat(savedMemberInfo.get("profile")).isEqualTo(memberInfo.getProfile());
-				assertThat(savedMemberInfo.get("point")).isEqualTo(BigDecimal.ZERO);
-				assertThat(savedMemberInfo.get("consecutive_days")).isEqualTo(BigDecimal.ZERO);
-				assertThat(savedMemberInfo.get("image_limit")).isEqualTo(BigDecimal.ONE);
-				assertThat(savedMemberInfo.get("failure_count")).isEqualTo(BigDecimal.ZERO);
-				assertThat(savedMemberInfo.get("login_at")).isNotNull();
+				assertThat(saved.get("id")).isEqualTo(member.getInfo().getId());
 			}
 
 		}
@@ -175,28 +178,28 @@ class MemberRepositoryIT extends IntegrationTest {
 		class Failure {
 
 			@Test
-			@DisplayName("필수 정보가 없으면 저장에 실패한다.")
+			@DisplayName("필수 정보가 없으면 DataIntegrityViolationException 예외가 발생한다.")
 			void throwsDataIntegrityViolationException_whenRequiredFieldIsMissing() {
 				//given
 				Member member = MemberTestFixture.builder()
 						.username(null)
-						.build(passwordEncoder);
+						.buildWithEncodePassword((passwordEncoder.encode("password123")));
 
 				//when & then
-				assertThatThrownBy(() -> target.save(member));
+				assertThatThrownBy(() -> target.insert(member))
+						.isInstanceOf(DataIntegrityViolationException.class);
 			}
 
 			@Test
-			@DisplayName("기존에 있는 회원번호는 저장에 실패한다.")
+			@DisplayName("기존 회원번호를 가진 회원을 저장하면  DataIntegrityViolationException 예외가 발생한다.")
 			void throwsDataIntegrityViolationException_whenMemberNumberAlreadyExists() {
 				//given: "UCt01001"를 가진 회원번호가 저장되어 있다.
-				Member member = MemberTestFixture.builder().build(passwordEncoder);
-
-				target.save(member);
+				Member member = MemberTestFixture.builder().buildWithEncodePassword((passwordEncoder.encode("password123")));
+				target.insert(member);
 
 				//when & then: "UCt01001"를 가진 회원번호를 다시 저장한다.
-				assertThatThrownBy(() -> target.save(member))
-						;
+				assertThatThrownBy(() -> target.insert(member))
+						.isInstanceOf(DataIntegrityViolationException.class);
 			}
 
 		}
@@ -270,10 +273,12 @@ class MemberRepositoryIT extends IntegrationTest {
 
 	@Nested
 	@DisplayName("업로드 가능 개수를 조회할 때")
-	class FindImageUploadCountTest {
+	class FindImageUploadCount {
 
 		@BeforeEach
 		void setUp() {
+			insertMember(MemberTestFixture.builder().buildWithEncodePassword((passwordEncoder.encode("password123"))));
+
 			jdbcTemplate.update(
 					"UPDATE member_info SET image_limit = 2 WHERE id = ?",
 					MemberTestData.DEFAULT_ID
@@ -285,7 +290,7 @@ class MemberRepositoryIT extends IntegrationTest {
 		class Success {
 		
 			@Test
-			@DisplayName("회원이 존재하면 개수가 반환된다.")
+			@DisplayName("회원이 존재하면 개수를 반환한다.")
 			void returnsCount_whenUserExists() {
 				//when
 				Integer result = target.findImageUploadLimitByMemberId(MemberTestData.DEFAULT_ID);
@@ -295,7 +300,7 @@ class MemberRepositoryIT extends IntegrationTest {
 			}
 
 			@Test
-			@DisplayName("회원이 존재하지 않으면 예외가 발생한다.")
+			@DisplayName("회원이 존재하지 않으면 예외를 발생시킨다.")
 			void throwsInternalException_whenUserDoesNotExist() {
 				//when & then
 				ApplicationExceptionAssert.assertThatApplicationException(
@@ -309,6 +314,120 @@ class MemberRepositoryIT extends IntegrationTest {
 						.hasValue("memberId", "nonexistent");
 			}
 			
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("아이디 존재여부를 조회할 때")
+	class ExistsUsername {
+
+		@BeforeEach
+		void setUp() {
+			insertMember(MemberTestFixture.builder().buildWithEncodePassword((passwordEncoder.encode("password123"))));
+		}
+
+		@Test
+		@DisplayName("아이디가 있으면 true를 반환한다.")
+		void returnsTrue_whenIdExists() {
+			//given
+			String username = MemberTestData.DEFAULT_USERNAME;
+			
+			//when
+			boolean result = target.existsByUsername(username);
+
+			//then
+			assertThat(result).isTrue();
+		}
+		
+		@Test
+		@DisplayName("아이디가 없으면 false을 반환한다.")
+		void returnsFalse_whenIdDoesNotExist() {
+			//given
+			String username = "nonexistent";
+
+			//when
+			boolean result = target.existsByUsername(username);
+
+			//then
+			assertThat(result).isFalse();
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("닉네임 존재여부를 조회할 때")
+	class ExistsNickname {
+
+		@BeforeEach
+		void setUp() {
+			insertMember(MemberTestFixture.builder().buildWithEncodePassword((passwordEncoder.encode("password123"))));
+		}
+
+		@Test
+		@DisplayName("닉네임이 있으면 true를 반환한다.")
+		void returnsTrue_whenNicknameExists() {
+			//given
+			String nickname = MemberTestData.DEFAULT_NICKNAME;
+
+			//when
+			boolean result = target.existsByNickname(nickname);
+
+			//then
+			assertThat(result).isTrue();
+		}
+
+		@Test
+		@DisplayName("닉네임이 없으면 false을 반환한다.")
+		void returnsFalse_whenNicknameDoesNotExist() {
+			//given
+			String nickname = "nonexistent";
+
+			//when
+			boolean result = target.existsByNickname(nickname);
+
+			//then
+			assertThat(result).isFalse();
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("이메일 존재여부를 조회할 때")
+	class ExistsEmail {
+
+		@BeforeEach
+		void setUp() {
+			insertMember(MemberTestFixture.builder().buildWithEncodePassword((passwordEncoder.encode("password123"))));
+		}
+
+		@Test
+		@DisplayName("이메일이 있으면 true를 반환한다.")
+		void returnsTrue_whenEmailExists() {
+			//given
+			String email = MemberTestData.DEFAULT_EMAIL;
+
+			//when
+			boolean result = target.existsByEmail(email);
+
+			//then
+			assertThat(result).isTrue();
+		}
+
+		@Test
+		@DisplayName("이메일이 없으면 false을 반환한다.")
+		void returnsFalse_whenEmailDoesNotExist() {
+			//given
+			String email = "nonexistent";
+
+			//when
+			boolean result = target.existsByEmail(email);
+
+			//then
+			assertThat(result).isFalse();
 		}
 
 	}

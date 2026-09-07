@@ -1,6 +1,6 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

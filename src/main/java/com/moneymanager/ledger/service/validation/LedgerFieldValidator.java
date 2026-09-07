@@ -1,11 +1,10 @@
 package com.moneymanager.ledger.service.validation;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
-import com.moneymanager.global.util.string.StringUtil;
-import com.moneymanager.ledger.domain.enums.LedgerType;
 import com.moneymanager.ledger.domain.enums.FixCycle;
 import com.moneymanager.ledger.domain.enums.FixedType;
+import com.moneymanager.ledger.domain.enums.LedgerType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,7 +14,6 @@ import java.util.List;
 import static com.moneymanager.global.domain.enums.RegexPattern.*;
 import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static com.moneymanager.global.util.string.StringUtil.isNullOrBlank;
-import static com.moneymanager.global.util.string.StringUtil.matchesPattern;
 
 /**
  * <p>
@@ -59,7 +57,7 @@ public class LedgerFieldValidator {
         }
 
         String DATE_FORMAT = "^[12]\\d{3}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])$";
-        if (!matchesPattern(date, DATE_FORMAT)) {
+        if (!date.matches(DATE_FORMAT)) {
             throwFormatException(work, "date", date, "yyyyMMdd (예: 20260101)");
         }
     }
@@ -69,7 +67,7 @@ public class LedgerFieldValidator {
             throwRequiredException(work, "category", categoryCode);
         }
 
-        if (!matchesPattern(categoryCode, "\\d{6}")) {
+        if (!categoryCode.matches("\\d{6}")) {
             throwFormatException(work, "category", categoryCode, "6자리 숫자 (예: 123456)");
         }
 
@@ -134,17 +132,17 @@ public class LedgerFieldValidator {
 
     void validatePlace(String placeName, String roadAddress, String detailAddress, String work) {
         //1. 장소명 검증
-        if (!StringUtil.matchesPattern(placeName, ADDRESS_PLACE_NAME.getPattern())) {
+        if (!placeName.matches(ADDRESS_PLACE_NAME.getPattern())) {
             throwFormatException(work, "placeName", placeName, "한글, 영문, 숫자, 공백, 괄호, 하이픈, 점");
         }
 
         //2. 기본주소 검증
-        if (!StringUtil.matchesPattern(roadAddress, ADDRESS_ROAD_NAME.getPattern())) {
+        if (!roadAddress.matches(ADDRESS_ROAD_NAME.getPattern())) {
             throwFormatException(work, "roadAddress", roadAddress, "한글, 영문, 숫자, 공백, 하이픈");
         }
 
         //3. 상세주소 검증
-        if (!isNullOrBlank(detailAddress) && !StringUtil.matchesPattern(detailAddress, ADDRESS_DETAIL_NAME.getPattern())) {
+        if (!isNullOrBlank(detailAddress) && !detailAddress.matches(ADDRESS_DETAIL_NAME.getPattern())) {
             throwFormatException(work, "detailAddress", detailAddress, "한글, 영문, 숫자, 공백, 하이픈, 괄호, 쉼표, 슬래시, 점, #");
         }
     }

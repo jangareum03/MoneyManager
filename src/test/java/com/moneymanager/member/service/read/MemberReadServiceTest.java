@@ -1,9 +1,10 @@
 package com.moneymanager.member.service.read;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.repository.MemberRepository;
+import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,9 +15,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static com.moneymanager.global.exception.code.ErrorCode.DUPLICATE_DATA;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 /**
  * <p>
@@ -52,7 +54,7 @@ class MemberReadServiceTest {
 	private MemberReadService target;
 
 	@Mock
-	private MemberRepository repository;
+	private MemberRepository memberRepository;
 
 	@Nested
 	@DisplayName("회원의 등록 가능한 개수를 조회할 때")
@@ -68,7 +70,7 @@ class MemberReadServiceTest {
 				//given
 				String memberId = MemberTestData.DEFAULT_ID;
 
-				when(repository.findImageUploadLimitByMemberId(memberId))
+				when(memberRepository.findImageUploadLimitByMemberId(memberId))
 						.thenReturn(1);
 				
 				//when
@@ -90,7 +92,7 @@ class MemberReadServiceTest {
 				//given
 				String memberId = "nonexistent";
 
-				when(repository.findImageUploadLimitByMemberId(memberId))
+				when(memberRepository.findImageUploadLimitByMemberId(memberId))
 						.thenThrow(new ApplicationException(
 								DATA_NOT_FOUND,
 								LogContent.of(
@@ -103,6 +105,97 @@ class MemberReadServiceTest {
 
 				//when & then
 				assertThatThrownBy(() -> target.getAvailableImageCount(memberId));
+			}
+
+		}
+
+	}
+
+
+	@Nested
+	@DisplayName("중복 회원가입 검증할 때")
+	class SignUp {
+
+		private final String username = MemberTestData.DEFAULT_USERNAME;
+		private final String nickname = MemberTestData.DEFAULT_NICKNAME;
+		private final String email = MemberTestData.DEFAULT_EMAIL;
+		
+		@Nested
+		@DisplayName("성공")
+		class Success {
+
+			@Test
+			@DisplayName("아이디가 존재하지 않으면 닉네임 존재 여부 메서드를 호출한다.")
+			void callsNicknameValidation_whenUserIdDoesNotExist() {
+				//given
+				when(memberRepository.existsByUsername(anyString()))
+						.thenReturn(Boolean.FALSE);
+				
+				//when
+				target.validateSignUpEligibility(username, nickname);
+				
+				//then
+				verify(memberRepository).existsByNickname(nickname);
+			}
+
+			@Test
+			@DisplayName("닉네임이 존재하지 않으면 예외를 전파한다.")
+			void throwsException_whenNicknameDoesNotExist() {
+				//given
+				when(memberRepository.existsByUsername(anyString()))
+						.thenReturn(Boolean.FALSE);
+
+				//when
+				assertThatThrownBy(() -> target.validateSignUpEligibility(username, nickname))
+						.isInstanceOf(ApplicationException.class);
+			}
+			
+		}
+
+		@Nested
+		@DisplayName("실패")
+		class Failure {
+
+			@Test
+			@DisplayName("아이디가 존재하면 예외를 발생시킨다.")
+			void throwsException_whenUserIdAlreadyExists() {
+				//given
+				when(memberRepository.existsByUsername(anyString()))
+						.thenReturn(Boolean.TRUE);
+				
+				//when
+				Throwable throwable = catchThrowable(() -> target.validateSignUpEligibility(username, nickname));
+				
+				//then
+				ApplicationExceptionAssert.assertThatApplicationException(throwable)
+						.hasErrorCode(DUPLICATE_DATA)
+						.hasWork("회원가입 검증")
+						.hasCauseMessage("중복 아이디")
+						.hasField("username")
+						.hasValue(username);
+
+				verify(memberRepository, never()).existsByNickname(anyString());
+			}
+
+			@Test
+			@DisplayName("닉네임이 존재하면 예외를 발생시킨다.")
+			void throwsException_whenNicknameAlreadyExists() {
+				//given
+				when(memberRepository.existsByNickname(anyString()))
+						.thenReturn(Boolean.TRUE);
+
+				//when
+				Throwable throwable = catchThrowable(() -> target.validateSignUpEligibility(username, nickname));
+
+				//then
+				ApplicationExceptionAssert.assertThatApplicationException(throwable)
+						.hasErrorCode(DUPLICATE_DATA)
+						.hasWork("회원가입 검증")
+						.hasCauseMessage("중복 닉네임")
+						.hasField("nickname")
+						.hasValue(nickname);
+
+				verify(memberRepository, never()).existsByEmail(anyString());
 			}
 
 		}

@@ -1,7 +1,7 @@
 package com.moneymanager.ledger.service.command;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.ObjectUtils;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;

@@ -1,6 +1,6 @@
 package com.moneymanager.member.domain.enums;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import lombok.Getter;
 

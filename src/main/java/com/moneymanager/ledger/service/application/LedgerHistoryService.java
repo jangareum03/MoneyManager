@@ -2,7 +2,7 @@ package com.moneymanager.ledger.service.application;
 
 import com.moneymanager.global.domain.enums.DatePatterns;
 import com.moneymanager.global.exception.code.ErrorCode;
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.global.util.date.DateTimeUtil;

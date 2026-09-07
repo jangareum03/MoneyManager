@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.service.policy;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.response.history.HistoryDateFilter;
 import com.moneymanager.ledger.domain.dto.vo.LedgerPeriod;

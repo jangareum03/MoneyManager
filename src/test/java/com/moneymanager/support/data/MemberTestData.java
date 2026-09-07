@@ -11,7 +11,8 @@ public final class MemberTestData {
 	private MemberTestData() {}
 
 	//기본값
-	public static final String DEFAULT_ID = "UCt01001";
+	public static final String DEFAULT_ID = "01ARZ3NDEK8YK3M3222Y3KCDFA";
+	public static final String DEFAULT_NUMBER = "M1234567890AB";
 	public static final String DEFAULT_USERNAME = "test123";
 	public static final String DEFAULT_PASSWORD = "pw1234!!";
 	public static final String DEFAULT_ROLE = "ROLE_USER";

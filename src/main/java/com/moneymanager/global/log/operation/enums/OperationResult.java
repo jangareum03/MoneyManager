@@ -1,16 +1,14 @@
-package com.moneymanager.member.controller;
+package com.moneymanager.global.log.operation.enums;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import lombok.Getter;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.ledger.controller<br>
- * 파일이름       : LoginController<br>
+ * 패키지이름    : com.moneymanager.exception.log<br>
+ * 파일이름       : OperationResult<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 8. 16.<br>
- * 설명              :
+ * 생성날짜       : 26. 7. 1<br>
+ * 설명              : 운영 로그 결과를 정의한 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -24,20 +22,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 8. 16.</td>
+ * 		 	  <td>26. 7. 1</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
  */
-@Controller
-@RequestMapping("/")
-public class LoginController {
+public enum OperationResult {
+	SUCCESS("성공"),
+	FAIL("실패");
 
-	@GetMapping
-	public String login() {
-		return "/member/member_login";
+	@Getter
+	private final String korean;
+
+	OperationResult(String korean) {
+		this.korean = korean;
 	}
-
 }

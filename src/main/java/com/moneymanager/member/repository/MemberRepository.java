@@ -1,6 +1,6 @@
 package com.moneymanager.member.repository;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.ObjectUtils;
 import com.moneymanager.member.domain.dto.MemberAuth;
@@ -67,7 +67,7 @@ public class MemberRepository {
                 : rs.getTimestamp("deleted_at").toLocalDateTime();
 
         MemberInfo memberInfo = MemberInfo.restore(
-				rs.getString("id"),
+				rs.getString("member_id"),
 				gender,
 				rs.getString("profile"),
 				rs.getLong("point"),
@@ -79,6 +79,7 @@ public class MemberRepository {
 
         return Member.restore(
                 rs.getString("id"),
+                rs.getString("member_number"),
                 rs.getString("username"),
                 rs.getString("password"),
                 rs.getString("name"),
@@ -94,30 +95,28 @@ public class MemberRepository {
         );
     };
 
-    public void save(Member member) {
+    public void insert(Member member) {
         String query = """
-                INSERT INTO member(id, type, username, password, name, birthdate, nickname, email)
-                	VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO member(id, member_number, type, username, password, name, birthdate, nickname, email)
+                	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
         jdbcTemplate.update(
                 query,
-                member.getId(), member.getType().getValue(), member.getUsername(), member.getPassword(),
+                member.getId(), member.getMemberNumber(), member.getType().getValue(), member.getUsername(), member.getPassword(),
                 member.getName(), member.getBirthdate(), member.getNickname(), member.getEmail()
         );
-
-        save(member.getInfo());
     }
 
-    private void save(MemberInfo memberInfo) {
+    public void insert(MemberInfo memberInfo) {
         String query = """
-                INSERT INTO member_info(id, gender, login_at)
-                	VALUES (?, ?, ?)
+                INSERT INTO member_info(member_id, gender)
+                	VALUES (?, ?)
                 """;
 
         jdbcTemplate.update(
                 query,
-                memberInfo.getId(), memberInfo.getGender().getValue(), memberInfo.getLoginAt()
+                memberInfo.getId(), memberInfo.getGender().getValue()
         );
     }
 
@@ -193,6 +192,78 @@ public class MemberRepository {
                     ).withCause("존재하지 않은 회원")
             );
         }
+    }
+
+    public boolean existsByUsername(String username) {
+        String query = """
+                SELECT
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM member
+                            WHERE username = ?
+                        )
+                        THEN 1
+                        ELSE 0
+                    END as isExist
+                FROM DUAL
+                """;
+
+        int exist = jdbcTemplate.queryForObject(
+                query,
+                Integer.class,
+                username
+        );
+
+        return exist == 1;
+    }
+
+    public boolean existsByNickname(String nickname) {
+        String query = """
+                SELECT
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM member
+                            WHERE nickname = ?
+                        )
+                        THEN 1
+                        ELSE 0
+                    END as isExist
+                FROM DUAL
+                """;
+
+        int exist = jdbcTemplate.queryForObject(
+                query,
+                Integer.class,
+                nickname
+        );
+
+        return exist == 1;
+    }
+
+    public boolean existsByEmail(String email) {
+        String query = """
+                SELECT
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM member
+                            WHERE email = ?
+                        )
+                        THEN 1
+                        ELSE 0
+                    END as isExist
+                FROM DUAL
+                """;
+
+        int exist = jdbcTemplate.queryForObject(
+                query,
+                Integer.class,
+                email
+        );
+
+        return exist == 1;
     }
 
 }

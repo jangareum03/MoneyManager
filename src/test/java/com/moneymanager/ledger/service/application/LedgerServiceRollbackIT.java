@@ -62,7 +62,7 @@ public class LedgerServiceRollbackIT extends IntegrationTest {
 
     @BeforeEach
     void setUp() {
-        insertMember(MemberTestFixture.builder().build(passwordEncoder));
+        insertMember(MemberTestFixture.builder().buildWithEncodePassword(passwordEncoder.encode("password123")));
     }
 
     @Nested

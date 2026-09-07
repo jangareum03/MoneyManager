@@ -1,7 +1,12 @@
 package com.moneymanager.member.service.read;
 
+import com.moneymanager.global.exception.ApplicationException;
+import com.moneymanager.global.log.LogContent;
 import com.moneymanager.member.repository.MemberRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import static com.moneymanager.global.exception.code.ErrorCode.DUPLICATE_DATA;
 
 /**
  * <p>
@@ -31,16 +36,53 @@ import org.springframework.stereotype.Service;
  * </table>
  */
 @Service
+@RequiredArgsConstructor
 public class MemberReadService {
 
-	private final MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
 
-	public MemberReadService(MemberRepository memberRepository) {
-		this.memberRepository = memberRepository;
-	}
+    public int getAvailableImageCount(String memberId) {
+        return memberRepository.findImageUploadLimitByMemberId(memberId);
+    }
 
-	public int getAvailableImageCount(String memberId) {
-		return memberRepository.findImageUploadLimitByMemberId(memberId);
-	}
+    public boolean checkUsernameExists(String username) {
+        return memberRepository.existsByUsername(username);
+    }
+
+    public boolean checkNicknameExists(String nickname) {
+        return memberRepository.existsByNickname(nickname);
+    }
+
+    public boolean checkEmailExists(String email) {
+        return memberRepository.existsByEmail(email);
+    }
+
+    public void validateSignUpEligibility(String username, String nickname) {
+        String work = "회원가입 검증";
+
+        //1.아이디 중복 검증
+        if (checkUsernameExists(username)) {
+            throw new ApplicationException(
+					DUPLICATE_DATA,
+                    LogContent.of(
+                            work,
+                            "username",
+                            username
+                    ).withCause("중복 아이디")
+            ).withUserMessage("member.username.duplicate");
+        }
+
+        //1..닉네임 중복 검증
+        if (checkNicknameExists(nickname)) {
+            throw new ApplicationException(
+					DUPLICATE_DATA,
+                    LogContent.of(
+                            work,
+                            "nickname",
+                            nickname
+                    ).withCause("중복 닉네임")
+            ).withUserMessage("member.nickname.duplicate");
+        }
+    }
 
 }

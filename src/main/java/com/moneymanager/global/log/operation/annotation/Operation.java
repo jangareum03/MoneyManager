@@ -1,6 +1,6 @@
-package com.moneymanager.global.operation.annotation;
+package com.moneymanager.global.log.operation.annotation;
 
-import com.moneymanager.global.operation.enums.ServiceAction;
+import com.moneymanager.global.log.operation.enums.ServiceAction;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

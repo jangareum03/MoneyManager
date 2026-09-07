@@ -38,15 +38,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Value("${file.image.ledger.resource-path}")
     private String ledgerResourcePath;
-    @Value("${image.profile.resourcePath}")
-    private String profileResourcePath;
-    @Value("${image.profile.connectPath}")
-    private String profileConnectPath;
 
     @Override
     public void addResourceHandlers( ResourceHandlerRegistry registry ) {
         registry.addResourceHandler("/uploads/ledger/**").addResourceLocations(ledgerResourcePath);
-        registry.addResourceHandler(profileConnectPath).addResourceLocations(profileResourcePath);
         registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/static/");
     }
 

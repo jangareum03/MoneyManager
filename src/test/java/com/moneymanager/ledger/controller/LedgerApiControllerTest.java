@@ -1,7 +1,7 @@
 package com.moneymanager.ledger.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;

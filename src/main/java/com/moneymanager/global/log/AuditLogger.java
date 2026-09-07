@@ -1,8 +1,8 @@
 package com.moneymanager.global.log;
 
-import com.moneymanager.global.operation.OperationContext;
-import com.moneymanager.global.operation.enums.OperationResult;
-import com.moneymanager.global.operation.enums.ServiceAction;
+import com.moneymanager.global.log.operation.OperationContext;
+import com.moneymanager.global.log.operation.enums.OperationResult;
+import com.moneymanager.global.log.operation.enums.ServiceAction;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.slf4j.helpers.MessageFormatter;
@@ -60,12 +60,59 @@ public class AuditLogger {
 		log.info(message.toString());
 	}
 
+	public static void debug(OperationContext context) {
+		String trace = MDC.get("traceId");
+		String className = context.getClassName();
+		String methodName = context.getMethodName();
+
+		LogContent logContent = (LogContent) context.getOptions().get("log");
+
+		StringBuilder message = new StringBuilder();
+
+		message.append("[")
+				.append(trace)
+				.append("] ");
+
+		LogFormatterSupport.append(message, "work", logContent.getWork());
+		LogFormatterSupport.append(message, "cause", logContent.getCause());
+		LogFormatterSupport.append(message, "class", className);
+		LogFormatterSupport.append(message, "method", methodName);
+
+		if(logContent.getTarget() != null) {
+			LogFormatterSupport.append(message, "target", logContent.getTarget().getSimpleName());
+		}
+
+		LogFormatterSupport.append(message, "field", logContent.getField());
+
+		if(logContent.getOptions() != null && !logContent.getOptions().isEmpty()) {
+			LogFormatterSupport.append(message, logContent.getOptions());
+		}
+
+		LogFormatterSupport.append(message, "value", logContent.getValue());
+
+		log.debug(message.toString());
+	}
+
 	public static void warn(String message, String... values) {
 		String trace = MDC.get("traceId");
 
 		String formattedMessage = MessageFormatter.arrayFormat(message, values).getMessage();
 
 		log.warn("[{}] {}", trace, formattedMessage);
+	}
+
+	public static void error(String message, String... values) {
+		String trace = MDC.get("traceId");
+
+		String formattedMessage = MessageFormatter.arrayFormat(message, values).getMessage();
+
+		log.error("[{}] {}", trace, formattedMessage);
+	}
+
+	public static void throwable(String message, Throwable throwable) {
+		String trace = MDC.get("traceId");
+
+		log.debug("[{}] {}", trace, message, throwable);
 	}
 
 }

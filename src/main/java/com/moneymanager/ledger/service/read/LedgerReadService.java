@@ -1,7 +1,7 @@
 package com.moneymanager.ledger.service.read;
 
 import com.moneymanager.global.exception.code.ErrorCode;
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerSearchCondition;
 import com.moneymanager.ledger.domain.dto.response.item.ChartBarItem;

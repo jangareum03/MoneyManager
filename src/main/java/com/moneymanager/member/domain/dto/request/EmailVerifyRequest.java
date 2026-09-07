@@ -1,14 +1,12 @@
-package com.moneymanager.global.operation.enums;
-
-import lombok.Getter;
+package com.moneymanager.member.domain.dto.request;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.exception.log<br>
- * 파일이름       : OperationResult<br>
+ * 패키지이름    : com.moneymanager.member.domain.dto.request<br>
+ * 파일이름       : EmailVerifyRequest<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 7. 1<br>
- * 설명              : 운영 로그 결과를 정의한 클래스
+ * 생성날짜       : 26. 9. 7<br>
+ * 설명              : 회원 이메일 인증을 요청하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -22,21 +20,11 @@ import lombok.Getter;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 7. 1</td>
+ * 		 	  <td>26. 9. 7</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
  */
-public enum OperationResult {
-	SUCCESS("성공"),
-	FAIL("실패");
-
-	@Getter
-	private final String korean;
-
-	OperationResult(String korean) {
-		this.korean = korean;
-	}
-}
+public record EmailVerifyRequest(String email, String code) {}

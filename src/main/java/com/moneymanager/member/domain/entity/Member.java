@@ -1,6 +1,5 @@
 package com.moneymanager.member.domain.entity;
 
-import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberStatus;
 import com.moneymanager.member.domain.enums.MemberType;
 import lombok.Getter;
@@ -37,7 +36,8 @@ import java.time.LocalDateTime;
 @Getter
 public class Member {
 
-	private final String id;											//회원번호(내부용)
+	private String id;											//회원번호(내부용)
+	private String memberNumber;								//회원번호(외부용)
 	private final String username;								//아이디
 	private final String password;								//비밀번호
 	private final String name;										//이름
@@ -53,8 +53,9 @@ public class Member {
 
 	private MemberInfo info;										//상세정보
 
-	private Member(String id, String username, String password, String name, String birthdate, String nickname, String email, String role, MemberType type, MemberStatus status, LocalDateTime createdAt, LocalDateTime deletedAt, MemberInfo info) {
+	private Member(String id, String memberNumber, String username, String password, String name, String birthdate, String nickname, String email, String role, MemberType type, MemberStatus status, LocalDateTime createdAt, LocalDateTime deletedAt, MemberInfo info) {
 		this.id = id;
+		this.memberNumber = memberNumber;
 		this.username = username;
 		this.password = password;
 		this.name = name;
@@ -71,15 +72,21 @@ public class Member {
 	}
 
 	//생성용
-	public static Member of(String id, String username, String password, String name, String birthdate, String nickname, String email, MemberType type, MemberGender gender) {
-		MemberInfo info = MemberInfo.of(id, gender);
-
-		return new Member(id, username, password, name, birthdate, nickname, email, null, type, null, null, null, info);
+	public static Member of(String id, String memberNumber, String username, String password, String name, String birthdate, String nickname, String email, MemberType type, MemberInfo info) {
+		return new Member(id, memberNumber, username, password, name, birthdate, nickname, email, null, type, null, null, null, info);
 	}
 
 	//DB용
-	public static Member restore(String id, String username, String password, String name, String birthdate, String nickname, String email, String role, MemberType type, MemberStatus status, LocalDateTime createdAt, LocalDateTime deletedAt, MemberInfo info) {
-		return new Member(id, username, password, name, birthdate, nickname, email, role, type, status, createdAt, deletedAt, info);
+	public static Member restore(String id, String memberNumber, String username, String password, String name, String birthdate, String nickname, String email, String role, MemberType type, MemberStatus status, LocalDateTime createdAt, LocalDateTime deletedAt, MemberInfo info) {
+		return new Member(id, memberNumber, username, password, name, birthdate, nickname, email, role, type, status, createdAt, deletedAt, info);
+	}
+
+	public void changeMemberNumber(String memberNumber) {
+		this.memberNumber = memberNumber;
+	}
+
+	public void changeId(String id) {
+		this.id = id;
 	}
 
 }

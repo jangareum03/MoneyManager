@@ -1,11 +1,8 @@
 package com.moneymanager.support.fixture.entity;
 
 import com.moneymanager.member.domain.entity.Member;
-import com.moneymanager.member.domain.entity.MemberInfo;
-import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberStatus;
 import com.moneymanager.member.domain.enums.MemberType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +11,7 @@ import static com.moneymanager.support.data.MemberTestData.*;
 public final class MemberTestFixture {
 
 	private String id = DEFAULT_ID;
+	private String number = DEFAULT_NUMBER;
 	private String username = DEFAULT_USERNAME;
 	private String password = DEFAULT_PASSWORD;
 	private String name = DEFAULT_NAME;
@@ -24,16 +22,10 @@ public final class MemberTestFixture {
 	private MemberType type = DEFAULT_TYPE;
 	private MemberStatus status = DEFAULT_STATUS;
 	private LocalDateTime createAt = DEFAULT_CREATE_DATE;
+	private LocalDateTime deleteAt;
 
 	//회원 부가정보
-	private MemberGender gender =  DEFAULT_GENDER;
-	private String profile;
-	private Long point = 0L;
-	private Long consecutiveDays = 0L;
-	private Integer imageLimit = 1;
-	private Integer failureCount = 1;
-	private LocalDateTime loginAt;
-	private LocalDateTime deleteAt;
+	private MemberInfoTestFixture memberInfo;
 
 	private MemberTestFixture() {}
 
@@ -43,6 +35,12 @@ public final class MemberTestFixture {
 
 	public MemberTestFixture id(String id) {
 		this.id = id;
+
+		return this;
+	}
+
+	public MemberTestFixture number(String number) {
+		this.number = number;
 
 		return this;
 	}
@@ -65,18 +63,39 @@ public final class MemberTestFixture {
 		return this;
 	}
 
-	public Member build(PasswordEncoder passwordEncoder) {
+	public MemberTestFixture withMemberInfo(MemberInfoTestFixture info) {
+		this.memberInfo = info;
+
+		return this;
+	}
+
+	public Member build() {
 		return  Member.of(
-				id, username, passwordEncoder.encode(password), name, birthdate, nickname, email, type, gender
+				id,
+				number,
+				username,
+				password,
+				name,
+				birthdate,
+				nickname,
+				email,
+				type,
+				memberInfo == null ? null : memberInfo.build()
 		);
 	}
 
-	public Member buildExisting(String id, PasswordEncoder passwordEncoder) {
-		return Member.restore(
-				id, username, passwordEncoder.encode(password),
-				name, birthdate, nickname, email, role, type, status,
-				createAt, deleteAt,
-				MemberInfo.restore(id, gender, profile, point, consecutiveDays, imageLimit, failureCount, loginAt)
+	public Member buildWithEncodePassword(String encodePassword) {
+		return  Member.of(
+				id,
+				number,
+				username,
+				encodePassword,
+				name,
+				birthdate,
+				nickname,
+				email,
+				type,
+				memberInfo == null ? null : memberInfo.build()
 		);
 	}
 

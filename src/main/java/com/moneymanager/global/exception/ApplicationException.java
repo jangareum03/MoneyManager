@@ -1,4 +1,4 @@
-package com.moneymanager.global.exception.exception;
+package com.moneymanager.global.exception;
 
 import com.moneymanager.global.exception.code.ErrorCode;
 import com.moneymanager.global.log.LogContent;

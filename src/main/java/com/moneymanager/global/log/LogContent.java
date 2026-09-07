@@ -1,6 +1,6 @@
 package com.moneymanager.global.log;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -53,6 +53,8 @@ public class LogContent {
     public static LogContent of(String work, Class<?> target) {
         return builder()
                 .work(work)
+                .target(target)
+                .value(null)
                 .build();
     }
 

@@ -1,6 +1,7 @@
 package com.moneymanager.global.domain.dto.response.api;
 
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 /**
  * <p>
@@ -32,11 +33,13 @@ import lombok.Getter;
 @Getter
 public class ApiBody<T> {
 
+    private final HttpStatus status;
     private final String message;
     private final String next;
     private final T data;
 
     private ApiBody(String message, String next, T data) {
+        this.status = HttpStatus.OK;
         this.message = message;
         this.next = next;
         this.data = data;

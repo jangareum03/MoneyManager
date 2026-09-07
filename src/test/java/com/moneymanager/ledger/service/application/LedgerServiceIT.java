@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.service.application;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerWriteRequest;
 import com.moneymanager.ledger.domain.dto.response.ImageSlot;
@@ -87,7 +87,7 @@ class LedgerServiceIT extends IntegrationTest {
 
     @BeforeEach
     void setUp() {
-        insertMember(MemberTestFixture.builder().build(passwordEncoder));
+        insertMember(MemberTestFixture.builder().buildWithEncodePassword(passwordEncoder.encode("password123")));
     }
 
 
@@ -497,13 +497,13 @@ class LedgerServiceIT extends IntegrationTest {
             //given: 다른 회원의 가계부가 주어진다
             String memberId = "other";
 
-            memberRepository.save(
+            memberRepository.insert(
                     MemberTestFixture.builder()
                             .id(memberId)
                             .username("other")
                             .nickName("other")
                             .email("other@test.com")
-                            .build(passwordEncoder)
+                            .buildWithEncodePassword(passwordEncoder.encode("password123"))
             );
 
             Member other = memberRepository.findById(memberId);

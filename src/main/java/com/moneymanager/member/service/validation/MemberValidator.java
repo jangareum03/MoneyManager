@@ -1,11 +1,11 @@
 package com.moneymanager.member.service.validation;
 
-import com.moneymanager.global.domain.enums.RegexPattern;
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
-import com.moneymanager.global.util.string.StringUtil;
+import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
+import org.springframework.stereotype.Component;
 
-import static com.moneymanager.global.exception.code.ErrorCode.*;
+import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_NOT_EXIST;
 
 /**
  * <p>
@@ -34,67 +34,31 @@ import static com.moneymanager.global.exception.code.ErrorCode.*;
  * 		</tbody>
  * </table>
  */
+@Component
 public class MemberValidator {
 
-    public static void login(String username, String password) {
-        checkUsername(username);
-        checkPassword(password);
-    }
+    private final MemberFieldValidator fieldValidator = new MemberFieldValidator();
 
-    private static void checkUsername(String username) {
-        if (StringUtil.isNullOrBlank(username)) {
+    public void signUp(MemberSignUpRequest request) {
+        String work = "회원가입 요청 검증";
+
+        if(request == null) {
             throw new ApplicationException(
-                    REQUIRED_VALUE,
+                    REQUIRED_NOT_EXIST,
                     LogContent.of(
-                            "로그인 검증",
-                            "username",
-                            username
-                    ).withCause("아이디 누락")
-            );
+                            work,
+                            MemberSignUpRequest.class
+                    )
+            ).withUserMessage("member.signup.unavailable");
         }
 
-        if (!StringUtil.matchesPattern(username, RegexPattern.MEMBER_USERNAME.getPattern())) {
-            throw new ApplicationException(
-                            INVALID_VALUE,
-                            LogContent.of(
-                                              "로그인 검증",
-                                              "username",
-                                              username
-                                      )
-                                      .withOption("format", "영어, 숫자")
-                                      .withOption("min", 4)
-                                      .withOption("max", 15)
-                    )
-                    .withUserMessage("아이디는 4~15자 사이의 영어와 숫자만 입력 가능합니다.");
-        }
-    }
-
-    private static void checkPassword(String password) {
-        if (StringUtil.isNullOrBlank(password)) {
-            throw new ApplicationException(
-                            REQUIRED_VALUE,
-                            LogContent.of(
-                                    "로그인 검증",
-                                    "password",
-                                    password
-                            ).withCause("비밀번호 누락")
-                    )
-                    .withUserMessage("비밀번호를 입력해주세요.");
-        }
-
-        if (!StringUtil.matchesPattern(password, RegexPattern.MEMBER_PWD.getPattern())) {
-            throw new ApplicationException(
-                            INVALID_VALUE,
-                            LogContent.of(
-                                              "로그인 검증",
-                                              "password",
-                                              password
-                                      ).withOption("format", "영어, 숫자, !, %, #, ^, *")
-                                      .withOption("min", 8)
-                                      .withOption("max", 20)
-                    )
-                    .withUserMessage("8~20자 사이의 영어,숫자,특수문자(!%#^*)만 입력 가능합니다.");
-        }
+        fieldValidator.validateUsername(request.getUsername(), work);
+        fieldValidator.validatePassword(request.getPassword(), work);
+        fieldValidator.validateName(request.getName(), work);
+        fieldValidator.validateBirthdate(request.getBirthdate(), work);
+        fieldValidator.validateNickname(request.getNickname(), work);
+        fieldValidator.validateEmail(request.getEmail(), work);
+        fieldValidator.validateGender(request.getGender(), work);
     }
 
 }

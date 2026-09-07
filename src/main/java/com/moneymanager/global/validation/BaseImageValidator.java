@@ -1,6 +1,6 @@
 package com.moneymanager.global.validation;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import org.springframework.web.multipart.MultipartFile;
 

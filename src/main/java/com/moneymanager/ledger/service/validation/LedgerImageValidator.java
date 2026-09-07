@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.service.validation;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.validation.BaseImageValidator;
 import org.springframework.stereotype.Component;

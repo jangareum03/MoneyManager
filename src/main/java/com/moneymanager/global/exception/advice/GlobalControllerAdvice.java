@@ -1,11 +1,10 @@
 package com.moneymanager.global.exception.advice;
 
 import com.moneymanager.global.exception.annotation.WebController;
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.AuditLogger;
-import com.moneymanager.global.log.DevLogger;
-import com.moneymanager.global.operation.OperationContext;
-import com.moneymanager.global.operation.holder.OperationContextHolder;
+import com.moneymanager.global.log.operation.OperationContext;
+import com.moneymanager.global.log.operation.holder.OperationContextHolder;
 import com.moneymanager.global.security.CustomUserDetails;
 import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
@@ -85,7 +84,7 @@ public class GlobalControllerAdvice {
 			context.addOption("log", e.getLogContent());
 			context.addOption("message", e.getUserMessage());
 
-			DevLogger.debug(context);
+			AuditLogger.debug(context);
 
 			if(context.getAction().getPath() == null || StringUtil.isNullOrBlank(context.getAction().getPath())) {
 				String referer = request.getHeader("referer");

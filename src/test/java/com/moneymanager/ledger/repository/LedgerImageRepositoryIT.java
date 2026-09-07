@@ -57,7 +57,7 @@ class LedgerImageRepositoryIT extends IntegrationTest {
 
     @BeforeEach
     void setUp() {
-        member = MemberTestFixture.builder().build(passwordEncoder);
+        member = MemberTestFixture.builder().buildWithEncodePassword(passwordEncoder.encode("password123"));
 
         insertMember(member);
     }

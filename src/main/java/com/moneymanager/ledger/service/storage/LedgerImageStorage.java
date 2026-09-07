@@ -2,7 +2,7 @@ package com.moneymanager.ledger.service.storage;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.global.domain.FileMetadata;
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.ledger.domain.entity.LedgerImage;
@@ -55,7 +55,7 @@ public class LedgerImageStorage {
     private final Clock clock;
     private final String rootPath;
 
-    public LedgerImageStorage(Clock clock, @Value("${file.image.ledger}") String rootPath) {
+    public LedgerImageStorage(Clock clock, @Value("${file.image.ledger.storage-path}") String rootPath) {
         this.clock = clock;
         this.rootPath = rootPath;
     }

@@ -1,6 +1,6 @@
 package com.moneymanager.ledger.domain.enums;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
 
@@ -92,7 +92,7 @@ public enum DateUnit {
     }
 
     private static void validateNumber(String value, int size) {
-        if (!StringUtil.matchesPattern(value, "\\d+")) {
+        if (!value.matches("\\d+")) {
             throw new ApplicationException(
                     INVALID_VALUE,
                     LogContent.of(

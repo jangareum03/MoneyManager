@@ -1,14 +1,15 @@
-package com.moneymanager.global.operation.aspect;
+package com.moneymanager.global.log.operation.aspect;
 
-import com.moneymanager.global.operation.OperationContext;
-import com.moneymanager.global.operation.annotation.Operation;
-import com.moneymanager.global.operation.enums.OperationResult;
-import com.moneymanager.global.operation.holder.OperationContextHolder;
+import com.moneymanager.global.log.operation.OperationContext;
+import com.moneymanager.global.log.operation.annotation.Operation;
+import com.moneymanager.global.log.operation.enums.OperationResult;
+import com.moneymanager.global.log.operation.holder.OperationContextHolder;
 import com.moneymanager.global.security.CustomUserDetails;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -46,8 +47,8 @@ public class OperationAspect {
 	@Around("@annotation(operation)")
 	public Object around(ProceedingJoinPoint joinPoint, Operation operation) throws Throwable {
 		//1. 인증된 사용자 조회
-		CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		String memberId =  userDetails.getId();
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String memberId =  extractMemberId(authentication);
 
 		//2. 클래스와 메서드 조회
 		MethodSignature signature = (MethodSignature) joinPoint.getSignature();
@@ -72,6 +73,21 @@ public class OperationAspect {
 
 			throw e;
 		}
+	}
+
+
+	private String extractMemberId(Authentication authentication) {
+		if(authentication == null) {
+			return "anonymous";
+		}
+
+		Object principal = authentication.getPrincipal();
+
+		if(!(principal instanceof CustomUserDetails userDetails)) {
+			return "anonymous";
+		}
+
+		return userDetails.getId();
 	}
 
 }

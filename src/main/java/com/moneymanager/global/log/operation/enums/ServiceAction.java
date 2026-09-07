@@ -1,4 +1,4 @@
-package com.moneymanager.global.operation.enums;
+package com.moneymanager.global.log.operation.enums;
 
 import lombok.Getter;
 
@@ -42,6 +42,10 @@ public enum ServiceAction {
 	LEDGER_EDIT_VIEW("가계부 수정 화면 조회", "/ledgers"),
 
 	//API 요청
+	MEMBER_EMAIL_CODE("이메일 인증코드 전송 API"),
+	MEMBER_EMAIL_CHECK("이메일 검증 API"),
+	MEMBER_SIGNUP("회원가입 API"),
+
 	LEDGER_CATEGORY("하위 카테고리 목록 조회 API"),
 	LEDGER_REGISTER_DATE("작성할 가계부 날짜 목록 조회 API"),
 	LEDGER_SEARCH("가계부 내역 검색 API"),

@@ -1,6 +1,7 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.member.service.validation.MemberValidator;
+import com.moneymanager.member.service.validation.AuthValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -36,22 +37,20 @@ import org.springframework.stereotype.Component;
  * </table>
  */
 @Component
+@RequiredArgsConstructor
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
 	private final UserDetailsService userDetailsService;
 	private final PasswordEncoder passwordEncoder;
+	private final AuthValidator authValidator;
 
-	public CustomAuthenticationProvider(CustomUserDetailService userDetailsService, PasswordEncoder passwordEncoder) {
-		this.userDetailsService = userDetailsService;
-		this.passwordEncoder = passwordEncoder;
-	}
 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		String username = authentication.getName();
 		String userPassword = authentication.getCredentials().toString();
 
-		MemberValidator.login(username, userPassword);
+		authValidator.login(username, userPassword);
 
 		CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
 

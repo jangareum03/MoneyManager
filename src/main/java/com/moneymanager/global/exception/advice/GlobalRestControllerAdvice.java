@@ -1,8 +1,10 @@
 package com.moneymanager.global.exception.advice;
 
 import com.moneymanager.global.domain.dto.response.api.ErrorBody;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.exception.annotation.ApiController;
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.util.MessageUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -38,7 +40,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * </table>
  */
 @RestControllerAdvice(annotations = ApiController.class)
+@RequiredArgsConstructor
 public class GlobalRestControllerAdvice {
+
+    private final MessageUtil messageUtil;
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorBody> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
@@ -56,9 +61,11 @@ public class GlobalRestControllerAdvice {
 
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<ErrorBody> handleApplicationException(ApplicationException e) {
+        String message = messageUtil.get(e);
+
         return ResponseEntity
                 .status(e.getErrorCode().getStatus())
-                .body(ErrorBody.of(e.getUserMessage()));
+                .body(ErrorBody.of(message));
     }
 
 }

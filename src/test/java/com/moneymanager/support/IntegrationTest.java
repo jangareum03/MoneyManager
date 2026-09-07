@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.Cookie;
@@ -57,6 +58,9 @@ import java.util.stream.Stream;
 public abstract class IntegrationTest {
 
 	@Autowired
+	protected MockMvc mockMvc;
+
+	@Autowired
 	private JwtTokenProvider jwtTokenProvider;
 
 	@Autowired
@@ -75,7 +79,7 @@ public abstract class IntegrationTest {
 
 	@DynamicPropertySource
 	static void dynamicProperties(DynamicPropertyRegistry registry) {
-		registry.add("file.image.ledger", () -> tempDir.toString());
+		registry.add("${file.image.ledger.storage-path}", () -> tempDir.toString());
 	}
 
 	@BeforeEach

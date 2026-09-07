@@ -1,7 +1,7 @@
-package com.moneymanager.global.operation;
+package com.moneymanager.global.log.operation;
 
-import com.moneymanager.global.operation.enums.OperationResult;
-import com.moneymanager.global.operation.enums.ServiceAction;
+import com.moneymanager.global.log.operation.enums.OperationResult;
+import com.moneymanager.global.log.operation.enums.ServiceAction;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

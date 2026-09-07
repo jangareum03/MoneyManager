@@ -5,7 +5,6 @@ import com.moneymanager.global.fillter.TraceIdFilter;
 import com.moneymanager.global.security.CustomAuthFailureHandler;
 import com.moneymanager.global.security.CustomAuthSuccessHandler;
 import com.moneymanager.global.security.CustomAuthenticationProvider;
-import com.moneymanager.global.security.CustomUserDetailService;
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.member.repository.MemberTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -67,11 +66,6 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public CustomAuthenticationProvider authenticationProvider(CustomUserDetailService userDetailService) {
-		return new CustomAuthenticationProvider(userDetailService, passwordEncoder());
-	}
-
-	@Bean
 	public AuthenticationManager authenticationManager(CustomAuthenticationProvider authenticationProvider) {
 		return new ProviderManager(authenticationProvider);
 	}
@@ -107,7 +101,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 						.antMatchers("/css/**", "/js/**", "/image/**").permitAll()
 						.antMatchers("/", "/signup", "/api/members/**", "/recovery/id", "/recovery/password").permitAll()
-						.antMatchers("/auth/login", "/auth/refresh").permitAll()
+						.antMatchers("/api/auth/**", "/auth/login", "/auth/refresh").permitAll()
 						.anyRequest().hasRole("USER")
 				)
 				.authenticationManager(authenticationManager)

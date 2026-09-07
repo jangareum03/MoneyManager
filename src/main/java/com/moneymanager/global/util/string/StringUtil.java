@@ -1,10 +1,5 @@
 package com.moneymanager.global.util.string;
 
-import com.moneymanager.global.exception.exception.ApplicationException;
-import com.moneymanager.global.log.LogContent;
-
-import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_VALUE;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.utils.string<br>
@@ -46,73 +41,32 @@ public class StringUtil {
 		return value == null || value.trim().isBlank();
 	}
 
-	/**
-	 *	주어진 문자열이 정규식 패턴과 일치하는지 확인합니다. <br>
-	 *	예를 들어, 숫자만 가능하다면:
-	 *	<pre>{@code
-	 *		boolean result = ValidationUtils.matchesPattern("111", "\\d");
-	 *  }</pre>
-	 *
-	 * @param value			검사할 문자열
-	 * @param pattern		비교할 정규식 패턴
-	 * @return	문자열이 유효한 경우{@code ture}, 아니면 {@code false}
-	 */
-	public static boolean matchesPattern(String value, String pattern) {
-		if(isNullOrBlank(value)) {
-			return true;
-		}
-
-		if(isNullOrBlank(pattern)) {
-			throw new ApplicationException(
-					REQUIRED_VALUE,
-					LogContent.of(
-							"패턴 일치 확인",
-							"pattern",
-							pattern
-					).withCause("비교할 패턴 누락")
-			);
-		}
-
-		return value.matches(pattern);
-	}
-
-	/**
-	 * 문자열의 앞(prefix)과 뒤(suffix)에 포함된 특정 문자열을 제거합니다.
-	 * <p>
-	 *     주어진 문자열이 prefix로 시작하면 제거하고, suffix로 끝나면 제거합니다.
-	 *     prefix 또는 suffix가 null이거나 공백인 경우에는 원본 문자열을 반환합니다.
-	 *
-	 *     <p>
-	 *         예제 사용법:
-	 *         <pre>{@code
-	 *         	unwrap("[a, b, c]", "[", "]");		//결과: "a, b, c"
-	 *         	unwrap("hello", "he", "x");		//결과: "llo"
-	 *         	unwrap("hello", null, "ee");	//결과: "hello"
-	 *         }</pre>
-	 *     </p>
-	 * </p>
-	 *
-	 * @param text		대상 문자열
-	 * @param prefix	제거할 접두사
-	 * @param suffix	제거할 접미사
-	 * @return	{@code prefix}와 {@code suffix}가 제거된 문자열
-	 */
-	public static String unwrap(String text, String prefix, String suffix) {
+	public static String masking(String text, int startIndex, int maskLength) {
 		if(isNullOrBlank(text)) {
-			return text;
+			throw new IllegalArgumentException("마스킹할 문자 누락");
 		}
 
-		if(!isNullOrBlank(prefix) && text.startsWith(prefix)) {
-			text = text.substring(prefix.length());
+		if(startIndex <0) {
+			throw new IllegalArgumentException("시작 위치 음수");
 		}
 
-		if(!isNullOrBlank(suffix) && text.endsWith(suffix)) {
-			int end = text.length() - suffix.length();
-
-			text = text.substring(0, end);
+		if(maskLength <= 0) {
+			throw new IllegalArgumentException("마스킹할 길이 0 이하");
 		}
 
-		return text;
+		if(startIndex > text.length()) {
+			throw new IllegalArgumentException("시작 위치가 문자길이 초과");
+		}
+
+		if(text.length() < startIndex + maskLength) {
+			throw new IllegalArgumentException("마스킹할 길이가 문자길이 초과");
+		}
+
+		int endIndex = startIndex + maskLength;
+
+		return text.substring(0, startIndex)
+				+ "*".repeat(maskLength)
+				+ text.substring(endIndex);
 	}
 
 }

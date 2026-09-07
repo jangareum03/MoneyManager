@@ -1,7 +1,7 @@
 package com.moneymanager.ledger.service.application;
 
 import com.moneymanager.global.config.MutableClock;
-import com.moneymanager.global.exception.exception.ApplicationException;
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.response.history.HistoryDateFilter;

@@ -8,10 +8,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * <p>
@@ -75,77 +77,116 @@ public class StringUtilTest {
 
 
 	@Nested
-	@DisplayName("정규식 검증")
-	class PatternValidation {
+	@DisplayName("문자 마스킹할 때")
+	class Masking {
+		
+		@Nested
+		@DisplayName("성공")
+		class Success {
+		
+			@ParameterizedTest
+			@MethodSource("validMasking")
+			@DisplayName("정상적인 인자값이면 마스킹된 문자를 반환한다.")
+			void returnsMaskedString_whenValueIsValid(String text, int startIndex, int maskLength, String expectedMask) {
+				//when
+				String result = StringUtil.masking(text, startIndex, maskLength);
+				
+				//then
+				assertThat(result).isEqualTo(expectedMask);
+			}
 
-		@ParameterizedTest
-		@MethodSource("validPatterns")
-		@DisplayName("문자열이 정규식 패턴과 일치하면 true가 반환한다.")
-		void returnsTrue_whenRequestIsValid(String value, String pattern) {
-			//when: 문자열이 정규식 패턴과 일치하는지 확인한다.
-			boolean result = StringUtil.matchesPattern(value, pattern);
+			static Stream<Arguments> validMasking() {
+				String text = "도시락";
+
+				return Stream.of(
+						Arguments.of(text, 0, 1, "*시락"),		//첫문자
+						Arguments.of(text, 1, 1, "도*락"),			//중간문자
+						Arguments.of(text, 2, 1, "도시*"),			//마지막 문자
+						Arguments.of(text, 0, 2, "**락"),		//앞 2개
+						Arguments.of(text, 1, 2, "도**"),			//뒤 2개
+						Arguments.of(text, 0, 3, "***")			//전체
+				);
+			}
 			
-			//then: true가 반환된다.
-			assertThat(result).isTrue();
 		}
 
-		static Stream<Arguments> validPatterns() {
-			return Stream.of(
-					Arguments.of("12345", "\\d+"),
-					Arguments.of("abcde", "[a-z]+"),
-					Arguments.of("한글123", "[가-힣0-9]+")
-			);
-		}
+		@Nested
+		@DisplayName("실패")
+		class Failure {
 
-		@ParameterizedTest
-		@MethodSource("invalidPatterns")
-		@DisplayName("문자열이 정규식 패턴과 불일치하면 false이 반환한다.")
-		void returnsFalse_whenRequestIsInvalid(String value, String pattern) {
-			//when: 문자열이 정규식 패턴과 일치하는지 확인한다.
-			boolean result = StringUtil.matchesPattern(value, pattern);
-
-			//then: false이 반환된다.
-			assertThat(result).isFalse();
-		}
-
-		static Stream<Arguments> invalidPatterns() {
-			return Stream.of(
-					Arguments.of("한글", "\\d+"),
-					Arguments.of("AB123", "[a-z]+"),
-					Arguments.of("abc", "[가-힣0-9]+")
-			);
-		}
-
-		@ParameterizedTest
-		@NullAndEmptySource
-		@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
-		@DisplayName("문자열이 비어있으면 false을 반환한다.")
-		void returnsFalse_whenTextIsInvalid(String value) {
-			//given: 정상적인 정규식 패턴이 준비되어 있다.
-			String pattern = "\\d+";
-
-			//when: 문자열이 정규식 패턴과 일치하는지 확인한다.
-			boolean result = StringUtil.matchesPattern(value, pattern);
+			@ParameterizedTest
+			@NullAndEmptySource
+			@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
+			@DisplayName("문자가 null이거나 비어있으면 예외를 발생시킨다.")
+			void throwsIllegalArgumentException_whenStringIsNullOrEmpty(String text) {
+				//when
+				assertThatThrownBy(() -> StringUtil.masking(text, 0, 1))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessage("마스킹할 문자 누락");
+			}
 			
-			//then: false을 반환한다.
-			assertThat(result).isFalse();
+			@ParameterizedTest
+			@ValueSource(ints = {-1, -2, -3})
+			@DisplayName("시작 인덱스가 음수면 예외를 발생시킨다.")
+			void throwsIllegalArgumentException_whenStartIndexIsNegative(int startIndex) {
+				//given
+				String text = "빠른병원";
+				
+				//when
+				assertThatThrownBy(() -> StringUtil.masking(text, startIndex, 1))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessage("시작 위치 음수");
+			}
+
+			@ParameterizedTest
+			@ValueSource(ints = {0, -1, -2, -3})
+			@DisplayName("마스킹할 길이가 0이하면 예외를 발생시킨다.")
+			void throwsIllegalArgumentException_whenMaskingLengthIsZeroOrLess(int maskLength) {
+				//given
+				String text = "빠른병원";
+
+				//when
+				assertThatThrownBy(() -> StringUtil.masking(text, 0, maskLength))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessage("마스킹할 길이 0 이하");
+			}
+
+			@ParameterizedTest
+			@ValueSource(ints = {5, 6})
+			@DisplayName("시작 인덱스가 문자 길이보다 길면 예외를 발생시킨다.")
+			void throwsIllegalArgumentException_whenStartIndexIsGreaterThanStringLength(int startIndex) {
+				//given
+				String text = "빠른병원";
+
+				//when
+				assertThatThrownBy(() -> StringUtil.masking(text, startIndex, 1))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessage("시작 위치가 문자길이 초과");
+			}
+			
+			@ParameterizedTest
+			@MethodSource("invalidMasking")
+			@DisplayName("시작 인덱스와 마스킹할 길이의 합이 문자 길이보다 길면 예외를 발생시킨다.")
+			void throwsIllegalArgumentException_whenSumOfIndexAndLengthIsGreaterThanStringLength(int startIndex, int maskLength) {
+				//given
+				String text = "빠른병원";
+
+				//when
+				assertThatThrownBy(() -> StringUtil.masking(text, startIndex, maskLength))
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessage("마스킹할 길이가 문자길이 초과");
+			}
+
+			static Stream<Arguments> invalidMasking() {
+				return Stream.of(
+						Arguments.of(0, 5),
+						Arguments.of(1, 5),
+						Arguments.of(4, 1),
+						Arguments.of(4, 2)
+				);
+			}
+
 		}
-
-		@ParameterizedTest
-		@NullAndEmptySource
-		@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
-		@DisplayName("패턴이 비어있으면 false을 반환한다.")
-		void returnsFalse_whenPatternIsInvalid(String pattern) {
-			//given: 정상적인 문자열이 준비되어 있다.
-			String value = "text";
-
-			//when: 문자열이 정규식 패턴과 일치하는지 확인한다.
-			boolean result = StringUtil.matchesPattern(value, pattern);
-
-			//then: false을 반환한다.
-			assertThat(result).isFalse();
-		}
-
 	}
 
 }

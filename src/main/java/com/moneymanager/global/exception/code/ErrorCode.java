@@ -39,9 +39,12 @@ public enum ErrorCode {
 	INVALID_VALUE("004", "허용하지 않은 값",  HttpStatus.BAD_REQUEST),
 	OUT_OF_RANGE("005", "범위 초과", HttpStatus.BAD_REQUEST),
 	OUT_OF_LENGTH("006", "길이 초과", HttpStatus.BAD_REQUEST),
+	MISMATCH("007", "값 불일치", HttpStatus.BAD_REQUEST),
 	
 	/** 데이터 오류 **/
 	DATA_NOT_FOUND("100", "데이터 없음", HttpStatus.NOT_FOUND),
+	DUPLICATE_DATA("101", "중복 데이터", HttpStatus.CONFLICT),
+	DATA_INTEGRITY("105", "무결성 위반",  HttpStatus.BAD_REQUEST),
 
 	/** 인증 오류 **/
 	UNAUTHORIZED("200", "인증되지 않은 사용자",  HttpStatus.UNAUTHORIZED),
@@ -58,6 +61,11 @@ public enum ErrorCode {
 	FILE_READ_FAILED("503", "파일 읽기 불가",  HttpStatus.INTERNAL_SERVER_ERROR),
 	FILE_TOO_LARGE("505", "파일 용량 초과", HttpStatus.PAYLOAD_TOO_LARGE),
 	UNSUPPORTED_FILE_TYPE("508", "미지원 파일", HttpStatus.UNSUPPORTED_MEDIA_TYPE),
+
+	/** 외부API 오류 **/
+	EXTERNAL_API_ERROR("600", "외부 API 오류", HttpStatus.BAD_GATEWAY),
+	/** 데이터베이스 오류 **/
+	CONSTRAINT_VIOLATION("706", "제약조건 위반", HttpStatus.INTERNAL_SERVER_ERROR),
 
 	/** 기타 오류 **/
 	INTERVAL_SERVER_ERROR("900", "내부 오류", HttpStatus.INTERNAL_SERVER_ERROR),;

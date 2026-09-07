@@ -2,8 +2,8 @@ package com.moneymanager.ledger.controller;
 
 import com.moneymanager.global.domain.dto.response.api.ApiBody;
 import com.moneymanager.global.exception.annotation.ApiController;
-import com.moneymanager.global.operation.annotation.Operation;
-import com.moneymanager.global.operation.enums.ServiceAction;
+import com.moneymanager.global.log.operation.annotation.Operation;
+import com.moneymanager.global.log.operation.enums.ServiceAction;
 import com.moneymanager.ledger.domain.dto.request.LedgerSearchRequest;
 import com.moneymanager.ledger.domain.dto.request.LedgerUpdateRequest;
 import com.moneymanager.ledger.domain.dto.response.history.LedgerHistoryDisplay;
