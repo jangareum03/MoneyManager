@@ -3,7 +3,9 @@ package com.moneymanager.global.security;
 import com.moneymanager.global.domain.dto.response.AccessToken;
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.member.repository.MemberTokenRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -40,15 +42,14 @@ import java.io.IOException;
  * </table>
  */
 @Component
+@RequiredArgsConstructor
 public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
 	private final JwtTokenProvider jwtTokenProvider;
 	private final MemberTokenRepository tokenRepository;
 
-	public CustomAuthSuccessHandler(JwtTokenProvider jwtTokenProvider, MemberTokenRepository tokenRepository) {
-		this.jwtTokenProvider = jwtTokenProvider;
-		this.tokenRepository = tokenRepository;
-	}
+	private final PasswordEncoder passwordEncoder;
+
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -59,15 +60,26 @@ public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHand
 		AccessToken accessToken = jwtTokenProvider.generateAccessToken(userDetails);
 		AccessToken refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
 
-		tokenRepository.saveToken(userDetails.getId(), accessToken, refreshToken);
+		//3. 토큰 암호화
+		String refreshTokenHash = passwordEncoder.encode(refreshToken.getToken());
+		tokenRepository.saveToken(userDetails.getId(), refreshTokenHash, refreshToken.getExpiration());
 
-		//쿠키 설정
+		//4.쿠키 설정
 		Cookie accessCookie = new Cookie("accessToken", accessToken.getToken());
-		accessCookie.setHttpOnly(true);
+		accessCookie.setHttpOnly(true);			//html에서만 쿠키 조회 가능
+		accessCookie.setSecure(true);				//https에서만 전송 가능
 		accessCookie.setPath("/");
 		accessCookie.setMaxAge((int) JwtTokenProvider.ACCESS_TOKEN_EXPIRATION_SECONDS);
 
+		Cookie refreshCookie = new Cookie("refreshToken", refreshToken.getToken());
+		refreshCookie.setHttpOnly(true);
+		refreshCookie.setSecure(true);
+		refreshCookie.setPath("/api/auth/refresh");
+		refreshCookie.setMaxAge((int) JwtTokenProvider.REFRESH_TOKEN_EXPIRATION_SECONDS);
+
+		//5. access / refresh 토큰 저장
 		response.addCookie(accessCookie);
+		response.addCookie(refreshCookie);
 
 		response.sendRedirect("/home");
 	}

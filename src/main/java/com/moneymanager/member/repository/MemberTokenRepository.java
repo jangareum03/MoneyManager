@@ -1,10 +1,10 @@
 package com.moneymanager.member.repository;
 
-import com.moneymanager.global.domain.dto.response.AccessToken;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.util.Date;
 
 /**
  * <p>
@@ -42,40 +42,36 @@ public class MemberTokenRepository {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
-	public void saveToken(String memberId, AccessToken accessToken, AccessToken refreshToken) {
+	public void saveToken(String memberId, String refreshToken, Date expiration) {
 		String query = """
-					INSERT INTO member_token (member_id, access_token, refresh_token, access_expire_at, refresh_expire_at)
-						VALUES (?, ?, ?, ?, ?)
+					INSERT INTO member_token (member_id, refresh_token, refresh_expire_at)
+						VALUES (?, ?, ?)
 				""";
 
 		if(exists(memberId)) {
-			update(memberId, accessToken, refreshToken);
+			update(memberId, refreshToken, expiration);
 			return;
 		}
 
 		jdbcTemplate.update(
 				query,
 				memberId,
-				accessToken.getToken(),
-				refreshToken.getToken(),
-				accessToken.getExpiration(),
-				refreshToken.getExpiration()
+				refreshToken,
+				expiration
 		);
 	}
 
-	private void update(String memberId, AccessToken accessToken, AccessToken refreshToken) {
+	private void update(String memberId, String refreshToken, Date expiration) {
 		String query = """
 						UPDATE member_token
-							SET access_token=?, refresh_token=?, access_expire_at=?, refresh_expire_at=?, updated_at=SYSDATE
+							SET refresh_token=?, refresh_expire_at=?, updated_at=SYSDATE
 							WHERE member_id=?
 					""";
 
 		jdbcTemplate.update(
 				query,
-				accessToken.getToken(),
-				refreshToken.getToken(),
-				accessToken.getExpiration(),
-				refreshToken.getExpiration(),
+				refreshToken,
+				expiration,
 				memberId
 		);
 	}
