@@ -19,7 +19,7 @@ final class WithMockCustomUserSecurityContextFactory implements WithSecurityCont
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
 
 		MemberAuth memberAuth = MemberAuth.builder()
-															.memberId(withMockCustomUser.memberId())
+															.memberNumber(withMockCustomUser.memberId())
 															.username(withMockCustomUser.username())
 															.password(withMockCustomUser.password())
 															.role(withMockCustomUser.role())

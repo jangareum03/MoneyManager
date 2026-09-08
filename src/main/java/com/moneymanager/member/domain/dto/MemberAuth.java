@@ -37,7 +37,8 @@ import java.time.LocalDateTime;
 @Getter
 public class MemberAuth {
 
-	private final String memberId;
+	private final String id;
+	private final String memberNumber;
 	private final String username;
 	private final String password;
 	private final String nickname;

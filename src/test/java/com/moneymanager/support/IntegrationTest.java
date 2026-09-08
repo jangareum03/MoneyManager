@@ -87,8 +87,8 @@ public abstract class IntegrationTest {
 		cleanTempDir();
 	}
 
-	protected Cookie accessTokenCookie(String username) {
-		String token = jwtTokenProvider.createAccessToken(username);
+	protected Cookie accessTokenCookie(String memberNumber) {
+		String token = jwtTokenProvider.createAccessToken(memberNumber);
 
 		return new Cookie("accessToken", token);
 	}
@@ -120,29 +120,8 @@ public abstract class IntegrationTest {
 
 	//==== 유틸 메서드 =====
 	protected void insertMember(Member member) {
-		jdbcTemplate.update(
-				"""
-						INSERT INTO member(id, type, username, password, name, birthdate, nickname, email)
-							VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-						""",
-				member.getId(),
-				member.getType().getValue(),
-				member.getUsername(),
-				member.getPassword(),
-				member.getName(),
-				member.getBirthdate(),
-				member.getNickname(),
-				member.getEmail()
-		);
-
-		jdbcTemplate.update(
-				"""
-						INSERT INTO member_info(id, gender)
-							VALUES (?, ?)
-						""",
-				member.getInfo().getId(),
-				member.getInfo().getGender().getValue()
-		);
+		memberRepository.insert(member);
+		memberRepository.insert(member.getInfo());
 	}
 
 }

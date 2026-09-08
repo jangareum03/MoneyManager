@@ -40,7 +40,7 @@ import static com.moneymanager.global.exception.code.ErrorCode.UNAUTHORIZED;
 public class CurrentUser {
 
 	public String getMemberId() {
-		return getCurrentUser().getId();
+		return getCurrentUser().getMemberNumber();
 	}
 
 

@@ -125,7 +125,11 @@ public class CustomUserDetails implements UserDetails {
 	 * @return	회원번호(PK)
 	 */
 	public String getId() {
-		return memberAuth.getMemberId();
+		return  memberAuth.getId();
+	}
+
+	public String getMemberNumber() {
+		return memberAuth.getMemberNumber();
 	}
 
 	public String getNickname() {

@@ -45,6 +45,9 @@ import java.util.List;
 @Component
 public class JwtTokenProvider {
 
+	public static final long ACCESS_TOKEN_EXPIRATION_SECONDS = 60 * 60;					//1시간
+	public static final long REFRESH_TOKEN_EXPIRATION_SECONDS = 60 * 60 * 24;			//1일
+
 	private final SecretKey key;
 
 	public JwtTokenProvider(@Value("${secret.key}") String secretKey) {
@@ -68,11 +71,10 @@ public class JwtTokenProvider {
 		Date now = new Date();
 
 		//60분
-		long accessTokenLimit = 1000 * 60 * 60;
-		Date expiration = new Date(now.getTime() + accessTokenLimit);
+		Date expiration = new Date(now.getTime() + ACCESS_TOKEN_EXPIRATION_SECONDS * 1000);
 
 		String token = Jwts.builder()
-				.subject(userDetails.getUsername())													//토큰 제목
+				.subject(userDetails.getMemberNumber())										//토큰 제목
 				.claim("nickname", userDetails.getNickname())					//클레임 설정
 				.claim("profile", userDetails.getProfile())
 				.claim("role", roles)
@@ -85,9 +87,16 @@ public class JwtTokenProvider {
 	}
 
 	public String createAccessToken(String subject) {
+		Date now = new Date();
+
+		//60분
+		Date expiration = new Date(now.getTime() + ACCESS_TOKEN_EXPIRATION_SECONDS * 1000);
+
 		return Jwts.builder()
 				.subject(subject)
 				.claim("role", "ROLE_USER")
+				.issuedAt(now)
+				.expiration(expiration)
 				.signWith(key)
 				.compact();
 	}
@@ -95,11 +104,10 @@ public class JwtTokenProvider {
 	public AccessToken generateRefreshToken(CustomUserDetails userDetails) {
 		Date now = new Date();
 
-		// 1일(=24시간)
-		long refreshTokenLimit = 1000 * 60 * 60 * 24;
-		Date expiration = new Date(now.getTime() + refreshTokenLimit);
+		Date expiration = new Date(now.getTime() + REFRESH_TOKEN_EXPIRATION_SECONDS * 1000);
 
 		String token =  Jwts.builder()
+				.subject(userDetails.getMemberNumber())										//토큰 제목
 				.issuedAt(now)																					//토큰 발급시간
 				.expiration(expiration)																		//토큰 만료시간
 				.signWith(key)																					//서버키를 암호화

@@ -1,5 +1,6 @@
 package com.moneymanager.global.security;
 
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.member.service.validation.AuthValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.*;
@@ -44,38 +45,51 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 	private final PasswordEncoder passwordEncoder;
 	private final AuthValidator authValidator;
 
-
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+		//1. 로그인 페이지에서 입력한 아이디와 비밀번호 조회
 		String username = authentication.getName();
 		String userPassword = authentication.getCredentials().toString();
 
-		authValidator.login(username, userPassword);
+		//2. 아이디와 비밀번호 검증
+		try{
+			authValidator.login(username, userPassword);
+		}catch (ApplicationException e){
+			throw new AuthenticationServiceException(e.getUserMessage());
+		}
 
+		//3. 사용자 정보 조회
 		CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
 
-		if(!userDetails.isAccountNonExpired()) {
-			throw new DisabledException("인증을 할 수 없습니다.");
-		}
+		throwsAuthenticationException(userDetails);
 
-		if(!userDetails.isAccountNonLocked()) {
-			throw new LockedException("잠긴 계정입니다.");
-		}
-
-		if(!userDetails.isEnabled()) {
-			throw new DisabledException("비활성화 계정입니다.");
-		}
-
+		//4. 비밀번호 일치여부 검증
 		if(!passwordEncoder.matches(userPassword, userDetails.getPassword())) {
-			throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
+			throw new BadCredentialsException("member.login.failed");
 		}
 
+		//5. 로그인 인증 토큰 발급
 		return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 	}
 
 	@Override
 	public boolean supports(Class<?> authentication) {
 		return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
+	}
+
+
+	private void throwsAuthenticationException(CustomUserDetails userDetails) throws AuthenticationException {
+		if(!userDetails.isAccountNonExpired()) {
+			throw new DisabledException("member.login.not_found");
+		}
+
+		if(!userDetails.isAccountNonLocked()) {
+			throw new LockedException("member.login.locked");
+		}
+
+		if(!userDetails.isEnabled()) {
+			throw new DisabledException("member.login.restricted");
+		}
 	}
 
 }

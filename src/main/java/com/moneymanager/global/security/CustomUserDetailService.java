@@ -46,7 +46,7 @@ public class CustomUserDetailService implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) {
 		MemberAuth memberAuth = memberRepository.findAuthByUsername(username)
-				.orElseThrow(() -> new UsernameNotFoundException(username + " 아이디는 찾을 수 없습니다."));
+				.orElseThrow(() -> new UsernameNotFoundException("member.login.failed"));
 
 		return new CustomUserDetails(memberAuth);
 	}

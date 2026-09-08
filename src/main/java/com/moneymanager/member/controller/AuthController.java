@@ -2,8 +2,10 @@ package com.moneymanager.member.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.SessionAttribute;
 
 /**
  * <p>
@@ -38,7 +40,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class AuthController {
 
 	@GetMapping("/login")
-	public String login() {
+	public String login(@SessionAttribute(value = "loginError", required = false)String error, Model model) {
+		model.addAttribute("loginError", error);
+
 		return "/member/member_login";
 	}
 

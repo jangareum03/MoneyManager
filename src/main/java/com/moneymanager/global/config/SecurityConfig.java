@@ -2,11 +2,7 @@ package com.moneymanager.global.config;
 
 import com.moneymanager.global.fillter.JwtAuthenticationFilter;
 import com.moneymanager.global.fillter.TraceIdFilter;
-import com.moneymanager.global.security.CustomAuthFailureHandler;
-import com.moneymanager.global.security.CustomAuthSuccessHandler;
 import com.moneymanager.global.security.CustomAuthenticationProvider;
-import com.moneymanager.global.security.jwt.JwtTokenProvider;
-import com.moneymanager.member.repository.MemberTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,17 +67,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public SimpleUrlAuthenticationSuccessHandler successHandler(JwtTokenProvider jwtTokenProvider, MemberTokenRepository tokenRepository) {
-		return new CustomAuthSuccessHandler(jwtTokenProvider, tokenRepository);
-	}
-
-	@Bean
-	public AuthenticationFailureHandler failureHandler() {
-		return new CustomAuthFailureHandler();
-	}
-
-	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager, SimpleUrlAuthenticationSuccessHandler successHandler) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager, SimpleUrlAuthenticationSuccessHandler successHandler, AuthenticationFailureHandler failureHandler) throws Exception {
 		http
 				.csrf().disable()
 				.cors(Customizer.withDefaults())
@@ -100,22 +86,21 @@ public class SecurityConfig {
 				.sessionManagement( session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) )
 				.authorizeHttpRequests(auth -> auth
 						.antMatchers("/css/**", "/js/**", "/image/**").permitAll()
-						.antMatchers("/", "/signup", "/api/members/**", "/recovery/id", "/recovery/password").permitAll()
-						.antMatchers("/api/auth/**", "/auth/login", "/auth/refresh").permitAll()
+						.antMatchers("/api/auth/**", "/auth/**").permitAll()
 						.anyRequest().hasRole("USER")
 				)
 				.authenticationManager(authenticationManager)
 				.formLogin(login -> login
-						.loginPage("/")
-						.loginProcessingUrl("/login")
+						.loginPage("/auth/login")
+						.loginProcessingUrl("/api/auth/login")
 						.usernameParameter("username")
 						.passwordParameter("password")
 						.successHandler(successHandler)
-						.failureHandler(failureHandler())
+						.failureHandler(failureHandler)
 						.permitAll()
 				)
 				.logout(logout -> logout
-						.logoutUrl("/logout")
+						.logoutUrl("/auth/logout")
 						.logoutSuccessUrl("/")
 						.permitAll()
 				)

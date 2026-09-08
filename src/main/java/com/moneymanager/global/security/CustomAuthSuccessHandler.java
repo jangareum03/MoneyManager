@@ -7,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -52,25 +51,25 @@ public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHand
 	}
 
 	@Override
-	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+		//1. 인증 성공한 회원정보 조회
 		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-		//토큰 생성
+		//2. 토큰 생성
 		AccessToken accessToken = jwtTokenProvider.generateAccessToken(userDetails);
 		AccessToken refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
 
-		tokenRepository.saveToken(userDetails.getId(), accessToken, refreshToken );
+		tokenRepository.saveToken(userDetails.getId(), accessToken, refreshToken);
 
 		//쿠키 설정
 		Cookie accessCookie = new Cookie("accessToken", accessToken.getToken());
 		accessCookie.setHttpOnly(true);
 		accessCookie.setPath("/");
-		accessCookie.setMaxAge(60 * 60);
+		accessCookie.setMaxAge((int) JwtTokenProvider.ACCESS_TOKEN_EXPIRATION_SECONDS);
 
 		response.addCookie(accessCookie);
 
-		//TODO: 테스트 확인하기 위해 변경함 =>  변경예정
-		response.sendRedirect("/ledgers/new/step1");
+		response.sendRedirect("/home");
 	}
 
 }
