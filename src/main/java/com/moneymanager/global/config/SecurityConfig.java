@@ -20,6 +20,8 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 
+import javax.servlet.http.HttpServletResponse;
+
 
 /**
  * <p>
@@ -90,6 +92,12 @@ public class SecurityConfig {
 						.anyRequest().hasRole("USER")
 				)
 				.authenticationManager(authenticationManager)
+				.exceptionHandling(exception -> {
+					exception
+							.authenticationEntryPoint((req, res, authException) -> {
+								res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+							});
+				})
 				.formLogin(login -> login
 						.loginPage("/auth/login")
 						.loginProcessingUrl("/api/auth/login")

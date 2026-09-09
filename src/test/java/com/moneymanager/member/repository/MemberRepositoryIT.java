@@ -285,6 +285,82 @@ class MemberRepositoryIT extends IntegrationTest {
 
 
     @Nested
+    @DisplayName("회원 인증 조회할 때")
+    class FindAuthMemberByMemberNumber {
+
+        @BeforeEach
+        void setUp() {
+            insertMember(
+                    MemberTestFixture.builder()
+                            .withMemberInfo(MemberInfoTestFixture.builder())
+                            .build()
+            );
+
+            int row = jdbcTemplate.update(
+                    "UPDATE member_info SET failure_count = 1 WHERE member_id = ?",
+                    MemberTestData.DEFAULT_ID
+            );
+
+            assertThat(row).isEqualTo(1);
+        }
+
+        @Nested
+        @DisplayName("성공")
+        class Success {
+
+            @Test
+            @DisplayName("회원이 존재하면 회원인증 정보를 반환한다.")
+            void returnsAuthInfo_whenMemberExists() {
+                //when
+                Optional<MemberAuth> result = target.findAuthByMemberNumber(MemberTestData.DEFAULT_NUMBER);
+
+                //then
+                assertThat(result)
+                        .isPresent()
+                        .get()
+                        .satisfies(memberAuth -> {
+                            assertThat(memberAuth.getMemberNumber()).isEqualTo(MemberTestData.DEFAULT_NUMBER);
+                            assertThat(memberAuth.getLoginFailCount()).isEqualTo(1);
+                            assertThat(memberAuth.getDeletedDate()).isNull();
+                        });
+            }
+
+            @Test
+            @DisplayName("탈퇴한 회원이면 탈퇴일이 포함되어 반환된다.")
+            void returnsAuthInfoWithWithdrawnDate_whenUserIsWithdrawn() {
+                //given: 저장된 회원에 탈퇴일을 변경한다.
+                jdbcTemplate.update(
+                        "UPDATE member SET deleted_at = SYSDATE WHERE username = ?",
+                        MemberTestData.DEFAULT_USERNAME
+                );
+
+                //when
+                Optional<MemberAuth> result = target.findAuthByMemberNumber(MemberTestData.DEFAULT_NUMBER);
+
+                //then: 탈퇴일이 반환된다.
+                assertThat(result)
+                        .isPresent()
+                        .get()
+                        .extracting(MemberAuth::getDeletedDate)
+                        .isNotNull();
+            }
+
+            @Test
+            @DisplayName("회원이 존재하지 않으면 empty를 반환한다.")
+            void returnsEmpty_whenUserDoesNotExist() {
+                //when
+                Optional<MemberAuth> result = target.findAuthByMemberNumber("nonexistent");
+
+                //then
+                assertThat(result.isPresent()).isFalse();
+            }
+
+        }
+
+    }
+
+
+    @Nested
     @DisplayName("사이드바 정보를 조회할 때")
     class FindSideBarUser {
 
@@ -327,6 +403,7 @@ class MemberRepositoryIT extends IntegrationTest {
             assertThat(result).isEmpty();
         }
     }
+
 
     @Nested
     @DisplayName("업로드 가능 개수를 조회할 때")

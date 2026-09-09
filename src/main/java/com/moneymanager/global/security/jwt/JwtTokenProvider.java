@@ -1,6 +1,7 @@
 package com.moneymanager.global.security.jwt;
 
 import com.moneymanager.global.domain.dto.response.AccessToken;
+import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.security.CustomUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -114,7 +115,7 @@ public class JwtTokenProvider {
 		return new AccessToken(token, expiration);
 	}
 
-	public String getUserName(String token) {
+	public String getMemberNumber(String token) {
 		Claims claims = Jwts.parser()
 				.verifyWith(key)
 				.build()
@@ -124,32 +125,25 @@ public class JwtTokenProvider {
 		return claims.getSubject();
 	}
 
-
-	/**
-	 * 토큰의 유효성을 검증합니다.
-	 *
-	 * @param token		검증할 토큰
-	 * @return	토큰이 유효하다면 true, 아니면 false
-	 */
-	public boolean validateToken(String token) {
+	public void validateToken(String token) {
 		try {
 			Jwts	.parser()
 					.verifyWith(key)
 					.build()
 					.parseSignedClaims(token);
-
-			return  true;
-		}catch ( SecurityException | MalformedJwtException e ) {
-			log.warn("잘못된 JWT 서명으로 유효하지 못 합니다.");
+		}catch (SecurityException | MalformedJwtException e) {
+			AuditLogger.warn("잘못된 JWT 서명으로 유효하지 못 합니다.");
+			throw e;
 		}catch (ExpiredJwtException e) {
-			log.warn("JWT 토큰이 만료되었습니다.");
+			AuditLogger.warn("JWT 토큰이 만료되었습니다");
+			throw e;
 		}catch (UnsupportedJwtException e) {
-			log.warn("지원되지 않은 JWT 토큰입니다.");
+			AuditLogger.warn("지원되지 않은 JWT 토큰입니다.");
+			throw e;
 		}catch (IllegalArgumentException e) {
-			log.warn("클레임 정보가 비어있습니다.");
+			AuditLogger.warn("클레임 정보가 비어있습니다");
+			throw e;
 		}
-
-		return false;
 	}
 
 }
