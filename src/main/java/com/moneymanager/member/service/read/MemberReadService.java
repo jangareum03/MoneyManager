@@ -2,11 +2,14 @@ package com.moneymanager.member.service.read;
 
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.member.domain.dto.response.SideBarUser;
+import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DUPLICATE_DATA;
+import static com.moneymanager.global.exception.code.ErrorCode.UNAUTHORIZED;
 
 /**
  * <p>
@@ -45,6 +48,20 @@ public class MemberReadService {
         return memberRepository.findImageUploadLimitByMemberId(memberId);
     }
 
+    public SideBarUser getSideBarUser(String memberNumber) {
+        return memberRepository.findByMemberNumberForSideBar(memberNumber)
+                .orElseThrow(() ->
+                        new ApplicationException(
+                                UNAUTHORIZED,
+                                LogContent.of(
+                                        "사이드바 정보 조회",
+                                        Member.class,
+                                        "memberNumber", memberNumber
+                                )
+                        ).withUserMessage("member.sidebar.failed")
+                );
+    }
+
     public boolean checkUsernameExists(String username) {
         return memberRepository.existsByUsername(username);
     }
@@ -63,7 +80,7 @@ public class MemberReadService {
         //1.아이디 중복 검증
         if (checkUsernameExists(username)) {
             throw new ApplicationException(
-					DUPLICATE_DATA,
+                    DUPLICATE_DATA,
                     LogContent.of(
                             work,
                             "username",
@@ -75,7 +92,7 @@ public class MemberReadService {
         //1..닉네임 중복 검증
         if (checkNicknameExists(nickname)) {
             throw new ApplicationException(
-					DUPLICATE_DATA,
+                    DUPLICATE_DATA,
                     LogContent.of(
                             work,
                             "nickname",

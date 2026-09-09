@@ -31,6 +31,12 @@ public final class MemberInfoTestFixture {
         return this;
     }
 
+    public MemberInfoTestFixture profile(String profile) {
+        this.profile = profile;
+
+        return this;
+    }
+
     public MemberInfo build() {
         return MemberInfo.of(id, gender);
     }

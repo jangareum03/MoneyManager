@@ -2,6 +2,8 @@ package com.moneymanager.member.service.read;
 
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.member.domain.dto.response.SideBarUser;
+import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.repository.MemberRepository;
 import com.moneymanager.support.ApplicationExceptionAssert;
@@ -10,12 +12,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
-import static com.moneymanager.global.exception.code.ErrorCode.DUPLICATE_DATA;
+import java.util.Optional;
+
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -58,7 +64,7 @@ class MemberReadServiceTest {
 
 	@Nested
 	@DisplayName("회원의 등록 가능한 개수를 조회할 때")
-	class GetAvailableImageCountTest {
+	class GetAvailableImageCount {
 
 		@Nested
 		@DisplayName("성공")
@@ -109,6 +115,74 @@ class MemberReadServiceTest {
 
 		}
 
+	}
+
+
+	@Nested
+	@DisplayName("사이드바 정보 조회할 때")
+	class GetSideBar {
+		
+		@Test
+		@DisplayName("회원번호가 존재하면 해당하는 회원의 닉네임과 프로필을 반환한다.")
+		void returnsSidebar_whenMemberExists() {
+			//given
+			String memberNumber = MemberTestData.DEFAULT_NUMBER;
+
+			SideBarUser sideBarUser = mock(SideBarUser.class);
+
+			when(memberRepository.findByMemberNumberForSideBar(memberNumber))
+					.thenReturn(Optional.of(sideBarUser));
+			
+			//when
+			SideBarUser result = target.getSideBarUser(memberNumber);
+			
+			//then
+			assertThat(result)
+					.isNotNull()
+					.isEqualTo(sideBarUser);
+		}
+		
+		@ParameterizedTest
+		@NullAndEmptySource
+		@MethodSource("com.moneymanager.support.stream.StringTestStream#blankStrings")
+		@DisplayName("회원번호가 null이거나 비어있으면 예외를 발생시킨다.")
+		void throwsException_whenMemberIdIsNull(String memberNumber) {
+			//given
+			when(memberRepository.findByMemberNumberForSideBar(memberNumber))
+					.thenReturn(Optional.empty());
+			
+			//when
+			Throwable throwable = catchThrowable(() ->  target.getSideBarUser(memberNumber));
+			
+			//then
+			ApplicationExceptionAssert.assertThatApplicationException(throwable)
+					.hasErrorCode(UNAUTHORIZED)
+					.hasWork("사이드바 정보 조회")
+					.hasTarget(Member.class)
+					.hasValue("memberNumber", memberNumber)
+					.hasUserMessage("member.sidebar.failed");
+		}
+		
+		@Test
+		@DisplayName("회원번호가 존재하지 않으면 예외를 발생시킨다.")
+		void throwsException_whenMemberDoesNotExist() {
+			//given
+			String memberNumber = MemberTestData.DEFAULT_NUMBER;
+
+			when(memberRepository.findByMemberNumberForSideBar(memberNumber))
+					.thenReturn(Optional.empty());
+
+			//when
+			Throwable throwable = catchThrowable(() ->  target.getSideBarUser(memberNumber));
+
+			//then
+			ApplicationExceptionAssert.assertThatApplicationException(throwable)
+					.hasErrorCode(UNAUTHORIZED)
+					.hasWork("사이드바 정보 조회")
+					.hasTarget(Member.class)
+					.hasValue("memberNumber", memberNumber)
+					.hasUserMessage("member.sidebar.failed");
+		}
 	}
 
 

@@ -11,7 +11,7 @@
 
             <th:block th:unless="${sidebarUser.profile == null}">
                 <!-- 프로필이 있는 상태 -->
-                <img class="sidebar-profile__image sidebar-profile__image--filled" th:src="${member.profile}" alt="사용자 이미지"/>
+                <img class="sidebar-profile__image sidebar-profile__image--filled" th:src="${sidebarUser.profile}" alt="사용자 이미지"/>
             </th:block>
         </div>
 

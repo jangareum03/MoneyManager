@@ -75,8 +75,6 @@ public class JwtTokenProvider {
 
 		String token = Jwts.builder()
 				.subject(userDetails.getMemberNumber())										//토큰 제목
-				.claim("nickname", userDetails.getNickname())					//클레임 설정
-				.claim("profile", userDetails.getProfile())
 				.claim("role", roles)
 				.issuedAt(now)																					//토큰 발급시간
 				.expiration(expiration)																		//토큰 만료시간

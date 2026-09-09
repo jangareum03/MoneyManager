@@ -1,6 +1,7 @@
 package com.moneymanager.member.repository;
 
 import com.moneymanager.member.domain.dto.MemberAuth;
+import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.support.ApplicationExceptionAssert;
@@ -209,22 +210,22 @@ class MemberRepositoryIT extends IntegrationTest {
 
     @Nested
     @DisplayName("회원 인증 조회할 때")
-    class FindAuthMemberTest {
+    class FindAuthMember {
 
         @BeforeEach
         void setUp() {
-			insertMember(
-					MemberTestFixture.builder()
-							.withMemberInfo(MemberInfoTestFixture.builder())
-							.build()
-			);
+            insertMember(
+                    MemberTestFixture.builder()
+                            .withMemberInfo(MemberInfoTestFixture.builder())
+                            .build()
+            );
 
             int row = jdbcTemplate.update(
                     "UPDATE member_info SET failure_count = 1 WHERE member_id = ?",
                     MemberTestData.DEFAULT_ID
             );
 
-			assertThat(row).isEqualTo(1);
+            assertThat(row).isEqualTo(1);
         }
 
         @Nested
@@ -282,6 +283,50 @@ class MemberRepositoryIT extends IntegrationTest {
 
     }
 
+
+    @Nested
+    @DisplayName("사이드바 정보를 조회할 때")
+    class FindSideBarUser {
+
+        @Test
+        @DisplayName("회원이 존재하면 사이드바 정보를 조회한다.")
+        void returnsSidebar_whenMemberExists() {
+            //given
+            Member member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .build();
+
+            insertMember(member);
+
+            String memberNumber = member.getMemberNumber();
+
+            //when
+            Optional<SideBarUser> result = target.findByMemberNumberForSideBar(memberNumber);
+
+            //then
+            assertThat(result)
+                    .isPresent()
+                    .get()
+                    .satisfies(sideBarUser -> {
+                        assertThat(sideBarUser.getNickname()).isEqualTo(member.getNickname());
+                        assertThat(sideBarUser.getProfile()).isEqualTo(member.getInfo().getProfile());
+                    });
+        }
+
+        @Test
+        @DisplayName("회원이 존재하지 않으면 Empty를 반환한다.")
+        void returnsEmpty_whenUserDoesNotExist() {
+            //given
+            String memberNumber = MemberTestData.DEFAULT_NUMBER;
+
+            //when
+            Optional<SideBarUser> result = target.findByMemberNumberForSideBar(memberNumber);
+
+            //then
+            assertThat(result.isPresent()).isFalse();
+            assertThat(result).isEmpty();
+        }
+    }
 
     @Nested
     @DisplayName("업로드 가능 개수를 조회할 때")

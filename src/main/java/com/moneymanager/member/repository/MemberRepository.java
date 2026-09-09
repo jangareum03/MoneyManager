@@ -4,6 +4,7 @@ import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.ObjectUtils;
 import com.moneymanager.member.domain.dto.MemberAuth;
+import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.domain.enums.MemberGender;
@@ -60,22 +61,22 @@ public class MemberRepository {
     private final RowMapper<Member> memberRowMapper = (rs, rowNum) -> {
         MemberType type = MemberType.fromValue(rs.getString("type"));
         MemberStatus status = MemberStatus.fromValue(rs.getString("status"));
-		MemberGender gender = MemberGender.fromValue(rs.getString("gender"));
+        MemberGender gender = MemberGender.fromValue(rs.getString("gender"));
 
         LocalDateTime deleted = rs.getString("deleted_at") == null
                 ? null
                 : rs.getTimestamp("deleted_at").toLocalDateTime();
 
         MemberInfo memberInfo = MemberInfo.restore(
-				rs.getString("member_id"),
-				gender,
-				rs.getString("profile"),
-				rs.getLong("point"),
-				rs.getLong("consecutive_days"),
-				rs.getInt("image_limit"),
-				rs.getInt("failure_count"),
-				ObjectUtils.getValueOrNull(rs.getTimestamp("login_at"), Timestamp::toLocalDateTime)
-		);
+                rs.getString("member_id"),
+                gender,
+                rs.getString("profile"),
+                rs.getLong("point"),
+                rs.getLong("consecutive_days"),
+                rs.getInt("image_limit"),
+                rs.getInt("failure_count"),
+                ObjectUtils.getValueOrNull(rs.getTimestamp("login_at"), Timestamp::toLocalDateTime)
+        );
 
         return Member.restore(
                 rs.getString("id"),
@@ -135,7 +136,7 @@ public class MemberRepository {
 
     public Optional<MemberAuth> findAuthByUsername(String username) {
         String query = """
-                SELECT m.id, m.member_number, m.username, m.password, m.nickname, m.role, m.status, m.deleted_at, mi.profile, mi.failure_count
+                SELECT m.id, m.member_number, m.username, m.password, m.role, m.status, m.deleted_at, mi.failure_count
                 FROM member m
                     JOIN member_info mi
                 	    ON m.id = mi.member_id
@@ -151,8 +152,6 @@ public class MemberRepository {
                                     .memberNumber(rs.getString("member_number"))
                                     .username(rs.getString("username"))
                                     .password(rs.getString("password"))
-                                    .nickname(rs.getString("nickname"))
-                                    .profile(rs.getString("profile"))
                                     .role(rs.getString("role"))
                                     .status(MemberStatus.fromValue(rs.getString("status")))
                                     .loginFailCount(rs.getInt("failure_count"))
@@ -168,6 +167,26 @@ public class MemberRepository {
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
+    }
+
+    public Optional<SideBarUser> findByMemberNumberForSideBar(String memberNumber) {
+        String query = """
+                SELECT m.nickname, mi.profile
+                    FROM member m
+                        JOIN member_info mi
+                            ON mi.member_id = m.id
+                    WHERE m.member_number = ?
+                """;
+
+       return jdbcTemplate.query(
+               query,
+               (rs, num) ->
+                       new SideBarUser(
+                               rs.getString("nickname"),
+                               rs.getString("profile")
+                       ),
+               memberNumber
+       ).stream().findFirst();
     }
 
     public Integer findImageUploadLimitByMemberId(String memberId) {
