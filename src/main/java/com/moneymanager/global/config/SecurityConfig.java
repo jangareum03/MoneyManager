@@ -3,6 +3,7 @@ package com.moneymanager.global.config;
 import com.moneymanager.global.fillter.JwtAuthenticationFilter;
 import com.moneymanager.global.fillter.TraceIdFilter;
 import com.moneymanager.global.security.CustomAuthenticationProvider;
+import com.moneymanager.member.service.application.SideBarMemberService;
 import com.moneymanager.member.service.application.TokenAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -56,7 +57,8 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private TokenAuthService tokenAuthService;
+	private final TokenAuthService tokenAuthService;
+	private final SideBarMemberService sideBarMemberService;
 
 	@Bean
 	public TraceIdFilter traceIdFilter() {
@@ -132,6 +134,12 @@ public class SecurityConfig {
 							if(refreshToken != null) {
 								tokenAuthService.logout(refreshToken);
 							}
+
+							//4. 쿠키삭제
+							tokenAuthService.deleteTokens(response);
+
+							//5. 사이드바 정보 Redis 삭제
+							sideBarMemberService.delete(refreshToken);
 						}))
 						.logoutSuccessUrl("/auth/login")
 						.permitAll()

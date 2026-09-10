@@ -8,6 +8,8 @@ import com.moneymanager.member.domain.dto.MemberAuth;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.repository.EmailVerificationRedisRepository;
+import com.moneymanager.member.repository.MemberTokenRepository;
+import com.moneymanager.member.repository.SideBarRedisRepository;
 import com.moneymanager.member.service.application.MemberService;
 import com.moneymanager.member.service.email.EmailSender;
 import com.moneymanager.support.IntegrationTest;
@@ -23,15 +25,16 @@ import org.springframework.http.MediaType;
 import org.springframework.mail.MailSendException;
 
 import javax.servlet.http.Cookie;
+import java.util.Date;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * <p>
@@ -72,6 +75,12 @@ class AuthApiControllerIT extends IntegrationTest {
 
     @Autowired
     EmailVerificationRedisRepository redisRepository;
+
+    @Autowired
+    SideBarRedisRepository sideBarRedisRepository;
+
+    @Autowired
+    MemberTokenRepository memberTokenRepository;
 
     @Autowired
     JwtTokenProvider tokenProvider;
@@ -334,6 +343,7 @@ class AuthApiControllerIT extends IntegrationTest {
 
     }
 
+
     @Nested
     @DisplayName("회원가입 요청할 때")
     class SignUp {
@@ -368,6 +378,73 @@ class AuthApiControllerIT extends IntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("회원가입을 완료했습니다."))
                     .andExpect(jsonPath("$.next").value("/auth/login"));
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("로그아웃 요청할 때")
+    class Logout {
+
+        private final String URL = "/api/auth/logout";
+
+        @Test
+        @DisplayName("로그인한 계정은 로그아웃에 성공하고 쿠키와 사이드바 정보를 삭제한다.")
+        void deletesCookiesAndSidebar_whenLogsOutSuccessfully() throws Exception {
+        	//given
+            Member member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .build();
+
+            insertMember(member);
+
+            //토큰 생성
+            AccessToken accessToken = tokenProvider.generateAccessToken(
+                    new CustomUserDetails(
+                            MemberAuth.builder().memberNumber(member.getMemberNumber()).role("ROLE_USER").build()
+                    )
+            );
+
+            AccessToken refreshToken = tokenProvider.generateRefreshToken(
+                    new CustomUserDetails(
+                            MemberAuth.builder().memberNumber(member.getMemberNumber()).role("ROLE_USER").build()
+                    )
+            );
+
+            Cookie accessCookie = new Cookie("accessToken", accessToken.getToken());
+            Cookie refreshCookie = new Cookie("refreshToken", refreshToken.getToken());
+
+            //토큰을 DB에 저장한다.
+            memberTokenRepository.saveToken(member.getId(), passwordEncoder.encode(refreshToken.getToken()), new Date());
+
+            //사이드바 정보 Redis 저장한다.
+            sideBarRedisRepository.saveProfile(member.getMemberNumber(), "profile");
+            sideBarRedisRepository.saveNickname(member.getMemberNumber(), member.getNickname());
+
+        	//when
+            mockMvc.perform(
+                    post(URL)
+                            .cookie(refreshCookie, accessCookie)
+            )
+                    .andDo(print())
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/auth/login"))
+                    .andExpect(cookie().maxAge("refreshToken", 0));
+        	
+        	//then
+        	assertThat(memberTokenRepository.findRefreshTokenByMemberNumber(member.getMemberNumber())).isNull();
+        }
+
+        @Test
+        @DisplayName("쿠키가 없는 상태에서 로그아웃 요청해도 정상적으로 처리한다.")
+        void ddd() throws Exception {
+        	//when
+            mockMvc.perform(
+                    post(URL)
+            )
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/auth/login"));
         }
 
     }

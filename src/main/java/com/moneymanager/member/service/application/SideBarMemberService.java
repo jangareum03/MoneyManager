@@ -37,8 +37,22 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SideBarMemberService {
 
+    private static final String DEFAULT_PROFILE = "/image/default/profile.png";
+
     private final SideBarRedisRepository redisRepository;
     private final MemberReadService memberReadService;
+
+    public void saveSideBarInfo(String memberNumber) {
+        SideBarUser  sideBarUser = memberReadService.getSideBarUser(memberNumber);
+
+        String profile = sideBarUser.getProfile();
+
+        redisRepository.saveNickname(memberNumber, sideBarUser.getNickname());
+        redisRepository.saveProfile(
+                memberNumber,
+                profile == null ? DEFAULT_PROFILE: profile
+        );
+    }
 
     public SideBarUser get(String memberNumber) {
         String nickname = redisRepository.getNickname(memberNumber).orElse(null);
@@ -49,6 +63,11 @@ public class SideBarMemberService {
         }
 
         return new SideBarUser(nickname, profile);
+    }
+
+    public void delete(String memberNumber) {
+        redisRepository.deleteNickname(memberNumber);
+        redisRepository.deleteProfile(memberNumber);
     }
 
 }

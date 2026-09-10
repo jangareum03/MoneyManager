@@ -137,6 +137,11 @@ public class TokenAuthService {
         }
     }
 
+    public void deleteTokens(HttpServletResponse response) {
+        response.addCookie(deleteCookie("accessToken", "/"));
+        response.addCookie(deleteCookie("refreshToken", "/api/auth/refresh"));
+    }
+
 
     //===== issueToken 보조 메서드 =====
     private void setAuthentication(String token) {
@@ -210,6 +215,15 @@ public class TokenAuthService {
         cookie.setSecure(true);				//https에서만 전송 가능
         cookie.setPath(path);
         cookie.setMaxAge(maxAge);
+
+        return cookie;
+    }
+
+    private Cookie deleteCookie(String tokenName, String path) {
+        Cookie cookie = new Cookie(tokenName, "");
+
+        cookie.setPath(path);
+        cookie.setMaxAge(0);
 
         return cookie;
     }

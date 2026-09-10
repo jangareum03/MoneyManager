@@ -1,29 +1,19 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.global.domain.dto.response.AccessToken;
-import com.moneymanager.global.security.jwt.JwtTokenProvider;
-import com.moneymanager.member.repository.MemberTokenRepository;
-import com.moneymanager.support.data.MemberTestData;
-import org.assertj.core.groups.Tuple;
-import org.junit.jupiter.api.BeforeEach;
+import com.moneymanager.member.service.application.SideBarMemberService;
+import com.moneymanager.member.service.application.TokenAuthService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 /**
@@ -60,10 +50,10 @@ class CustomAuthSuccessHandlerTest {
     CustomAuthSuccessHandler target;
 
     @Mock
-    JwtTokenProvider jwtTokenProvider;
+    TokenAuthService tokenAuthService;
 
     @Mock
-    MemberTokenRepository tokenRepository;
+    SideBarMemberService sideBarMemberService;
 
     @Mock
     HttpServletRequest request;
@@ -74,92 +64,26 @@ class CustomAuthSuccessHandlerTest {
     @Mock
     Authentication authentication;
 
-    @Mock
-    CustomUserDetails userDetails;
+    @Test
+    @DisplayName("인증 성공하면 토큰 생성 후 홈으로 리다이렉트한다.")
+    void generatesToken_whenAuthenticationSucceeds() throws IOException {
+        //given
+        CustomUserDetails userDetails = mock(CustomUserDetails.class);
 
-    @Mock
-    AccessToken accessToken;
-
-    @Mock
-    AccessToken refreshToken;
-
-    @Mock
-    PasswordEncoder passwordEncoder;
-
-    @BeforeEach
-    void setUp() {
         when(authentication.getPrincipal())
                 .thenReturn(userDetails);
 
-        when(userDetails.getId())
-                .thenReturn(MemberTestData.DEFAULT_ID);
-
-        when(jwtTokenProvider.generateAccessToken(userDetails))
-                .thenReturn(accessToken);
-
-        when(jwtTokenProvider.generateRefreshToken(userDetails))
-                .thenReturn(refreshToken);
-
-        when(accessToken.getToken())
-                .thenReturn("access-value");
-
-        when(refreshToken.getToken())
-                .thenReturn("refresh-value");
-    }
-
-    @Test
-    @DisplayName("인증 성공하면 토큰 생성 홈으로 리다이렉트한다.")
-    void generatesToken_whenAuthenticationSucceeds() throws IOException {
-        //given
-        String memberId = MemberTestData.DEFAULT_ID;
-        Date now = new Date();
-
-        when(passwordEncoder.encode(refreshToken.getToken()))
-                .thenReturn("refresh-token-value");
-
-        when(refreshToken.getExpiration())
-                .thenReturn(now);
+        when(userDetails.getMemberNumber())
+                .thenReturn("memberNumber");
 
         //when
         target.onAuthenticationSuccess(request, response, authentication);
 
         //then
-        verify(jwtTokenProvider).generateAccessToken(userDetails);
-        verify(jwtTokenProvider).generateRefreshToken(userDetails);
-        verify(tokenRepository).saveToken(memberId, "refresh-token-value", now);
+        verify(tokenAuthService).issueTokens(userDetails, response);
+        verify(sideBarMemberService).saveSideBarInfo("memberNumber");
 
         verify(response).sendRedirect("/home");
-    }
-
-    @Test
-    @DisplayName("인증 성공하면 쿠키가 설정한다.")
-    void setsCookie_whenAuthenticationSucceeds() throws IOException {
-        //when
-        target.onAuthenticationSuccess(request, response, authentication);
-
-        //then
-        ArgumentCaptor<Cookie> captor = ArgumentCaptor.forClass(Cookie.class);
-
-        verify(response, times(2)).addCookie(captor.capture());
-
-        List<Cookie> cookies = captor.getAllValues();
-
-        assertThat(cookies.size()).isEqualTo(2);
-        assertThat(cookies)
-                .extracting(Cookie::isHttpOnly, Cookie::getSecure)
-                .containsOnly(Tuple.tuple(true, true));
-
-        Cookie accessCookie = cookies.get(0);
-        assertThat(accessCookie.getName()).isEqualTo("accessToken");
-        assertThat(accessCookie.getValue()).isEqualTo("access-value");
-        assertThat(accessCookie.getPath()).isEqualTo("/api/auth");
-        assertThat(accessCookie.getMaxAge()).isEqualTo(60 * 60);
-
-        Cookie refreshCookie = cookies.get(1);
-        assertThat(refreshCookie.getName()).isEqualTo("refreshToken");
-        assertThat(refreshCookie.getValue()).isEqualTo("refresh-value");
-        assertThat(refreshCookie.getPath()).isEqualTo("/api/auth");
-        assertThat(refreshCookie.getMaxAge()).isEqualTo(60 * 60 * 24);
     }
 
 }

@@ -1,7 +1,9 @@
 package com.moneymanager.member.service.application;
 
 import com.moneymanager.member.domain.dto.response.SideBarUser;
+import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.repository.SideBarRedisRepository;
+import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
@@ -11,7 +13,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.moneymanager.global.exception.code.ErrorCode.UNAUTHORIZED;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * <p>
@@ -47,6 +50,49 @@ class SideBarMemberServiceIT extends IntegrationTest {
 
     @Autowired
     SideBarRedisRepository redisRepository;
+
+
+    @Nested
+    @DisplayName("사이드바 정보 저장할 때")
+    class Save {
+        
+        @Test
+        @DisplayName("회원이 존재하면 회원의 닉네임과 프로필을 Redis에 저장한다.")
+        void savesUserProfileInRedis_whenUserExists() {
+        	//given
+            Member member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .build();
+
+            insertMember(member);
+
+        	//when
+            target.saveSideBarInfo(member.getMemberNumber());
+        	
+        	//then
+        	String savedProfile = redisRepository.getProfile(member.getMemberNumber()).stream().findFirst().orElse(null);
+        	String savedNickname = redisRepository.getNickname(member.getMemberNumber()).stream().findFirst().orElse(null);
+
+            assertThat(savedProfile).isEqualTo("/image/default/profile.png");
+            assertThat(savedNickname).isEqualTo(member.getNickname());
+        }
+
+        @Test
+        @DisplayName("회원이 존재하지 않으면 예외를 전파시킨다.")
+        void throwsException_whenUserDoesNotExist() {
+        	//given
+        	String memberNumber = MemberTestData.DEFAULT_NUMBER;
+
+        	//when
+            Throwable throwable = catchThrowable(() -> target.saveSideBarInfo(memberNumber));
+
+        	//then
+            ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                    .hasErrorCode(UNAUTHORIZED)
+                    .hasUserMessage("member.sidebar.failed");
+        }
+    }
+
 
     @Nested
     @DisplayName("사이드바 정보 조회할 때")
@@ -87,8 +133,9 @@ class SideBarMemberServiceIT extends IntegrationTest {
                             .build()
             );
 
-            redisRepository.deleteSidebarMember(memberNumber);
-        	
+            redisRepository.deleteNickname(memberNumber);
+            redisRepository.deleteProfile(memberNumber);
+
         	//when
             SideBarUser result = target.get(memberNumber);
         	
@@ -97,6 +144,33 @@ class SideBarMemberServiceIT extends IntegrationTest {
                     .isNotNull()
                     .hasFieldOrPropertyWithValue("nickname", "수정완료")
                     .hasFieldOrPropertyWithValue("profile", null);
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("사이드바 정보 삭제할 때")
+    class Delete {
+        
+        @Test
+        @DisplayName("회원번호에 해당하는 닉네임과 프로필을 삭제한다.")
+        void deletesNicknameAndProfile_whenMemberExists() {
+        	//given
+            Member member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .build();
+
+            insertMember(member);
+
+            target.saveSideBarInfo(member.getMemberNumber());
+        	
+        	//when
+            target.delete(member.getMemberNumber());
+        	
+        	//then
+        	assertThat(redisRepository.getProfile(member.getMemberNumber())).isEmpty();
+        	assertThat(redisRepository.getNickname(member.getMemberNumber())).isEmpty();
         }
 
     }

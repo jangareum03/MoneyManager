@@ -1,5 +1,6 @@
 package com.moneymanager.global.security;
 
+import com.moneymanager.member.service.application.SideBarMemberService;
 import com.moneymanager.member.service.application.TokenAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -42,6 +43,7 @@ import java.io.IOException;
 public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
 	private final TokenAuthService tokenAuthService;
+	private final SideBarMemberService sideBarMemberService;
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -50,6 +52,10 @@ public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHand
 
 		//2. 쿠키에 토큰 저장
 		tokenAuthService.issueTokens(userDetails, response);
+
+		//3. 사이드바 정보 Redis 저장
+		String memberNumber =  userDetails.getMemberNumber();
+		sideBarMemberService.saveSideBarInfo(memberNumber);
 
 		//3. 리디렉션 경로 지정
 		response.sendRedirect("/home");

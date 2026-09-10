@@ -75,4 +75,12 @@ public class SideBarRedisRepository {
         return Optional.ofNullable(value);
     }
 
+    public void deleteNickname(String memberNumber) {
+        redisTemplate.delete(redisKey.nickname(memberNumber));
+    }
+
+    public void deleteProfile(String memberNumber) {
+        redisTemplate.delete(redisKey.profile(memberNumber));
+    }
+
 }

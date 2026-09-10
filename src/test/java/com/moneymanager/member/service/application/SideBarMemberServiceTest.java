@@ -1,5 +1,6 @@
 package com.moneymanager.member.service.application;
 
+import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.repository.SideBarRedisRepository;
 import com.moneymanager.member.service.read.MemberReadService;
@@ -15,8 +16,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.*;
 
 /**
  * <p>
@@ -56,6 +58,45 @@ class SideBarMemberServiceTest {
 
     @Mock
     MemberReadService memberReadService;
+
+
+    @Nested
+    @DisplayName("사이드바 정보 저장할 때")
+    class Save {
+        
+        @Test
+        @DisplayName("회원번호에 대한 정보가 있으면 Redis에 닉네임과 프로필 정보가 저장된다.")
+        void savesMemberProfileToRedis_whenMemberExists() {
+        	//given
+            String memberNumber = "memberNumber";
+            SideBarUser sideBarUser = mock(SideBarUser.class);
+            
+            when(memberReadService.getSideBarUser(memberNumber))
+                    .thenReturn(sideBarUser);
+            
+        	//when
+            assertDoesNotThrow(() -> target.saveSideBarInfo(memberNumber));
+        	
+        	//then
+        	verify(redisRepository).saveNickname(memberNumber, sideBarUser.getNickname());
+        	verify(redisRepository).saveProfile(memberNumber, sideBarUser.getProfile());
+        }
+        
+        @Test
+        @DisplayName("회원번호에 대한 정보가 없으면 예외를 전파시킨다.")
+        void throwsException_whenUserDoesNotExist() {
+            //given
+            String memberNumber = "memberNumber";
+
+            when(memberReadService.getSideBarUser(memberNumber))
+                    .thenThrow(ApplicationException.class);
+        	
+        	//when
+            assertThatThrownBy(() -> target.saveSideBarInfo(memberNumber))
+                    .isInstanceOf(ApplicationException.class);
+        }
+
+    }
 
 
     @Nested

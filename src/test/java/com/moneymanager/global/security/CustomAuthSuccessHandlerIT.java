@@ -1,13 +1,16 @@
 package com.moneymanager.global.security;
 
 import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.repository.SideBarRedisRepository;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
@@ -42,8 +45,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 class CustomAuthSuccessHandlerIT extends IntegrationTest {
 
+    @Autowired
+    SideBarRedisRepository redisRepository;
+
     @Test
-    @DisplayName("로그인 성공하면 토큰 및 쿠키 설정되고 home화면으로 이동한다.")
+    @DisplayName("로그인 성공하면 토큰 및 사이드바 저장되고 home화면으로 이동한다.")
     void processAuthentication_whenSucceeds() throws Exception {
     	//given: 회원 정보가 저징되어 있다.
         Member member = MemberTestFixture.builder()
@@ -63,6 +69,10 @@ class CustomAuthSuccessHandlerIT extends IntegrationTest {
                 .andExpect(cookie().exists("accessToken"))
                 .andExpect(cookie().httpOnly("accessToken", true))
                 .andExpect(cookie().path("accessToken", "/"));
+
+        //then
+        assertThat(redisRepository.getProfile(member.getMemberNumber())).isNotEmpty();
+        assertThat(redisRepository.getNickname(member.getMemberNumber())).isNotEmpty();
     }
 
 }
