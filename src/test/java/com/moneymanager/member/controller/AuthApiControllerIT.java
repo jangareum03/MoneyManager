@@ -1,7 +1,12 @@
 package com.moneymanager.member.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moneymanager.global.domain.dto.response.AccessToken;
+import com.moneymanager.global.security.CustomUserDetails;
+import com.moneymanager.global.security.jwt.JwtTokenProvider;
+import com.moneymanager.member.domain.dto.MemberAuth;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
+import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.repository.EmailVerificationRedisRepository;
 import com.moneymanager.member.service.application.MemberService;
 import com.moneymanager.member.service.email.EmailSender;
@@ -17,10 +22,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.MailSendException;
 
+import javax.servlet.http.Cookie;
+
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -63,6 +72,9 @@ class AuthApiControllerIT extends IntegrationTest {
 
     @Autowired
     EmailVerificationRedisRepository redisRepository;
+
+    @Autowired
+    JwtTokenProvider tokenProvider;
 
     @Autowired
     ObjectMapper mapper;
@@ -268,6 +280,59 @@ class AuthApiControllerIT extends IntegrationTest {
         }
     }
 
+
+    @Nested
+    @DisplayName("토큰 재발급 요청할 때")
+    class RefreshToken {
+
+        private final String URL = BASE_URL + "/refresh";
+        
+        @Test
+        @DisplayName("Refresh토큰으로 Access토큰을 재발급한다.")
+        void reissuesAccessToken_whenRefreshTokenIsGiven() throws Exception {
+        	//given
+            Member member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .build();
+
+            insertMember(member);
+
+            Cookie oldToken = accessTokenCookie(member.getMemberNumber());
+            AccessToken refreshToken = tokenProvider.generateRefreshToken(
+                    new CustomUserDetails(
+                            MemberAuth.builder().build()
+                    )
+            );
+        	
+        	//when
+            mockMvc.perform(
+                    post(URL)
+                            .cookie(oldToken)
+                            .cookie(new Cookie("refreshToken", refreshToken.getToken()))
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data").exists());
+        }
+
+        @Test
+        @DisplayName("쿠키에 토큰이 없다면 400을 반환한다.")
+        void rejectsRequest_whenTokenCookieIsMissing() throws Exception {
+            //given
+            Member member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .build();
+
+            insertMember(member);
+
+            //when
+            mockMvc.perform(
+                            post(URL)
+                    )
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
+        }
+
+    }
 
     @Nested
     @DisplayName("회원가입 요청할 때")

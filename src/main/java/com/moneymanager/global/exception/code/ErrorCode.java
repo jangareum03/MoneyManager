@@ -48,6 +48,8 @@ public enum ErrorCode {
 
 	/** 인증 오류 **/
 	UNAUTHORIZED("200", "인증되지 않은 사용자",  HttpStatus.UNAUTHORIZED),
+	INVALID_TOKEN("201", "토큰 오류",  HttpStatus.UNAUTHORIZED),
+	EXPIRED_TOKEN("202", "토큰 만료",   HttpStatus.UNAUTHORIZED),
 
 	/** 인가 오류**/
 	OWNER_ONLY("303", "소유자가 아닌 사용자", HttpStatus.FORBIDDEN),

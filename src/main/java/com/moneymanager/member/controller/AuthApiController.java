@@ -8,13 +8,13 @@ import com.moneymanager.global.util.MessageUtil;
 import com.moneymanager.member.domain.dto.request.EmailVerifyRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.dto.request.SendVerificationCodeRequest;
+import com.moneymanager.member.service.application.MemberAuthService;
 import com.moneymanager.member.service.application.EmailVerificationService;
 import com.moneymanager.member.service.application.MemberService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -51,6 +51,7 @@ public class AuthApiController {
 
     private final MemberService memberService;
     private final EmailVerificationService emailVerificationService;
+    private final MemberAuthService authService;
     private final MessageUtil messageUtil;
 
     @PostMapping("/email/send-code")
@@ -75,6 +76,14 @@ public class AuthApiController {
                 messageUtil.get("email.verification.success"),
                 token
         );
+    }
+
+    @PostMapping("/refresh")
+    @Operation(ServiceAction.MEMBER_TOKEN_REISSUE)
+    public ApiBody<Void> verifyRefreshToken(@CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
+        authService.reissueToken(refreshToken, response);
+
+        return ApiBody.message(null);
     }
 
     @PostMapping("/signup")

@@ -8,6 +8,7 @@ import com.moneymanager.member.domain.dto.request.EmailVerifyRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.dto.request.SendVerificationCodeRequest;
 import com.moneymanager.member.service.application.EmailVerificationService;
+import com.moneymanager.member.service.application.MemberAuthService;
 import com.moneymanager.member.service.application.MemberService;
 import com.moneymanager.support.data.MemberTestData;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 import static com.moneymanager.global.exception.code.ErrorCode.EXTERNAL_API_ERROR;
 import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_VALUE;
@@ -64,6 +66,9 @@ class AuthApiControllerTest {
     
     @Mock
     EmailVerificationService emailVerificationService;
+
+    @Mock
+    MemberAuthService authService;
 
     @Mock
     MessageUtil messageUtil;
@@ -180,6 +185,28 @@ class AuthApiControllerTest {
 
     }
 
+
+    @Nested
+    @DisplayName("토큰 재발급 요청할 때")
+    class RefreshToken {
+
+        @Test
+        @DisplayName("토큰 재발급 중 오류가 발생하면 예외를 전파한다.")
+        void throwsException_whenReissueFails() {
+        	//given
+            String refreshToken = "refresh-token";
+            MockHttpServletResponse response = new MockHttpServletResponse();
+
+            doThrow(ApplicationException.class)
+                    .when(authService)
+                    .reissueToken(refreshToken, response);
+        	
+        	//when
+        	assertThatThrownBy(() -> target.verifyRefreshToken(refreshToken, response))
+                    .isInstanceOf(ApplicationException.class);
+        }
+
+    }
 
     @Nested
     @DisplayName("회원가입 요청할 때")

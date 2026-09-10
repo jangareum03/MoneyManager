@@ -42,6 +42,7 @@ public enum ServiceAction {
 	LEDGER_EDIT_VIEW("가계부 수정 화면 조회", "/ledgers"),
 
 	//API 요청
+	MEMBER_TOKEN_REISSUE("토큰 재발급 API"),
 	MEMBER_EMAIL_CODE("이메일 인증코드 전송 API"),
 	MEMBER_EMAIL_CHECK("이메일 검증 API"),
 	MEMBER_SIGNUP("회원가입 API"),

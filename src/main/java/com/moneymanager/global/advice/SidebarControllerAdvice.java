@@ -45,6 +45,10 @@ public class SidebarControllerAdvice {
 
     @ModelAttribute("sidebarUser")
     public SideBarUser currentUser(@AuthenticationPrincipal CustomUserDetails user) {
+        if(user == null) {
+            return null;
+        }
+
         String memberNumber = user.getMemberNumber();
 
         return sideBarMemberService.get(memberNumber);

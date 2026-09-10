@@ -1,9 +1,9 @@
 package com.moneymanager.global.security.jwt;
 
 import com.moneymanager.global.domain.dto.response.AccessToken;
-import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.security.CustomUserDetails;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +21,7 @@ import java.util.List;
  * 파일이름       : JwtTokenProvider<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 25. 11. 6.<br>
- * 설명              : JWT 토큰 생성 및 유효성 검증하는 클래스
+ * 설명              : JWT 토큰 생성하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -76,7 +76,8 @@ public class JwtTokenProvider {
 
 		String token = Jwts.builder()
 				.subject(userDetails.getMemberNumber())										//토큰 제목
-				.claim("role", roles)
+				.claim("role", roles)																//클레임 설정
+				.claim("type", "access")
 				.issuedAt(now)																					//토큰 발급시간
 				.expiration(expiration)																		//토큰 만료시간
 				.signWith(key)																					//서버키를 암호화
@@ -93,6 +94,7 @@ public class JwtTokenProvider {
 
 		return Jwts.builder()
 				.subject(subject)
+				.claim("type", "access")
 				.claim("role", "ROLE_USER")
 				.issuedAt(now)
 				.expiration(expiration)
@@ -107,6 +109,7 @@ public class JwtTokenProvider {
 
 		String token =  Jwts.builder()
 				.subject(userDetails.getMemberNumber())										//토큰 제목
+				.claim("type", "refresh")											//클레임 설정
 				.issuedAt(now)																					//토큰 발급시간
 				.expiration(expiration)																		//토큰 만료시간
 				.signWith(key)																					//서버키를 암호화
@@ -125,25 +128,14 @@ public class JwtTokenProvider {
 		return claims.getSubject();
 	}
 
-	public void validateToken(String token) {
-		try {
-			Jwts	.parser()
-					.verifyWith(key)
-					.build()
-					.parseSignedClaims(token);
-		}catch (SecurityException | MalformedJwtException e) {
-			AuditLogger.warn("잘못된 JWT 서명으로 유효하지 못 합니다.");
-			throw e;
-		}catch (ExpiredJwtException e) {
-			AuditLogger.warn("JWT 토큰이 만료되었습니다");
-			throw e;
-		}catch (UnsupportedJwtException e) {
-			AuditLogger.warn("지원되지 않은 JWT 토큰입니다.");
-			throw e;
-		}catch (IllegalArgumentException e) {
-			AuditLogger.warn("클레임 정보가 비어있습니다");
-			throw e;
-		}
-	}
+	public boolean isRefreshToken(String token) {
+		Claims claims = Jwts.parser()
+				.verifyWith(key)
+				.build()
+				.parseSignedClaims(token)
+				.getPayload();
+
+        return "refresh".equals(claims.get("type", String.class));
+    }
 
 }
