@@ -1,7 +1,7 @@
 package com.moneymanager.global.config;
 
-import com.moneymanager.global.fillter.JwtAuthenticationFilter;
-import com.moneymanager.global.fillter.TraceIdFilter;
+import com.moneymanager.global.security.fillter.JwtAuthenticationFilter;
+import com.moneymanager.global.security.fillter.TraceIdFilter;
 import com.moneymanager.global.security.CustomAuthenticationProvider;
 import com.moneymanager.member.service.application.SideBarMemberService;
 import com.moneymanager.member.service.application.TokenAuthService;
