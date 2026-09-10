@@ -40,7 +40,7 @@ public class AuthValidator {
 
     private final MemberFieldValidator fieldValidator = new MemberFieldValidator();
 
-    public void login(String username, String password) {
+    public void validateLogin(String username, String password) {
         String work = "로그인 요청 검증";
 
         fieldValidator.validateUsername(username, work);

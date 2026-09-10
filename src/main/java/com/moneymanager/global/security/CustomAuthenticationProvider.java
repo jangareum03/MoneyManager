@@ -1,13 +1,11 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.global.exception.ApplicationException;
-import com.moneymanager.member.service.validation.AuthValidator;
+import com.moneymanager.member.service.application.LoginService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,9 +39,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
-	private final UserDetailsService userDetailsService;
-	private final PasswordEncoder passwordEncoder;
-	private final AuthValidator authValidator;
+	private final LoginService loginService;
 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -51,45 +47,16 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		String username = authentication.getName();
 		String userPassword = authentication.getCredentials().toString();
 
-		//2. 아이디와 비밀번호 검증
-		try{
-			authValidator.login(username, userPassword);
-		}catch (ApplicationException e){
-			throw new AuthenticationServiceException(e.getUserMessage());
-		}
+		//2. 아이디와 비밀번호 검증 후 CustomUserDetails 반환
+		CustomUserDetails userDetails = loginService.login(username, userPassword);
 
-		//3. 사용자 정보 조회
-		CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
-
-		throwsAuthenticationException(userDetails);
-
-		//4. 비밀번호 일치여부 검증
-		if(!passwordEncoder.matches(userPassword, userDetails.getPassword())) {
-			throw new BadCredentialsException("member.login.failed");
-		}
-
-		//5. 로그인 인증 토큰 발급
+		//3. 로그인 인증 토큰 발급
 		return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 	}
 
 	@Override
 	public boolean supports(Class<?> authentication) {
 		return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
-	}
-
-
-	private void throwsAuthenticationException(CustomUserDetails userDetails) throws AuthenticationException {
-		if(!userDetails.isAccountNonExpired()) {
-			throw new DisabledException("member.login.not_found");
-		}
-
-		if(!userDetails.isAccountNonLocked()) {
-			throw new LockedException("member.login.locked");
-		}
-
-		if(!userDetails.isEnabled()) {
-			throw new DisabledException("member.login.restricted");
-		}
 	}
 
 }

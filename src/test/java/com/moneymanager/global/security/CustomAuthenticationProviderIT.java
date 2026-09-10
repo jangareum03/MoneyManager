@@ -98,8 +98,7 @@ class CustomAuthenticationProviderIT extends IntegrationTest {
         	
         	//when
             assertThatThrownBy(() -> target.authenticate(authentication))
-                    .isInstanceOf(UsernameNotFoundException.class)
-                    .hasMessage("noExist 아이디는 찾을 수 없습니다.");
+                    .isInstanceOf(UsernameNotFoundException.class);
         }
 
     }

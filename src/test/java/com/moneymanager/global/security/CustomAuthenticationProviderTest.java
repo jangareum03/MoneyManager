@@ -1,9 +1,6 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.global.exception.ApplicationException;
-import com.moneymanager.global.exception.code.ErrorCode;
-import com.moneymanager.global.log.LogContent;
-import com.moneymanager.member.service.validation.AuthValidator;
+import com.moneymanager.member.service.application.LoginService;
 import com.moneymanager.support.data.MemberTestData;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,15 +9,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.AuthenticationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * <p>
@@ -56,13 +54,7 @@ class CustomAuthenticationProviderTest {
     CustomAuthenticationProvider target;
 
     @Mock
-    UserDetailsService userDetailsService;
-
-    @Mock
-    PasswordEncoder passwordEncoder;
-
-    @Mock
-    AuthValidator authValidator;
+    LoginService loginService;
 
     @Nested
     @DisplayName("사용자 조회할 때")
@@ -79,21 +71,8 @@ class CustomAuthenticationProviderTest {
 
             CustomUserDetails userDetails = mock(CustomUserDetails.class);
 
-            when(userDetailsService.loadUserByUsername(username))
+            when(loginService.login(username, password))
                     .thenReturn(userDetails);
-
-            when(userDetails.isAccountNonExpired())
-                    .thenReturn(true);
-            when(userDetails.isAccountNonLocked())
-                    .thenReturn(true);
-            when(userDetails.isEnabled())
-                    .thenReturn(true);
-
-            when(userDetails.getPassword())
-                    .thenReturn("encodedPassword");
-
-            when(passwordEncoder.matches(password, "encodedPassword"))
-                    .thenReturn(true);
 
             //when
             Authentication result = target.authenticate(authentication);
@@ -106,125 +85,20 @@ class CustomAuthenticationProviderTest {
 
             assertThat(userDetails).isSameAs(result.getPrincipal());
             assertThat(result.getCredentials()).isNull();
-
-            verify(authValidator).login(username, password);
-            verify(userDetailsService).loadUserByUsername(username);
-            verify(passwordEncoder).matches(password, "encodedPassword");
-        }
-
-        @Test
-        @DisplayName("만료된 상태면 예외를 발생시킨다.")
-        void throwsException_whenStateIsExpired() {
-        	//given
-            Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
-
-            CustomUserDetails userDetails = mock(CustomUserDetails.class);
-
-            when(userDetailsService.loadUserByUsername(username))
-                    .thenReturn(userDetails);
-
-            when(userDetails.isAccountNonExpired())
-                    .thenReturn(false);
-        	
-        	//when
-            assertThatThrownBy(() -> target.authenticate(authentication))
-                    .isInstanceOf(DisabledException.class)
-                    .hasMessage("member.login.not_found");
         }
         
         @Test
-        @DisplayName("잠긴 상태면 예외를 발생시킨다.")
-        void throwsException_whenStateIsLocked() {
-            //given
-            Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
-
-            CustomUserDetails userDetails = mock(CustomUserDetails.class);
-
-            when(userDetailsService.loadUserByUsername(username))
-                    .thenReturn(userDetails);
-
-            when(userDetails.isAccountNonExpired())
-                    .thenReturn(true);
-            when(userDetails.isAccountNonLocked())
-                    .thenReturn(false);
-
-            //when
-            assertThatThrownBy(() -> target.authenticate(authentication))
-                    .isInstanceOf(LockedException.class)
-                    .hasMessage("member.login.locked");
-        }
-        
-        @Test
-        @DisplayName("비활성화 상태면 예외를 발생시킨다.")
-        void throwsException_whenStateIsDisabled() {
-            //given
-            Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
-
-            CustomUserDetails userDetails = mock(CustomUserDetails.class);
-
-            when(userDetailsService.loadUserByUsername(username))
-                    .thenReturn(userDetails);
-
-            when(userDetails.isAccountNonExpired())
-                    .thenReturn(true);
-            when(userDetails.isAccountNonLocked())
-                    .thenReturn(true);
-            when(userDetails.isEnabled())
-                    .thenReturn(false);
-
-            //when
-            assertThatThrownBy(() -> target.authenticate(authentication))
-                    .isInstanceOf(DisabledException.class)
-                    .hasMessage("member.login.restricted");
-        }
-
-        @Test
-        @DisplayName("계정 검증에 실패하면 예외를 발생시킨다.")
-        void throwsException_whenAccountValidationFails() {
-            //given
-            Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
-
-            doThrow(new ApplicationException(
-                    ErrorCode.INVALID_VALUE,
-                    LogContent.of("work", "field", "value")
-            ).withUserMessage("사용자 메시지"))
-                    .when(authValidator)
-                    .login(username, password);
-
-            //when
-            assertThatThrownBy(() -> target.authenticate(authentication))
-                    .isInstanceOf(AuthenticationServiceException.class)
-                    .hasMessage("사용자 메시지");
-        }
-
-        @Test
-        @DisplayName("비밀번호가 불일치하면 예외를 발생시킨다.")
-        void throwsException_whenPasswordMismatch() {
+        @DisplayName("계정이 유효하지 않으면 예외를 발생시킨다.")
+        void throwsException_whenAccountIsInvalid() {
         	//given
             Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
 
-            CustomUserDetails userDetails = mock(CustomUserDetails.class);
+            when(loginService.login(username, password))
+                    .thenThrow(BadCredentialsException.class);
 
-            when(userDetailsService.loadUserByUsername(username))
-                    .thenReturn(userDetails);
-
-            when(userDetails.isAccountNonExpired())
-                    .thenReturn(true);
-            when(userDetails.isAccountNonLocked())
-                    .thenReturn(true);
-            when(userDetails.isEnabled())
-                    .thenReturn(true);
-
-            when(userDetails.getPassword())
-                    .thenReturn("encodedPassword");
-
-            when(passwordEncoder.matches(password, "encodedPassword"))
-                    .thenReturn(false);
-        	
         	//when
             assertThatThrownBy(() -> target.authenticate(authentication))
-                    .isInstanceOf(BadCredentialsException.class)
-                    .hasMessage("member.login.failed");
+                    .isInstanceOf(AuthenticationException.class);
         }
 
     }
