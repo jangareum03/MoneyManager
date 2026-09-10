@@ -3,6 +3,7 @@ package com.moneymanager.global.config;
 import com.moneymanager.global.fillter.JwtAuthenticationFilter;
 import com.moneymanager.global.fillter.TraceIdFilter;
 import com.moneymanager.global.security.CustomAuthenticationProvider;
+import com.moneymanager.member.service.application.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +13,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -55,12 +54,14 @@ import javax.servlet.http.HttpServletResponse;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final TraceIdFilter traceIdFilter;
-	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+	@Bean
+	public TraceIdFilter traceIdFilter() {
+		return new TraceIdFilter();
+	}
 
 	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
+	public JwtAuthenticationFilter jwtAuthenticationFilter(TokenService memberAuthService) {
+		return new JwtAuthenticationFilter(memberAuthService);
 	}
 
 	@Bean
@@ -69,7 +70,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager, SimpleUrlAuthenticationSuccessHandler successHandler, AuthenticationFailureHandler failureHandler) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager, TraceIdFilter traceIdFilter, JwtAuthenticationFilter jwtAuthenticationFilter, SimpleUrlAuthenticationSuccessHandler successHandler, AuthenticationFailureHandler failureHandler) throws Exception {
 		http
 				.csrf().disable()
 				.cors(Customizer.withDefaults())

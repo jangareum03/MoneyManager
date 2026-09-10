@@ -1,10 +1,6 @@
 package com.moneymanager.global.fillter;
 
-import com.moneymanager.global.security.CustomUserDetailService;
-import com.moneymanager.global.security.CustomUserDetails;
-import com.moneymanager.global.security.jwt.JwtTokenProvider;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
+import com.moneymanager.member.service.application.TokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,18 +9,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 /**
@@ -60,10 +50,7 @@ class JwtAuthenticationFilterTest {
     JwtAuthenticationFilter target;
 
     @Mock
-    JwtTokenProvider jwtTokenProvider;
-
-    @Mock
-    CustomUserDetailService userDetailService;
+    TokenService authService;
 
     @Mock
     FilterChain chain;
@@ -76,7 +63,7 @@ class JwtAuthenticationFilterTest {
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
 
-        target = new JwtAuthenticationFilter(jwtTokenProvider, userDetailService);
+        target = new JwtAuthenticationFilter(authService);
     }
 
     @Test
@@ -89,8 +76,7 @@ class JwtAuthenticationFilterTest {
         target.doFilterInternal(request, response, chain);
     	
     	//then
-        verifyNoInteractions(jwtTokenProvider);
-        verifyNoInteractions(userDetailService);
+        verifyNoInteractions(authService);
 
     	verify(chain).doFilter(request, response);
     }
@@ -106,15 +92,14 @@ class JwtAuthenticationFilterTest {
         target.doFilterInternal(request, response, chain);
     	
     	//then
-        verifyNoInteractions(jwtTokenProvider);
-        verifyNoInteractions(userDetailService);
+        verifyNoInteractions(authService);
         
     	verify(chain).doFilter(request, response);
     }
 
     @Test
-    @DisplayName("정상적인 accessToken이면 인증객체를 생성한다.")
-    void createsAuthentication_whenAccessTokenIsValid() throws ServletException, IOException {
+    @DisplayName("정상적인 accessToken이면 다음 필터로 넘어간다.")
+    void passesToNextFilter_whenAccessTokenIsValid() throws ServletException, IOException {
     	//given
         String accessToken = "access-token";
 
@@ -123,39 +108,19 @@ class JwtAuthenticationFilterTest {
                 new Cookie("accessToken", accessToken)
         );
 
-        UserDetails userDetails = mock(CustomUserDetails.class);
-        when(userDetails.getUsername()).thenReturn("user");
+        when(authService.authenticate(accessToken, response))
+                .thenReturn(Boolean.TRUE);
 
-        doNothing()
-                .when(jwtTokenProvider)
-                .validateToken(accessToken);
-
-        when(jwtTokenProvider.getMemberNumber(accessToken))
-                .thenReturn("member-number");
-
-        when(userDetailService.loadUserByMemberNumber("member-number"))
-                .thenReturn(userDetails);
-    	
     	//when
         target.doFilterInternal(request, response, chain);
     	
     	//then
-    	verify(jwtTokenProvider).validateToken(accessToken);
-        verify(jwtTokenProvider).getMemberNumber(accessToken);
-        verify(userDetailService).loadUserByMemberNumber("member-number");
-
         verify(chain).doFilter(request, response);
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        assertThat(authentication).isNotNull();
-        assertThat(authentication).isInstanceOf(UsernamePasswordAuthenticationToken.class);
-        assertThat(authentication.getName()).isEqualTo("user");
     }
     
     @Test
-    @DisplayName("만료된 accessToken이면 401을 반환한다.")
-    void returns401_whenAccessTokenIsExpired() throws ServletException, IOException {
+    @DisplayName("만료된 accessToken이면 다음 필터로 넘어가지 않는다.")
+    void doesNotProceedToNextFilter_whenAccessTokenIsExpired() throws ServletException, IOException {
     	//given
         String accessToken = "expired-token";
 
@@ -164,24 +129,19 @@ class JwtAuthenticationFilterTest {
                 new Cookie("accessToken", accessToken)
         );
 
-        doThrow(ExpiredJwtException.class)
-                .when(jwtTokenProvider)
-                .validateToken(accessToken);
+        when(authService.authenticate(accessToken, response))
+                .thenReturn(Boolean.FALSE);
     	
     	//when
         target.doFilterInternal(request, response, chain);
     	
     	//then
-    	assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-
-        verify(jwtTokenProvider).validateToken(accessToken);
         verify(chain, never()).doFilter(request, response);
-        verifyNoInteractions(userDetailService);
     }
     
     @Test
-    @DisplayName("잘못된 accessToken이면 401을 반환한다.")
-    void returns401_whenAccessTokenIsInvalid() throws ServletException, IOException {
+    @DisplayName("잘못된 accessToken이면 다음 필터로 넘어가지 않는다.")
+    void doesNotProceedToNextFilter_whenAccessTokenIsInvalid() throws ServletException, IOException {
         //given
         String accessToken = "no-token";
 
@@ -190,19 +150,14 @@ class JwtAuthenticationFilterTest {
                 new Cookie("accessToken", accessToken)
         );
 
-        doThrow(JwtException.class)
-                .when(jwtTokenProvider)
-                .validateToken(accessToken);
+        when(authService.authenticate(accessToken, response))
+                .thenReturn(Boolean.FALSE);
 
         //when
         target.doFilterInternal(request, response, chain);
 
         //then
-        assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-
-        verify(jwtTokenProvider).validateToken(accessToken);
         verify(chain, never()).doFilter(request, response);
-        verifyNoInteractions(userDetailService);
     }
 
 }

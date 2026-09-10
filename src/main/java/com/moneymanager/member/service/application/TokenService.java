@@ -27,7 +27,7 @@ import static com.moneymanager.global.exception.code.ErrorCode.INVALID_TOKEN;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.member.service.application<br>
- * 파일이름       : MemberAuthService<br>
+ * 파일이름       : TokenService<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 9. 9<br>
  * 설명              : 회원 인증 흐름을 관리하는 클래스
@@ -53,7 +53,7 @@ import static com.moneymanager.global.exception.code.ErrorCode.INVALID_TOKEN;
  */
 @Service
 @RequiredArgsConstructor
-public class MemberAuthService {
+public class TokenService {
 
     private final JwtTokenProvider tokenProvider;
     private final CustomUserDetailService userDetailService;

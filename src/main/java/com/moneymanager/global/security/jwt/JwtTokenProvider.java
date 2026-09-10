@@ -3,6 +3,7 @@ package com.moneymanager.global.security.jwt;
 import com.moneymanager.global.domain.dto.response.AccessToken;
 import com.moneymanager.global.security.CustomUserDetails;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -118,22 +119,16 @@ public class JwtTokenProvider {
 		return new AccessToken(token, expiration);
 	}
 
-	public String getMemberNumber(String token) {
-		Claims claims = Jwts.parser()
+	public Jws<Claims> parseToken(String token) {
+		return Jwts.parser()
 				.verifyWith(key)
 				.build()
-				.parseSignedClaims(token)
-				.getPayload();
-
-		return claims.getSubject();
+				.parseSignedClaims(token);
 	}
 
 	public boolean isRefreshToken(String token) {
-		Claims claims = Jwts.parser()
-				.verifyWith(key)
-				.build()
-				.parseSignedClaims(token)
-				.getPayload();
+		Claims claims = parseToken(token)
+									.getPayload();
 
         return "refresh".equals(claims.get("type", String.class));
     }

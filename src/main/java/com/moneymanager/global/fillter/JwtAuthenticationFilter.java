@@ -1,13 +1,6 @@
 package com.moneymanager.global.fillter;
 
-import com.moneymanager.global.security.CustomUserDetailService;
-import com.moneymanager.global.security.CustomUserDetails;
-import com.moneymanager.global.security.jwt.JwtTokenProvider;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.moneymanager.member.service.application.TokenService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -48,12 +41,10 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenProvider jwtTokenProvider;
-    private final CustomUserDetailService userDetailService;
+    private final TokenService authService;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, CustomUserDetailService userDetailService) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.userDetailService = userDetailService;
+    public JwtAuthenticationFilter(TokenService authService) {
+        this.authService = authService;
     }
 
     @Override
@@ -73,23 +64,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        try {
-            //4. accessToken 검증
-            jwtTokenProvider.validateToken(accessToken);
-
-            //5. 인증객체 생성
-            authenticationMember(accessToken);
-        } catch (ExpiredJwtException e) {
-            unauthorized(response,"ACCESS_TOKEN_EXPIRED", "Access Token 만료");
-
-            return;
-        } catch (JwtException e) {
-            unauthorized(response,"INVALID_ACCESS_TOKEN", "유효하지 않은 Access Token");
-
+        //4. 인증정보 재설정
+        if(!authService.authenticate(accessToken, response)) {
             return;
         }
 
-        //6,다음 필터로 넘어감
+        //5,다음 필터로 넘어감
         filterChain.doFilter(request, response);
     }
 
@@ -115,31 +95,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         return null;
-    }
-
-    private void authenticationMember(String token) {
-        String memberNumber = jwtTokenProvider.getMemberNumber(token);
-
-        CustomUserDetails userDetails = (CustomUserDetails) userDetailService.loadUserByMemberNumber(memberNumber);
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
-
-    private void unauthorized(HttpServletResponse response, String code, String message) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        response.getWriter().write(
-                """
-                        {
-                            "code": "%s",
-                            "message": "%S"
-                        }
-                """.formatted(code, message)
-        );
     }
 
 }
