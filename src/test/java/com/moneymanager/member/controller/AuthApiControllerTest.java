@@ -8,7 +8,7 @@ import com.moneymanager.member.domain.dto.request.EmailVerifyRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.dto.request.SendVerificationCodeRequest;
 import com.moneymanager.member.service.application.EmailVerificationService;
-import com.moneymanager.member.service.application.TokenService;
+import com.moneymanager.member.service.application.TokenAuthService;
 import com.moneymanager.member.service.application.MemberService;
 import com.moneymanager.support.data.MemberTestData;
 import org.junit.jupiter.api.DisplayName;
@@ -68,7 +68,7 @@ class AuthApiControllerTest {
     EmailVerificationService emailVerificationService;
 
     @Mock
-    TokenService tokenService;
+    TokenAuthService tokenAuthService;
 
     @Mock
     MessageUtil messageUtil;
@@ -198,7 +198,7 @@ class AuthApiControllerTest {
             MockHttpServletResponse response = new MockHttpServletResponse();
 
             doThrow(ApplicationException.class)
-                    .when(tokenService)
+                    .when(tokenAuthService)
                     .reissueToken(refreshToken, response);
         	
         	//when

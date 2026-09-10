@@ -1,5 +1,6 @@
 package com.moneymanager.member.repository;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -74,6 +75,31 @@ public class MemberTokenRepository {
 				expiration,
 				memberId
 		);
+	}
+
+	public String findRefreshTokenByMemberNumber(String memberNumber) {
+		String query = """
+						SELECT refresh_token
+							FROM member_token mt
+								JOIN member m
+									ON m.id = mt.member_id
+								WHERE m.member_number= ?
+		""";
+
+		try{
+			return jdbcTemplate.queryForObject(query, String.class, memberNumber);
+		}catch (EmptyResultDataAccessException e) {
+			return null;
+		}
+	}
+
+	public int deleteRefreshToken(String refreshToken) {
+		String query = """
+				DELETE FROM member_token
+					WHERE refresh_token = ?
+				""";
+
+		return jdbcTemplate.update(query, refreshToken);
 	}
 
 	private boolean exists(String memberId) {

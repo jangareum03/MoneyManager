@@ -1,6 +1,6 @@
 package com.moneymanager.global.fillter;
 
-import com.moneymanager.member.service.application.TokenService;
+import com.moneymanager.member.service.application.TokenAuthService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -41,10 +41,10 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final TokenService authService;
+    private final TokenAuthService tokenAuthService;
 
-    public JwtAuthenticationFilter(TokenService authService) {
-        this.authService = authService;
+    public JwtAuthenticationFilter(TokenAuthService authService) {
+        this.tokenAuthService = authService;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         //4. 인증정보 재설정
-        if(!authService.authenticate(accessToken, response)) {
+        if(!tokenAuthService.authenticate(accessToken, response)) {
             return;
         }
 

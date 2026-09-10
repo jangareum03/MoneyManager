@@ -3,7 +3,7 @@ package com.moneymanager.global.config;
 import com.moneymanager.global.fillter.JwtAuthenticationFilter;
 import com.moneymanager.global.fillter.TraceIdFilter;
 import com.moneymanager.global.security.CustomAuthenticationProvider;
-import com.moneymanager.member.service.application.TokenService;
+import com.moneymanager.member.service.application.TokenAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +19,9 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 
 
 /**
@@ -54,14 +56,16 @@ import javax.servlet.http.HttpServletResponse;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+	private TokenAuthService tokenAuthService;
+
 	@Bean
 	public TraceIdFilter traceIdFilter() {
 		return new TraceIdFilter();
 	}
 
 	@Bean
-	public JwtAuthenticationFilter jwtAuthenticationFilter(TokenService memberAuthService) {
-		return new JwtAuthenticationFilter(memberAuthService);
+	public JwtAuthenticationFilter jwtAuthenticationFilter(TokenAuthService tokenAuthService) {
+		return new JwtAuthenticationFilter(tokenAuthService);
 	}
 
 	@Bean
@@ -109,8 +113,27 @@ public class SecurityConfig {
 						.permitAll()
 				)
 				.logout(logout -> logout
-						.logoutUrl("/auth/logout")
-						.logoutSuccessUrl("/")
+						.logoutUrl("/api/auth/logout")
+						.addLogoutHandler(((request, response, authentication) -> {
+							//1. 쿠키 조회
+							Cookie[] cookies = request.getCookies();
+							if (cookies == null) {
+								return;
+							}
+
+							//2. 쿠키에서 Refresh 토큰 조회
+							String refreshToken = Arrays.stream(request.getCookies())
+									.filter(cookie -> "refreshToken".equals(cookie.getName()))
+									.map(Cookie::getValue)
+									.findFirst()
+									.orElse(null);
+
+							//3. refreshToken 삭제
+							if(refreshToken != null) {
+								tokenAuthService.logout(refreshToken);
+							}
+						}))
+						.logoutSuccessUrl("/auth/login")
 						.permitAll()
 				)
 				.addFilterBefore(

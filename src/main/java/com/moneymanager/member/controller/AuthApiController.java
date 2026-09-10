@@ -8,7 +8,7 @@ import com.moneymanager.global.util.MessageUtil;
 import com.moneymanager.member.domain.dto.request.EmailVerifyRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.dto.request.SendVerificationCodeRequest;
-import com.moneymanager.member.service.application.TokenService;
+import com.moneymanager.member.service.application.TokenAuthService;
 import com.moneymanager.member.service.application.EmailVerificationService;
 import com.moneymanager.member.service.application.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +51,7 @@ public class AuthApiController {
 
     private final MemberService memberService;
     private final EmailVerificationService emailVerificationService;
-    private final TokenService tokenService;
+    private final TokenAuthService tokenAuthService;
     private final MessageUtil messageUtil;
 
     @PostMapping("/email/send-code")
@@ -81,7 +81,7 @@ public class AuthApiController {
     @PostMapping("/refresh")
     @Operation(ServiceAction.MEMBER_TOKEN_REISSUE)
     public ApiBody<Void> verifyRefreshToken(@CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
-        tokenService.reissueToken(refreshToken, response);
+        tokenAuthService.reissueToken(refreshToken, response);
 
         return ApiBody.message(null);
     }

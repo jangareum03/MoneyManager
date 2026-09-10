@@ -1,6 +1,6 @@
 package com.moneymanager.global.fillter;
 
-import com.moneymanager.member.service.application.TokenService;
+import com.moneymanager.member.service.application.TokenAuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ class JwtAuthenticationFilterTest {
     JwtAuthenticationFilter target;
 
     @Mock
-    TokenService authService;
+    TokenAuthService tokenAuthService;
 
     @Mock
     FilterChain chain;
@@ -63,7 +63,7 @@ class JwtAuthenticationFilterTest {
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
 
-        target = new JwtAuthenticationFilter(authService);
+        target = new JwtAuthenticationFilter(tokenAuthService);
     }
 
     @Test
@@ -76,7 +76,7 @@ class JwtAuthenticationFilterTest {
         target.doFilterInternal(request, response, chain);
     	
     	//then
-        verifyNoInteractions(authService);
+        verifyNoInteractions(tokenAuthService);
 
     	verify(chain).doFilter(request, response);
     }
@@ -92,7 +92,7 @@ class JwtAuthenticationFilterTest {
         target.doFilterInternal(request, response, chain);
     	
     	//then
-        verifyNoInteractions(authService);
+        verifyNoInteractions(tokenAuthService);
         
     	verify(chain).doFilter(request, response);
     }
@@ -108,7 +108,7 @@ class JwtAuthenticationFilterTest {
                 new Cookie("accessToken", accessToken)
         );
 
-        when(authService.authenticate(accessToken, response))
+        when(tokenAuthService.authenticate(accessToken, response))
                 .thenReturn(Boolean.TRUE);
 
     	//when
@@ -129,7 +129,7 @@ class JwtAuthenticationFilterTest {
                 new Cookie("accessToken", accessToken)
         );
 
-        when(authService.authenticate(accessToken, response))
+        when(tokenAuthService.authenticate(accessToken, response))
                 .thenReturn(Boolean.FALSE);
     	
     	//when
@@ -150,7 +150,7 @@ class JwtAuthenticationFilterTest {
                 new Cookie("accessToken", accessToken)
         );
 
-        when(authService.authenticate(accessToken, response))
+        when(tokenAuthService.authenticate(accessToken, response))
                 .thenReturn(Boolean.FALSE);
 
         //when

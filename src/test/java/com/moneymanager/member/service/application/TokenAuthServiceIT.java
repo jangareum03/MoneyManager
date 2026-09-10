@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 파일이름       : TokenAuthServiceIT<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 9. 10<br>
- * 설명              : TokenService 클래스 로직을 검증하는 단위 테스트 클래스
+ * 설명              : TokenAuthService 클래스 로직을 검증하는 단위 테스트 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
