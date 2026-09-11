@@ -49,7 +49,7 @@ public class MemberValidator {
                             work,
                             MemberSignUpRequest.class
                     )
-            ).withUserMessage("member.signup.unavailable");
+            ).withMessageKey("member.signup.unavailable");
         }
 
         fieldValidator.validateUsername(request.getUsername(), work);

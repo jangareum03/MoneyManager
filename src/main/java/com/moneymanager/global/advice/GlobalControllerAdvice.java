@@ -66,7 +66,7 @@ public class GlobalControllerAdvice {
 		try{
 			context.addOption("error", e.getErrorCode().getCode());
 			context.addOption("log", e.getLogContent());
-			context.addOption("message", e.getUserMessage());
+			context.addOption("message", e.getMessageKey());
 
 			AuditLogger.debug(context);
 

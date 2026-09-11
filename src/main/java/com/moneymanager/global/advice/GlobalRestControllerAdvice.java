@@ -6,7 +6,6 @@ import com.moneymanager.global.exception.annotation.ApiController;
 import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.log.operation.OperationContext;
 import com.moneymanager.global.log.operation.holder.OperationContextHolder;
-import com.moneymanager.global.util.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,8 +45,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RequiredArgsConstructor
 public class GlobalRestControllerAdvice {
 
-    private final MessageUtil messageUtil;
-
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorBody> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
         return ResponseEntity
@@ -64,13 +61,11 @@ public class GlobalRestControllerAdvice {
 
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<ErrorBody> handleApplicationException(ApplicationException e) {
-        String message = messageUtil.get(e);
-
         writeLog(e);
 
         return ResponseEntity
                 .status(e.getErrorCode().getStatus())
-                .body(ErrorBody.of(message));
+                .body(ErrorBody.of(e.getMessageKey()));
     }
 
 
@@ -81,7 +76,7 @@ public class GlobalRestControllerAdvice {
         try{
             context.addOption("error", e.getErrorCode().getCode());
             context.addOption("log", e.getLogContent());
-            context.addOption("message", e.getUserMessage());
+            context.addOption("message", e.getMessageKey());
 
             AuditLogger.debug(context);
 

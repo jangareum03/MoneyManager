@@ -4,7 +4,6 @@ import com.moneymanager.global.domain.dto.response.api.ApiBody;
 import com.moneymanager.global.exception.annotation.ApiController;
 import com.moneymanager.global.log.operation.annotation.Operation;
 import com.moneymanager.global.log.operation.enums.ServiceAction;
-import com.moneymanager.global.util.MessageUtil;
 import com.moneymanager.member.domain.dto.request.EmailVerifyRequest;
 import com.moneymanager.member.domain.dto.request.FindIdRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
@@ -56,7 +55,6 @@ public class AuthApiController {
     private final AccountService accountService;
     private final EmailVerificationService emailVerificationService;
     private final TokenAuthService tokenAuthService;
-    private final MessageUtil messageUtil;
 
     @PostMapping("/account/find-id")
     @Operation(ServiceAction.MEMBER_FIND_ID)
@@ -76,7 +74,7 @@ public class AuthApiController {
         emailVerificationService.sendVerificationCode(request.email());
 
         //3. 성공 결과 반환
-        return ApiBody.message(messageUtil.get("email.verification.send"));
+        return ApiBody.message("email.verification.send");
     }
 
     @PostMapping("/email/verify-code")
@@ -85,7 +83,7 @@ public class AuthApiController {
         String token = emailVerificationService.verifyEmailCode(request.email(), request.code());
 
         return ApiBody.data(
-                messageUtil.get("email.verification.success"),
+                "email.verification.success",
                 token
         );
     }
@@ -104,7 +102,7 @@ public class AuthApiController {
         memberService.processSignUp(request);
 
         return ApiBody.next(
-                messageUtil.get("member.signup.success"),
+                "member.signup.success",
                 "/auth/login"
         );
     }

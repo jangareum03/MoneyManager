@@ -67,7 +67,7 @@ public class MemberCommandService {
                             "Member 저장",
                             MemberInfo.class
                     ).withCause("Member 와 MemberInfo 1:1 관계 필요")
-            ).withUserMessage("member.signup.unavailable");
+            ).withMessageKey("member.signup.unavailable");
         }
 
         saveMember(member);
@@ -135,7 +135,7 @@ public class MemberCommandService {
                         "Member 저장",
                         Member.class
                 ).withCause("회원번호 중복")
-        ).withUserMessage("member.signup.unavailable");
+        ).withMessageKey("member.signup.unavailable");
     }
 
     private boolean isMemberDuplicate(DuplicateKeyException e) {

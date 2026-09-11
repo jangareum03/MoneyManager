@@ -79,7 +79,7 @@ class SideBarMemberServiceTest {
         	
         	//then
         	verify(redisRepository).saveNickname(memberNumber, sideBarUser.getNickname());
-        	verify(redisRepository).saveProfile(memberNumber, sideBarUser.getProfile());
+        	verify(redisRepository).saveProfile(memberNumber, "/image/default/profile.png");
         }
         
         @Test

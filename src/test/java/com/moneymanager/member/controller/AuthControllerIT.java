@@ -82,7 +82,7 @@ class AuthControllerIT extends IntegrationTest {
             )
                     .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(model().attribute("loginError", "로그인 실패했습니다. 다시 시도해주세요."));
+                    .andExpect(model().attribute("loginError", "member.login.failed"));
         }
         
     }

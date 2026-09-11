@@ -7,6 +7,7 @@ import com.moneymanager.member.service.command.MemberCommandService;
 import com.moneymanager.member.service.read.MemberReadService;
 import com.moneymanager.member.service.validation.MemberValidator;
 import com.moneymanager.support.data.MemberTestData;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -70,16 +71,21 @@ class MemberServiceTest {
     @DisplayName("회원가입 진행할 때")
     class ProcessSignUp {
 
-        MemberSignUpRequest request = MemberSignUpRequest.of(
-                MemberTestData.DEFAULT_USERNAME,
-                MemberTestData.DEFAULT_PASSWORD,
-                MemberTestData.DEFAULT_NAME,
-                MemberTestData.DEFAULT_BIRTHDATE,
-                MemberTestData.DEFAULT_NICKNAME,
-                MemberTestData.DEFAULT_EMAIL,
-                "token",
-                MemberTestData.DEFAULT_GENDER.getValue()
-        );
+        MemberSignUpRequest request;
+
+        @BeforeEach
+        void setUp() {
+            request = MemberSignUpRequest.of(
+                    MemberTestData.DEFAULT_USERNAME,
+                    MemberTestData.DEFAULT_PASSWORD,
+                    MemberTestData.DEFAULT_NAME,
+                    MemberTestData.DEFAULT_BIRTHDATE,
+                    MemberTestData.DEFAULT_NICKNAME,
+                    MemberTestData.DEFAULT_EMAIL,
+                    "token",
+                    MemberTestData.DEFAULT_GENDER.getValue()
+            );
+        }
 
         @Test
         @DisplayName("요청 검증 → 이메일 검증 여부 → 중복 검증 → 객체 변환 → 회원 저장 → 인증토큰 삭제 순서로 진행한다.")
@@ -97,7 +103,7 @@ class MemberServiceTest {
             InOrder inOrder = Mockito.inOrder(memberCommandService, memberReadService, emailVerificationService, memberValidator);
 
             inOrder.verify(memberValidator).signUp(request);
-            inOrder.verify(emailVerificationService).verifyEmailCode(request.getEmail(), request.getToken());
+            inOrder.verify(emailVerificationService).verifyEmail(request.getEmail(), request.getToken());
             inOrder.verify(memberReadService).validateSignUpEligibility(request.getUsername(), request.getNickname());
             inOrder.verify(memberCommandService).create(request);
             inOrder.verify(memberCommandService).save(member);
@@ -125,13 +131,13 @@ class MemberServiceTest {
             //given
             doThrow(ApplicationException.class)
                     .when(emailVerificationService)
-                    .verifyEmailCode(request.getEmail(), request.getToken());
+                    .verifyEmail(request.getEmail(), request.getToken());
 
             //when
             assertThatThrownBy(() -> target.processSignUp(request));
 
             //then
-            verify(memberReadService, never()).validateSignUpEligibility(anyString(), anyString());
+            verify(memberReadService, never()).validateSignUpEligibility(request.getUsername(), request.getNickname());
         }
         
         @Test

@@ -60,7 +60,7 @@ public class AccountService {
             //1. 아이디와 비밀번호 검증
             accountValidator.validateLogin(username, password);
         }catch (ApplicationException e){
-            throw new AuthenticationServiceException(e.getUserMessage());
+            throw new AuthenticationServiceException(e.getMessageKey());
         }
 
         //2. 사용자 정보 조회

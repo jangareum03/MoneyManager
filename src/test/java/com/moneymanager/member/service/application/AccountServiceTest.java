@@ -122,7 +122,7 @@ class AccountServiceTest {
             doThrow(new ApplicationException(
                     ErrorCode.INVALID_VALUE,
                     LogContent.of("work", "field", "value")
-            ).withUserMessage("사용자 메시지"))
+            ).withMessageKey("사용자 메시지"))
                     .when(accountValidator)
                     .validateLogin(username, password);
 

@@ -56,7 +56,7 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 	public ApplicationExceptionAssert hasUserMessage(String... values) {
 		isNotNull();
 
-		assertThat(actual.getUserMessage()).contains(values);
+		assertThat(actual.getMessageKey()).contains(values);
 
 		return this;
 	}

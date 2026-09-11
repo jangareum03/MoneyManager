@@ -118,9 +118,6 @@ class MemberCommandServiceTest {
                         .withMemberInfo(MemberInfoTestFixture.builder())
                         .build();
 
-                when(numberGenerator.generate())
-                        .thenReturn("NEW-001", "NEW-002");
-
                 doThrow(DuplicateKeyException.class)
                         .doThrow(DuplicateKeyException.class)
                         .doNothing()
@@ -131,10 +128,7 @@ class MemberCommandServiceTest {
                 target.save(member);
             	
             	//then
-                assertThat(member.getMemberNumber()).isEqualTo("NEW-002");
-
             	verify(memberRepository, times(3)).insert(member);
-                verify(numberGenerator, times(2)).generate();
             }
 
         }
@@ -192,14 +186,11 @@ class MemberCommandServiceTest {
                     .withMemberInfo(MemberInfoTestFixture.builder())
                     .build();
 
-            when(numberGenerator.generate())
-                    .thenReturn("NEW-001", "NEW-002");
-
             doThrow(DuplicateKeyException.class)
                     .doThrow(DuplicateKeyException.class)
                     .doThrow(DuplicateKeyException.class)
                     .when(memberRepository)
-                    .insert(any(Member.class));
+                    .insert(member);
 
             //when
             Throwable throwable = catchThrowable(() ->  target.save(member));

@@ -85,7 +85,7 @@ public class EmailVerificationService {
                             EmailMasker.mask(email)
                     ).withCause("인증코드 이메일 발송 오류"),
                     e
-            ).withUserMessage("email.verification.code.send");
+            ).withMessageKey("email.verification.code.send");
         }
     }
 
@@ -100,7 +100,7 @@ public class EmailVerificationService {
                             "email",
                             EmailMasker.mask(email)
                     ).withCause("중복 이메일")
-            ).withUserMessage("member.email.duplicate");
+            ).withMessageKey("member.email.duplicate");
         }
     }
 
@@ -118,7 +118,7 @@ public class EmailVerificationService {
                                         "email",
                                         EmailMasker.mask(email)
                                 ).withCause("이메일에 해당하는 인증코드 없음")
-                        ).withUserMessage("email.verification.code.expired")
+                        ).withMessageKey("email.verification.code.expired")
                 );
 
         //3. 인증코드 일치여부 확인
@@ -131,7 +131,7 @@ public class EmailVerificationService {
                             "emailCode",
                             code
                     )
-            ).withUserMessage("email.verification.code.invalid");
+            ).withMessageKey("email.verification.code.invalid");
         }
 
         //4. Redis 저장소에서 인증코드 삭제
@@ -154,7 +154,7 @@ public class EmailVerificationService {
                                         "email",
                                         EmailMasker.mask(email)
                                 ).withCause("미인증된 이메일")
-                        ).withUserMessage("member.signup.failed")
+                        ).withMessageKey("member.signup.failed")
                 );
 
         if (!storedToken.equals(token)) {
@@ -165,7 +165,7 @@ public class EmailVerificationService {
                             "token",
                             StringUtil.masking(token, 3, token.length() - 3)
                     )
-            ).withUserMessage("member.signup.failed");
+            ).withMessageKey("member.signup.failed");
         }
     }
 

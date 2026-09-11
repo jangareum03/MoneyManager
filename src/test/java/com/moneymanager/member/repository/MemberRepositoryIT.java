@@ -489,10 +489,14 @@ class MemberRepositoryIT extends IntegrationTest {
 
         @BeforeEach
         void setUp() {
-            insertMember(MemberTestFixture.builder().buildWithEncodePassword((passwordEncoder.encode("password123"))));
+            insertMember(
+                    MemberTestFixture.builder()
+                            .withMemberInfo(MemberInfoTestFixture.builder())
+                            .buildWithEncodePassword((passwordEncoder.encode("password123")))
+            );
 
             jdbcTemplate.update(
-                    "UPDATE member_info SET image_limit = 2 WHERE id = ?",
+                    "UPDATE member_info SET image_limit = 2 WHERE member_id = ?",
                     MemberTestData.DEFAULT_ID
             );
         }
@@ -537,7 +541,11 @@ class MemberRepositoryIT extends IntegrationTest {
 
         @BeforeEach
         void setUp() {
-            insertMember(MemberTestFixture.builder().buildWithEncodePassword((passwordEncoder.encode("password123"))));
+            insertMember(
+                    MemberTestFixture.builder()
+                            .withMemberInfo(MemberInfoTestFixture.builder())
+                            .buildWithEncodePassword((passwordEncoder.encode("password123")))
+            );
         }
 
         @Test
@@ -575,7 +583,11 @@ class MemberRepositoryIT extends IntegrationTest {
 
         @BeforeEach
         void setUp() {
-            insertMember(MemberTestFixture.builder().buildWithEncodePassword((passwordEncoder.encode("password123"))));
+            insertMember(
+                    MemberTestFixture.builder()
+                            .withMemberInfo(MemberInfoTestFixture.builder())
+                            .buildWithEncodePassword((passwordEncoder.encode("password123")))
+            );
         }
 
         @Test
@@ -613,7 +625,11 @@ class MemberRepositoryIT extends IntegrationTest {
 
         @BeforeEach
         void setUp() {
-            insertMember(MemberTestFixture.builder().buildWithEncodePassword((passwordEncoder.encode("password123"))));
+            insertMember(
+                    MemberTestFixture.builder()
+                            .withMemberInfo(MemberInfoTestFixture.builder())
+                            .buildWithEncodePassword((passwordEncoder.encode("password123")))
+            );
         }
 
         @Test

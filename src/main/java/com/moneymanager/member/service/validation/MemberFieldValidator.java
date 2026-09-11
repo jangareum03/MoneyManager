@@ -52,7 +52,7 @@ public class MemberFieldValidator {
                             "username",
                             username
                     )
-            ).withUserMessage("member.username.required");
+            ).withMessageKey("member.username.required");
         }
 
         if (!username.matches(RegexPattern.MEMBER_USERNAME.getPattern())) {
@@ -66,7 +66,7 @@ public class MemberFieldValidator {
                             .withOption("format", "영어, 숫자")
                             .withOption("min", 4)
                             .withOption("max", 15)
-            ).withUserMessage("member.username.invalid");
+            ).withMessageKey("member.username.invalid");
         }
     }
 
@@ -79,7 +79,7 @@ public class MemberFieldValidator {
                             "password",
                             password
                     )
-            ).withUserMessage("member.password.required");
+            ).withMessageKey("member.password.required");
         }
 
         if (!password.matches(RegexPattern.MEMBER_PWD.getPattern())) {
@@ -92,7 +92,7 @@ public class MemberFieldValidator {
                             ).withOption("format", "영어, 숫자, !, %, #, ^, *")
                             .withOption("min", 8)
                             .withOption("max", 20)
-            ).withUserMessage("member.password.invalid");
+            ).withMessageKey("member.password.invalid");
         }
     }
 
@@ -105,7 +105,7 @@ public class MemberFieldValidator {
                             "name",
                             name
                     )
-            ).withUserMessage("member.name.required");
+            ).withMessageKey("member.name.required");
         }
 
         if (!name.matches(RegexPattern.MEMBER_NAME.getPattern())) {
@@ -119,7 +119,7 @@ public class MemberFieldValidator {
                             .withOption("format", "한글")
                             .withOption("min", 2)
                             .withOption("max", 5)
-            ).withUserMessage("member.name.invalid");
+            ).withMessageKey("member.name.invalid");
         }
     }
 
@@ -132,7 +132,7 @@ public class MemberFieldValidator {
                             "birthdate",
                             birthDate
                     )
-            ).withUserMessage("member.birthdate.required");
+            ).withMessageKey("member.birthdate.required");
         }
 
         if (!birthDate.matches(RegexPattern.MEMBER_BIRTH.getPattern())) {
@@ -145,7 +145,7 @@ public class MemberFieldValidator {
                             )
                             .withOption("format", "숫자")
                             .withOption("size", 8)
-            ).withUserMessage("member.birthdate.invalid");
+            ).withMessageKey("member.birthdate.invalid");
         }
     }
 
@@ -158,7 +158,7 @@ public class MemberFieldValidator {
                             "nickname",
                             nickName
                     )
-            ).withUserMessage("member.nickname.required");
+            ).withMessageKey("member.nickname.required");
         }
 
         if (!nickName.matches(RegexPattern.MEMBER_NICKNAME.getPattern())) {
@@ -172,7 +172,7 @@ public class MemberFieldValidator {
                             .withOption("format", "한글, 숫자, 영어")
                             .withOption("min", 2)
                             .withOption("max", 10)
-            ).withUserMessage("member.nickname.invalid");
+            ).withMessageKey("member.nickname.invalid");
         }
     }
 
@@ -185,7 +185,7 @@ public class MemberFieldValidator {
                             "email",
                             email
                     )
-            ).withUserMessage("member.email.required");
+            ).withMessageKey("member.email.required");
         }
 
         if (!email.matches(RegexPattern.MEMBER_EMAIL.getPattern())) {
@@ -197,7 +197,7 @@ public class MemberFieldValidator {
                                     email
                             )
                             .withOption("format", "영어, 숫자, !, #, $, %, &, `, *, +, -, /, =, ?, ^, _, ', {, |, }, ~ (예: test@naver.com)")
-            ).withUserMessage("member.email.invalid");
+            ).withMessageKey("member.email.invalid");
         }
     }
 
@@ -210,7 +210,7 @@ public class MemberFieldValidator {
                             "gender",
                             gender
                     )
-            ).withUserMessage("member.gender.required");
+            ).withMessageKey("member.gender.required");
         }
 
         List<String> genders = Arrays.stream(MemberGender.values())
@@ -225,7 +225,7 @@ public class MemberFieldValidator {
                             "gender",
                             gender
                     ).withOption("allowed", genders)
-            ).withUserMessage("member.gender.invalid");
+            ).withMessageKey("member.gender.invalid");
         }
     }
 

@@ -70,7 +70,7 @@ public class AccountValidator {
                             "emailCode",
                             emailCode
                     )
-            ).withUserMessage("member.email.code.required");
+            ).withMessageKey("member.email.code.required");
         }
 
         if(!emailCode.matches("[0-9]{6}")) {
@@ -81,7 +81,7 @@ public class AccountValidator {
                             "emailCode",
                             emailCode
                     )
-            ).withUserMessage("member.email.code.invalid");
+            ).withMessageKey("member.email.code.invalid");
         }
     }
 

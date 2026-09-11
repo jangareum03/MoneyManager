@@ -59,7 +59,7 @@ class MemberValidatorTest {
                     .birthdate(MemberTestData.DEFAULT_BIRTHDATE)
                     .nickname(MemberTestData.DEFAULT_NICKNAME)
                     .email(MemberTestData.DEFAULT_EMAIL)
-                    .gender(MemberTestData.DEFAULT_GENDER.getValue())
+                    .gender(MemberTestData.DEFAULT_GENDER.getValue().toLowerCase())
                     .build();
 
             //when

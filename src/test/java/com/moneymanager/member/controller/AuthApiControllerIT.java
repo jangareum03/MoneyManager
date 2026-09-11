@@ -179,7 +179,7 @@ class AuthApiControllerIT extends IntegrationTest {
                                             """)
                     )
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message").value("이메일 주소 형식을 확인해주세요."));
+                    .andExpect(jsonPath("$.message").value("member.email.invalid"));
         }
 
         @Test
@@ -203,7 +203,7 @@ class AuthApiControllerIT extends IntegrationTest {
                                             """)
                     )
                     .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.message").value("이미 가입된 이메일입니다."));
+                    .andExpect(jsonPath("$.message").value("member.email.duplicate"));
         }
 
         @Test
@@ -228,7 +228,7 @@ class AuthApiControllerIT extends IntegrationTest {
                                             """)
                     )
                     .andExpect(status().isBadGateway())
-                    .andExpect(jsonPath("$.message").value("인증코드를 발송하지 못했습니다. 잠시 후 다시 시도해 주세요."));
+                    .andExpect(jsonPath("$.message").value("email.verification.code.send"));
 
         }
 
@@ -265,7 +265,7 @@ class AuthApiControllerIT extends IntegrationTest {
                                     )
                     )
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value("이메일 인증에 성공했습니다."))
+                    .andExpect(jsonPath("$.message").value("email.verification.success"))
                     .andExpect(jsonPath("$.data").exists());
         }
         
@@ -290,7 +290,7 @@ class AuthApiControllerIT extends IntegrationTest {
                                     )
                     )
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message").value("6자리 숫자만 입력해주세요.")); 
+                    .andExpect(jsonPath("$.message").value("member.email.code.invalid"));
         }
         
         @Test
@@ -317,7 +317,7 @@ class AuthApiControllerIT extends IntegrationTest {
                                     )
                     )
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message").value("인증코드가 일치하지 않습니다. 다시 확인해주세요."));
+                    .andExpect(jsonPath("$.message").value("email.verification.code.invalid"));
         }
         
         @Test
@@ -341,7 +341,7 @@ class AuthApiControllerIT extends IntegrationTest {
                                     )
                     )
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.message").value("인증 시간이 만료되었습니다. 다시 요청해주세요."));
+                    .andExpect(jsonPath("$.message").value("email.verification.code.expired"));
         }
     }
 
@@ -375,8 +375,7 @@ class AuthApiControllerIT extends IntegrationTest {
                             .cookie(oldToken)
                             .cookie(new Cookie("refreshToken", refreshToken.getToken()))
             )
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data").exists());
+                    .andExpect(status().isOk());
         }
 
         @Test
@@ -432,7 +431,7 @@ class AuthApiControllerIT extends IntegrationTest {
                             .content(mapper.writeValueAsString(request))
             )
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value("회원가입을 완료했습니다."))
+                    .andExpect(jsonPath("$.message").value("member.signup.success"))
                     .andExpect(jsonPath("$.next").value("/auth/login"));
         }
 

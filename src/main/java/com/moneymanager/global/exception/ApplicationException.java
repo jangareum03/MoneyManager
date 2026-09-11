@@ -37,7 +37,7 @@ public class ApplicationException extends RuntimeException {
 
 	private final ErrorCode errorCode;							//에러코드
 	private final LogContent logContent;						//로그정보
-	private final String userMessage;								//안내 메시지
+	private final String messageKey;								//메시지 키
 
 	public ApplicationException(ErrorCode errorCode, LogContent logContent) {
 		this(errorCode, logContent, null);
@@ -52,11 +52,11 @@ public class ApplicationException extends RuntimeException {
 
 		this.errorCode = errorCode;
 		this.logContent = resolveLogContent(errorCode, logContent);
-		this.userMessage = userMessage;
+		this.messageKey = userMessage;
 	}
 
-	public ApplicationException withUserMessage(String userMessage) {
-		return new ApplicationException(errorCode, logContent, userMessage, getCause());
+	public ApplicationException withMessageKey(String messageKey) {
+		return new ApplicationException(errorCode, logContent, messageKey, getCause());
 	}
 
 	private static LogContent resolveLogContent(ErrorCode errorCode, LogContent content) {

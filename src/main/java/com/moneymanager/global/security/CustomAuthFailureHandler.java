@@ -1,6 +1,5 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.global.util.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -41,13 +40,11 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class CustomAuthFailureHandler implements AuthenticationFailureHandler {
 
-	private final MessageUtil messageUtil;
-
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
 		request.getSession().setAttribute(
 				"loginError",
-				messageUtil.get(exception.getMessage())
+				exception.getMessage()
 		);
 
 		response.sendRedirect("/auth/login");

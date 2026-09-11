@@ -60,7 +60,7 @@ public class MemberReadService {
                                         Member.class,
                                         "memberNumber", memberNumber
                                 )
-                        ).withUserMessage("member.sidebar.failed")
+                        ).withMessageKey("member.sidebar.failed")
                 );
     }
 
@@ -109,7 +109,7 @@ public class MemberReadService {
                             "username",
                             username
                     ).withCause("중복 아이디")
-            ).withUserMessage("member.username.duplicate");
+            ).withMessageKey("member.username.duplicate");
         }
 
         //1..닉네임 중복 검증
@@ -121,7 +121,7 @@ public class MemberReadService {
                             "nickname",
                             nickname
                     ).withCause("중복 닉네임")
-            ).withUserMessage("member.nickname.duplicate");
+            ).withMessageKey("member.nickname.duplicate");
         }
     }
 

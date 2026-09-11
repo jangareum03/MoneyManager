@@ -5,6 +5,7 @@ import com.moneymanager.global.log.LogContent;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
+import com.moneymanager.member.domain.enums.MemberStatus;
 import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import com.moneymanager.member.repository.MemberRepository;
 import com.moneymanager.support.ApplicationExceptionAssert;
@@ -24,6 +25,7 @@ import java.util.Optional;
 
 import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -212,7 +214,7 @@ class MemberReadServiceTest {
 			//then
 			assertThat(result).isNotNull();
 			assertThat(result.getUsername()).isEqualTo(MemberTestData.DEFAULT_USERNAME);
-			assertThat(result.getStatus()).isEqualTo("A");
+			assertThat(result.getStatus()).isEqualTo(MemberStatus.ACTIVE);
 		}
 		
 		@Test
@@ -264,15 +266,14 @@ class MemberReadServiceTest {
 			}
 
 			@Test
-			@DisplayName("닉네임이 존재하지 않으면 예외를 전파한다.")
-			void throwsException_whenNicknameDoesNotExist() {
+			@DisplayName("닉네임이 존재하지 않으면 통과한다.")
+			void success_whenNicknameDoesNotExist() {
 				//given
 				when(memberRepository.existsByUsername(anyString()))
 						.thenReturn(Boolean.FALSE);
 
 				//when
-				assertThatThrownBy(() -> target.validateSignUpEligibility(username, nickname))
-						.isInstanceOf(ApplicationException.class);
+				assertDoesNotThrow(() -> target.validateSignUpEligibility(username, nickname));
 			}
 			
 		}

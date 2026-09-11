@@ -69,7 +69,7 @@ public class MemberRepository {
                 : rs.getTimestamp("deleted_at").toLocalDateTime();
 
         MemberInfo memberInfo = MemberInfo.restore(
-                rs.getString("member_id"),
+                rs.getString("id"),
                 gender,
                 rs.getString("profile"),
                 rs.getLong("point"),
@@ -126,8 +126,8 @@ public class MemberRepository {
         String query = """
                 SELECT m.*, mi.gender, mi.profile, mi.point, mi.consecutive_days, mi.image_limit, mi.failure_count, mi.login_at
                 FROM member m
-                LEFT JOIN member_info mi
-                	ON m.id = mi.id
+                    LEFT JOIN member_info mi
+                	    ON m.id = mi.member_id
                 WHERE m.id = ?
                 """;
 
@@ -250,7 +250,7 @@ public class MemberRepository {
         String query = """
                 SELECT image_limit
                 	FROM member_info
-                	WHERE id = ?
+                	WHERE member_id = ?
                 """;
 
         try {

@@ -258,7 +258,16 @@ class TokenAuthServiceTest {
             when(jwtTokenProvider.isRefreshToken(refreshToken))
                     .thenReturn(true);
 
-            when(jwtTokenProvider.parseToken(refreshToken).getPayload().getSubject())
+            Jws jws = mock(Jws.class);
+            Claims claims = mock(Claims.class);
+
+            when(jwtTokenProvider.parseToken(refreshToken))
+                    .thenReturn(jws);
+
+            when(jws.getPayload())
+                    .thenReturn(claims);
+
+            when(claims.getSubject())
                     .thenReturn(memberNumber);
 
             when(jwtTokenProvider.createAccessToken(memberNumber))

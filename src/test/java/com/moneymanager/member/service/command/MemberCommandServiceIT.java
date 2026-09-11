@@ -7,14 +7,13 @@ import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.domain.enums.MemberStatus;
 import com.moneymanager.member.service.generator.MemberNumberGenerator;
 import com.moneymanager.support.IntegrationTest;
-import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -52,7 +51,7 @@ class MemberCommandServiceIT extends IntegrationTest {
     @Autowired
     MemberCommandService target;
 
-    @MockBean
+    @SpyBean
     MemberNumberGenerator numberGenerator;
 
     @Nested
@@ -120,7 +119,7 @@ class MemberCommandServiceIT extends IntegrationTest {
                 memberRepository.insert(member);
 
                 Member newMember = MemberTestFixture.builder()
-                        .number(numberGenerator.generate())
+                        .id(member.getId())
                         .withMemberInfo(MemberInfoTestFixture.builder())
                         .build();
 
@@ -142,7 +141,7 @@ class MemberCommandServiceIT extends IntegrationTest {
 
                 Member newMember = MemberTestFixture.builder()
                         .id(UlidCreator.getUlid().toString())
-                        .number(MemberTestData.DEFAULT_NUMBER)
+                        .number(member.getMemberNumber())
                         .withMemberInfo(MemberInfoTestFixture.builder())
                         .build();
 

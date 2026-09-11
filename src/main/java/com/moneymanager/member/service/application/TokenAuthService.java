@@ -183,7 +183,7 @@ public class TokenAuthService {
                                 "refreshToken",
                                 StringUtil.masking(refreshToken, 6, refreshToken.length() - 6)
                         ).withCause("refreshToken 아님")
-                ).withUserMessage("member.token.failed");
+                ).withMessageKey("member.token.failed");
             }
         }catch (ExpiredJwtException e){
             throw new ApplicationException(
@@ -193,7 +193,7 @@ public class TokenAuthService {
                             "refreshToken",
                             StringUtil.masking(refreshToken, 6, refreshToken.length() - 6)
                     ).withCause("만료된 refreshToken")
-            ).withUserMessage("member.token.expired");
+            ).withMessageKey("member.token.expired");
         }catch (JwtException e) {
             throw new ApplicationException(
                     INVALID_TOKEN,
@@ -202,7 +202,7 @@ public class TokenAuthService {
                             "refreshToken",
                             StringUtil.masking(refreshToken, 6, refreshToken.length() - 6)
                     ).withCause("유효하지 않은 refreshToken")
-            ).withUserMessage("member.token.failed");
+            ).withMessageKey("member.token.failed");
         }
     }
 

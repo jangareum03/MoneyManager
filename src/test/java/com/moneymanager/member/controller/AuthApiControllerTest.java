@@ -3,13 +3,12 @@ package com.moneymanager.member.controller;
 import com.moneymanager.global.domain.dto.response.api.ApiBody;
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
-import com.moneymanager.global.util.MessageUtil;
 import com.moneymanager.member.domain.dto.request.EmailVerifyRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.dto.request.SendVerificationCodeRequest;
 import com.moneymanager.member.service.application.EmailVerificationService;
-import com.moneymanager.member.service.application.TokenAuthService;
 import com.moneymanager.member.service.application.MemberService;
+import com.moneymanager.member.service.application.TokenAuthService;
 import com.moneymanager.support.data.MemberTestData;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -69,9 +68,6 @@ class AuthApiControllerTest {
 
     @Mock
     TokenAuthService tokenAuthService;
-
-    @Mock
-    MessageUtil messageUtil;
 
     @Nested
     @DisplayName("인증코드 요청할 때")
@@ -152,15 +148,12 @@ class AuthApiControllerTest {
             when(emailVerificationService.verifyEmailCode(email, code))
                     .thenReturn("token");
 
-            when(messageUtil.get(anyString()))
-                    .thenReturn("성공");
-
             //when
             ApiBody<String> result = target.verifyEmail(request);
 
             //then
             assertThat(result.getStatus()).isSameAs(HttpStatus.OK);
-            assertThat(result.getMessage()).isEqualTo("성공");
+            assertThat(result.getMessage()).isEqualTo("email.verification.success");
             assertThat(result.getData()).isEqualTo("token");
         }
 
@@ -176,7 +169,7 @@ class AuthApiControllerTest {
                                     "emailCode",
                                     code
                             )
-                    ).withUserMessage("실패"));
+                    ).withMessageKey("실패"));
 
             //when
             assertThatThrownBy(() -> target.verifyEmail(request))
@@ -227,16 +220,12 @@ class AuthApiControllerTest {
         @Test
         @DisplayName("정상적인 요청이면 성공 메시지와 이동할 URL을 반환한다.")
         void returnsSuccessResponseWithRedirectUrl_whenRequestIsValid() {
-            //given
-            when(messageUtil.get(anyString()))
-                    .thenReturn("회원가입 성공");
-
         	//when
             ApiBody<Void> result = target.signUp(request);
         	
         	//then
             assertThat(result.getStatus()).isSameAs(HttpStatus.OK);
-        	assertThat(result.getMessage()).isEqualTo("회원가입 성공");
+        	assertThat(result.getMessage()).isEqualTo("member.signup.success");
         	assertThat(result.getNext()).isEqualTo("/auth/login");
         }
         
