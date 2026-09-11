@@ -3,6 +3,9 @@ package com.moneymanager.global.advice;
 import com.moneymanager.global.domain.dto.response.api.ErrorBody;
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.exception.annotation.ApiController;
+import com.moneymanager.global.log.AuditLogger;
+import com.moneymanager.global.log.operation.OperationContext;
+import com.moneymanager.global.log.operation.holder.OperationContextHolder;
 import com.moneymanager.global.util.MessageUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -63,9 +66,30 @@ public class GlobalRestControllerAdvice {
     public ResponseEntity<ErrorBody> handleApplicationException(ApplicationException e) {
         String message = messageUtil.get(e);
 
+        writeLog(e);
+
         return ResponseEntity
                 .status(e.getErrorCode().getStatus())
                 .body(ErrorBody.of(message));
+    }
+
+
+    //===== 보조 메서드 =====
+    private void writeLog(ApplicationException e) {
+        OperationContext context = OperationContextHolder.get();
+
+        try{
+            context.addOption("error", e.getErrorCode().getCode());
+            context.addOption("log", e.getLogContent());
+            context.addOption("message", e.getUserMessage());
+
+            AuditLogger.debug(context);
+
+        }finally {
+            AuditLogger.info(context);
+
+            OperationContextHolder.clear();
+        }
     }
 
 }

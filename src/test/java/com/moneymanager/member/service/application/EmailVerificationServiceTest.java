@@ -5,7 +5,7 @@ import com.moneymanager.member.repository.EmailVerificationRedisRepository;
 import com.moneymanager.member.service.email.EmailCodeGenerator;
 import com.moneymanager.member.service.email.EmailSender;
 import com.moneymanager.member.service.read.MemberReadService;
-import com.moneymanager.member.service.validation.AuthValidator;
+import com.moneymanager.member.service.validation.AccountValidator;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
 import org.junit.jupiter.api.DisplayName;
@@ -67,7 +67,7 @@ class EmailVerificationServiceTest {
     EmailCodeGenerator codeGenerator;
     
     @Mock
-    AuthValidator authValidator;
+    AccountValidator accountValidator;
 
     @Spy
     PasswordEncoder passwordEncoder;
@@ -239,9 +239,9 @@ class EmailVerificationServiceTest {
             assertDoesNotThrow(() -> target.validateEmail(email));
         	
         	//then
-        	InOrder inOrder = inOrder(authValidator, memberReadService);
+        	InOrder inOrder = inOrder(accountValidator, memberReadService);
             
-            inOrder.verify(authValidator).validateEmail(email);
+            inOrder.verify(accountValidator).validateEmail(email);
             inOrder.verify(memberReadService).checkEmailExists(email);
         }
         
@@ -252,7 +252,7 @@ class EmailVerificationServiceTest {
             String email = MemberTestData.DEFAULT_EMAIL;
             
             doThrow(ApplicationException.class)
-                .when(authValidator)
+                .when(accountValidator)
                     .validateEmail(email);
         	
         	//when
@@ -312,9 +312,9 @@ class EmailVerificationServiceTest {
                 assertDoesNotThrow(() -> target.verifyEmailCode(email, code));
 
                 //then
-                InOrder inOrder = inOrder(authValidator, redisRepository, passwordEncoder);
+                InOrder inOrder = inOrder(accountValidator, redisRepository, passwordEncoder);
 
-                inOrder.verify(authValidator).validateEmailCode(code);
+                inOrder.verify(accountValidator).validateEmailCode(code);
                 inOrder.verify(redisRepository).getCode(email);
                 inOrder.verify(passwordEncoder).matches(code, hashCode);
                 inOrder.verify(redisRepository).deleteCode(email);
@@ -326,7 +326,7 @@ class EmailVerificationServiceTest {
             void doesNotFetchCode_whenValidationFails() {
                 //given
                 doThrow(ApplicationException.class)
-                        .when(authValidator)
+                        .when(accountValidator)
                         .validateEmailCode(code);
 
                 //when
@@ -334,7 +334,7 @@ class EmailVerificationServiceTest {
                         .isInstanceOf(ApplicationException.class);
 
                 //then
-                verify(authValidator).validateEmailCode(code);
+                verify(accountValidator).validateEmailCode(code);
                 verify(redisRepository, never()).getCode(email);
             }
 

@@ -4,6 +4,7 @@ import com.moneymanager.member.domain.dto.MemberAuth;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
+import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
@@ -13,12 +14,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
 import static org.assertj.core.api.Assertions.*;
@@ -355,6 +360,79 @@ class MemberRepositoryIT extends IntegrationTest {
                 assertThat(result.isPresent()).isFalse();
             }
 
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("아이디와 상태를 조회할 때")
+    class FindUsernameAndStatus {
+
+        Member member;
+
+        @BeforeEach
+        void setUp() {
+            member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .buildWithEncodePassword(passwordEncoder.encode(MemberTestData.DEFAULT_PASSWORD));
+
+            insertMember(member);
+        }
+
+        @Test
+        @DisplayName("이름과 이메일에 해당하는 회원이 있으면 객체를 반환한다.")
+        void returnsMemberFindIdQuery_whenMemberExistsByNameAndEmail() {
+            //given
+            String name = MemberTestData.DEFAULT_NAME;
+            String email = MemberTestData.DEFAULT_EMAIL;
+
+            //when
+            Optional<MemberFindIdQuery> result = target.findUsernameAndStatusByNameAndEmail(name, email);
+
+            //then
+            assertThat(result)
+                    .isPresent()
+                    .get()
+                    .extracting(
+                            MemberFindIdQuery::getUsername,
+                            MemberFindIdQuery::getStatus
+                    ).containsOnly(
+                            MemberTestData.DEFAULT_USERNAME,
+                            MemberTestData.DEFAULT_STATUS
+                    );
+        }
+
+        @ParameterizedTest
+        @MethodSource("invalidNameAndEmails")
+        @DisplayName("이름과 이메일 모두 일치하지 않으면 empty를 반환한다.")
+        void returnsEmpty_whenMemberDoesNotExistByNameAndEmail(String name, String email) {
+            //when
+            Optional<MemberFindIdQuery> result = target.findUsernameAndStatusByNameAndEmail(name, email);
+
+            //then
+            assertThat(result.isPresent()).isFalse();
+            assertThat(result).isEmpty();
+        }
+
+        static Stream<Arguments> invalidNameAndEmails() {
+            return Stream.of(
+                    Arguments.of(
+                            "이름만 일치하는 경우",
+                            MemberTestData.DEFAULT_NAME,
+                            "test001@test.com"
+                    ),
+                    Arguments.of(
+                            "이메일만 일치하는 경우",
+                            MemberTestData.DEFAULT_EMAIL,
+                            "아무개"
+                    ),
+                    Arguments.of(
+                            "둘 다 불일치하는 경우",
+                            "아무개",
+                            "test001@test.com"
+                    )
+            );
         }
 
     }

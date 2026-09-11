@@ -10,6 +10,7 @@ import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberStatus;
 import com.moneymanager.member.domain.enums.MemberType;
+import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -199,6 +200,28 @@ public class MemberRepository {
                     )
             );
         } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<MemberFindIdQuery> findUsernameAndStatusByNameAndEmail(String name, String email) {
+        String query = """
+                SELECT username, status
+                    FROM member
+                    WHERE name = ?
+                        AND email = ?
+                """;
+
+        try{
+            return jdbcTemplate.query(
+                    query,
+                    (rs, num) -> new MemberFindIdQuery(
+                            rs.getString("username"),
+                            MemberStatus.fromValue(rs.getString("status"))
+                    ),
+                    name, email
+            ).stream().findFirst();
+        }catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
     }

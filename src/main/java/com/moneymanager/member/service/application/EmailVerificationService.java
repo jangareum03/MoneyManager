@@ -9,7 +9,7 @@ import com.moneymanager.member.service.email.EmailCodeGenerator;
 import com.moneymanager.member.service.email.EmailMasker;
 import com.moneymanager.member.service.email.EmailSender;
 import com.moneymanager.member.service.read.MemberReadService;
-import com.moneymanager.member.service.validation.AuthValidator;
+import com.moneymanager.member.service.validation.AccountValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.MailException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -54,7 +54,7 @@ public class EmailVerificationService {
     private final MemberReadService memberReadService;
 
     private final EmailCodeGenerator codeGenerator;
-    private final AuthValidator authValidator;
+    private final AccountValidator accountValidator;
     private final PasswordEncoder passwordEncoder;
     private final EmailSender sender;
 
@@ -90,7 +90,7 @@ public class EmailVerificationService {
     }
 
     public void validateEmail(String email) {
-        authValidator.validateEmail(email);
+        accountValidator.validateEmail(email);
 
         if (memberReadService.checkEmailExists(email)) {
             throw new ApplicationException(
@@ -106,7 +106,7 @@ public class EmailVerificationService {
 
     public String verifyEmailCode(String email, String code) {
         //1. 인증코드 검증
-        authValidator.validateEmailCode(code);
+        accountValidator.validateEmailCode(code);
 
         //2. Redis 저장소에서 인증코드 조회
         String hashCode = redisRepository.getCode(email)

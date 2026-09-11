@@ -5,6 +5,7 @@ import com.moneymanager.global.log.LogContent;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
+import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import com.moneymanager.member.repository.MemberRepository;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
@@ -185,6 +186,56 @@ class MemberReadServiceTest {
 		}
 	}
 
+
+	@Nested
+	@DisplayName("아이디와 상태를 조회할 때")
+	class GetUsername {
+
+		String name = MemberTestData.DEFAULT_NAME;
+		String email = MemberTestData.DEFAULT_EMAIL;
+		
+		@Test
+		@DisplayName("이름과 이메일에 해당하는 회원이 존재하면 반환한다.")
+		void returnsMemberFindIdQuery_whenMemberExists() {
+			//given
+			when(memberRepository.findUsernameAndStatusByNameAndEmail(name, email))
+					.thenReturn(Optional.of(
+							new MemberFindIdQuery(
+									MemberTestData.DEFAULT_USERNAME,
+									MemberTestData.DEFAULT_STATUS
+							)
+					));
+			
+			//when
+			MemberFindIdQuery result = target.getMemberStatus(name, email);
+			
+			//then
+			assertThat(result).isNotNull();
+			assertThat(result.getUsername()).isEqualTo(MemberTestData.DEFAULT_USERNAME);
+			assertThat(result.getStatus()).isEqualTo("A");
+		}
+		
+		@Test
+		@DisplayName("이름과 이메일에 해당하는 회원이 존재하지 않으면 예외를 발생시킨다.")
+		void throwsException_whenMemberDoesNotExist() {
+			//given
+			when(memberRepository.findUsernameAndStatusByNameAndEmail(name, email))
+					.thenReturn(Optional.empty());
+
+			//when
+			Throwable throwable = catchThrowable(() -> target.getMemberStatus(name, email));
+
+			//then
+			ApplicationExceptionAssert.assertThatApplicationException(throwable)
+					.hasErrorCode(DATA_NOT_FOUND)
+					.hasWork("아이디 및 상태 조회")
+					.hasTarget(Member.class)
+					.hasValue(
+							"name", "테*트", "email"
+					);
+		}
+
+	}
 
 	@Nested
 	@DisplayName("중복 회원가입 검증할 때")

@@ -33,6 +33,7 @@ import lombok.Getter;
 public enum ServiceAction {
 	//화면 요청
 	LOGIN("로그인", "/"),
+	MEMBER_FIND_ID_VIEW("아이디 찾기 화면", "/auth/account/find"),
 	LEDGER_REGISTER_STEP1_VIEW("가계부 작성 1단계 화면 조회", "/ledgers"),
 	LEDGER_REGISTER_STEP2_VIEW("가계부 작성 2단계 화면 조회", "/ledgers/new/step1"),
 	LEDGER_REGISTER("가계부 등록", "/ledgers/new/step2"),
@@ -46,6 +47,7 @@ public enum ServiceAction {
 	MEMBER_EMAIL_CODE("이메일 인증코드 전송 API"),
 	MEMBER_EMAIL_CHECK("이메일 검증 API"),
 	MEMBER_SIGNUP("회원가입 API"),
+	MEMBER_FIND_ID("아이디 찾기 API"),
 
 	LEDGER_CATEGORY("하위 카테고리 목록 조회 API"),
 	LEDGER_REGISTER_DATE("작성할 가계부 날짜 목록 조회 API"),

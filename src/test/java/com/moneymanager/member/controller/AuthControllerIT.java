@@ -6,14 +6,14 @@ import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.*;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * <p>
@@ -85,6 +85,23 @@ class AuthControllerIT extends IntegrationTest {
                     .andExpect(model().attribute("loginError", "로그인 실패했습니다. 다시 시도해주세요."));
         }
         
+    }
+
+
+    @Nested
+    @DisplayName("아이디 찾기 화면 요청할 때")
+    class FindIdView {
+        @Test
+        @DisplayName("아이디 찾기 화면을 반환한다.")
+        void returnsFindIdViewData_whenRequestIsValid() throws Exception {
+        	//when
+            mockMvc.perform(
+                    get("/auth/account/find-id")
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML_VALUE))
+                    .andExpect(view().name("/member/recovery_id"));
+        }
     }
 
 }

@@ -3,7 +3,12 @@ package com.moneymanager.member.service.application;
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.security.CustomUserDetailService;
 import com.moneymanager.global.security.CustomUserDetails;
-import com.moneymanager.member.service.validation.AuthValidator;
+import com.moneymanager.global.util.string.StringUtil;
+import com.moneymanager.member.domain.dto.request.FindIdRequest;
+import com.moneymanager.member.domain.dto.response.FindIdResponse;
+import com.moneymanager.member.domain.query.MemberFindIdQuery;
+import com.moneymanager.member.service.read.MemberReadService;
+import com.moneymanager.member.service.validation.AccountValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,10 +21,10 @@ import org.springframework.stereotype.Service;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.member.service.application<br>
- * 파일이름       : LoginService<br>
+ * 파일이름       : AccountService<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 9. 10<br>
- * 설명              : 로그인 흐름을 관리하는 클래스
+ * 설명              : 계정 로직을 관리하는 오케스트라 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -42,17 +47,18 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class LoginService {
+public class AccountService {
 
     private final CustomUserDetailService userDetailService;
-    private final AuthValidator authValidator;
-
+    private final AccountValidator accountValidator;
     private final PasswordEncoder passwordEncoder;
+
+    private final MemberReadService memberReadService;
 
     public CustomUserDetails login(String username, String password) {
         try{
             //1. 아이디와 비밀번호 검증
-            authValidator.validateLogin(username, password);
+            accountValidator.validateLogin(username, password);
         }catch (ApplicationException e){
             throw new AuthenticationServiceException(e.getUserMessage());
         }
@@ -67,6 +73,20 @@ public class LoginService {
         }
 
         return userDetails;
+    }
+
+    public FindIdResponse findId(FindIdRequest request) {
+        //1. 이름과 이메일 입력 검증
+        accountValidator.validateFindId(request);
+
+        //2. 아이디 + 회원상태 조회
+        MemberFindIdQuery memberFindIdQuery = memberReadService.getMemberStatus(request.getName(), request.getEmail());
+
+        //3. 마스킹 처리
+        String id = memberFindIdQuery.getUsername();
+        String maskingId = StringUtil.masking(id, 1, id.length() / 2);
+
+        return new FindIdResponse(maskingId, memberFindIdQuery.getStatus());
     }
 
 

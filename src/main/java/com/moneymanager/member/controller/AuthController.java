@@ -1,5 +1,7 @@
 package com.moneymanager.member.controller;
 
+import com.moneymanager.global.log.operation.annotation.Operation;
+import com.moneymanager.global.log.operation.enums.ServiceAction;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,6 +40,12 @@ import org.springframework.web.bind.annotation.SessionAttribute;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
+	@GetMapping("/account/find-id")
+	@Operation(ServiceAction.MEMBER_FIND_ID_VIEW)
+	public String findId() {
+		return "/member/recovery_id";
+	}
 
 	@GetMapping("/login")
 	public String login(@SessionAttribute(value = "loginError", required = false)String error, Model model) {

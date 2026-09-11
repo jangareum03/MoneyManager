@@ -5,6 +5,7 @@ import com.moneymanager.global.domain.dto.response.AccessToken;
 import com.moneymanager.global.security.CustomUserDetails;
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.member.domain.dto.MemberAuth;
+import com.moneymanager.member.domain.dto.request.FindIdRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.repository.EmailVerificationRedisRepository;
@@ -87,6 +88,61 @@ class AuthApiControllerIT extends IntegrationTest {
 
     @Autowired
     ObjectMapper mapper;
+
+
+    @Nested
+    @DisplayName("아이디 찾기 요청할 때")
+    class FindId {
+
+        private final String URL = BASE_URL + "/account/find-id";
+        
+        @Test
+        @DisplayName("존재하는 회원의 이름과 이메일로 요청하면 성공 페이지로 이동한다.")
+        void returnsSuccessPage_whenMemberExists() throws Exception {
+        	//given
+            Member member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .buildWithEncodePassword(passwordEncoder.encode(MemberTestData.DEFAULT_PASSWORD));
+
+            insertMember(member);
+
+            FindIdRequest request = new FindIdRequest(member.getName(), member.getEmail());
+
+        	//when
+            mockMvc.perform(
+                    post(URL)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsBytes(request))
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.data.username").exists())
+                    .andExpect(jsonPath("$.data.status").exists());
+        }
+        
+        @Test
+        @DisplayName("회원가입하지 않은 사용자의 정보를 입력하면 404를 반환한다.")
+        void returns404_whenUserDoesNotExist() throws Exception {
+        	//given
+            Member member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .buildWithEncodePassword(passwordEncoder.encode(MemberTestData.DEFAULT_PASSWORD));
+
+            FindIdRequest request = new FindIdRequest(member.getName(), member.getEmail());
+        	
+        	//when
+            mockMvc.perform(
+                            post(URL)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(mapper.writeValueAsBytes(request))
+                    )
+                    .andDo(print())
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.message").doesNotExist());
+        }
+
+    }
+
 
     @Nested
     @DisplayName("인증코드 요청할 때")

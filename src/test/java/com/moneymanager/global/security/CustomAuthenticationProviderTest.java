@@ -1,6 +1,6 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.member.service.application.LoginService;
+import com.moneymanager.member.service.application.AccountService;
 import com.moneymanager.support.data.MemberTestData;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -54,7 +54,7 @@ class CustomAuthenticationProviderTest {
     CustomAuthenticationProvider target;
 
     @Mock
-    LoginService loginService;
+    AccountService accountService;
 
     @Nested
     @DisplayName("사용자 조회할 때")
@@ -71,7 +71,7 @@ class CustomAuthenticationProviderTest {
 
             CustomUserDetails userDetails = mock(CustomUserDetails.class);
 
-            when(loginService.login(username, password))
+            when(accountService.login(username, password))
                     .thenReturn(userDetails);
 
             //when
@@ -93,7 +93,7 @@ class CustomAuthenticationProviderTest {
         	//given
             Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
 
-            when(loginService.login(username, password))
+            when(accountService.login(username, password))
                     .thenThrow(BadCredentialsException.class);
 
         	//when

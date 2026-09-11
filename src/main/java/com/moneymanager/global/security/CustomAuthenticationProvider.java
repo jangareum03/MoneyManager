@@ -1,6 +1,6 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.member.service.application.LoginService;
+import com.moneymanager.member.service.application.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
-	private final LoginService loginService;
+	private final AccountService accountService;
 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -48,7 +48,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		String userPassword = authentication.getCredentials().toString();
 
 		//2. 아이디와 비밀번호 검증 후 CustomUserDetails 반환
-		CustomUserDetails userDetails = loginService.login(username, userPassword);
+		CustomUserDetails userDetails = accountService.login(username, userPassword);
 
 		//3. 로그인 인증 토큰 발급
 		return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

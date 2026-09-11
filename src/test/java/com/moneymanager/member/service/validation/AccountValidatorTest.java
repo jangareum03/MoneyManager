@@ -18,10 +18,10 @@ import static org.junit.jupiter.api.Named.named;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.member.service.validation<br>
- * 파일이름       : AuthValidatorTest<br>
+ * 파일이름       : AccountValidatorTest<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 9. 7<br>
- * 설명              : AuthValidator 클래스 로직을 검증하는 단위 테스트 클래스
+ * 설명              : AccountValidator 클래스 로직을 검증하는 단위 테스트 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -42,9 +42,9 @@ import static org.junit.jupiter.api.Named.named;
  * 		</tbody>
  * </table>
  */
-class AuthValidatorTest {
+class AccountValidatorTest {
 
-    AuthValidator target = new AuthValidator();
+    AccountValidator target = new AccountValidator();
 
     @Nested
     @DisplayName("인증코드 검증할 때")

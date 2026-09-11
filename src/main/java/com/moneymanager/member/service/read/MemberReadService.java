@@ -2,14 +2,16 @@ package com.moneymanager.member.service.read;
 
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import com.moneymanager.member.repository.MemberRepository;
+import com.moneymanager.member.service.email.EmailMasker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import static com.moneymanager.global.exception.code.ErrorCode.DUPLICATE_DATA;
-import static com.moneymanager.global.exception.code.ErrorCode.UNAUTHORIZED;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 
 /**
  * <p>
@@ -59,6 +61,27 @@ public class MemberReadService {
                                         "memberNumber", memberNumber
                                 )
                         ).withUserMessage("member.sidebar.failed")
+                );
+    }
+
+    public MemberFindIdQuery getMemberStatus(String name, String email) {
+        return memberRepository.findUsernameAndStatusByNameAndEmail(name, email)
+                .orElseThrow(() ->
+                        new ApplicationException(
+                                DATA_NOT_FOUND,
+                                LogContent.of(
+                                        "아이디 및 상태 조회",
+                                        Member.class,
+                                        "name",
+                                        StringUtil.masking(
+                                                name,
+                                                1,
+                                                name.length() / 2
+                                        ),
+                                        "email",
+                                        EmailMasker.mask(email)
+                                )
+                        )
                 );
     }
 

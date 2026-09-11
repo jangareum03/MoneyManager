@@ -18,10 +18,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.member.service.application<br>
- * 파일이름       : LoginServiceIT<br>
+ * 파일이름       : AccountServiceIT<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 9. 10<br>
- * 설명              : LoginService 클래스 요청을 검증하는 통합 테스트 클래스
+ * 설명              : AccountService 클래스 요청을 검증하는 통합 테스트 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -42,10 +42,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * 		</tbody>
  * </table>
  */
-class LoginServiceIT extends IntegrationTest {
+class AccountServiceIT extends IntegrationTest {
 
     @Autowired
-    LoginService target;
+    AccountService target;
 
     @Nested
     @DisplayName("로그인 진행할 때")

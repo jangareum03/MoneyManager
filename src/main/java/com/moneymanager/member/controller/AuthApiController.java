@@ -6,11 +6,14 @@ import com.moneymanager.global.log.operation.annotation.Operation;
 import com.moneymanager.global.log.operation.enums.ServiceAction;
 import com.moneymanager.global.util.MessageUtil;
 import com.moneymanager.member.domain.dto.request.EmailVerifyRequest;
+import com.moneymanager.member.domain.dto.request.FindIdRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.dto.request.SendVerificationCodeRequest;
-import com.moneymanager.member.service.application.TokenAuthService;
+import com.moneymanager.member.domain.dto.response.FindIdResponse;
+import com.moneymanager.member.service.application.AccountService;
 import com.moneymanager.member.service.application.EmailVerificationService;
 import com.moneymanager.member.service.application.MemberService;
+import com.moneymanager.member.service.application.TokenAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,9 +53,18 @@ import javax.servlet.http.HttpServletResponse;
 public class AuthApiController {
 
     private final MemberService memberService;
+    private final AccountService accountService;
     private final EmailVerificationService emailVerificationService;
     private final TokenAuthService tokenAuthService;
     private final MessageUtil messageUtil;
+
+    @PostMapping("/account/find-id")
+    @Operation(ServiceAction.MEMBER_FIND_ID)
+    public ApiBody<FindIdResponse> findId(@RequestBody FindIdRequest request) {
+        FindIdResponse response = accountService.findId(request);
+
+        return ApiBody.data(response);
+    }
 
     @PostMapping("/email/send-code")
     @Operation(ServiceAction.MEMBER_EMAIL_CODE)
