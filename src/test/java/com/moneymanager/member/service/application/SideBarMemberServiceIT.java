@@ -89,7 +89,7 @@ class SideBarMemberServiceIT extends IntegrationTest {
         	//then
             ApplicationExceptionAssert.assertThatApplicationException(throwable)
                     .hasErrorCode(UNAUTHORIZED)
-                    .hasUserMessage("member.sidebar.failed");
+                    .hasMessageKey("member.sidebar.failed");
         }
     }
 

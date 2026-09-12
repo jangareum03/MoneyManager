@@ -163,7 +163,7 @@ class MemberReadServiceTest {
 					.hasWork("사이드바 정보 조회")
 					.hasTarget(Member.class)
 					.hasValue("memberNumber", memberNumber)
-					.hasUserMessage("member.sidebar.failed");
+					.hasMessageKey("member.sidebar.failed");
 		}
 		
 		@Test
@@ -184,7 +184,7 @@ class MemberReadServiceTest {
 					.hasWork("사이드바 정보 조회")
 					.hasTarget(Member.class)
 					.hasValue("memberNumber", memberNumber)
-					.hasUserMessage("member.sidebar.failed");
+					.hasMessageKey("member.sidebar.failed");
 		}
 	}
 
@@ -238,6 +238,51 @@ class MemberReadServiceTest {
 		}
 
 	}
+
+
+	@Nested
+	@DisplayName("이메일을 조회할 때")
+	class FindEmail {
+		
+		String name = MemberTestData.DEFAULT_NAME;
+		String username = MemberTestData.DEFAULT_USERNAME;
+		
+		@Test
+		@DisplayName("아이디와 이름이 존재하면 이메일을 반환한다.")
+		void returnsEmail_whenIdAndNameExist() {
+			//given
+			String email = MemberTestData.DEFAULT_EMAIL;
+			
+			when(memberRepository.findEmailByNameAndUsername(name, username))
+					.thenReturn(Optional.of(email));
+			
+			//when
+			String result = target.getEmail(name, username);
+			
+			//then
+			assertThat(result).isEqualTo(email);
+		}
+		
+		@Test
+		@DisplayName("아이디와 이름이 존재하지 않으면 예외를 발생시킨다.")
+		void throwsException_whenIdAndNameDoesNotExist() {
+			//given
+			when(memberRepository.findEmailByNameAndUsername(name, username))
+					.thenReturn(Optional.empty());
+			
+			//when
+			Throwable throwable = catchThrowable(() -> target.getEmail(name, username));
+
+			//then
+			ApplicationExceptionAssert.assertThatApplicationException(throwable)
+					.hasErrorCode(DATA_NOT_FOUND)
+					.hasWork("이메일 조회")
+					.hasTarget(Member.class)
+					.hasValue("name", name, "username", "username");
+		}
+
+	}
+
 
 	@Nested
 	@DisplayName("중복 회원가입 검증할 때")

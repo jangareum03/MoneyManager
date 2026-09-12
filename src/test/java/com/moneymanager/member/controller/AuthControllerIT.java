@@ -1,11 +1,14 @@
 package com.moneymanager.member.controller;
 
 import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.redis.repository.PasswordResetRedisRepository;
+import com.moneymanager.member.service.generator.UuidTokenGenerator;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
@@ -43,6 +46,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * </table>
  */
 class AuthControllerIT extends IntegrationTest {
+
+    @Autowired
+    private UuidTokenGenerator tokenGenerator;
+
+    @Autowired
+    private PasswordResetRedisRepository passwordResetRedisRepository;
 
     @Nested
     @DisplayName("로그인 화면 요청할 때")
@@ -102,6 +111,49 @@ class AuthControllerIT extends IntegrationTest {
                     .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML_VALUE))
                     .andExpect(view().name("/member/recovery_id"));
         }
+    }
+
+
+    @Nested
+    @DisplayName("비밀번호 초기화 화면 요청할 때")
+    class ResetPwdView {
+
+        private final String URL = "/auth/password/reset";
+        
+        @Test
+        @DisplayName("token이 존재하면 회원 초기화 페이지로 이동한다.")
+        void returnsResetView_whenTokenExists() throws Exception {
+        	//given
+            String token = tokenGenerator.generate();
+            String hashToken = tokenGenerator.hash(token);
+
+            passwordResetRedisRepository.saveToken(hashToken);
+        	
+        	//when
+            mockMvc.perform(
+                    get(URL)
+                            .param("token", token)
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("/member/password_reset"));
+        }
+        
+        @Test
+        @DisplayName("token이 존재하지 않으면 로그인 페이지로 리디렉션 한다.")
+        void returnsLoginRedirect_whenTokenDoesNotExist() throws Exception {
+            //given
+            String token = tokenGenerator.generate();
+            String hashToken = tokenGenerator.hash(token);
+
+            //when
+            mockMvc.perform(
+                            get(URL)
+                                    .param("token", token)
+                    )
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/auth/login"));
+        }
+
     }
 
 }

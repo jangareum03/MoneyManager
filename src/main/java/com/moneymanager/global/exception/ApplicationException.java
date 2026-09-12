@@ -37,7 +37,8 @@ public class ApplicationException extends RuntimeException {
 
 	private final ErrorCode errorCode;							//에러코드
 	private final LogContent logContent;						//로그정보
-	private final String messageKey;								//메시지 키
+	private String messageKey;										//메시지 키
+	private Object[] messageArgs;									//메시지 동적값
 
 	public ApplicationException(ErrorCode errorCode, LogContent logContent) {
 		this(errorCode, logContent, null);
@@ -47,16 +48,24 @@ public class ApplicationException extends RuntimeException {
 		this(errorCode, logContent, null, throwable);
 	}
 
-	private ApplicationException(ErrorCode errorCode, LogContent logContent, String userMessage, Throwable throwable) {
+	private ApplicationException(ErrorCode errorCode, LogContent logContent, String messageKey, Throwable throwable) {
 		super(throwable);
 
 		this.errorCode = errorCode;
 		this.logContent = resolveLogContent(errorCode, logContent);
-		this.messageKey = userMessage;
+		this.messageKey = messageKey;
 	}
 
 	public ApplicationException withMessageKey(String messageKey) {
-		return new ApplicationException(errorCode, logContent, messageKey, getCause());
+		this.messageKey = messageKey;
+
+		return this;
+	}
+
+	public ApplicationException withMessageArgs(Object... messageArgs) {
+		this.messageArgs = messageArgs;
+
+		return this;
 	}
 
 	private static LogContent resolveLogContent(ErrorCode errorCode, LogContent content) {

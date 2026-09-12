@@ -4,11 +4,9 @@ import com.moneymanager.global.domain.dto.response.api.ApiBody;
 import com.moneymanager.global.exception.annotation.ApiController;
 import com.moneymanager.global.log.operation.annotation.Operation;
 import com.moneymanager.global.log.operation.enums.ServiceAction;
-import com.moneymanager.member.domain.dto.request.EmailVerifyRequest;
-import com.moneymanager.member.domain.dto.request.FindIdRequest;
-import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
-import com.moneymanager.member.domain.dto.request.SendVerificationCodeRequest;
+import com.moneymanager.member.domain.dto.request.*;
 import com.moneymanager.member.domain.dto.response.FindIdResponse;
+import com.moneymanager.member.domain.dto.response.FindPwdResponse;
 import com.moneymanager.member.service.application.AccountService;
 import com.moneymanager.member.service.application.EmailVerificationService;
 import com.moneymanager.member.service.application.MemberService;
@@ -60,6 +58,14 @@ public class AuthApiController {
     @Operation(ServiceAction.MEMBER_FIND_ID)
     public ApiBody<FindIdResponse> findId(@RequestBody FindIdRequest request) {
         FindIdResponse response = accountService.findId(request);
+
+        return ApiBody.data(response);
+    }
+
+    @PostMapping("/account/find-password")
+    @Operation(ServiceAction.MEMBER_FIND_PWD)
+    public ApiBody<FindPwdResponse> findPwd(@RequestBody FindPwdRequest request) {
+        FindPwdResponse response = accountService.findPassword(request);
 
         return ApiBody.data(response);
     }

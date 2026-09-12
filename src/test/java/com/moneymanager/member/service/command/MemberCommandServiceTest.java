@@ -14,15 +14,24 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InOrder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.stream.Stream;
+
 import static com.moneymanager.global.exception.code.ErrorCode.CONSTRAINT_VIOLATION;
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_INTEGRITY;
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Named.named;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -247,6 +256,77 @@ class MemberCommandServiceTest {
 
             assertThat(result.getInfo().getGender()).isEqualTo(MemberTestData.DEFAULT_GENDER);
 
+        }
+        
+    }
+
+
+    @Nested
+    @DisplayName("이메일 마스킹 처리할 때")
+    class MaskedEmail {
+        
+        @ParameterizedTest
+        @MethodSource("validEmailLengthLessThan5")
+        @DisplayName("로컬 파트 길이가 5이하면 두번째 글자부터 마스킹 처리한다.")
+        void returnsMaskedEmail_whenLocalPartLengthIsFiveOrLess(String email, String expected) {
+        	//when
+            String result = target.getMaskedEmail(email);
+        	
+        	//then
+            assertThat(result).isEqualTo(expected);
+        }
+
+        static Stream<Arguments> validEmailLengthLessThan5() {
+            return Stream.of(
+                    Arguments.of(
+                            named("1글자인 경우", "a@test.com"),
+                            "*@test.com"
+                    ),
+                    Arguments.of(
+                            named("2글자인 경우", "ab@test.com"),
+                            "a*@test.com"
+                    ),
+                    Arguments.of(
+                            named("3글자인 경우", "abc@test.com"),
+                            "a**@test.com"
+                    ),
+                    Arguments.of(
+                            named("4글자인 경우", "abcd@test.com"),
+                            "a***@test.com"
+                    ),
+                    Arguments.of(
+                            named("5글자인 경우(경계값)", "abced@test.com"),
+                            "a****@test.com"
+                    )
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("validEmailLengthLeast6")
+        @DisplayName("로컬 파트 길이가 6이상 이면 다섯번째 글자부터 마스킹 처리한다.")
+        void returnsMaskedEmail_whenLocalPartLengthIsGreaterThanFive(String email, String expected) {
+        	//when
+            String result = target.getMaskedEmail(email);
+        	
+        	//then
+        	assertThat(result).isEqualTo(expected);
+        }
+
+        static Stream<Arguments> validEmailLengthLeast6() {
+            return Stream.of(
+                    Arguments.of(
+                            named("6글자인 경우(경계값)", "abcdef@test.com"),
+                            "abcd**@test.com"
+                    ),
+                    Arguments.of(
+                            named("7글자인 경우", "abcdefg@test.com"),
+                            "abcd***@test.com"
+                    ),
+                    Arguments.of(
+                            named("10글자인 경우", "a1b2c3d4f5@test.com"),
+                            "a1b2******@test.com"
+                    )
+            );
         }
         
     }

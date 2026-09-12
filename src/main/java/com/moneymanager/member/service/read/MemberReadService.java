@@ -85,6 +85,21 @@ public class MemberReadService {
                 );
     }
 
+    public String getEmail(String name, String username) {
+        return memberRepository.findEmailByNameAndUsername(name, username)
+                .orElseThrow(() ->
+                        new ApplicationException(
+                                DATA_NOT_FOUND,
+                                LogContent.of(
+                                        "이메일 조회",
+                                        Member.class,
+                                        "name", name,
+                                        "username", username
+                                )
+                        )
+                );
+    }
+
     public boolean checkUsernameExists(String username) {
         return memberRepository.existsByUsername(username);
     }

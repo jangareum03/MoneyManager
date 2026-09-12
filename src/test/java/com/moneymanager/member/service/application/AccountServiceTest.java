@@ -6,11 +6,22 @@ import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.security.CustomUserDetailService;
 import com.moneymanager.global.security.CustomUserDetails;
 import com.moneymanager.member.domain.dto.request.FindIdRequest;
+import com.moneymanager.member.domain.dto.request.FindPwdRequest;
 import com.moneymanager.member.domain.dto.response.FindIdResponse;
+import com.moneymanager.member.domain.dto.response.FindPwdResponse;
 import com.moneymanager.member.domain.query.MemberFindIdQuery;
+import com.moneymanager.member.redis.repository.PasswordResetRedisRepository;
+import com.moneymanager.member.service.command.EmailSender;
+import com.moneymanager.member.service.command.MemberCommandService;
+import com.moneymanager.member.service.generator.UuidTokenGenerator;
 import com.moneymanager.member.service.read.MemberReadService;
+import com.moneymanager.member.service.util.EmailMasker;
 import com.moneymanager.member.service.validation.AccountValidator;
+import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
+import com.sun.mail.smtp.SMTPSendFailedException;
+import com.sun.mail.util.MailConnectException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,10 +38,12 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import javax.mail.MessagingException;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.moneymanager.global.exception.code.ErrorCode.EXTERNAL_API_ERROR;
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Named.named;
 import static org.mockito.Mockito.*;
 
@@ -74,10 +87,22 @@ class AccountServiceTest {
     MemberReadService memberReadService;
 
     @Mock
+    MemberCommandService memberCommandService;
+
+    @Mock
+    PasswordResetRedisRepository passwordResetRedisRepository;
+
+    @Mock
+    EmailSender emailSender;
+
+    @Mock
     AccountValidator accountValidator;
 
     @Mock
     PasswordEncoder passwordEncoder;
+
+    @Mock
+    UuidTokenGenerator uuidTokenGenerator;
 
     @Nested
     @DisplayName("로그인 진행할 때")
@@ -305,6 +330,404 @@ class AccountServiceTest {
                 //when
                 assertThatThrownBy(() -> target.findId(request))
                         .isInstanceOf(ApplicationException.class);
+            }
+
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("비밀번호 찾기 진행할 때")
+    class FindPwd {
+
+        FindPwdRequest request = new FindPwdRequest(
+                MemberTestData.DEFAULT_NAME,
+                MemberTestData.DEFAULT_USERNAME
+        );
+        
+        String name = request.getName();
+        String username = request.getUsername();
+        String email = MemberTestData.DEFAULT_EMAIL;
+
+        @Nested
+        @DisplayName("성공")
+        class Success {
+
+            @BeforeEach
+            void setUp() throws MessagingException {
+                doNothing()
+                        .when(accountValidator)
+                                .validateFindPassword(request);
+
+                doNothing()
+                        .when(emailSender)
+                        .sendPasswordResetLink(eq(email), anyString());
+            }
+
+            @Test
+            @DisplayName("마스킹 처리된 이메일이 반환된다.")
+            void returnsMaskedEmail_whenRequestIsValid() {
+                //given
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(email);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                when(memberCommandService.getMaskedEmail(email))
+                        .thenReturn("maskedEmail");
+
+            	//when
+                FindPwdResponse result =  target.findPassword(request);
+            	
+            	//then
+            	assertThat(result)
+                        .isNotNull()
+                        .extracting(FindPwdResponse::getEmail)
+                        .isEqualTo("maskedEmail");
+            }
+
+            @Test
+            @DisplayName("Redis 저장할 때 토큰은 해시값을 전달한다.")
+            void savesTokenWithHash_whenSavedToRedis() {
+                //given
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(email);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                when(memberCommandService.getMaskedEmail(email))
+                        .thenReturn("maskedEmail");
+
+                //when
+                target.findPassword(request);
+
+                //then
+                verify(passwordResetRedisRepository).saveToken("hash-token");
+            }
+
+            @Test
+            @DisplayName("이메일 발송할 때 원본 토큰을 전달한다.")
+            void sendsEmailWithToken_whenEmailIsSent() throws MessagingException {
+                //given
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(email);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                when(memberCommandService.getMaskedEmail(email))
+                        .thenReturn("maskedEmail");
+
+                //when
+                target.findPassword(request);
+
+                //then
+                verify(emailSender).sendPasswordResetLink(email, "token");
+            }
+
+            @Test
+            @DisplayName("이메일 발송에 성공하면 재시도하지 않는다.")
+            void doesNotRetry_whenEmailSendSucceeds() throws MessagingException {
+                //given
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(email);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                when(memberCommandService.getMaskedEmail(email))
+                        .thenReturn("maskedEmail");
+
+                //when
+                target.findPassword(request);
+
+                //then
+                verify(emailSender, times(1)).sendPasswordResetLink(email, "token");
+            }
+
+        }
+
+        @Nested
+        @DisplayName("실패")
+        class Failure {
+
+            @Test
+            @DisplayName("요청 입력값 검증 실패하면 이메일 조회를 진행하지 않는다.")
+            void doesNothing_whenRequestIsInvalid() {
+            	//given
+                doThrow(ApplicationException.class)
+                        .when(accountValidator)
+                        .validateFindPassword(request);
+            	
+            	//when
+                assertThatThrownBy(() -> target.findPassword(request))
+                        .isInstanceOf(ApplicationException.class);
+            	
+            	//then
+            	verify(memberReadService, never()).getEmail(name, username);
+            }
+
+            @Test
+            @DisplayName("이메일 조회를 실패하면 Redis 저장을 진행하지 않는다.")
+            void doesNotSaveToRedis_whenEmailFetchFails() {
+                //given
+                when(memberReadService.getEmail(name, username))
+                        .thenThrow(ApplicationException.class);
+
+                //when
+                assertThatThrownBy(() -> target.findPassword(request))
+                        .isInstanceOf(ApplicationException.class);
+
+                //then
+                verify(uuidTokenGenerator, never()).generate();
+                verify(passwordResetRedisRepository, never()).saveToken(anyString());
+            }
+
+            @Test
+            @DisplayName("Redis 저장에 실패하면 이메일 발송을 진행하지 않는다.")
+            void doesNotSendEmail_whenRedisSaveFails() throws MessagingException {
+                //given:
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(MemberTestData.DEFAULT_EMAIL);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                doThrow(RuntimeException.class)
+                        .when(passwordResetRedisRepository)
+                        .saveToken("hash-token");
+
+                //when
+                assertThatThrownBy(() -> target.findPassword(request))
+                        .isInstanceOf(RuntimeException.class);
+
+                //then
+                verify(emailSender, never()).sendPasswordResetLink(email, "token");
+            }
+
+            @Test
+            @DisplayName("이메일 발송에 실패하면 이메일 마스킹을 진행하지 않는다.")
+            void doesNotMaskEmail_whenEmailSendFails() throws MessagingException {
+                //given
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(MemberTestData.DEFAULT_EMAIL);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                doThrow(MessagingException.class)
+                        .when(emailSender)
+                        .sendPasswordResetLink(email, "token");
+
+                //when
+                assertThatThrownBy(() -> target.findPassword(request))
+                        .isInstanceOf(ApplicationException.class);
+
+                //then
+                verify(memberCommandService, never()).getMaskedEmail(email);
+            }
+
+            @Test
+            @DisplayName("MailConnectException 발생 시 재시도한다.")
+            void retries_whenMailConnectExceptionOccurs() throws MessagingException {
+                //given
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(MemberTestData.DEFAULT_EMAIL);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                doThrow(MailConnectException.class)
+                        .doNothing()
+                        .when(emailSender)
+                        .sendPasswordResetLink(email, "token");
+
+                //when
+                assertDoesNotThrow(() -> target.findPassword(request));
+
+                //then
+                verify(emailSender, times(2)).sendPasswordResetLink(email, "token");
+            }
+
+            @Test
+            @DisplayName("SMTPSendFailedException 발생 시 재시도한다.")
+            void retries_whenSMTPSendFailedExceptionOccurs() throws MessagingException {
+                //given
+                SMTPSendFailedException exception = mock(SMTPSendFailedException.class);
+
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(MemberTestData.DEFAULT_EMAIL);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                when(exception.getReturnCode())
+                        .thenReturn(400);
+
+                doThrow(exception)
+                        .doNothing()
+                        .when(emailSender)
+                        .sendPasswordResetLink(email, "token");
+
+                //when
+                assertDoesNotThrow(() -> target.findPassword(request));
+
+                //then
+                verify(emailSender, times(2)).sendPasswordResetLink(email, "token");
+            }
+
+            @Test
+            @DisplayName("SMTPSendFailedException의 코드가 400번대가 아니면 재시도하지 않는다.")
+            void doesNotRetry_whenSMTPErrorCodeIsOutOf4xxRange() throws MessagingException {
+                //given
+                SMTPSendFailedException exception = mock(SMTPSendFailedException.class);
+
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(MemberTestData.DEFAULT_EMAIL);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                when(exception.getReturnCode())
+                        .thenReturn(500);
+
+                doThrow(exception)
+                        .when(emailSender)
+                        .sendPasswordResetLink(email, "token");
+
+                //when
+                assertThatThrownBy(() -> target.findPassword(request))
+                        .isInstanceOf(ApplicationException.class);
+
+                //then
+                verify(emailSender, times(1)).sendPasswordResetLink(email, "token");
+            }
+
+            @Test
+            @DisplayName("최대 3번까지 재시도한다.")
+            void retriesUpToThreeTimes_whenSendFails() throws MessagingException {
+                //given
+                SMTPSendFailedException exception = mock(SMTPSendFailedException.class);
+
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(MemberTestData.DEFAULT_EMAIL);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                when(exception.getReturnCode())
+                        .thenReturn(400);
+
+                doThrow(exception)
+                        .doThrow(exception)
+                        .doThrow(exception)
+                        .when(emailSender)
+                        .sendPasswordResetLink(email, "token");
+
+                //when
+                assertThatThrownBy(() -> target.findPassword(request))
+                        .isInstanceOf(ApplicationException.class);
+
+                //then
+                verify(emailSender, times(3)).sendPasswordResetLink(email, "token");
+            }
+
+            @Test
+            @DisplayName("재시도 대상이 아닌 MessagingException은 재시도하지 않는다.")
+            void doesNotRetry_whenNonRetryableMessagingExceptionOccurs() throws MessagingException {
+                //given
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(MemberTestData.DEFAULT_EMAIL);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                doThrow(MessagingException.class)
+                        .when(emailSender)
+                        .sendPasswordResetLink(email, "token");
+
+                //when
+                assertThatThrownBy(() -> target.findPassword(request))
+                        .isInstanceOf(ApplicationException.class);
+
+                //then
+                verify(emailSender, times(1)).sendPasswordResetLink(email, "token");
+            }
+
+            @Test
+            @DisplayName("3번 재시도 후 실패하면 ApplicationException을 발생시킨다.")
+            void throwsApplicationException_whenRetryFailsThreeTimes() throws MessagingException {
+                //given
+                SMTPSendFailedException exception = mock(SMTPSendFailedException.class);
+
+                when(memberReadService.getEmail(name, username))
+                        .thenReturn(MemberTestData.DEFAULT_EMAIL);
+
+                when(uuidTokenGenerator.generate())
+                        .thenReturn("token");
+
+                when(uuidTokenGenerator.hash("token"))
+                        .thenReturn("hash-token");
+
+                when(exception.getReturnCode())
+                        .thenReturn(400);
+
+                doThrow(exception)
+                        .doThrow(exception)
+                        .doThrow(exception)
+                        .doThrow(exception)
+                        .when(emailSender)
+                        .sendPasswordResetLink(email, "token");
+
+                //when
+                Throwable throwable = catchThrowable(() -> target.findPassword(request));
+
+                //then
+                ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(EXTERNAL_API_ERROR)
+                        .hasWork("메일 발송")
+                        .hasField("email")
+                        .hasValue(EmailMasker.mask(email))
+                        .hasMessageKey("email.send.failed")
+                        .hasMessageArgs("비밀번호 변경");
+
+                verify(emailSender, times(3)).sendPasswordResetLink(email, "token");
             }
 
         }

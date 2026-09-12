@@ -53,10 +53,18 @@ public class ApplicationExceptionAssert extends AbstractAssert<ApplicationExcept
 		return this;
 	}
 
-	public ApplicationExceptionAssert hasUserMessage(String... values) {
+	public ApplicationExceptionAssert hasMessageKey(String key) {
 		isNotNull();
 
-		assertThat(actual.getMessageKey()).contains(values);
+		assertThat(actual.getMessageKey()).isEqualTo(key);
+
+		return this;
+	}
+
+	public ApplicationExceptionAssert hasMessageArgs(String... message) {
+		isNotNull();
+
+		assertThat(actual.getMessageArgs()).containsExactlyInAnyOrder(message);
 
 		return this;
 	}

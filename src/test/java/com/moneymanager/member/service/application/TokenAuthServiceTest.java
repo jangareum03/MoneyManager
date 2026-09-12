@@ -301,7 +301,7 @@ class TokenAuthServiceTest {
                     .hasField("refreshToken")
                     .hasValue("refres*******")
                     .hasCauseMessage("유효하지 않은 refreshToken")
-                    .hasUserMessage("member.token.failed");
+                    .hasMessageKey("member.token.failed");
         }
 
         @Test
@@ -322,7 +322,7 @@ class TokenAuthServiceTest {
                     .hasField("refreshToken")
                     .hasValue("refres*******")
                     .hasCauseMessage("만료된 refreshToken")
-                    .hasUserMessage("member.token.expired");
+                    .hasMessageKey("member.token.expired");
         }
 
         @Test
@@ -342,7 +342,7 @@ class TokenAuthServiceTest {
                     .hasField("refreshToken")
                     .hasValue("refres*******")
                     .hasCauseMessage("refreshToken 아님")
-                    .hasUserMessage("member.token.failed");
+                    .hasMessageKey("member.token.failed");
         }
 
     }

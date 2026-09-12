@@ -10,6 +10,7 @@ import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberType;
 import com.moneymanager.member.repository.MemberRepository;
+import com.moneymanager.member.service.email.EmailMasker;
 import com.moneymanager.member.service.generator.MemberNumberGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
@@ -99,6 +100,18 @@ public class MemberCommandService {
                 MemberType.COMMON,
                 memberInfo
         );
+    }
+
+    public String getMaskedEmail(String email) {
+        int localLength = email.indexOf('@');
+
+        if(localLength == 1) {
+            return EmailMasker.mask(email, 0);
+        }else if(localLength <= 5) {
+            return EmailMasker.mask(email, 1);
+        }else {
+            return EmailMasker.mask(email, 4);
+        }
     }
 
 

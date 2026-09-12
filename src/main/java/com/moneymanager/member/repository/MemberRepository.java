@@ -226,6 +226,27 @@ public class MemberRepository {
         }
     }
 
+    public Optional<String> findEmailByNameAndUsername(String name, String username) {
+        String query = """
+                SELECT email
+                    FROM  member
+                    WHERE name = ?
+                        AND username = ?
+                """;
+
+        try{
+            return Optional.of(
+                    jdbcTemplate.queryForObject(
+                            query,
+                            String.class,
+                            name, username
+                    )
+            );
+        }catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     public Optional<SideBarUser> findByMemberNumberForSideBar(String memberNumber) {
         String query = """
                 SELECT m.nickname, mi.profile

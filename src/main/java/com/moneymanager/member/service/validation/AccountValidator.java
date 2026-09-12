@@ -4,6 +4,7 @@ import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.member.domain.dto.request.FindIdRequest;
+import com.moneymanager.member.domain.dto.request.FindPwdRequest;
 import org.springframework.stereotype.Component;
 
 import static com.moneymanager.global.exception.code.ErrorCode.INVALID_FORMAT;
@@ -53,6 +54,13 @@ public class AccountValidator {
 
         fieldValidator.validateName(request.getName(), work);
         fieldValidator.validateEmail(request.getEmail(), work);
+    }
+
+    public void validateFindPassword(FindPwdRequest request) {
+        String work = "계정 찾기 검증";
+
+        fieldValidator.validateName(request.getName(), work);
+        fieldValidator.validateUsername(request.getUsername(), work);
     }
 
     public void validateEmail(String email) {

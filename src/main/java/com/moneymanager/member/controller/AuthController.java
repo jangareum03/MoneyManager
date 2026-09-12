@@ -2,11 +2,13 @@ package com.moneymanager.member.controller;
 
 import com.moneymanager.global.log.operation.annotation.Operation;
 import com.moneymanager.global.log.operation.enums.ServiceAction;
+import com.moneymanager.member.service.application.PasswordResetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
 /**
@@ -41,6 +43,8 @@ import org.springframework.web.bind.annotation.SessionAttribute;
 @RequiredArgsConstructor
 public class AuthController {
 
+	private final PasswordResetService passwordResetService;
+
 	@GetMapping("/account/find-id")
 	@Operation(ServiceAction.MEMBER_FIND_ID_VIEW)
 	public String findId() {
@@ -52,6 +56,15 @@ public class AuthController {
 		model.addAttribute("loginError", error);
 
 		return "/member/member_login";
+	}
+
+	@GetMapping("/password/reset")
+	public String resetPassword(@RequestParam String token) {
+		if (passwordResetService.exists(token)) {
+			return "/member/password_reset";
+		}
+
+		return "redirect:/auth/login";
 	}
 
 	@GetMapping("/signup")

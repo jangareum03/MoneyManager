@@ -439,6 +439,72 @@ class MemberRepositoryIT extends IntegrationTest {
 
 
     @Nested
+    @DisplayName("이메일을 조회할 때")
+    class FindEmail {
+        
+        Member member;
+        
+        @BeforeEach
+        void setUp() {
+            member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .build();
+
+            insertMember(member);
+        }
+        
+        @Test
+        @DisplayName("이름과 아이디가 모두 일치하면 회원의 이메일을 반환한다.")
+        void returnsEmail_whenNameAndIdExist() {
+        	//given
+            String name = member.getName();
+            String username = member.getUsername();
+        	
+        	//when
+            Optional<String> result = target.findEmailByNameAndUsername(name, username);
+        	
+        	//then
+        	assertThat(result)
+                    .isPresent()
+                    .isEqualTo(Optional.of(member.getEmail()));
+        }
+        
+        @ParameterizedTest
+        @MethodSource("invalidNameAndIds")
+        @DisplayName("이름과 아이디가 모두 일치하지 않으면 Empty를 반환한다.")
+        void returnsEmpty_whenNameAndIdDoesNotExist(String name, String username) {
+        	//when
+            Optional<String> result = target.findEmailByNameAndUsername(name, username);
+        	
+        	//then
+        	assertThat(result.isPresent()).isFalse();
+            assertThat(result).isEmpty();
+        }
+
+        static Stream<Arguments> invalidNameAndIds() {
+            return Stream.of(
+                    Arguments.of(
+                            "이름이 일치하지 않은 경우",
+                            "name",
+                            MemberTestData.DEFAULT_USERNAME
+                    ),
+                    Arguments.of(
+                            "아이디가 일치하지 않은 경우",
+                            MemberTestData.DEFAULT_NAME,
+                            "id"
+                    ),
+                    Arguments.of(
+                            "둘 다 일치하지 않은 경우",
+                            "name",
+                            "id"
+                    )
+            );
+        }
+
+    }
+
+
+    @Nested
     @DisplayName("사이드바 정보를 조회할 때")
     class FindSideBarUser {
 

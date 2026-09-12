@@ -3,7 +3,11 @@ package com.moneymanager.member.service.email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 
 /**
  * <p>
@@ -63,6 +67,45 @@ public class EmailSender {
         );
 
         mailSender.send(message);
+    }
+
+    public void sendPasswordResetLink(String email, String token) throws MessagingException {
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+
+        MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+        String resetUrl = "https://localhost:8080/auth/password/reset?token=" + token;
+
+        message.setTo(email);
+        message.setSubject("[돈매니저] 비밀번호 변경 안내");
+
+        message.setText("""
+                <html>
+                <body>
+                    <h3>[돈매니저] 비밀번호 변경 안내</h3>
+
+                    <p>
+                        안녕하세요. 돈매니저 입니다.
+                        비밀번호 변경 요청으로 아래 버튼을 클릭하여 비밀번호를 변경해주세요.
+                    </p>
+
+                    <p>
+                        <a href="%s" style="display:inline-block; padding: 12px 20px; background-color:#4CAF50; color: white; text-decoration:none; border-radius: 6px;">
+                            비밀번호 변경하기
+                        </a>
+                    </p>
+
+                    <p>
+                        위 링크는 10분 동안 유효합니다.
+                        본인이 요청하지 않은 비밀번호 변경 메일이라면 이 메일을 무시해주세요.
+                    </p>
+
+                    <p>감사합니다. <br>돈매니저 드림</p>
+                </body>
+                </html>
+                """.formatted(resetUrl), true);
+
+        mailSender.send(mimeMessage);
     }
 
 }

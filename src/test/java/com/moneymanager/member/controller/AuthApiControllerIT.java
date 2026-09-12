@@ -6,17 +6,19 @@ import com.moneymanager.global.security.CustomUserDetails;
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.member.domain.dto.MemberAuth;
 import com.moneymanager.member.domain.dto.request.FindIdRequest;
+import com.moneymanager.member.domain.dto.request.FindPwdRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.entity.Member;
-import com.moneymanager.member.repository.EmailVerificationRedisRepository;
+import com.moneymanager.member.redis.repository.EmailVerificationRedisRepository;
+import com.moneymanager.member.redis.repository.SideBarRedisRepository;
 import com.moneymanager.member.repository.MemberTokenRepository;
-import com.moneymanager.member.repository.SideBarRedisRepository;
 import com.moneymanager.member.service.application.MemberService;
-import com.moneymanager.member.service.email.EmailSender;
+import com.moneymanager.member.service.command.EmailSender;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,8 +31,8 @@ import javax.servlet.http.Cookie;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -137,6 +139,73 @@ class AuthApiControllerIT extends IntegrationTest {
                                     .content(mapper.writeValueAsBytes(request))
                     )
                     .andDo(print())
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.message").doesNotExist());
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("비밀번호 찾기 요청할 때")
+    class FindPwd {
+        
+        String URL = BASE_URL + "/account/find-password";
+        Member member;
+        
+        @BeforeEach
+        void setUp() {
+            member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .build();
+            
+            insertMember(member);
+        }
+        
+        @Test
+        @DisplayName("존재하는 회원 정보로 요청하면 200 코드 및 성공응답을 반환한다.")
+        void returns200AndSuccessResponse_whenUserExists() throws Exception {
+        	//given
+            FindPwdRequest request = new FindPwdRequest(member.getName(), member.getUsername());
+        	
+        	//when
+            mockMvc.perform(
+                    post(URL)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsBytes(request))
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.email", containsString("*")));
+        }
+        
+        @Test
+        @DisplayName("잘못된 입력된 정보로 요청하면 오류 코드 및 메시지키를 반환한다.")
+        void returnsErrorCode_whenRequestIsInvalid() throws Exception {
+        	//given
+            FindPwdRequest request = new FindPwdRequest(member.getName(), "no");
+        	
+        	//when
+            mockMvc.perform(
+                            post(URL)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(mapper.writeValueAsBytes(request))
+                    )
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").exists());
+        }
+
+        @Test
+        @DisplayName("존재하지 않은 정보로 요청하면 오류 코드 및 메시지키를 반환한다.")
+        void returnsErrorCodeAndMessageKey_whenUserDoesNotExist() throws Exception {
+            //given
+            FindPwdRequest request = new FindPwdRequest(member.getName(), "noId123");
+
+            //when
+            mockMvc.perform(
+                            post(URL)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(mapper.writeValueAsBytes(request))
+                    )
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.message").doesNotExist());
         }
