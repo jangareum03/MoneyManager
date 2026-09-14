@@ -90,7 +90,7 @@ class AuthControllerIT extends IntegrationTest {
 
             //redirect된 URL로 재요청
             mockMvc.perform(
-                    get("/auth/login")
+                    get("/login")
                             .session(session)
             )
                     .andDo(print())
@@ -109,7 +109,7 @@ class AuthControllerIT extends IntegrationTest {
         void returnsFindIdViewData_whenRequestIsValid() throws Exception {
         	//when
             mockMvc.perform(
-                    get("/auth/account/find-id")
+                    get("/account/find-id")
             )
                     .andExpect(status().isOk())
                     .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML_VALUE))
@@ -122,7 +122,7 @@ class AuthControllerIT extends IntegrationTest {
     @DisplayName("비밀번호 초기화 화면 요청할 때")
     class ResetPwdView {
 
-        private final String URL = "/auth/password/reset";
+        private final String URL = "/password/reset";
         
         @Test
         @DisplayName("token이 존재하면 회원 초기화 페이지로 이동한다.")
