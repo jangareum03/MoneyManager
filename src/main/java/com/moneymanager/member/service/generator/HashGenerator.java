@@ -1,14 +1,16 @@
-package com.moneymanager.member.service.redis;
+package com.moneymanager.member.service.generator;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.stereotype.Component;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.member.service.redis<br>
- * 파일이름       : EmailRedisKey<br>
+ * 패키지이름    : com.moneymanager.member.service.generator<br>
+ * 파일이름       : HashGenerator<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 9. 6<br>
- * 설명              : Redis용 이메일 인증키 생성하는 클래스
+ * 생성날짜       : 26. 9. 14<br>
+ * 설명              : 해시값을 제공하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -22,7 +24,7 @@ import org.springframework.stereotype.Component;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 9. 6</td>
+ * 		 	  <td>26. 9. 14</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
@@ -30,14 +32,12 @@ import org.springframework.stereotype.Component;
  * </table>
  */
 @Component
-public class EmailVerificationRedisKey {
+public class HashGenerator {
 
-    public String code(String email) {
-        return "email-verification:code:" +email;
-    }
+    public String sha256(String value) {
+        byte[] bytes = DigestUtils.sha256(value);
 
-    public String token(String email) {
-        return "email-verification:token:" +email;
+        return Base64.encodeBase64String(bytes);
     }
 
 }

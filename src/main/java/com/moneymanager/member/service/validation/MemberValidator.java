@@ -2,6 +2,8 @@ package com.moneymanager.member.service.validation;
 
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.member.domain.dto.request.FindIdRequest;
+import com.moneymanager.member.domain.dto.request.FindPwdRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import org.springframework.stereotype.Component;
 
@@ -59,6 +61,33 @@ public class MemberValidator {
         fieldValidator.validateNickname(request.getNickname(), work);
         fieldValidator.validateEmail(request.getEmail(), work);
         fieldValidator.validateGender(request.getGender(), work);
+    }
+
+    public void validateLogin(String username, String password) {
+        String work = "로그인 요청 검증";
+
+        fieldValidator.validateUsername(username, work);
+        fieldValidator.validatePassword(password, work);
+    }
+
+    public void validateFindId(FindIdRequest request) {
+        String work = "계정 찾기 검증";
+
+        fieldValidator.validateName(request.getName(), work);
+        fieldValidator.validateEmail(request.getEmail(), work);
+    }
+
+    public void validateFindPassword(FindPwdRequest request) {
+        String work = "계정 찾기 검증";
+
+        fieldValidator.validateName(request.getName(), work);
+        fieldValidator.validateUsername(request.getUsername(), work);
+    }
+
+    public void validateEmail(String email) {
+        String work = "이메일 검증";
+
+        fieldValidator.validateEmail(email, work);
     }
 
 }

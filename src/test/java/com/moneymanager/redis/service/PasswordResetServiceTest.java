@@ -1,7 +1,8 @@
-package com.moneymanager.member.service.application;
+package com.moneymanager.redis.service;
 
-import com.moneymanager.member.redis.PasswordResetRedisKey;
-import com.moneymanager.member.service.generator.UuidTokenGenerator;
+import com.moneymanager.member.service.generator.HashGenerator;
+import com.moneymanager.redis.MemberRedisKey;
+import com.moneymanager.redis.RedisService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.StringRedisTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -49,13 +49,13 @@ class PasswordResetServiceTest {
     private PasswordResetService target;
 
     @Mock
-    private PasswordResetRedisKey redisKey;
+    private MemberRedisKey redisKey;
 
     @Mock
-    private StringRedisTemplate redisTemplate;
+    private RedisService redisService;
 
     @Mock
-    private UuidTokenGenerator tokenGenerator;
+    private HashGenerator hashGenerator;
 
     @Nested
     @DisplayName("토큰이 존재 여부 확인할 때")
@@ -67,14 +67,14 @@ class PasswordResetServiceTest {
         	//given
             String token = "token";
 
-            when(tokenGenerator.hash(token))
+            when(hashGenerator.sha256(token))
                     .thenReturn("hash-token");
 
-            when(redisKey.token("hash-token"))
+            when(redisKey.passwordResetToken("hash-token"))
                     .thenReturn(anyString());
 
-            when(redisTemplate.hasKey(token))
-                    .thenReturn(true);
+            when(redisService.get(token))
+                    .thenReturn("1");
         	
         	//when
             boolean result = target.exists(token);
@@ -89,14 +89,14 @@ class PasswordResetServiceTest {
         	//given
             String token = "token";
 
-            when(tokenGenerator.hash(token))
+            when(hashGenerator.sha256(token))
                     .thenReturn("hash-token");
 
-            when(redisKey.token("hash-token"))
+            when(redisKey.passwordResetToken("hash-token"))
                     .thenReturn(anyString());
 
-            when(redisTemplate.hasKey(token))
-                    .thenReturn(false);
+            when(redisService.get(token))
+                    .thenReturn(null);
         	
         	//when
             boolean result = target.exists(token);

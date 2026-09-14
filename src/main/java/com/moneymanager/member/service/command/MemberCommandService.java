@@ -1,6 +1,5 @@
 package com.moneymanager.member.service.command;
 
-import com.github.f4b6a3.ulid.UlidCreator;
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.log.LogContent;
@@ -10,8 +9,9 @@ import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberType;
 import com.moneymanager.member.repository.MemberRepository;
-import com.moneymanager.member.service.email.EmailMasker;
-import com.moneymanager.member.service.generator.MemberNumberGenerator;
+import com.moneymanager.member.service.generator.RandomCodeGenerator;
+import com.moneymanager.member.service.generator.UuidGenerator;
+import com.moneymanager.member.service.util.EmailMasker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,7 +55,8 @@ public class MemberCommandService {
     private static final int MAX_RETRY_COUNT = 3;
 
     private final PasswordEncoder passwordEncoder;
-    private final MemberNumberGenerator numberGenerator;
+    private final RandomCodeGenerator randomCodeGenerator;
+    private final UuidGenerator uuidGenerator;
 
     private final MemberRepository memberRepository;
 
@@ -77,10 +78,10 @@ public class MemberCommandService {
 
     public Member create(MemberSignUpRequest request) {
         //1. 내부용 회원번호 생성
-        String id = createMemberId();
+        String id = uuidGenerator.generate();
 
         //2. 외부용 회원번호 생성
-        String number = numberGenerator.generate();
+        String number = createMemberNumber();
 
         //3. 비밀번호 암호화
         String encodePassword = passwordEncoder.encode(request.getPassword());
@@ -127,7 +128,7 @@ public class MemberCommandService {
 
                     AuditLogger.throwable("회원번호 중복 상세 정보: {}", e);
 
-                    member.changeMemberNumber(numberGenerator.generate());
+                    member.changeMemberNumber("M" +randomCodeGenerator.generateAlphanumeric(11));
                 }
 
                 if(isIdDuplicate(e)) {
@@ -135,7 +136,7 @@ public class MemberCommandService {
 
                     AuditLogger.throwable("회원번호 중복 상세 정보: {}", e);
 
-                    member.changeId(createMemberId());
+                    member.changeId(uuidGenerator.generate());
                 }
             }
         }
@@ -184,8 +185,8 @@ public class MemberCommandService {
     }
 
     //===== create 보조 메서드 =====
-    private String createMemberId() {
-        return UlidCreator.getUlid().toString();
+    private String createMemberNumber() {
+        return "M" +  randomCodeGenerator.generateAlphanumeric(11);
     }
 
 }

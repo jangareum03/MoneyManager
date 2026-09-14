@@ -2,10 +2,13 @@ package com.moneymanager.member.service.application;
 
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
+import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.service.command.MemberCommandService;
 import com.moneymanager.member.service.read.MemberReadService;
 import com.moneymanager.member.service.validation.MemberValidator;
+import com.moneymanager.redis.service.EmailVerificationService;
+import com.moneymanager.redis.service.SideBarMemberService;
 import com.moneymanager.support.data.MemberTestData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +22,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
 
 /**
@@ -64,6 +68,9 @@ class MemberServiceTest {
     EmailVerificationService emailVerificationService;
 
     @Mock
+    SideBarMemberService sideBarMemberService;
+
+    @Mock
     MemberValidator memberValidator;
 
 
@@ -103,11 +110,11 @@ class MemberServiceTest {
             InOrder inOrder = Mockito.inOrder(memberCommandService, memberReadService, emailVerificationService, memberValidator);
 
             inOrder.verify(memberValidator).signUp(request);
-            inOrder.verify(emailVerificationService).verifyEmail(request.getEmail(), request.getToken());
+            inOrder.verify(emailVerificationService).validateEmailToken(request.getEmail(), request.getToken());
             inOrder.verify(memberReadService).validateSignUpEligibility(request.getUsername(), request.getNickname());
             inOrder.verify(memberCommandService).create(request);
             inOrder.verify(memberCommandService).save(member);
-            inOrder.verify(emailVerificationService).deleteTokenByEmail(member.getEmail());
+            inOrder.verify(emailVerificationService).deleteToken(member.getEmail());
         }
 
         @Test
@@ -122,7 +129,7 @@ class MemberServiceTest {
             assertThatThrownBy(() -> target.processSignUp(request));
         	
         	//then
-            verify(emailVerificationService, never()).verifyEmailCode(request.getEmail(), request.getToken());
+            verify(emailVerificationService, never()).validateEmailToken(request.getEmail(), request.getToken());
         }
 
         @Test
@@ -131,7 +138,7 @@ class MemberServiceTest {
             //given
             doThrow(ApplicationException.class)
                     .when(emailVerificationService)
-                    .verifyEmail(request.getEmail(), request.getToken());
+                    .validateEmailToken(request.getEmail(), request.getToken());
 
             //when
             assertThatThrownBy(() -> target.processSignUp(request));
@@ -187,7 +194,46 @@ class MemberServiceTest {
                     .isInstanceOf(ApplicationException.class);
 
             //then
-            verify(emailVerificationService, never()).deleteTokenByEmail(request.getEmail());
+            verify(emailVerificationService, never()).deleteToken(request.getEmail());
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("사이드바 정보 저장할 때")
+    class Save {
+
+        @Test
+        @DisplayName("회원번호에 대한 정보가 있으면 Redis에 닉네임과 프로필 정보가 저장된다.")
+        void savesMemberProfileToRedis_whenMemberExists() {
+            //given
+            String memberNumber = "memberNumber";
+            SideBarUser sideBarUser = mock(SideBarUser.class);
+
+            when(memberReadService.getSideBarUser(memberNumber))
+                    .thenReturn(sideBarUser);
+
+            //when
+            assertDoesNotThrow(() -> target.processSaveSideBar(memberNumber));
+
+            //then
+            verify(sideBarMemberService).saveNickname(memberNumber, sideBarUser.getNickname());
+            verify(sideBarMemberService).saveProfile(memberNumber, sideBarUser.getProfile());
+        }
+
+        @Test
+        @DisplayName("회원번호에 대한 정보가 없으면 예외를 전파시킨다.")
+        void throwsException_whenUserDoesNotExist() {
+            //given
+            String memberNumber = "memberNumber";
+
+            when(memberReadService.getSideBarUser(memberNumber))
+                    .thenThrow(ApplicationException.class);
+
+            //when
+            assertThatThrownBy(() -> target.processSaveSideBar(memberNumber))
+                    .isInstanceOf(ApplicationException.class);
         }
 
     }

@@ -1,16 +1,16 @@
-package com.moneymanager.member.service.email;
+package com.moneymanager.member.service.generator;
 
 import org.springframework.stereotype.Component;
 
-import java.security.SecureRandom;
+import java.util.UUID;
 
 /**
  * <p>
  * 패키지이름    : com.moneymanager.member.service.generator<br>
- * 파일이름       : EmailCodeGenerator<br>
+ * 파일이름       : UuidGenerator<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 9. 6<br>
- * 설명              : 회원의 이메일 인증코드를 생성하는 클래스
+ * 생성날짜       : 26. 9. 13<br>
+ * 설명              : 무작위 토큰 생성을 제공하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -24,7 +24,7 @@ import java.security.SecureRandom;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 9. 6</td>
+ * 		 	  <td>26. 9. 13</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
@@ -32,14 +32,10 @@ import java.security.SecureRandom;
  * </table>
  */
 @Component
-public class EmailCodeGenerator {
-
-    private final SecureRandom random = new SecureRandom();
+public class UuidGenerator {
 
     public String generate() {
-        int code = random.nextInt(1_000_000);
-
-        return String.format("%06d", code);
+        return UUID.randomUUID().toString();
     }
 
 }

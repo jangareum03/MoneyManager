@@ -10,13 +10,15 @@ import com.moneymanager.member.domain.dto.request.FindPwdRequest;
 import com.moneymanager.member.domain.dto.response.FindIdResponse;
 import com.moneymanager.member.domain.dto.response.FindPwdResponse;
 import com.moneymanager.member.domain.query.MemberFindIdQuery;
-import com.moneymanager.member.redis.repository.PasswordResetRedisRepository;
 import com.moneymanager.member.service.command.EmailSender;
 import com.moneymanager.member.service.command.MemberCommandService;
-import com.moneymanager.member.service.generator.UuidTokenGenerator;
+import com.moneymanager.member.service.generator.HashGenerator;
+import com.moneymanager.member.service.generator.UuidGenerator;
 import com.moneymanager.member.service.read.MemberReadService;
 import com.moneymanager.member.service.util.EmailMasker;
-import com.moneymanager.member.service.validation.AccountValidator;
+import com.moneymanager.member.service.validation.MemberValidator;
+import com.moneymanager.redis.service.EmailVerificationService;
+import com.moneymanager.redis.service.PasswordResetService;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
 import com.sun.mail.smtp.SMTPSendFailedException;
@@ -29,9 +31,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mail.MailSendException;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -90,19 +92,25 @@ class AccountServiceTest {
     MemberCommandService memberCommandService;
 
     @Mock
-    PasswordResetRedisRepository passwordResetRedisRepository;
+    PasswordResetService passwordResetService;
 
     @Mock
     EmailSender emailSender;
 
     @Mock
-    AccountValidator accountValidator;
+    MemberValidator memberValidator;
 
     @Mock
     PasswordEncoder passwordEncoder;
 
     @Mock
-    UuidTokenGenerator uuidTokenGenerator;
+    UuidGenerator uuidTokenGenerator;
+
+    @Mock
+    HashGenerator hashGenerator;
+
+    @Mock
+    EmailVerificationService emailVerification;
 
     @Nested
     @DisplayName("로그인 진행할 때")
@@ -148,7 +156,7 @@ class AccountServiceTest {
                     ErrorCode.INVALID_VALUE,
                     LogContent.of("work", "field", "value")
             ).withMessageKey("사용자 메시지"))
-                    .when(accountValidator)
+                    .when(memberValidator)
                     .validateLogin(username, password);
 
             //when
@@ -312,7 +320,7 @@ class AccountServiceTest {
             void throwsException_whenRequestIsInvalid() {
                 //given
                 doThrow(ApplicationException.class)
-                        .when(accountValidator)
+                        .when(memberValidator)
                         .validateFindId(request);
 
                 //when
@@ -357,7 +365,7 @@ class AccountServiceTest {
             @BeforeEach
             void setUp() throws MessagingException {
                 doNothing()
-                        .when(accountValidator)
+                        .when(memberValidator)
                                 .validateFindPassword(request);
 
                 doNothing()
@@ -375,7 +383,7 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 when(memberCommandService.getMaskedEmail(email))
@@ -401,7 +409,7 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 when(memberCommandService.getMaskedEmail(email))
@@ -411,7 +419,7 @@ class AccountServiceTest {
                 target.findPassword(request);
 
                 //then
-                verify(passwordResetRedisRepository).saveToken("hash-token");
+                verify(passwordResetService).saveToken("hash-token");
             }
 
             @Test
@@ -424,7 +432,7 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 when(memberCommandService.getMaskedEmail(email))
@@ -447,7 +455,7 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 when(memberCommandService.getMaskedEmail(email))
@@ -471,7 +479,7 @@ class AccountServiceTest {
             void doesNothing_whenRequestIsInvalid() {
             	//given
                 doThrow(ApplicationException.class)
-                        .when(accountValidator)
+                        .when(memberValidator)
                         .validateFindPassword(request);
             	
             	//when
@@ -495,7 +503,7 @@ class AccountServiceTest {
 
                 //then
                 verify(uuidTokenGenerator, never()).generate();
-                verify(passwordResetRedisRepository, never()).saveToken(anyString());
+                verify(passwordResetService, never()).saveToken(anyString());
             }
 
             @Test
@@ -508,11 +516,11 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 doThrow(RuntimeException.class)
-                        .when(passwordResetRedisRepository)
+                        .when(passwordResetService)
                         .saveToken("hash-token");
 
                 //when
@@ -533,7 +541,7 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 doThrow(MessagingException.class)
@@ -558,7 +566,7 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 doThrow(MailConnectException.class)
@@ -585,7 +593,7 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 when(exception.getReturnCode())
@@ -615,7 +623,7 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 when(exception.getReturnCode())
@@ -645,7 +653,7 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 when(exception.getReturnCode())
@@ -675,7 +683,7 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 doThrow(MessagingException.class)
@@ -702,7 +710,7 @@ class AccountServiceTest {
                 when(uuidTokenGenerator.generate())
                         .thenReturn("token");
 
-                when(uuidTokenGenerator.hash("token"))
+                when(hashGenerator.sha256("token"))
                         .thenReturn("hash-token");
 
                 when(exception.getReturnCode())
@@ -728,6 +736,155 @@ class AccountServiceTest {
                         .hasMessageArgs("비밀번호 변경");
 
                 verify(emailSender, times(3)).sendPasswordResetLink(email, "token");
+            }
+
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("이메일 인증코드 검증할 때")
+    class VerifyEmail {
+
+        @Nested
+        @DisplayName("성공")
+        class Success {
+
+            @Test
+            @DisplayName("인증코드 생성 → 인증코드 변환 → 저장소 저장 → 이메일 전송 순서로 진행한다.")
+            void processSend_whenRequestIsValid() {
+                //given
+                String email = "test@test.com";
+
+                String code = "123456";
+                String hashCode = "hash123456";
+
+                when(emailVerification.generateAuthCode())
+                        .thenReturn(code);
+
+                when(passwordEncoder.encode(code))
+                        .thenReturn(hashCode);
+
+                //when
+                assertDoesNotThrow(() -> target.verifyEmail(email));
+
+                //then
+                InOrder inOrder = Mockito.inOrder(emailVerification, passwordEncoder, emailVerification, emailSender);
+
+                inOrder.verify(emailVerification).generateAuthCode();
+                inOrder.verify(passwordEncoder).encode(code);
+                inOrder.verify(emailVerification).saveCode(email, hashCode);
+                inOrder.verify(emailSender).sendVerificationCode(email, code);
+
+                verify(emailVerification, never()).deleteCode(email);
+            }
+
+            @Test
+            @DisplayName("생성된 인증코드는 해시코드로 변환한다.")
+            void convertsCodeToHashCode_whenCodeIsGenerated() {
+                //given
+                String email = "test@test.com";
+                String code = "123456";
+
+                when(emailVerification.generateAuthCode())
+                        .thenReturn(code);
+
+                //when
+                target.verifyEmail(email);
+
+                //then
+                ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+
+                verify(emailVerification).saveCode(eq(email), captor.capture());
+
+                assertThat(code).isNotEqualTo(captor.getValue());
+            }
+
+            @Test
+            @DisplayName("전송할 이메일에서는 원본 인증코드를 전달한다.")
+            void sendsEmailWithRawCode_whenRequestIsValid() {
+                //given
+                String email = "test@test.com";
+                String code = "123456";
+                String hashCode = "hash123456";
+
+                when(emailVerification.generateAuthCode())
+                        .thenReturn(code);
+
+                when(passwordEncoder.encode(code))
+                        .thenReturn(hashCode);
+
+                //when
+                target.verifyEmail(email);
+
+                //then
+                ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+
+                verify(emailSender).sendVerificationCode(eq(email), captor.capture());
+
+                assertThat(captor.getValue()).isEqualTo(code);
+            }
+
+            @Test
+            @DisplayName("이메일 전송에 성공하면 저장소 삭제를 수행하지 않는다.")
+            void doesNotDeleteStorage_whenEmailSendingSucceeds() {
+                //given
+                String email = "test@test.com";
+
+                String code = "123456";
+                String hashCode = "hash123456";
+
+                when(emailVerification.generateAuthCode())
+                        .thenReturn(code);
+
+                when(passwordEncoder.encode(code))
+                        .thenReturn(hashCode);
+
+                //when
+                target.verifyEmail(email);
+
+                //then
+                verify(emailVerification, never()).deleteCode(email);
+            }
+
+        }
+
+        @Nested
+        @DisplayName("실패")
+        class Failure {
+
+            @Test
+            @DisplayName("이메일 전송에 실패하면 저장소 삭제를 수행한 뒤 예외를 발생시킨다.")
+            void throwsException_whenEmailSendingFails() {
+                //given
+                String email = "test123@test.com";
+                String code = "123456";
+                String hashCode = "hash123456";
+
+                when(emailVerification.generateAuthCode())
+                        .thenReturn(code);
+
+                when(passwordEncoder.encode(code))
+                        .thenReturn(hashCode);
+
+                doThrow(new MailSendException("메일 전송 실패"))
+                        .when(emailSender)
+                        .sendVerificationCode(email, code);
+
+                //when
+                Throwable throwable = catchThrowable(() -> target.verifyEmail(email));
+
+                //then
+                ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(EXTERNAL_API_ERROR)
+                        .hasWork("이메일 전송")
+                        .hasCauseMessage("인증코드 이메일 발송 오류")
+                        .hasField("email")
+                        .hasValue("te*****@test.com");
+
+                verify(emailSender).sendVerificationCode(email, code);
+                verify(emailVerification).deleteCode(email);
             }
 
         }

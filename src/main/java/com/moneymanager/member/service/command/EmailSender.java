@@ -1,4 +1,4 @@
-package com.moneymanager.member.service.email;
+package com.moneymanager.member.service.command;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;

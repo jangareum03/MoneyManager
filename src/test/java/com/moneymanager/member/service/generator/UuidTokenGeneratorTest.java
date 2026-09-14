@@ -1,7 +1,5 @@
 package com.moneymanager.member.service.generator;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 파일이름       : UuidTokenGeneratorTest<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 9. 13<br>
- * 설명              : MemberNumberGenerator 클래스 로직을 검증하는 단위 테스트 클래스
+ * 설명              : UuidTokenGenerator 클래스 로직을 검증하는 단위 테스트 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -39,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 class UuidTokenGeneratorTest {
 
-    UuidTokenGenerator target = new UuidTokenGenerator();
+    UuidGenerator target = new UuidGenerator();
 
     @Test
     @DisplayName("토큰을 생성한다.")
@@ -49,20 +47,6 @@ class UuidTokenGeneratorTest {
     	
     	//then
     	assertThat(result).isNotBlank();
-    }
-    
-    @Test
-    @DisplayName("토큰을 SHA-256으로 해싱한다.")
-    void returnHashingToken_whenTokenGiven() {
-    	//given
-       String token = "token";
-    	
-    	//when
-        String result = target.hash(token);
-    	
-    	//then
-    	assertThat(result).isNotEqualTo(token);
-        assertThat(result).isEqualTo(Base64.encodeBase64String(DigestUtils.sha256(token)));
     }
 
 }

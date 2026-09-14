@@ -7,10 +7,10 @@ import java.security.SecureRandom;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.member.service.generator<br>
- * 파일이름       : MemberNumberGenerator<br>
+ * 파일이름       : RandomCodeGenerator<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 9. 5<br>
- * 설명              : 회원 외부용 번호를 생성 기능을 제공하는 클래스
+ * 생성날짜       : 26. 9. 14<br>
+ * 설명              : 무작위 코드 생성을 제공하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -24,7 +24,7 @@ import java.security.SecureRandom;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 9. 5</td>
+ * 		 	  <td>26. 9. 14</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
@@ -32,24 +32,35 @@ import java.security.SecureRandom;
  * </table>
  */
 @Component
-public class MemberNumberGenerator {
+public class RandomCodeGenerator {
 
+    private static final String NUMERIC = "0123456789";
     private static final String CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-    private static final SecureRandom RANDOM = new SecureRandom();
+    private final SecureRandom random = new SecureRandom();
 
-    public String generate() {
-        StringBuilder number =  new StringBuilder();
+    public String generateNumeric(int length) {
+        StringBuilder sb = new StringBuilder(length);
 
-        for(int i=0; i<11; i++) {
-            number.append(
+        for(int i=0; i<length; i++) {
+            sb.append(NUMERIC.charAt(random.nextInt(NUMERIC.length())));
+        }
+
+        return sb.toString();
+    }
+
+    public String generateAlphanumeric(int length) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i=0; i<length; i++) {
+            sb.append(
                     CHARACTERS.charAt(
-                            RANDOM.nextInt(CHARACTERS.length())
+                            random.nextInt(CHARACTERS.length())
                     )
             );
         }
 
-        return 'M' + number.toString();
+        return sb.toString();
     }
 
 }

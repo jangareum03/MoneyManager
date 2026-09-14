@@ -1,4 +1,4 @@
-package com.moneymanager.member.service.email;
+package com.moneymanager.member.service.util;
 
 import com.moneymanager.global.util.string.StringUtil;
 

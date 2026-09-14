@@ -1,10 +1,13 @@
 package com.moneymanager.member.service.application;
 
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
+import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.service.command.MemberCommandService;
 import com.moneymanager.member.service.read.MemberReadService;
 import com.moneymanager.member.service.validation.MemberValidator;
+import com.moneymanager.redis.service.EmailVerificationService;
+import com.moneymanager.redis.service.SideBarMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +45,7 @@ public class MemberService {
     private final MemberCommandService memberCommandService;
     private final MemberReadService memberReadService;
     private final EmailVerificationService emailVerificationService;
+    private final SideBarMemberService sideBarMemberService;
 
     private final MemberValidator memberValidator;
 
@@ -50,7 +54,7 @@ public class MemberService {
         memberValidator.signUp(request);
 
         //이메일 검증 완료했는지 확인
-        emailVerificationService.verifyEmail(request.getEmail(), request.getToken());
+        emailVerificationService.validateEmailToken(request.getEmail(), request.getToken());
 
         //회원가입 중복 검증
         memberReadService.validateSignUpEligibility(request.getUsername(), request.getNickname());
@@ -62,7 +66,14 @@ public class MemberService {
         memberCommandService.save(member);
 
         //인증토큰 삭제
-        emailVerificationService.deleteTokenByEmail(member.getEmail());
+        emailVerificationService.deleteToken(member.getEmail());
+    }
+
+    public void processSaveSideBar(String memberNumber) {
+        SideBarUser sideBarUser = memberReadService.getSideBarUser(memberNumber);
+
+        sideBarMemberService.saveNickname(memberNumber, sideBarUser.getNickname());
+        sideBarMemberService.saveProfile(memberNumber, sideBarUser.getProfile());
     }
 
 }

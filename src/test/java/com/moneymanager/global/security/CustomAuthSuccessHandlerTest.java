@@ -1,6 +1,6 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.member.service.application.SideBarMemberService;
+import com.moneymanager.member.service.application.MemberService;
 import com.moneymanager.member.service.application.TokenAuthService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ class CustomAuthSuccessHandlerTest {
     TokenAuthService tokenAuthService;
 
     @Mock
-    SideBarMemberService sideBarMemberService;
+    MemberService memberService;
 
     @Mock
     HttpServletRequest request;
@@ -81,7 +81,7 @@ class CustomAuthSuccessHandlerTest {
 
         //then
         verify(tokenAuthService).issueTokens(userDetails, response);
-        verify(sideBarMemberService).saveSideBarInfo("memberNumber");
+        verify(memberService).processSaveSideBar("memberNumber");
 
         verify(response).sendRedirect("/home");
     }

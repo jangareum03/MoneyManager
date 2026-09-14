@@ -11,16 +11,19 @@ import com.moneymanager.member.domain.dto.request.FindPwdRequest;
 import com.moneymanager.member.domain.dto.response.FindIdResponse;
 import com.moneymanager.member.domain.dto.response.FindPwdResponse;
 import com.moneymanager.member.domain.query.MemberFindIdQuery;
-import com.moneymanager.member.redis.repository.PasswordResetRedisRepository;
 import com.moneymanager.member.service.command.EmailSender;
 import com.moneymanager.member.service.command.MemberCommandService;
-import com.moneymanager.member.service.generator.UuidTokenGenerator;
+import com.moneymanager.member.service.generator.HashGenerator;
+import com.moneymanager.member.service.generator.UuidGenerator;
 import com.moneymanager.member.service.read.MemberReadService;
 import com.moneymanager.member.service.util.EmailMasker;
-import com.moneymanager.member.service.validation.AccountValidator;
+import com.moneymanager.member.service.validation.MemberValidator;
+import com.moneymanager.redis.service.EmailVerificationService;
+import com.moneymanager.redis.service.PasswordResetService;
 import com.sun.mail.smtp.SMTPSendFailedException;
 import com.sun.mail.util.MailConnectException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.MailException;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -31,7 +34,8 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 
-import static com.moneymanager.global.exception.code.ErrorCode.EXTERNAL_API_ERROR;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
+
 
 /**
  * <p>
@@ -67,18 +71,21 @@ public class AccountService {
     private final CustomUserDetailService userDetailService;
     private final MemberReadService memberReadService;
     private final MemberCommandService memberCommandService;
-    private final PasswordResetRedisRepository passwordResetRedisRepository;
+    private final PasswordResetService passwordResetService;
 
     private final EmailSender emailSender;
-    private final AccountValidator accountValidator;
+    private final MemberValidator memberValidator;
     private final PasswordEncoder passwordEncoder;
-    private final UuidTokenGenerator uuidTokenGenerator;
+    private final UuidGenerator uuidGenerator;
+    private final HashGenerator hashGenerator;
+
+    private final EmailVerificationService emailVerification;
 
 
     public CustomUserDetails login(String username, String password) {
         try {
             //1. 아이디와 비밀번호 검증
-            accountValidator.validateLogin(username, password);
+            memberValidator.validateLogin(username, password);
         } catch (ApplicationException e) {
             throw new AuthenticationServiceException(e.getMessageKey());
         }
@@ -97,7 +104,7 @@ public class AccountService {
 
     public FindIdResponse findId(FindIdRequest request) {
         //1. 이름과 이메일 입력 검증
-        accountValidator.validateFindId(request);
+        memberValidator.validateFindId(request);
 
         //2. 아이디 + 회원상태 조회
         MemberFindIdQuery memberFindIdQuery = memberReadService.getMemberStatus(request.getName(), request.getEmail());
@@ -111,17 +118,17 @@ public class AccountService {
 
     public FindPwdResponse findPassword(FindPwdRequest request) {
         //1. 이름과 아이디 입력 검증
-        accountValidator.validateFindPassword(request);
+        memberValidator.validateFindPassword(request);
 
         //2. 이메일 조회
         String email = memberReadService.getEmail(request.getName(), request.getUsername());
 
         //3. 토큰 생성
-        String token = uuidTokenGenerator.generate();
-        String hashToken = uuidTokenGenerator.hash(token);
+        String token = uuidGenerator.generate();
+        String hashToken = hashGenerator.sha256(token);
 
         //4. Redis 저장
-        passwordResetRedisRepository.saveToken(hashToken);
+        passwordResetService.saveToken(hashToken);
 
         //5. 이메일 발송
         sendEmail(email, token);
@@ -130,6 +137,64 @@ public class AccountService {
         String maskedEmail = memberCommandService.getMaskedEmail(email);
 
         return new FindPwdResponse(maskedEmail);
+    }
+
+    public void verifyEmail(String email) {
+        //1. 이메일 검증
+        emailVerification.validateEmail(email);
+
+        //2. 인증코드 생성
+        String code = emailVerification.generateAuthCode();
+
+        //3. 인증코드 hash값 생성
+        String hashCode = passwordEncoder.encode(code);
+
+        //4. Redis 저장
+        emailVerification.saveCode(email, hashCode);
+
+        //5. 이메일 전송
+        sendEmailCode(email, code);
+    }
+
+    public String verifyEmailCode(String email, String code) {
+        //1. 이메일 및 코드 검증
+        emailVerification.validateEmail(email);
+        emailVerification.validateCode(code);
+
+        //2.. Redis 인증코드 조회
+        String hashCode = emailVerification.getCode(email);
+
+        if(hashCode == null) {
+            throw new ApplicationException(
+                    DATA_NOT_FOUND,
+                    LogContent.of(
+                            "인증코드 조회",
+                            "email",
+                            EmailMasker.mask(email)
+                    ).withCause("이메일에 해당하는 인증코드 없음")
+            ).withMessageKey("email.verification.code.expired");
+        }
+
+        //3. 인증코드 일치여부 확인
+        if (passwordEncoder.matches(code, hashCode)) {
+            throw new ApplicationException(
+                    MISMATCH,
+                    LogContent.of(
+                            "인증코드 일치 검증",
+                            "emailCode",
+                            code
+                    )
+            ).withMessageKey("email.verification.code.invalid");
+        }
+
+        //4. 인증코드 삭제
+        emailVerification.deleteCode(code);
+
+        //5. 이메일 인증 완료확인 토큰 발급 및 저장
+        String token = uuidGenerator.generate();
+        emailVerification.saveToken(email, token);
+
+        return token;
     }
 
 
@@ -193,6 +258,28 @@ public class AccountService {
         )
                 .withMessageKey("email.send.failed")
                 .withMessageArgs("비밀번호 변경");
+    }
+
+
+    //==== verifyEmail 보조 메서드 ====
+    private void sendEmailCode(String email, String code) {
+        try {
+            emailSender.sendVerificationCode(email, code);
+        } catch (MailException e) {
+            AuditLogger.warn("{} 메일로 인증코드 전송에 실패했습니다.", EmailMasker.mask(email));
+
+            emailVerification.deleteCode(email);
+
+            throw new ApplicationException(
+                    EXTERNAL_API_ERROR,
+                    LogContent.of(
+                            "이메일 전송",
+                            "email",
+                            EmailMasker.mask(email)
+                    ).withCause("인증코드 이메일 발송 오류"),
+                    e
+            ).withMessageKey("email.verification.code.send");
+        }
     }
 
 }

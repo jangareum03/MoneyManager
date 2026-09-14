@@ -7,7 +7,7 @@ import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import com.moneymanager.member.repository.MemberRepository;
-import com.moneymanager.member.service.email.EmailMasker;
+import com.moneymanager.member.service.util.EmailMasker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -3,7 +3,7 @@ package com.moneymanager.global.config;
 import com.moneymanager.global.security.fillter.JwtAuthenticationFilter;
 import com.moneymanager.global.security.fillter.TraceIdFilter;
 import com.moneymanager.global.security.CustomAuthenticationProvider;
-import com.moneymanager.member.service.application.SideBarMemberService;
+import com.moneymanager.redis.service.SideBarMemberService;
 import com.moneymanager.member.service.application.TokenAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -139,7 +139,8 @@ public class SecurityConfig {
 							tokenAuthService.deleteTokens(response);
 
 							//5. 사이드바 정보 Redis 삭제
-							sideBarMemberService.delete(refreshToken);
+							sideBarMemberService.deleteNickname(refreshToken);
+							sideBarMemberService.deleteProfile(refreshToken);
 						}))
 						.logoutSuccessUrl("/auth/login")
 						.permitAll()

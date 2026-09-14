@@ -1,8 +1,9 @@
 package com.moneymanager.member.controller;
 
 import com.moneymanager.member.domain.entity.Member;
-import com.moneymanager.member.redis.repository.PasswordResetRedisRepository;
-import com.moneymanager.member.service.generator.UuidTokenGenerator;
+import com.moneymanager.member.service.generator.HashGenerator;
+import com.moneymanager.member.service.generator.UuidGenerator;
+import com.moneymanager.redis.service.PasswordResetService;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
@@ -48,10 +49,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerIT extends IntegrationTest {
 
     @Autowired
-    private UuidTokenGenerator tokenGenerator;
+    private UuidGenerator tokenGenerator;
 
     @Autowired
-    private PasswordResetRedisRepository passwordResetRedisRepository;
+    private HashGenerator hashGenerator;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     @Nested
     @DisplayName("로그인 화면 요청할 때")
@@ -125,9 +129,9 @@ class AuthControllerIT extends IntegrationTest {
         void returnsResetView_whenTokenExists() throws Exception {
         	//given
             String token = tokenGenerator.generate();
-            String hashToken = tokenGenerator.hash(token);
+            String hashToken = hashGenerator.sha256(token);
 
-            passwordResetRedisRepository.saveToken(hashToken);
+            passwordResetService.saveToken(hashToken);
         	
         	//when
             mockMvc.perform(
@@ -143,7 +147,6 @@ class AuthControllerIT extends IntegrationTest {
         void returnsLoginRedirect_whenTokenDoesNotExist() throws Exception {
             //given
             String token = tokenGenerator.generate();
-            String hashToken = tokenGenerator.hash(token);
 
             //when
             mockMvc.perform(

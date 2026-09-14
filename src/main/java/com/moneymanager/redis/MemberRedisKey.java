@@ -1,14 +1,14 @@
-package com.moneymanager.member.service.redis.sidebar;
+package com.moneymanager.redis;
 
 import org.springframework.stereotype.Component;
 
 /**
  * <p>
- * 패키지이름    : com.moneymanager.member.service.redis<br>
- * 파일이름       : SideBarMemberRedisKey<br>
+ * 패키지이름    : com.moneymanager.redis<br>
+ * 파일이름       : MemberRedisKey<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 9. 9<br>
- * 설명              : Redis용 사이드바 인증키 생성하는 클래스
+ * 생성날짜       : 26. 9. 13<br>
+ * 설명              : Redis Key를 생성하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 9. 9</td>
+ * 		 	  <td>26. 9. 13</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
@@ -30,13 +30,25 @@ import org.springframework.stereotype.Component;
  * </table>
  */
 @Component
-public class SideBarMemberRedisKey {
+public class MemberRedisKey {
 
-    public String nickname(String number) {
+    public String emailVerificationCode(String email) {
+        return "email-verification:code:" +email;
+    }
+
+    public String emailVerificationToken(String email) {
+        return "email-verification:token:" +email;
+    }
+
+    public String passwordResetToken(String token) {
+        return "password-reset:" +token;
+    }
+
+    public String sidebarNickname(String number) {
         return "sidebar:nickname:" + number;
     }
 
-    public String profile(String number) {
+    public String sidebarProfile(String number) {
         return "sidebar:profile:" + number;
     }
 

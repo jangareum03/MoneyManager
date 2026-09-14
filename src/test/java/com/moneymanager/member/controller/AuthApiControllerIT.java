@@ -9,11 +9,11 @@ import com.moneymanager.member.domain.dto.request.FindIdRequest;
 import com.moneymanager.member.domain.dto.request.FindPwdRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.entity.Member;
-import com.moneymanager.member.redis.repository.EmailVerificationRedisRepository;
-import com.moneymanager.member.redis.repository.SideBarRedisRepository;
 import com.moneymanager.member.repository.MemberTokenRepository;
+import com.moneymanager.member.service.application.AccountService;
 import com.moneymanager.member.service.application.MemberService;
 import com.moneymanager.member.service.command.EmailSender;
+import com.moneymanager.redis.service.SideBarMemberService;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
@@ -32,7 +32,8 @@ import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -73,20 +74,20 @@ class AuthApiControllerIT extends IntegrationTest {
     @MockBean
     EmailSender emailSender;
 
-    @MockBean
+    @Autowired
+    AccountService accountService;
+
+    @Autowired
     MemberService memberService;
 
     @Autowired
-    EmailVerificationRedisRepository redisRepository;
-
-    @Autowired
-    SideBarRedisRepository sideBarRedisRepository;
-
-    @Autowired
-    MemberTokenRepository memberTokenRepository;
+    SideBarMemberService sideBarMemberService;
 
     @Autowired
     JwtTokenProvider tokenProvider;
+
+    @Autowired
+    MemberTokenRepository tokenRepository;
 
     @Autowired
     ObjectMapper mapper;
@@ -222,6 +223,11 @@ class AuthApiControllerIT extends IntegrationTest {
         @Test
         @DisplayName("신규 이메일이면 200 코드와 성공 메시지를 반환한다.")
         void returnsSuccessResponse_whenEmailIsNew() throws Exception {
+            //given
+            doNothing()
+                    .when(emailSender)
+                            .sendVerificationCode(eq(MemberTestData.DEFAULT_EMAIL), anyString());
+
             //when
             mockMvc.perform(
                             post(URL)
@@ -252,7 +258,7 @@ class AuthApiControllerIT extends IntegrationTest {
         }
 
         @Test
-        @DisplayName("기존에 가입된 이메일이면 40 에러 코드를 반환한다.")
+        @DisplayName("기존에 가입된 이메일이면 400 에러 코드를 반환한다.")
         void returnsConflict_whenEmailAlreadyExists() throws Exception {
             //given
             memberRepository.insert(
@@ -316,9 +322,6 @@ class AuthApiControllerIT extends IntegrationTest {
             //given
             String email = MemberTestData.DEFAULT_EMAIL;
             String code = "123456";
-            String hash = passwordEncoder.encode(code);
-
-            redisRepository.saveCode(email, hash);
 
             //when
             mockMvc
@@ -333,6 +336,7 @@ class AuthApiControllerIT extends IntegrationTest {
                                             """.formatted(email, code)
                                     )
                     )
+                    .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("email.verification.success"))
                     .andExpect(jsonPath("$.data").exists());
@@ -368,9 +372,6 @@ class AuthApiControllerIT extends IntegrationTest {
             //given
             String email = MemberTestData.DEFAULT_EMAIL;
             String code = "123456";
-            String hash = passwordEncoder.encode(code);
-
-            redisRepository.saveCode(email, hash);
 
             //when
             mockMvc
@@ -394,7 +395,6 @@ class AuthApiControllerIT extends IntegrationTest {
         void returns404AndMessage_whenAuthCodeIsExpired() throws Exception {
         	//given
             String email = MemberTestData.DEFAULT_EMAIL;
-            String code = "123456";
 
             //when
             mockMvc
@@ -540,24 +540,23 @@ class AuthApiControllerIT extends IntegrationTest {
             Cookie refreshCookie = new Cookie("refreshToken", refreshToken.getToken());
 
             //토큰을 DB에 저장한다.
-            memberTokenRepository.saveToken(member.getId(), passwordEncoder.encode(refreshToken.getToken()), new Date());
+            tokenRepository.saveToken(member.getId(), passwordEncoder.encode(refreshToken.getToken()), new Date());
 
             //사이드바 정보 Redis 저장한다.
-            sideBarRedisRepository.saveProfile(member.getMemberNumber(), "profile");
-            sideBarRedisRepository.saveNickname(member.getMemberNumber(), member.getNickname());
+            sideBarMemberService.saveProfile(member.getMemberNumber(), "profile");
+            sideBarMemberService.saveNickname(member.getMemberNumber(), member.getNickname());
 
         	//when
             mockMvc.perform(
                     post(URL)
                             .cookie(refreshCookie, accessCookie)
             )
-                    .andDo(print())
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/auth/login"))
                     .andExpect(cookie().maxAge("refreshToken", 0));
         	
         	//then
-        	assertThat(memberTokenRepository.findRefreshTokenByMemberNumber(member.getMemberNumber())).isNull();
+        	assertThat(tokenRepository.findRefreshTokenByMemberNumber(member.getMemberNumber())).isNull();
         }
 
         @Test

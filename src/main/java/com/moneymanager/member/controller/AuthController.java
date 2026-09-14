@@ -2,7 +2,7 @@ package com.moneymanager.member.controller;
 
 import com.moneymanager.global.log.operation.annotation.Operation;
 import com.moneymanager.global.log.operation.enums.ServiceAction;
-import com.moneymanager.member.service.application.PasswordResetService;
+import com.moneymanager.redis.service.PasswordResetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

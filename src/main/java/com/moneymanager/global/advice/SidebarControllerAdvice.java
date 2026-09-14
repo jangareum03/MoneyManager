@@ -2,7 +2,9 @@ package com.moneymanager.global.advice;
 
 import com.moneymanager.global.security.CustomUserDetails;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
-import com.moneymanager.member.service.application.SideBarMemberService;
+import com.moneymanager.member.service.read.MemberReadService;
+import com.moneymanager.redis.service.SideBarMemberService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -35,23 +37,31 @@ import org.springframework.web.bind.annotation.ModelAttribute;
  * </table>
  */
 @ControllerAdvice
+@RequiredArgsConstructor
 public class SidebarControllerAdvice {
 
     private final SideBarMemberService sideBarMemberService;
-
-    public SidebarControllerAdvice(SideBarMemberService sideBarMemberService) {
-        this.sideBarMemberService = sideBarMemberService;
-    }
+    private final MemberReadService memberReadService;
 
     @ModelAttribute("sidebarUser")
     public SideBarUser currentUser(@AuthenticationPrincipal CustomUserDetails user) {
+        //1. 인증 완료된 사용자 여부 확인
         if(user == null) {
             return null;
         }
 
         String memberNumber = user.getMemberNumber();
 
-        return sideBarMemberService.get(memberNumber);
+        //2. Redis 조회
+        String nickname = sideBarMemberService.getNickname(memberNumber);
+        String profile = sideBarMemberService.getProfile(memberNumber);
+
+        //3. Redis에 없으면 DB 조회
+        if(nickname == null && profile == null) {
+            return memberReadService.getSideBarUser(memberNumber);
+        }
+
+        return new SideBarUser(nickname, profile);
     }
 
 }

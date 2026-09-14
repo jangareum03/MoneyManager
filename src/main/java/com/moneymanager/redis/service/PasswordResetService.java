@@ -1,10 +1,12 @@
-package com.moneymanager.member.service.application;
+package com.moneymanager.redis.service;
 
-import com.moneymanager.member.redis.PasswordResetRedisKey;
-import com.moneymanager.member.service.generator.UuidTokenGenerator;
+import com.moneymanager.member.service.generator.HashGenerator;
+import com.moneymanager.redis.MemberRedisKey;
+import com.moneymanager.redis.RedisService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 /**
  * <p>
@@ -37,15 +39,25 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PasswordResetService {
 
-    private final PasswordResetRedisKey key;
-    private final StringRedisTemplate redisTemplate;
+    private final Duration TTL = Duration.ofMinutes(10);
 
-    private final UuidTokenGenerator uuidTokenGenerator;
+    private final RedisService redisService;
+    private final MemberRedisKey redisKey;
+
+    private final HashGenerator hashGenerator;
+
+    public void saveToken(String token) {
+        redisService.set(
+                redisKey.passwordResetToken(hashGenerator.sha256(token)),
+                "1",
+                TTL
+        );
+    }
 
     public boolean exists(String token) {
-        String hashToken = uuidTokenGenerator.hash(token);
+        String hashToken = hashGenerator.sha256(token);
 
-        return redisTemplate.hasKey(key.token(hashToken));
+        return "1".equals(redisService.get(redisKey.passwordResetToken(hashToken)));
     }
 
 }

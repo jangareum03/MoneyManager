@@ -1,7 +1,7 @@
 package com.moneymanager.global.advice;
 
 import com.moneymanager.member.domain.entity.Member;
-import com.moneymanager.member.repository.SideBarRedisRepository;
+import com.moneymanager.redis.service.SideBarMemberService;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
@@ -44,25 +44,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SidebarControllerAdviceIT extends IntegrationTest {
 
     @Autowired
-    SideBarRedisRepository redisRepository;
-    
+    SideBarMemberService sideBarMemberService;
+
     @Test
     @DisplayName("인증된 사용자의 사이드바 정보를 Model에 추가한다.")
     void addsSidebarToModel_whenUserIsAuthenticated() throws Exception {
-    	//given
+        //given
         Member member = MemberTestFixture.builder()
                 .withMemberInfo(MemberInfoTestFixture.builder().profile("profile"))
                 .build();
 
         insertMember(member);
-        redisRepository.saveNickname(member.getMemberNumber(), member.getNickname());
-        redisRepository.saveProfile(member.getMemberNumber(), "profile");
-        
-    	//when
+        sideBarMemberService.saveNickname(member.getMemberNumber(), member.getNickname());
+        sideBarMemberService.saveProfile(member.getMemberNumber(), "profile");
+
+        //when
         mockMvc.perform(
-                get("/ledgers/histories")
-                        .cookie(accessTokenCookie(member.getMemberNumber()))
-        )
+                        get("/ledgers/histories")
+                                .cookie(accessTokenCookie(member.getMemberNumber()))
+                )
                 .andExpect(status().isOk())
                 .andExpect(
                         model()

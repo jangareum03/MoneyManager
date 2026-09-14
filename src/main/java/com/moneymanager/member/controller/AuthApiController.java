@@ -8,7 +8,6 @@ import com.moneymanager.member.domain.dto.request.*;
 import com.moneymanager.member.domain.dto.response.FindIdResponse;
 import com.moneymanager.member.domain.dto.response.FindPwdResponse;
 import com.moneymanager.member.service.application.AccountService;
-import com.moneymanager.member.service.application.EmailVerificationService;
 import com.moneymanager.member.service.application.MemberService;
 import com.moneymanager.member.service.application.TokenAuthService;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +50,6 @@ public class AuthApiController {
 
     private final MemberService memberService;
     private final AccountService accountService;
-    private final EmailVerificationService emailVerificationService;
     private final TokenAuthService tokenAuthService;
 
     @PostMapping("/account/find-id")
@@ -73,20 +71,15 @@ public class AuthApiController {
     @PostMapping("/email/send-code")
     @Operation(ServiceAction.MEMBER_EMAIL_CODE)
     public ApiBody<Void> sendCode(@RequestBody SendVerificationCodeRequest request){
-        //1. 이메일 검증
-        emailVerificationService.validateEmail(request.email());
+        accountService.verifyEmail(request.email());
 
-        //2. 이메일 인증코드 발송
-        emailVerificationService.sendVerificationCode(request.email());
-
-        //3. 성공 결과 반환
         return ApiBody.message("email.verification.send");
     }
 
     @PostMapping("/email/verify-code")
     @Operation(ServiceAction.MEMBER_EMAIL_CHECK)
     public ApiBody<String> verifyEmail(@RequestBody EmailVerifyRequest request) {
-        String token = emailVerificationService.verifyEmailCode(request.email(), request.code());
+        String token = accountService.verifyEmailCode(request.email(), request.code());
 
         return ApiBody.data(
                 "email.verification.success",

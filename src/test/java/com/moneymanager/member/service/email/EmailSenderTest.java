@@ -1,5 +1,6 @@
 package com.moneymanager.member.service.email;
 
+import com.moneymanager.member.service.command.EmailSender;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -5,7 +5,8 @@ import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.domain.enums.MemberType;
 import com.moneymanager.member.repository.MemberRepository;
-import com.moneymanager.member.service.generator.MemberNumberGenerator;
+import com.moneymanager.member.service.generator.RandomCodeGenerator;
+import com.moneymanager.member.service.generator.UuidGenerator;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
@@ -72,7 +73,10 @@ class MemberCommandServiceTest {
     PasswordEncoder passwordEncoder;
 
     @Mock
-    MemberNumberGenerator numberGenerator;
+    RandomCodeGenerator codeGenerator;
+
+    @Mock
+    UuidGenerator uuidGenerator;
 
     @Mock
     MemberRepository memberRepository;
@@ -223,7 +227,10 @@ class MemberCommandServiceTest {
         @DisplayName("회원가입 요청정보로 생성한다.")
         void creates_whenRegistrationRequestIsValid() {
         	//given
-            when(numberGenerator.generate())
+            when(uuidGenerator.generate())
+                    .thenReturn("id");
+
+            when(codeGenerator.generateAlphanumeric(11))
                     .thenReturn("number");
 
             when(passwordEncoder.encode(MemberTestData.DEFAULT_PASSWORD))
@@ -243,9 +250,9 @@ class MemberCommandServiceTest {
             Member result = target.create(request);
         	
         	//the
-            assertThat(result.getId()).isNotNull();
+            assertThat(result.getId()).isEqualTo("id");
 
-            assertThat(result.getMemberNumber()).isEqualTo("number");
+            assertThat(result.getMemberNumber()).isEqualTo("Mnumber");
         	assertThat(result.getUsername()).isEqualTo(request.getUsername());
         	assertThat(result.getPassword()).isEqualTo("encodePassword");
             assertThat(result.getName()).isEqualTo(request.getName());
