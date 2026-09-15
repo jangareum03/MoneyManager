@@ -11,7 +11,6 @@ import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.repository.MemberTokenRepository;
 import com.moneymanager.member.service.application.AccountService;
-import com.moneymanager.member.service.application.MemberService;
 import com.moneymanager.member.service.command.EmailSender;
 import com.moneymanager.redis.service.SideBarMemberService;
 import com.moneymanager.support.IntegrationTest;
@@ -76,9 +75,6 @@ class AuthApiControllerIT extends IntegrationTest {
 
     @Autowired
     AccountService accountService;
-
-    @Autowired
-    MemberService memberService;
 
     @Autowired
     SideBarMemberService sideBarMemberService;
@@ -490,7 +486,7 @@ class AuthApiControllerIT extends IntegrationTest {
             );
 
             doNothing()
-                    .when(memberService)
+                    .when(accountService)
                     .processSignUp(request);
         	
         	//when

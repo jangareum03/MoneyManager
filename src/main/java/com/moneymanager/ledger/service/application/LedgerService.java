@@ -105,7 +105,7 @@ public class LedgerService {
         String title = DateTimeUtil.formatDate(localDate, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
 
         //4. 이미지 생성
-        int availImgCnt = memberReadService.getAvailableImageCount(currentUser.getMemberId());
+        int availImgCnt = memberReadService.getAvailableImageCount(currentUser.getMemberNumber());
 
         List<ImageSlot> imageSlots = ledgerPolicy.imageSlots(availImgCnt);
 
@@ -119,7 +119,7 @@ public class LedgerService {
     }
 
     public LedgerDetailResponse getDetail(String code) {
-        String memberId = currentUser.getMemberId();
+        String memberId = currentUser.getMemberNumber();
 
         Ledger ledger = ledgerReadService.getOwnerLedger(memberId, code);
 
@@ -149,14 +149,14 @@ public class LedgerService {
     }
 
     public LedgerEditResponse getEdit(String code) {
-        String memberId = currentUser.getMemberId();
+        String memberId = currentUser.getMemberNumber();
 
         Ledger ledger = ledgerReadService.getOwnerLedger(memberId, code);
         LedgerType type = LedgerType.fromCode(ledger.getCategory());
 
         String title = DateTimeUtil.formatDate(ledger.getDate(), DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
 
-        int availImgCnt = memberReadService.getAvailableImageCount(currentUser.getMemberId());
+        int availImgCnt = memberReadService.getAvailableImageCount(currentUser.getMemberNumber());
         List<LedgerImage> images = imageService.getLedgerImages(ledger.getId());
         List<ImageSlot> imageSlots = ledgerPolicy.imageSlots(
                 availImgCnt,
@@ -205,7 +205,7 @@ public class LedgerService {
 
     @Transactional
     public void processLedgerRegistration(LedgerWriteRequest request) {
-        String memberId = currentUser.getMemberId();
+        String memberId = currentUser.getMemberNumber();
 
         registerValidator.validate(request);
 
@@ -221,7 +221,7 @@ public class LedgerService {
 
     @Transactional
     public void processLedgerUpdate(String code, LedgerUpdateRequest request) {
-        String memberId = currentUser.getMemberId();
+        String memberId = currentUser.getMemberNumber();
 
         Ledger ledger = ledgerReadService.getOwnerLedger(memberId, code);
         updateValidator.validate(request);
@@ -235,7 +235,7 @@ public class LedgerService {
 
     @Transactional
     public int processLedgerDelete(List<String> codes) {
-        String memberId = currentUser.getMemberId();
+        String memberId = currentUser.getMemberNumber();
 
         if (codes == null || codes.isEmpty()) {
             return 0;

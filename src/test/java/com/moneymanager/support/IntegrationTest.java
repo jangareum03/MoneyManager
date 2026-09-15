@@ -3,6 +3,7 @@ package com.moneymanager.support;
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,7 +122,15 @@ public abstract class IntegrationTest {
 	//==== 유틸 메서드 =====
 	protected void insertMember(Member member) {
 		memberRepository.insert(member);
-		memberRepository.insert(member.getInfo());
+
+		MemberInfo info = member.getInfo();
+		jdbcTemplate.update(
+				"INSERT INTO member_info VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+				info.getId(), info.getGender().getValue(), info.getProfile(),
+				info.getPoint(), info.getConsecutiveDays(), info.getImageLimit(),
+				info.getLoginAt(), info.getFailureCount()
+		);
+
 	}
 
 }

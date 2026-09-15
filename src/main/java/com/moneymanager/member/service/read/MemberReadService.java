@@ -3,6 +3,7 @@ package com.moneymanager.member.service.read;
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
+import com.moneymanager.member.domain.dto.query.MyPageQuery;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.query.MemberFindIdQuery;
@@ -61,6 +62,20 @@ public class MemberReadService {
                                         "memberNumber", memberNumber
                                 )
                         ).withMessageKey("member.sidebar.failed")
+                );
+    }
+
+    public MyPageQuery getMyProfile(String memberNumber) {
+        return memberRepository.findMyPageByMemberNumber(memberNumber)
+                .orElseThrow(() ->
+                        new ApplicationException(
+                            DATA_NOT_FOUND,
+                                LogContent.of(
+                                        "마이페이지 회원 조회",
+                                        Member.class,
+                                        "memberNumber", memberNumber
+                                )
+                        )
                 );
     }
 

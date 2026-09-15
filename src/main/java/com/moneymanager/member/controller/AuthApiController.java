@@ -8,7 +8,6 @@ import com.moneymanager.member.domain.dto.request.*;
 import com.moneymanager.member.domain.dto.response.FindIdResponse;
 import com.moneymanager.member.domain.dto.response.FindPwdResponse;
 import com.moneymanager.member.service.application.AccountService;
-import com.moneymanager.member.service.application.MemberService;
 import com.moneymanager.member.service.application.TokenAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -48,7 +47,6 @@ import javax.servlet.http.HttpServletResponse;
 @RequiredArgsConstructor
 public class AuthApiController {
 
-    private final MemberService memberService;
     private final AccountService accountService;
     private final TokenAuthService tokenAuthService;
 
@@ -98,7 +96,7 @@ public class AuthApiController {
     @PostMapping("/signup")
     @Operation(ServiceAction.MEMBER_SIGNUP)
     public ApiBody<Void> signUp(@RequestBody MemberSignUpRequest request) {
-        memberService.processSignUp(request);
+        accountService.processSignUp(request);
 
         return ApiBody.next(
                 "member.signup.success",

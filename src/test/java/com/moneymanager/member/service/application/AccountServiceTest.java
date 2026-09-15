@@ -7,8 +7,10 @@ import com.moneymanager.global.security.CustomUserDetailService;
 import com.moneymanager.global.security.CustomUserDetails;
 import com.moneymanager.member.domain.dto.request.FindIdRequest;
 import com.moneymanager.member.domain.dto.request.FindPwdRequest;
+import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.dto.response.FindIdResponse;
 import com.moneymanager.member.domain.dto.response.FindPwdResponse;
+import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import com.moneymanager.member.service.command.EmailSender;
 import com.moneymanager.member.service.command.MemberCommandService;
@@ -101,6 +103,9 @@ class AccountServiceTest {
     MemberValidator memberValidator;
 
     @Mock
+    EmailVerificationService emailVerificationService;
+
+    @Mock
     PasswordEncoder passwordEncoder;
 
     @Mock
@@ -111,6 +116,133 @@ class AccountServiceTest {
 
     @Mock
     EmailVerificationService emailVerification;
+
+
+    @Nested
+    @DisplayName("회원가입 진행할 때")
+    class ProcessSignUp {
+
+        MemberSignUpRequest request;
+
+        @BeforeEach
+        void setUp() {
+            request = MemberSignUpRequest.of(
+                    MemberTestData.DEFAULT_USERNAME,
+                    MemberTestData.DEFAULT_PASSWORD,
+                    MemberTestData.DEFAULT_NAME,
+                    MemberTestData.DEFAULT_BIRTHDATE,
+                    MemberTestData.DEFAULT_NICKNAME,
+                    MemberTestData.DEFAULT_EMAIL,
+                    "token",
+                    MemberTestData.DEFAULT_GENDER.getValue()
+            );
+        }
+
+        @Test
+        @DisplayName("요청 검증 → 이메일 검증 여부 → 중복 검증 → 객체 변환 → 회원 저장 → 인증토큰 삭제 순서로 진행한다.")
+        void processesSignUp_whenRequestIsValid() {
+            //given
+            Member member = mock(Member.class);
+
+            when(memberCommandService.create(request))
+                    .thenReturn(member);
+
+            //when
+            target.processSignUp(request);
+
+            //then
+            InOrder inOrder = Mockito.inOrder(memberCommandService, memberReadService, emailVerificationService, memberValidator);
+
+            inOrder.verify(memberValidator).signUp(request);
+            inOrder.verify(emailVerificationService).validateEmailToken(request.getEmail(), request.getToken());
+            inOrder.verify(memberReadService).validateSignUpEligibility(request.getUsername(), request.getNickname());
+            inOrder.verify(memberCommandService).create(request);
+            inOrder.verify(memberCommandService).save(member);
+            inOrder.verify(emailVerificationService).deleteToken(member.getEmail());
+        }
+
+        @Test
+        @DisplayName("요청 정보 검증에 실패하면 이메일 검증 여부를 수행하지 않는다.")
+        void doesNothing_whenRequestIsInvalid() {
+            //given
+            doThrow(ApplicationException.class)
+                    .when(memberValidator)
+                    .signUp(request);
+
+            //when
+            assertThatThrownBy(() -> target.processSignUp(request));
+
+            //then
+            verify(emailVerificationService, never()).validateEmailToken(request.getEmail(), request.getToken());
+        }
+
+        @Test
+        @DisplayName("이메일 검증 여부가 실패하면 회원 중복 검증을 수행하지 않는다.")
+        void doesNothing_whenTokenIsInvalid() {
+            //given
+            doThrow(ApplicationException.class)
+                    .when(emailVerificationService)
+                    .validateEmailToken(request.getEmail(), request.getToken());
+
+            //when
+            assertThatThrownBy(() -> target.processSignUp(request));
+
+            //then
+            verify(memberReadService, never()).validateSignUpEligibility(request.getUsername(), request.getNickname());
+        }
+
+        @Test
+        @DisplayName("중복 검증에 실패하면 객체 변환을 수행하지 않는다.")
+        void doesNothing_whenUserAlreadyExists() {
+            //given
+            doThrow(ApplicationException.class)
+                    .when(memberReadService)
+                    .validateSignUpEligibility(request.getUsername(), request.getNickname());
+
+            //when
+            assertThatThrownBy(() -> target.processSignUp(request));
+
+            //then
+            verify(memberCommandService, never()).create(request);
+        }
+
+        @Test
+        @DisplayName("요청 객체 변환에 실패하면 저장하지 않는다.")
+        void doesNothing_whenMappingFails() {
+            //given
+            when(memberCommandService.create(request))
+                    .thenThrow(ApplicationException.class);
+
+            //when
+            assertThatThrownBy(() -> target.processSignUp(request));
+
+            //then
+            verify(memberCommandService, never()).save(any(Member.class));
+        }
+
+        @Test
+        @DisplayName("회원 저장에 실패하면 토큰을 삭제하지 않는다.")
+        void throwsException_whenSaveFails() {
+            //given
+            Member member = mock(Member.class);
+
+            when(memberCommandService.create(request))
+                    .thenReturn(member);
+
+            doThrow(ApplicationException.class)
+                    .when(memberCommandService)
+                    .save(member);
+
+            //when
+            assertThatThrownBy(() -> target.processSignUp(request))
+                    .isInstanceOf(ApplicationException.class);
+
+            //then
+            verify(emailVerificationService, never()).deleteToken(request.getEmail());
+        }
+
+    }
+
 
     @Nested
     @DisplayName("로그인 진행할 때")

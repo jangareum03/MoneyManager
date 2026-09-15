@@ -36,14 +36,16 @@ import static com.moneymanager.global.exception.code.ErrorCode.INVALID_VALUE;
 @Getter
 public enum MemberType {
 
-	COMMON("C"),
-	KAKAO("K"),
-	GOOGLE("G"),
-	NAVER("N");
+	COMMON("일반 회원", "C"),
+	KAKAO("카카오", "K"),
+	GOOGLE("구글", "G"),
+	NAVER("네이버", "N");
 
+	private final String label;		//화면 문구
 	private final String value;		//DB 값
 
-	MemberType(String value) {
+	MemberType(String label, String value) {
+		this.label = label;
 		this.value = value;
 	}
 

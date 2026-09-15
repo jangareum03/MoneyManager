@@ -17,11 +17,12 @@
                     <span class="info-profile__tooltip">클릭하면 변경이 가능합니다.</span>
                 </div>
                 <div class="info-content">
-                    <span class="info-content__membership" th:classappend="${summary.memberShip.type}" th:text="${summary.memberShip.text}"></span>
+                    <span class="info-content__membership" th:classappend="${#strings.toLowerCase(member.type.name)}" th:text="${member.type.label}"></span>
                     <span class="info-content__greeting">
-                        <em class="info-content__nickname" th:text="${summary.nickName}"></em>님 반갑습니다!
+                        <em class="info-content__nickname" th:text="${member.nickname}"></em>
+                        <span th:text="${#messages.msg('mypage.welcome')}"></span>
                     </span>
-                    <span class="info-content__date" th:text="${summary.lastLoginDate}"></span>
+                    <span class="info-content__date" th:text="${#messages.msg('mypage.login-date', member.lastLogin)}"></span>
                 </div>
             </div>
 
@@ -42,7 +43,7 @@
                 <div class="info-item info-item__gender">
                     <dt>성별</dt>
                     <dd>
-                        <span th:text="${member.gender}"></span>
+                        <span th:text="${member.gender.label}"></span>
                         <button class="button">
                             <svg class="icon icon--edit" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M9.83752 2.74552C10.0542 2.52888 10.0542 2.16782 9.83752 1.9623L8.5377 0.662477C8.33218 0.445841 7.97112 0.445841 7.75448 0.662477L6.7324 1.679L8.81544 3.76205M0 8.41696V10.5H2.08304L8.22664 4.35085L6.14359 2.26781L0 8.41696Z"/>
@@ -66,7 +67,7 @@
                 <div class="info-item info-item__password">
                     <dt>비밀번호</dt>
                     <dd>
-                        <span>**********</span>
+                        <span>********</span>
                         <button class="button">
                             <svg class="icon icon--edit" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M9.83752 2.74552C10.0542 2.52888 10.0542 2.16782 9.83752 1.9623L8.5377 0.662477C8.33218 0.445841 7.97112 0.445841 7.75448 0.662477L6.7324 1.679L8.81544 3.76205M0 8.41696V10.5H2.08304L8.22664 4.35085L6.14359 2.26781L0 8.41696Z"/>
@@ -82,7 +83,11 @@
 
                 <div class="info-item info-item__day">
                     <dt>연속 출석</dt>
-                    <dd>연속 출석일은 <b th:text="${member.attendCount}"></b>일 입니다.</dd>
+                    <dd>
+                        <span th:text="${#messages.msg('mypage.attendance.prefix')}"></span>
+                        <b th:text="${member.attendanceDays}"></b>
+                        <span th:text="${#messages.msg('mypage.attendance.suffix')}"></span>
+                    </dd>
                 </div>
             </dl>
         </section>

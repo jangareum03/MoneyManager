@@ -1,9 +1,12 @@
 package com.moneymanager.member.repository;
 
 import com.moneymanager.member.domain.dto.MemberAuth;
+import com.moneymanager.member.domain.dto.query.MemberProfileQuery;
+import com.moneymanager.member.domain.dto.query.MyPageQuery;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
+import com.moneymanager.member.domain.enums.MemberType;
 import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.IntegrationTest;
@@ -439,6 +442,47 @@ class MemberRepositoryIT extends IntegrationTest {
 
 
     @Nested
+    @DisplayName("마이페이지 정보 조회할 때")
+    class FindMyPage {
+
+        Member member = MemberTestFixture.builder()
+                .withMemberInfo(MemberInfoTestFixture.builder())
+                .build();
+        
+        @Test
+        @DisplayName("회원이 존재하면 회원 정보를 반환한다.")
+        void findsMember_whenMemberExists() {
+        	//given
+            insertMember(member);
+        	
+        	//when
+            Optional<MyPageQuery> result = target.findMyPageByMemberNumber(member.getMemberNumber());
+        	
+        	//then
+        	assertThat(result)
+                    .isPresent()
+                    .get()
+                    .extracting(
+                            MyPageQuery::getType, MyPageQuery::getNickname
+                    )
+                    .containsExactly(MemberType.COMMON, MemberTestData.DEFAULT_NICKNAME);
+        }
+        
+        @Test
+        @DisplayName("회원이 존재하지 않으면 empty를 반환한다.")
+        void returnsEmpty_whenUserDoesNotExist() {
+        	//when
+            Optional<MyPageQuery> result = target.findMyPageByMemberNumber(member.getMemberNumber());
+        	
+        	//then
+        	assertThat(result.isPresent()).isFalse();
+            assertThat(result).isEmpty();
+        }
+
+    }
+
+
+    @Nested
     @DisplayName("이메일을 조회할 때")
     class FindEmail {
         
@@ -546,6 +590,74 @@ class MemberRepositoryIT extends IntegrationTest {
             assertThat(result.isPresent()).isFalse();
             assertThat(result).isEmpty();
         }
+    }
+
+
+    @Nested
+    @DisplayName("회원 프로필 정보를 조회할 때")
+    class FindProfile {
+
+        Member member;
+
+        @BeforeEach
+        void setUp() {
+            member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .build();
+
+            insertMember(member);
+        }
+        
+        @Test
+        @DisplayName("회원이 존재하면서 수정된 프로필이면 프로필 경로를 반환한다.")
+        void returnsProfilePath_whenMemberExistsAndProfileIsUpdated() {
+        	//given: 프로필 경로를 수정한다.
+            String profile = "/member123/2026/10/test.png";
+
+            jdbcTemplate.update(
+                    "UPDATE member_info SET profile = ? WHERE member_id = ?",
+                    profile,
+                    member.getId()
+            );
+        	
+        	//when
+            Optional<MemberProfileQuery> result = target.findProfileByMemberNumber(member.getMemberNumber());
+        	
+        	//then
+        	assertThat(result)
+                    .isPresent()
+                    .get()
+                    .extracting(MemberProfileQuery::getProfile)
+                    .isEqualTo(profile);
+        }
+        
+        @Test
+        @DisplayName("회원이 존재하면서 기본 프로필이면 null을 반환한다.")
+        void returnsNull_whenMemberExistsAndProfileIsDefault() {
+            //when
+            Optional<MemberProfileQuery> result = target.findProfileByMemberNumber(member.getMemberNumber());
+
+            //then
+            assertThat(result)
+                    .isPresent()
+                    .get()
+                    .extracting(MemberProfileQuery::getProfile)
+                    .isNull();
+        }
+        
+        @Test
+        @DisplayName("회원이 존재하지 않으면 empty를 반환한다.")
+        void returnsEmpty_whenMemberDoesNotExist() {
+        	//given
+            String memberNumber = "no-member";
+        	
+        	//when
+            Optional<MemberProfileQuery> result = target.findProfileByMemberNumber(memberNumber);
+        	
+        	//then
+        	assertThat(result.isPresent()).isFalse();
+        }
+
     }
 
 

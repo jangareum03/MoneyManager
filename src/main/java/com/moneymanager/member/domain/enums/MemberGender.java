@@ -33,16 +33,18 @@ import static com.moneymanager.global.exception.code.ErrorCode.INVALID_VALUE;
  * 		</tbody>
  * </table>
  */
+@Getter
 public enum MemberGender {
 
-	NORMAL("N"),
-	MALE("M"),
-	FEMALE("F");
+	NORMAL("없음", "N"),
+	MALE("남성", "M"),
+	FEMALE("여성", "F");
 
-	@Getter
+	private final String label;
 	private final String value;		//DB 값
 
-	MemberGender(String value) {
+	MemberGender(String label, String value) {
+		this.label = label;
 		this.value = value;
 	}
 

@@ -5,8 +5,7 @@ import com.moneymanager.member.domain.enums.MemberGender;
 
 import java.time.LocalDateTime;
 
-import static com.moneymanager.support.data.MemberTestData.DEFAULT_GENDER;
-import static com.moneymanager.support.data.MemberTestData.DEFAULT_ID;
+import static com.moneymanager.support.data.MemberTestData.*;
 
 public final class MemberInfoTestFixture {
 
@@ -17,7 +16,7 @@ public final class MemberInfoTestFixture {
     private Long consecutiveDays = 0L;
     private Integer imageLimit = 1;
     private Integer failureCount = 1;
-    private LocalDateTime loginAt;
+    private LocalDateTime loginAt = LAST_LOGIN_DATE;
 
     private MemberInfoTestFixture() {}
 
@@ -38,7 +37,7 @@ public final class MemberInfoTestFixture {
     }
 
     public MemberInfo build() {
-        return MemberInfo.of(id, gender);
+        return MemberInfo.restore(id, gender, profile, point, consecutiveDays, imageLimit, failureCount, loginAt);
     }
 
 }

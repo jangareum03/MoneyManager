@@ -2,6 +2,7 @@ package com.moneymanager.member.service.read;
 
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.member.domain.dto.query.MyPageQuery;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
@@ -186,6 +187,51 @@ class MemberReadServiceTest {
 					.hasValue("memberNumber", memberNumber)
 					.hasMessageKey("member.sidebar.failed");
 		}
+	}
+
+
+	@Nested
+	@DisplayName("마이페이지 정보를 조회할 때")
+	class GetMyProfile {
+		
+		@Test
+		@DisplayName("회원번호가 존재하면 해당하는 회원 정보를 반환한다.")
+		void returnsMember_whenMemberExists() {
+			//given
+			MyPageQuery myPageQuery = mock(MyPageQuery.class);
+			
+			String memberNumber = MemberTestData.DEFAULT_NUMBER;
+			
+			when(memberRepository.findMyPageByMemberNumber(memberNumber))
+					.thenReturn(Optional.of(myPageQuery));
+			
+			//when
+			MyPageQuery result = target.getMyProfile(memberNumber);
+			
+			//then
+			assertThat(result).isNotNull();
+		}
+		
+		@Test
+		@DisplayName("회원번호가 존재하지 않으면 예외를 발생시킨다.")
+		void throwsException_whenMemberDoesNotExist() {
+			//given
+			String memberNumber = MemberTestData.DEFAULT_NUMBER;
+
+			when(memberRepository.findMyPageByMemberNumber(memberNumber))
+					.thenReturn(Optional.empty());
+			
+			//when
+			Throwable throwable = catchThrowable(() -> target.getMyProfile(memberNumber));
+			
+			//then
+			ApplicationExceptionAssert.assertThatApplicationException(throwable)
+					.hasErrorCode(DATA_NOT_FOUND)
+					.hasWork("마이페이지 회원 조회")
+					.hasTarget(Member.class)
+					.hasValue("memberNumber", memberNumber);
+		}
+
 	}
 
 

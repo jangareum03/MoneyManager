@@ -8,8 +8,10 @@ import com.moneymanager.global.security.CustomUserDetails;
 import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.member.domain.dto.request.FindIdRequest;
 import com.moneymanager.member.domain.dto.request.FindPwdRequest;
+import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.dto.response.FindIdResponse;
 import com.moneymanager.member.domain.dto.response.FindPwdResponse;
+import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import com.moneymanager.member.service.command.EmailSender;
 import com.moneymanager.member.service.command.MemberCommandService;
@@ -72,6 +74,7 @@ public class AccountService {
     private final MemberReadService memberReadService;
     private final MemberCommandService memberCommandService;
     private final PasswordResetService passwordResetService;
+    private final EmailVerificationService emailVerificationService;
 
     private final EmailSender emailSender;
     private final MemberValidator memberValidator;
@@ -80,6 +83,26 @@ public class AccountService {
     private final HashGenerator hashGenerator;
 
     private final EmailVerificationService emailVerification;
+
+    public void processSignUp(MemberSignUpRequest request) {
+        //요청 객체 검증
+        memberValidator.signUp(request);
+
+        //이메일 검증 완료했는지 확인
+        emailVerificationService.validateEmailToken(request.getEmail(), request.getToken());
+
+        //회원가입 중복 검증
+        memberReadService.validateSignUpEligibility(request.getUsername(), request.getNickname());
+
+        //요청객체 변환
+        Member member = memberCommandService.create(request);
+
+        //회원 저장
+        memberCommandService.save(member);
+
+        //인증토큰 삭제
+        emailVerificationService.deleteToken(member.getEmail());
+    }
 
 
     public CustomUserDetails login(String username, String password) {

@@ -4,6 +4,8 @@ import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.ObjectUtils;
 import com.moneymanager.member.domain.dto.MemberAuth;
+import com.moneymanager.member.domain.dto.query.MemberProfileQuery;
+import com.moneymanager.member.domain.dto.query.MyPageQuery;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
@@ -212,7 +214,7 @@ public class MemberRepository {
                         AND email = ?
                 """;
 
-        try{
+        try {
             return jdbcTemplate.query(
                     query,
                     (rs, num) -> new MemberFindIdQuery(
@@ -221,28 +223,7 @@ public class MemberRepository {
                     ),
                     name, email
             ).stream().findFirst();
-        }catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
-    }
-
-    public Optional<String> findEmailByNameAndUsername(String name, String username) {
-        String query = """
-                SELECT email
-                    FROM  member
-                    WHERE name = ?
-                        AND username = ?
-                """;
-
-        try{
-            return Optional.of(
-                    jdbcTemplate.queryForObject(
-                            query,
-                            String.class,
-                            name, username
-                    )
-            );
-        }catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
     }
@@ -256,15 +237,94 @@ public class MemberRepository {
                     WHERE m.member_number = ?
                 """;
 
-       return jdbcTemplate.query(
-               query,
-               (rs, num) ->
-                       new SideBarUser(
-                               rs.getString("nickname"),
-                               rs.getString("profile")
-                       ),
-               memberNumber
-       ).stream().findFirst();
+        return jdbcTemplate.query(
+                query,
+                (rs, num) ->
+                        new SideBarUser(
+                                rs.getString("nickname"),
+                                rs.getString("profile")
+                        ),
+                memberNumber
+        ).stream().findFirst();
+    }
+
+    public Optional<MyPageQuery> findMyPageByMemberNumber(String memberNumber) {
+        String query = """
+                SELECT m.type, m.name, m.nickname, m.email, m.created_at, mi.gender, mi.consecutive_days, mi.login_at
+                    FROM member m
+                        JOIN member_info mi
+                        ON mi.member_id = m.id
+                    WHERE m.member_number = ?
+                """;
+
+        try {
+            return Optional.ofNullable(
+                    jdbcTemplate.queryForObject(
+                            query,
+                            (rs, num) ->
+                                    MyPageQuery.of(
+                                            rs.getString("type"),
+                                            rs.getString("name"),
+                                            rs.getString("nickname"),
+                                            rs.getString("gender"),
+                                            rs.getString("email"),
+                                            rs.getTimestamp("login_at"),
+                                            rs.getTimestamp("created_at"),
+                                            rs.getLong("consecutive_days")
+                                    ),
+                            memberNumber
+                    )
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<String> findEmailByNameAndUsername(String name, String username) {
+        String query = """
+                SELECT email
+                    FROM  member
+                    WHERE name = ?
+                        AND username = ?
+                """;
+
+        try {
+            return Optional.of(
+                    jdbcTemplate.queryForObject(
+                            query,
+                            String.class,
+                            name, username
+                    )
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<MemberProfileQuery> findProfileByMemberNumber(String memberNumber) {
+        String query = """
+                SELECT member_id, profile
+                    FROM member m
+                        JOIN member_info mi
+                        ON  mi.member_id = m.id
+                    WHERE member_number = ?
+                """;
+
+        try {
+            return Optional.ofNullable(
+                    jdbcTemplate.queryForObject(
+                            query,
+                            (rs, num) ->
+                                    MemberProfileQuery.of(
+                                            rs.getString("member_id"),
+                                            rs.getString("profile")
+                                    ),
+                            memberNumber
+                    )
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     public Integer findImageUploadLimitByMemberId(String memberId) {

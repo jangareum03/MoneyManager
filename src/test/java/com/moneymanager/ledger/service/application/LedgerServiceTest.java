@@ -175,7 +175,7 @@ class LedgerServiceTest {
 
             @BeforeEach
             void setUp() {
-                when(currentUser.getMemberId())
+                when(currentUser.getMemberNumber())
                         .thenReturn(MemberTestData.DEFAULT_ID);
             }
 
@@ -359,7 +359,7 @@ class LedgerServiceTest {
             @DisplayName("회원이 존재하지 않으면 InternalException 예외가 전파된다.")
             void throwsInternalException_whenUserDoesNotExist() {
                 //given:
-                when(currentUser.getMemberId())
+                when(currentUser.getMemberNumber())
                         .thenReturn("nonExistent");
 
                 when(memberReadService.getAvailableImageCount("nonExistent"))
@@ -496,7 +496,7 @@ class LedgerServiceTest {
 
             @BeforeEach
             void setUp() {
-                when(currentUser.getMemberId())
+                when(currentUser.getMemberNumber())
                         .thenReturn(memberId);
             }
 
@@ -559,7 +559,7 @@ class LedgerServiceTest {
                 assertThatThrownBy(() -> target.processLedgerRegistration(null));
 
                 //then
-                verify(currentUser).getMemberId();
+                verify(currentUser).getMemberNumber();
                 verify(registerValidator).validate(null);
 
                 verify(ledgerCommandService, never()).toCreateEntity(anyString(), any(LedgerWriteRequest.class));
@@ -569,7 +569,7 @@ class LedgerServiceTest {
             @DisplayName("가계부 생성에 실패하면 그 후 동작은 수행하지 않는다.")
             void throwsExceptionAndAbortsProcess_whenLedgerCreationFailed() {
                 //given
-                when(currentUser.getMemberId())
+                when(currentUser.getMemberNumber())
                         .thenReturn(MemberTestData.DEFAULT_ID);
 
                 when(ledgerCommandService.toCreateEntity(memberId, request))
@@ -579,7 +579,7 @@ class LedgerServiceTest {
                 assertThatThrownBy(() -> target.processLedgerRegistration(request));
 
                 //then
-                verify(currentUser).getMemberId();
+                verify(currentUser).getMemberNumber();
                 verify(registerValidator).validate(request);
                 verify(ledgerCommandService).toCreateEntity(memberId, request);
 
@@ -590,7 +590,7 @@ class LedgerServiceTest {
             @DisplayName("가계부 비즈니스 검증에 실패하면 그 후 동작은 수행하지 않는다.")
             void throwsExceptionAndAbortsProcess_whenBusinessValidationFails() {
                 //given
-                when(currentUser.getMemberId())
+                when(currentUser.getMemberNumber())
                         .thenReturn(MemberTestData.DEFAULT_ID);
 
                 when(ledgerCommandService.toCreateEntity(memberId, request))
@@ -603,7 +603,7 @@ class LedgerServiceTest {
                 assertThatThrownBy(() -> target.processLedgerRegistration(request));
 
                 //then
-                verify(currentUser).getMemberId();
+                verify(currentUser).getMemberNumber();
                 verify(registerValidator).validate(request);
                 verify(ledgerCommandService).toCreateEntity(memberId, request);
                 verify(ledgerPolicy).validateCreatable(ledger);
@@ -617,7 +617,7 @@ class LedgerServiceTest {
                 //given
                 Ledger ledger = LedgerTestFixture.builder().build();
 
-                when(currentUser.getMemberId())
+                when(currentUser.getMemberNumber())
                         .thenReturn(MemberTestData.DEFAULT_ID);
 
                 when(ledgerCommandService.toCreateEntity(memberId, request))
@@ -631,7 +631,7 @@ class LedgerServiceTest {
                 assertThatThrownBy(() -> target.processLedgerRegistration(request));
 
                 //then
-                verify(currentUser).getMemberId();
+                verify(currentUser).getMemberNumber();
                 verify(registerValidator).validate(request);
                 verify(ledgerCommandService).toCreateEntity(memberId, request);
                 verify(ledgerPolicy).validateCreatable(ledger);
@@ -651,7 +651,7 @@ class LedgerServiceTest {
 
         @BeforeEach
         void setUp() {
-            when(currentUser.getMemberId())
+            when(currentUser.getMemberNumber())
                     .thenReturn(MemberTestData.DEFAULT_ID);
         }
 
@@ -700,7 +700,7 @@ class LedgerServiceTest {
                 //then
                 InOrder order = inOrder(currentUser, ledgerReadService, updateValidator, ledgerCommandService, imageService);
 
-                order.verify(currentUser).getMemberId();
+                order.verify(currentUser).getMemberNumber();
                 order.verify(ledgerReadService).getOwnerLedger(MemberTestData.DEFAULT_ID, code);
                 order.verify(updateValidator).validate(request);
                 order.verify(ledgerCommandService).updateLedger(request, ledger);
@@ -730,7 +730,7 @@ class LedgerServiceTest {
                 //then
                 InOrder order = inOrder(currentUser, ledgerReadService, updateValidator, ledgerCommandService, imageService);
 
-                order.verify(currentUser).getMemberId();
+                order.verify(currentUser).getMemberNumber();
                 order.verify(ledgerReadService).getOwnerLedger(MemberTestData.DEFAULT_ID, code);
                 order.verify(updateValidator).validate(request);
                 order.verify(ledgerCommandService).updateLedger(request, ledger);
@@ -824,7 +824,7 @@ class LedgerServiceTest {
 
         @BeforeEach
         void setUp() {
-            when(currentUser.getMemberId())
+            when(currentUser.getMemberNumber())
                     .thenReturn(MemberTestData.DEFAULT_ID);
         }
 
