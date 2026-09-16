@@ -1,12 +1,10 @@
-package com.moneymanager.member.domain.dto.query;
+package com.moneymanager.member.domain.query;
 
 import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberType;
 import lombok.Getter;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -38,17 +36,21 @@ import java.time.ZoneId;
 @Getter
 public class MyPageQuery {
 
+    private final String id;
     private final MemberType type;
+    private final String password;
     private final String name;
     private final String nickname;
     private final MemberGender gender;
     private final String email;
-    private final LocalDate lastLogin;
-    private final LocalDate joinDate;
+    private final LocalDateTime lastLogin;
+    private final LocalDateTime joinDate;
     private final String attendanceDays;
 
-    private MyPageQuery(MemberType type, String name, String nickname, MemberGender gender, String email, LocalDate lastLogin, LocalDate joinDate, String attendanceDays) {
+    private MyPageQuery(String id, MemberType type, String password, String name, String nickname, MemberGender gender, String email, LocalDateTime lastLogin, LocalDateTime joinDate, String attendanceDays) {
+        this.id = id;
         this.type = type;
+        this.password = password;
         this.name = name;
         this.nickname = nickname;
         this.gender = gender;
@@ -58,17 +60,17 @@ public class MyPageQuery {
         this.attendanceDays = attendanceDays;
     }
 
-    public static MyPageQuery of(String type, String name, String nickname, String gender, String email, Timestamp login_at, Timestamp created_at, Long consecutive_days) {
+    public static MyPageQuery of(String id, String type, String password, String name, String nickname, String gender, String email, LocalDateTime login_at, LocalDateTime created_at, Long consecutive_days) {
         return new MyPageQuery(
+                id,
                 MemberType.fromValue(type),
+                password,
                 name,
                 nickname,
                 MemberGender.fromValue(gender),
                 email,
-               login_at == null
-                ? null
-                : login_at.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-                created_at.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+                login_at,
+                created_at,
                 String.valueOf(consecutive_days)
         );
     }

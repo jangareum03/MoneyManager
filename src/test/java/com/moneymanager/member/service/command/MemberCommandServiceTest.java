@@ -1,9 +1,14 @@
 package com.moneymanager.member.service.command;
 
+import com.moneymanager.global.config.MutableClock;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.domain.entity.MemberHistory;
 import com.moneymanager.member.domain.entity.MemberInfo;
+import com.moneymanager.member.domain.enums.HistoryType;
+import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberType;
+import com.moneymanager.member.repository.MemberHistoryRepository;
 import com.moneymanager.member.repository.MemberRepository;
 import com.moneymanager.member.service.generator.RandomCodeGenerator;
 import com.moneymanager.member.service.generator.UuidGenerator;
@@ -11,6 +16,7 @@ import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,20 +24,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InOrder;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.Clock;
 import java.util.stream.Stream;
 
-import static com.moneymanager.global.exception.code.ErrorCode.CONSTRAINT_VIOLATION;
-import static com.moneymanager.global.exception.code.ErrorCode.DATA_INTEGRITY;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Named.named;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -66,7 +71,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class MemberCommandServiceTest {
 
-    @InjectMocks
     MemberCommandService target;
 
     @Mock
@@ -80,6 +84,26 @@ class MemberCommandServiceTest {
 
     @Mock
     MemberRepository memberRepository;
+
+    @Mock
+    MemberHistoryRepository historyRepository;
+
+    @Autowired
+    Clock clock;
+
+    @BeforeEach
+    void setUp() {
+        clock = new MutableClock();
+
+        target = new MemberCommandService(
+                memberRepository,
+                historyRepository,
+                clock,
+                passwordEncoder,
+                codeGenerator,
+                uuidGenerator
+        );
+    }
 
 
     @Nested
@@ -262,6 +286,262 @@ class MemberCommandServiceTest {
             assertThat(result.getType()).isEqualTo(MemberType.COMMON);
 
             assertThat(result.getInfo().getGender()).isEqualTo(MemberTestData.DEFAULT_GENDER);
+
+        }
+        
+    }
+
+
+    @Nested
+    @DisplayName("회원정보 수정할 때")
+    class UpdateMember {
+
+        String memberId = MemberTestData.DEFAULT_ID;
+        
+        @Nested
+        @DisplayName("성공")
+        class Success {
+            
+            @Test
+            @DisplayName("비밀번호 수정 성공하면 내역 작성 메서드을 호출한다.")
+            void savesMemberHistory_whenPasswordUpdateSucceeds() {
+            	//given
+                String newPassword = "password";
+                String encodePassword = "encodePassword";
+
+                when(passwordEncoder.encode(newPassword))
+                        .thenReturn(encodePassword);
+
+                when(memberRepository.updatePassword(memberId, encodePassword))
+                        .thenReturn(true);
+            	
+            	//when
+                assertDoesNotThrow(() -> target.updatePassword(memberId, newPassword));
+            	
+            	//then
+                ArgumentCaptor<MemberHistory>  captor = ArgumentCaptor.forClass(MemberHistory.class);
+
+            	verify(historyRepository).insertHistory(captor.capture());
+
+                MemberHistory history = captor.getValue();
+
+                assertThat(history.getMemberId()).isEqualTo(memberId);
+                assertThat(history.getType()).isSameAs(HistoryType.UPDATE);
+                assertThat(history.getItem()).isEqualTo("비밀번호");
+                assertThat(history.getBeforeInfo()).isNull();
+                assertThat(history.getAfterInfo()).isNull();
+            }
+
+            @Test
+            @DisplayName("이메일 수정 성공하면 내역 작성 메서드을 호출한다.")
+            void savesMemberHistory_whenEmailUpdateSucceeds() {
+                //given
+                String oldEmail = "old-email@test.com";
+                String newEmail = "new-email@test.com";
+
+                when(memberRepository.updateEmail(memberId, newEmail))
+                        .thenReturn(true);
+
+                //when
+                assertDoesNotThrow(() -> target.updateEmail(memberId, oldEmail, newEmail));
+
+                //then
+                ArgumentCaptor<MemberHistory>  captor = ArgumentCaptor.forClass(MemberHistory.class);
+
+                verify(historyRepository).insertHistory(captor.capture());
+
+                MemberHistory history = captor.getValue();
+
+                assertThat(history.getMemberId()).isEqualTo(memberId);
+                assertThat(history.getType()).isSameAs(HistoryType.UPDATE);
+                assertThat(history.getItem()).isEqualTo("이메일");
+                assertThat(history.getBeforeInfo()).contains("*");
+                assertThat(history.getAfterInfo()).contains("*");
+            }
+
+            @Test
+            @DisplayName("이름 수정 성공하면 내역 작성 메서드을 호출한다.")
+            void savesMemberHistory_whenNameUpdateSucceeds() {
+                //given
+                String oldName = "old-name";
+                String newName = "new-name";
+
+                when(memberRepository.updateName(memberId, newName))
+                        .thenReturn(true);
+
+                //when
+                assertDoesNotThrow(() -> target.updateName(memberId, oldName, newName));
+
+                //then
+                ArgumentCaptor<MemberHistory>  captor = ArgumentCaptor.forClass(MemberHistory.class);
+
+                verify(historyRepository).insertHistory(captor.capture());
+
+                MemberHistory history = captor.getValue();
+
+                assertThat(history.getMemberId()).isEqualTo(memberId);
+                assertThat(history.getType()).isSameAs(HistoryType.UPDATE);
+                assertThat(history.getItem()).isEqualTo("이름");
+                assertThat(history.getBeforeInfo()).isEqualTo(oldName);
+                assertThat(history.getAfterInfo()).isEqualTo(newName);
+            }
+
+            @Test
+            @DisplayName("성별 수정 성공하면 내역 작성 메서드을 호출한다.")
+            void savesMemberHistory_whenGenderUpdateSucceeds() {
+                //given
+                MemberGender oldGender = MemberGender.NORMAL;
+                MemberGender newGender = MemberGender.FEMALE;
+
+                when(memberRepository.updateGender(memberId, newGender.getValue()))
+                        .thenReturn(true);
+
+                //when
+                assertDoesNotThrow(() -> target.updateGender(memberId, oldGender, newGender));
+
+                //then
+                ArgumentCaptor<MemberHistory>  captor = ArgumentCaptor.forClass(MemberHistory.class);
+
+                verify(historyRepository).insertHistory(captor.capture());
+
+                MemberHistory history = captor.getValue();
+
+                assertThat(history.getMemberId()).isEqualTo(memberId);
+                assertThat(history.getType()).isSameAs(HistoryType.UPDATE);
+                assertThat(history.getItem()).isEqualTo("성별");
+                assertThat(history.getBeforeInfo()).isEqualTo(oldGender.getValue());
+                assertThat(history.getAfterInfo()).isEqualTo(newGender.getValue());
+            }
+
+            @Test
+            @DisplayName("프로필 수정 성공하면 내역 작성 메서드을 호출한다.")
+            void savesMemberHistory_whenProfileUpdateSucceeds() {
+                //given
+                String oldProfile = "old.jpg";
+                String newProfile = "new.png";
+
+                when(memberRepository.updateProfile(memberId, newProfile))
+                        .thenReturn(true);
+
+                //when
+                assertDoesNotThrow(() -> target.updateProfile(memberId, oldProfile, newProfile));
+
+                //then
+                ArgumentCaptor<MemberHistory>  captor = ArgumentCaptor.forClass(MemberHistory.class);
+
+                verify(historyRepository).insertHistory(captor.capture());
+
+                MemberHistory history = captor.getValue();
+
+                assertThat(history.getMemberId()).isEqualTo(memberId);
+                assertThat(history.getType()).isSameAs(HistoryType.UPDATE);
+                assertThat(history.getItem()).isEqualTo("프로필");
+                assertThat(history.getBeforeInfo()).isEqualTo(oldProfile);
+                assertThat(history.getAfterInfo()).isEqualTo(newProfile);
+            }
+
+        }
+        
+        @Nested
+        @DisplayName("실패")
+        class Failure {
+
+            @Test
+            @DisplayName("비밀번호 수정 실패하면 예외를 발생시킨다.")
+            void throwsException_whenPasswordSaveFails() {
+            	//given
+                when(passwordEncoder.encode("password"))
+                        .thenReturn("encode-password");
+                when(memberRepository.updatePassword(memberId, "encode-password"))
+                        .thenReturn(false);
+
+            	//when
+                Throwable throwable = catchThrowable(() -> target.updatePassword(memberId, "password"));
+
+            	//then
+            	ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(DATA_PERSISTENCE_FAILED)
+                        .hasWork("회원 정보 수정")
+                        .hasTarget(Member.class)
+                        .hasValue("password", "p******d")
+                        .hasCauseMessage("비밀번호 수정 실패");
+            }
+
+            @Test
+            @DisplayName("이메일 수정 실패하면 예외를 발생시킨다.")
+            void throwsException_whenEmailSaveFails() {
+                //given
+                when(memberRepository.updateEmail(memberId, "email@test.com"))
+                        .thenReturn(false);
+
+                //when
+                Throwable throwable = catchThrowable(() -> target.updateEmail(memberId, "old@test.com", "email@test.com"));
+
+                //then
+                ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(DATA_PERSISTENCE_FAILED)
+                        .hasWork("회원 정보 수정")
+                        .hasTarget(Member.class)
+                        .hasValue("email", "e****@test.com")
+                        .hasCauseMessage("이메일 수정 실패");
+            }
+
+            @Test
+            @DisplayName("이름 수정 실패하면 예외를 발생시킨다.")
+            void throwsException_whenNameSaveFails() {
+                //given
+                when(memberRepository.updateName(memberId, "이름"))
+                        .thenReturn(false);
+
+                //when
+                Throwable throwable = catchThrowable(() -> target.updateName(memberId, "철수", "이름"));
+
+                //then
+                ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(DATA_PERSISTENCE_FAILED)
+                        .hasWork("회원 정보 수정")
+                        .hasTarget(Member.class)
+                        .hasValue("name", "이*")
+                        .hasCauseMessage("이름 수정 실패");
+            }
+
+            @Test
+            @DisplayName("성별 수정 실패하면 예외를 발생시킨다.")
+            void throwsException_whenGenderSaveFails() {
+                //given
+                when(memberRepository.updateGender(memberId, MemberGender.FEMALE.getValue()))
+                        .thenReturn(false);
+
+                //when
+                Throwable throwable = catchThrowable(() -> target.updateGender(memberId, MemberGender.NORMAL, MemberGender.FEMALE));
+
+                //then
+                ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(DATA_PERSISTENCE_FAILED)
+                        .hasWork("회원 정보 수정")
+                        .hasTarget(Member.class)
+                        .hasValue("gender", "F")
+                        .hasCauseMessage("성별 수정 실패");
+            }
+
+            @Test
+            @DisplayName("프로필 수정 실패하면 예외를 발생시킨다.")
+            void throwsException_whenProfileSaveFails() {
+                //given
+                when(memberRepository.updateProfile(memberId, "profile"))
+                        .thenReturn(false);
+
+                //when
+                Throwable throwable = catchThrowable(() -> target.updateProfile(memberId, "before", "profile"));
+
+                //then
+                ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                        .hasErrorCode(DATA_PERSISTENCE_FAILED)
+                        .hasWork("회원 정보 수정")
+                        .hasTarget(Member.class)
+                        .hasValue("profile", "profile")
+                        .hasCauseMessage("프로필 수정 실패");
+            }
 
         }
         

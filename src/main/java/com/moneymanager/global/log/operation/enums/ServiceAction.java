@@ -50,6 +50,7 @@ public enum ServiceAction {
 	MEMBER_SIGNUP("회원가입 API"),
 	MEMBER_FIND_ID("아이디 찾기 API"),
 	MEMBER_FIND_PWD("비밀번호 찾기 API"),
+	MEMBER_UPDATE("회원정보 수정 API"),
 
 	LEDGER_CATEGORY("하위 카테고리 목록 조회 API"),
 	LEDGER_REGISTER_DATE("작성할 가계부 날짜 목록 조회 API"),

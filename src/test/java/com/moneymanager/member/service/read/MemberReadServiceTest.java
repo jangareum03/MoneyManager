@@ -2,7 +2,7 @@ package com.moneymanager.member.service.read;
 
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
-import com.moneymanager.member.domain.dto.query.MyPageQuery;
+import com.moneymanager.member.domain.query.MyPageQuery;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;

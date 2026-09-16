@@ -1,4 +1,4 @@
-package com.moneymanager.member.domain.dto.query;
+package com.moneymanager.member.domain.query;
 
 import lombok.Getter;
 

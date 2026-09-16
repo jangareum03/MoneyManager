@@ -41,6 +41,10 @@ public class StringUtil {
 		return value == null || value.trim().isBlank();
 	}
 
+	public static String maskMiddle(String text) {
+		return masking(text, 1, text.length() - 2);
+	}
+
 	public static String masking(String text, int startIndex, int maskLength) {
 		if(isNullOrBlank(text)) {
 			throw new IllegalArgumentException("마스킹할 문자 누락");

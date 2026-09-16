@@ -3,11 +3,14 @@ package com.moneymanager.member.service.command;
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.log.LogContent;
+import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.domain.entity.MemberHistory;
 import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberType;
+import com.moneymanager.member.repository.MemberHistoryRepository;
 import com.moneymanager.member.repository.MemberRepository;
 import com.moneymanager.member.service.generator.RandomCodeGenerator;
 import com.moneymanager.member.service.generator.UuidGenerator;
@@ -18,8 +21,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.moneymanager.global.exception.code.ErrorCode.CONSTRAINT_VIOLATION;
-import static com.moneymanager.global.exception.code.ErrorCode.DATA_INTEGRITY;
+import java.time.Clock;
+import java.time.LocalDateTime;
+
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 
 /**
  * <p>
@@ -54,11 +59,13 @@ public class MemberCommandService {
 
     private static final int MAX_RETRY_COUNT = 3;
 
+    private final MemberRepository memberRepository;
+    private final MemberHistoryRepository historyRepository;
+
+    private final Clock clock;
     private final PasswordEncoder passwordEncoder;
     private final RandomCodeGenerator randomCodeGenerator;
     private final UuidGenerator uuidGenerator;
-
-    private final MemberRepository memberRepository;
 
     @Transactional
     public void save(Member member) {
@@ -100,6 +107,96 @@ public class MemberCommandService {
                 request.getEmail(),
                 MemberType.COMMON,
                 memberInfo
+        );
+    }
+
+    @Transactional
+    public void updatePassword(String memberId, String newPassword) {
+        if(!memberRepository.updatePassword(memberId, passwordEncoder.encode(newPassword))) {
+            throw new ApplicationException(
+                    DATA_PERSISTENCE_FAILED,
+                    LogContent.of(
+                            "회원 정보 수정",
+                            Member.class,
+                            "password", StringUtil.masking(newPassword, 1, newPassword.length() - 2)
+                    ).withCause("비밀번호 수정 실패")
+            ).withMessageKey("member.update.failed");
+        }
+
+        historyRepository.insertHistory(
+                MemberHistory.update(memberId, "비밀번호", null, null, LocalDateTime.now(clock))
+        );
+    }
+
+    @Transactional
+    public void updateEmail(String memberId, String oldEmail, String newEmail) {
+        if(!memberRepository.updateEmail(memberId, newEmail)) {
+            throw new ApplicationException(
+                    DATA_PERSISTENCE_FAILED,
+                    LogContent.of(
+                            "회원 정보 수정",
+                            Member.class,
+                            "email", getMaskedEmail(newEmail)
+                    ).withCause("이메일 수정 실패")
+            ).withMessageKey("member.update.failed");
+        }
+
+        historyRepository.insertHistory(
+                MemberHistory.update(memberId, "이메일", EmailMasker.mask(oldEmail), EmailMasker.mask(newEmail), LocalDateTime.now(clock))
+        );
+    }
+
+    @Transactional
+    public void updateName(String memberId, String oldName, String newName) {
+        if(!memberRepository.updateName(memberId, newName)) {
+            throw new ApplicationException(
+                    DATA_PERSISTENCE_FAILED,
+                    LogContent.of(
+                            "회원 정보 수정",
+                            Member.class,
+                            "name", StringUtil.masking(newName, 1, 1)
+                    ).withCause("이름 수정 실패")
+            ).withMessageKey("member.update.failed");
+        }
+
+        historyRepository.insertHistory(
+                MemberHistory.update(memberId, "이름", oldName, newName, LocalDateTime.now(clock))
+        );
+    }
+
+    @Transactional
+    public void updateGender(String memberId, MemberGender oldGender, MemberGender newGender) {
+        if(!memberRepository.updateGender(memberId, newGender.getValue())) {
+            throw new ApplicationException(
+                    DATA_PERSISTENCE_FAILED,
+                    LogContent.of(
+                            "회원 정보 수정",
+                            Member.class,
+                            "gender", newGender.getValue()
+                    ).withCause("성별 수정 실패")
+            ).withMessageKey("member.update.failed");
+        }
+
+        historyRepository.insertHistory(
+                MemberHistory.update(memberId, "성별", oldGender.getValue(), newGender.getValue(), LocalDateTime.now(clock))
+        );
+    }
+
+    @Transactional
+    public void updateProfile(String memberId, String oldProfile, String newProfile) {
+        if(!memberRepository.updateProfile(memberId, newProfile)) {
+            throw new ApplicationException(
+                    DATA_PERSISTENCE_FAILED,
+                    LogContent.of(
+                            "회원 정보 수정",
+                            Member.class,
+                            "profile", newProfile
+                    ).withCause("프로필 수정 실패")
+            ).withMessageKey("member.update.failed");
+        }
+
+        historyRepository.insertHistory(
+                MemberHistory.update(memberId, "프로필", oldProfile, newProfile, LocalDateTime.now(clock))
         );
     }
 

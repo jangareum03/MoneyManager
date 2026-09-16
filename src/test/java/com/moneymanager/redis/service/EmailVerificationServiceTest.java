@@ -3,6 +3,8 @@ package com.moneymanager.redis.service;
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.member.service.read.MemberReadService;
 import com.moneymanager.member.service.validation.MemberValidator;
+import com.moneymanager.redis.MemberRedisKey;
+import com.moneymanager.redis.RedisService;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.moneymanager.global.exception.code.ErrorCode.DUPLICATE_DATA;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -58,6 +60,12 @@ class EmailVerificationServiceTest {
     
     @Mock
     MemberValidator memberValidator;
+    
+    @Mock
+    RedisService redisService;
+
+    @Mock
+    MemberRedisKey redisKey;
 
 
     @Nested
@@ -118,6 +126,74 @@ class EmailVerificationServiceTest {
                     .hasField("email")
                     .hasValue("te**@test.com");
         }
+    }
+
+
+    @Nested
+    @DisplayName("이메일 토큰 검증할 때")
+    class ValidateEmailToken {
+
+        String email = MemberTestData.DEFAULT_EMAIL;
+        String token = "token";
+        
+        @Test
+        @DisplayName("이메일에 해당하는 토큰과 일치하면 예외가 발생하지 않는다.")
+        void verifyMemberToken_success_whenTokenMatchesEmail() {
+        	//given
+            when(redisKey.emailVerificationToken(email))
+                    .thenReturn("email-token");
+
+            when(redisService.get("email-token"))
+                    .thenReturn(token);
+        	
+        	//when
+            assertDoesNotThrow(() -> target.validateEmailToken(email, token));
+        }
+        
+        @Test
+        @DisplayName("저장된 토큰이 없다면 예외를 발생시킨다.")
+        void verifyMemberToken_throwsException_whenTokenNotFound() {
+        	//given
+            when(redisKey.emailVerificationToken(email))
+                    .thenReturn("email-token");
+
+            when(redisService.get("email-token"))
+                    .thenReturn(null);
+        	
+        	//when
+            Throwable throwable = catchThrowable(() -> target.validateEmailToken(email, token));
+        	
+        	//then
+            ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                    .hasErrorCode(DATA_NOT_FOUND)
+                    .hasWork("이메일 토큰 검증")
+                    .hasField("email")
+                    .hasValue("*", "@test.com")
+                    .hasMessageKey("member.signup.failed");
+        }
+        
+        @Test
+        @DisplayName("저장된 토큰과 일치하지 않으면 예외를 발생시킨다.")
+        void verifyMemberToken_throwsException_whenTokenMismatched() {
+            //given
+            when(redisKey.emailVerificationToken(email))
+                    .thenReturn("email-token");
+
+            when(redisService.get("email-token"))
+                    .thenReturn("token12token");
+
+            //when
+            Throwable throwable = catchThrowable(() -> target.validateEmailToken(email, token));
+
+            //then
+            ApplicationExceptionAssert.assertThatApplicationException(throwable)
+                    .hasErrorCode(MISMATCH)
+                    .hasWork("이메일 토큰 검증")
+                    .hasField("token")
+                    .hasValue("tok**")
+                    .hasMessageKey("member.signup.failed");
+        }
+        
     }
 
 }

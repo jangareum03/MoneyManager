@@ -1,11 +1,12 @@
 package com.moneymanager.member.repository;
 
 import com.moneymanager.member.domain.dto.MemberAuth;
-import com.moneymanager.member.domain.dto.query.MemberProfileQuery;
-import com.moneymanager.member.domain.dto.query.MyPageQuery;
+import com.moneymanager.member.domain.query.MemberProfileQuery;
+import com.moneymanager.member.domain.query.MyPageQuery;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
+import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberType;
 import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import com.moneymanager.support.ApplicationExceptionAssert;
@@ -211,6 +212,129 @@ class MemberRepositoryIT extends IntegrationTest {
                         .isInstanceOf(DataIntegrityViolationException.class);
             }
 
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("회원정보 수정할 때")
+    class Update {
+
+        Member member;
+
+        @BeforeEach
+        void setUp() {
+            member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder())
+                    .buildWithEncodePassword((passwordEncoder.encode(MemberTestData.DEFAULT_PASSWORD)));
+
+            insertMember(member);
+        }
+
+        @Nested
+        @DisplayName("성공")
+        class Success {
+
+            @Test
+            @DisplayName("비밀번호를 수정할 수 있다.")
+            void updatesPassword_whenMemberExists() {
+                //given
+                String newPassword = MemberTestData.DEFAULT_PASSWORD + "new";
+
+                //when
+                boolean result = target.updatePassword(member.getId(), passwordEncoder.encode(newPassword));
+
+                //then
+                assertThat(result).isTrue();
+
+                Member changedMember = target.findById(member.getId());
+                assertThat(passwordEncoder.matches(newPassword, changedMember.getPassword())).isTrue();
+            }
+
+            @Test
+            @DisplayName("이메일를 수정할 수 있다.")
+            void updatesEmail_whenMemberExists() {
+                //given
+                String newEmail = "new123@test.com";
+
+                //when
+                boolean result = target.updateEmail(member.getId(), newEmail);
+
+                //then
+                assertThat(result).isTrue();
+
+                Member changedMember = target.findById(member.getId());
+                assertThat(changedMember.getEmail()).isEqualTo(newEmail);
+            }
+
+            @Test
+            @DisplayName("이름을 수정할 수 있다.")
+            void updatesName_whenMemberExists() {
+                //given
+                String newName = "이름변경";
+
+                //when
+                boolean result = target.updateName(member.getId(), newName);
+
+                //then
+                assertThat(result).isTrue();
+
+                Member changedMember = target.findById(member.getId());
+                assertThat(changedMember.getName()).isEqualTo(newName);
+            }
+
+            @Test
+            @DisplayName("성별을 수정할 수 있다.")
+            void updatesGender_whenMemberExists() {
+                //given
+                String newGender = "F";
+
+                //when
+                boolean result = target.updateGender(member.getId(), newGender);
+
+                //then
+                assertThat(result).isTrue();
+
+                Member changedMember = target.findById(member.getId());
+                assertThat(changedMember.getInfo().getGender()).isSameAs(MemberGender.FEMALE);
+            }
+
+            @Test
+            @DisplayName("프로필을 수정할 수 있다.")
+            void updatesProfile_whenMemberExists() {
+                //given
+                String newProfile = "/member/profile/test.png";
+
+                //when
+                boolean result = target.updateProfile(member.getId(), newProfile);
+
+                //then
+                assertThat(result).isTrue();
+
+                Member changedMember = target.findById(member.getId());
+                assertThat(changedMember.getInfo().getProfile()).isEqualTo(newProfile);
+            }
+
+        }
+
+        @Nested
+        @DisplayName("실패")
+        class Failure {
+            
+            @Test
+            @DisplayName("존재하지 않은 회원은 수정할 수 없다.")
+            void updatesMember_whenMemberDoesNotExist() {
+            	//given
+                String memberId = "no-member";
+            	
+            	//when
+                boolean result = target.updateName(memberId, "이름안뇽");
+            	
+            	//then
+            	assertThat(result).isFalse();
+            }
+            
         }
 
     }

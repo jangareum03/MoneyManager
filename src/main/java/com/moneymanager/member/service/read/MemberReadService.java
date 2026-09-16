@@ -3,13 +3,14 @@ package com.moneymanager.member.service.read;
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.string.StringUtil;
-import com.moneymanager.member.domain.dto.query.MyPageQuery;
+import com.moneymanager.member.domain.query.MyPageQuery;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import com.moneymanager.member.repository.MemberRepository;
 import com.moneymanager.member.service.util.EmailMasker;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import static com.moneymanager.global.exception.code.ErrorCode.*;
@@ -46,6 +47,7 @@ import static com.moneymanager.global.exception.code.ErrorCode.*;
 public class MemberReadService {
 
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public int getAvailableImageCount(String memberId) {
         return memberRepository.findImageUploadLimitByMemberId(memberId);
@@ -125,6 +127,10 @@ public class MemberReadService {
 
     public boolean checkEmailExists(String email) {
         return memberRepository.existsByEmail(email);
+    }
+
+    public boolean isPasswordMatching(String password, String newPassword) {
+        return passwordEncoder.matches(password, newPassword);
     }
 
     public void validateSignUpEligibility(String username, String nickname) {

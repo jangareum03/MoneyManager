@@ -5,6 +5,7 @@ import com.moneymanager.global.log.LogContent;
 import com.moneymanager.member.domain.dto.request.FindIdRequest;
 import com.moneymanager.member.domain.dto.request.FindPwdRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
+import com.moneymanager.member.domain.dto.request.MemberUpdateRequest;
 import org.springframework.stereotype.Component;
 
 import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_NOT_EXIST;
@@ -82,6 +83,23 @@ public class MemberValidator {
 
         fieldValidator.validateName(request.getName(), work);
         fieldValidator.validateUsername(request.getUsername(), work);
+    }
+
+    public void validateMemberUpdate(MemberUpdateRequest request) {
+        String work = "회원 수정 요청 검증";
+
+        if(request.getName() != null) {
+            fieldValidator.validateName(request.getName(), work);
+        }
+
+        if(request.getGender() != null) {
+            fieldValidator.validateGender(request.getGender(), work);
+        }
+
+        if(request.getPassword() != null) {
+            fieldValidator.validatePassword(request.getPassword(), work);
+        }
+
     }
 
     public void validateEmail(String email) {

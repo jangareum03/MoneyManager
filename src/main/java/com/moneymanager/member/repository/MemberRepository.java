@@ -4,8 +4,8 @@ import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.util.ObjectUtils;
 import com.moneymanager.member.domain.dto.MemberAuth;
-import com.moneymanager.member.domain.dto.query.MemberProfileQuery;
-import com.moneymanager.member.domain.dto.query.MyPageQuery;
+import com.moneymanager.member.domain.query.MemberProfileQuery;
+import com.moneymanager.member.domain.query.MyPageQuery;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberInfo;
@@ -124,13 +124,73 @@ public class MemberRepository {
         );
     }
 
+    public boolean updatePassword(String memberId, String password) {
+        String query = """
+                UPDATE member
+                    SET password = ?
+                    WHERE id = ?
+                """;
+
+        return jdbcTemplate.update(
+                query, password, memberId
+        ) == 1;
+    }
+
+    public boolean updateEmail(String memberId, String email) {
+        String query = """
+                UPDATE member
+                    SET email = ?
+                    WHERE id = ?
+                """;
+
+        return jdbcTemplate.update(
+                query, email, memberId
+        ) == 1;
+    }
+
+    public boolean updateName(String memberId, String name) {
+        String query = """
+                UPDATE member
+                    SET name = ?
+                    WHERE  id = ?
+                """;
+
+        return jdbcTemplate.update(
+                query, name, memberId
+        ) == 1;
+    }
+
+    public boolean updateGender(String memberId, String gender) {
+        String query = """
+                UPDATE member_info
+                    SET gender = ?
+                    WHERE member_id = ?
+        """;
+
+        return jdbcTemplate.update(
+                query, gender, memberId
+        ) == 1;
+    }
+
+    public boolean updateProfile(String memberId, String profile) {
+        String query = """
+                UPDATE member_info
+                    SET profile = ?
+                    WHERE member_id = ?
+                """;
+
+        return jdbcTemplate.update(
+                query, profile, memberId
+        ) == 1;
+    }
+
     public Member findById(String id) {
         String query = """
                 SELECT m.*, mi.gender, mi.profile, mi.point, mi.consecutive_days, mi.image_limit, mi.failure_count, mi.login_at
-                FROM member m
-                    LEFT JOIN member_info mi
-                	    ON m.id = mi.member_id
-                WHERE m.id = ?
+                    FROM member m
+                        LEFT JOIN member_info mi
+                	        ON m.id = mi.member_id
+                    WHERE m.id = ?
                 """;
 
         return jdbcTemplate.queryForObject(query, memberRowMapper, id);
@@ -139,10 +199,10 @@ public class MemberRepository {
     public Optional<MemberAuth> findAuthByMemberNumber(String memberNumber) {
         String query = """
                 SELECT m.id, m.member_number, m.username, m.password, m.role, m.status, m.deleted_at, mi.failure_count
-                FROM member m
-                    JOIN member_info mi
-                	    ON m.id = mi.member_id
-                WHERE m.member_number = ?
+                    FROM member m
+                        JOIN member_info mi
+                	        ON m.id = mi.member_id
+                    WHERE m.member_number = ?
                 """;
 
         try {
@@ -250,7 +310,7 @@ public class MemberRepository {
 
     public Optional<MyPageQuery> findMyPageByMemberNumber(String memberNumber) {
         String query = """
-                SELECT m.type, m.name, m.nickname, m.email, m.created_at, mi.gender, mi.consecutive_days, mi.login_at
+                SELECT m.id, m.type, m.password, m.name, m.nickname, m.email, m.created_at, mi.gender, mi.consecutive_days, mi.login_at
                     FROM member m
                         JOIN member_info mi
                         ON mi.member_id = m.id
@@ -263,13 +323,15 @@ public class MemberRepository {
                             query,
                             (rs, num) ->
                                     MyPageQuery.of(
+                                            rs.getString("id"),
                                             rs.getString("type"),
+                                            rs.getString("password"),
                                             rs.getString("name"),
                                             rs.getString("nickname"),
                                             rs.getString("gender"),
                                             rs.getString("email"),
-                                            rs.getTimestamp("login_at"),
-                                            rs.getTimestamp("created_at"),
+                                            rs.getTimestamp("login_at").toLocalDateTime(),
+                                            rs.getTimestamp("created_at").toLocalDateTime(),
                                             rs.getLong("consecutive_days")
                                     ),
                             memberNumber
