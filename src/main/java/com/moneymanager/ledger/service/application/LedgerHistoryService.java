@@ -72,7 +72,7 @@ public class LedgerHistoryService {
 
     public HistoryDashboardResponse findHistories(String type, Integer year, Integer month, Integer week) {
         //1. 인증된 회원 조회
-        String memberId = currentUser.getMemberNumber();
+        String memberId = currentUser.getMemberId();
 
         //2. 유형값 설정
         HistoryType historyType = parseHistoryTypeOrThrows(type);
@@ -106,7 +106,7 @@ public class LedgerHistoryService {
 
     public List<LedgerHistoryDisplay> searchLedgersByCondition(LedgerSearchRequest request) {
         //1. 인증된 회원 조회
-        String memberId = currentUser.getMemberNumber();
+        String memberId = currentUser.getMemberId();
 
         //2, 내역 유형 및 메뉴 조회 (기본값 세팅)
         HistoryType historyType = parseHistoryTypeOrThrows(request.getType());

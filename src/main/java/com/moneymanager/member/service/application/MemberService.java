@@ -76,7 +76,7 @@ public class MemberService {
 
     public MyPageResponse getMemberProfile() {
         //1. 인증된 사용자 조회
-        String memberNumber = currentUser.getMemberNumber();
+        String memberNumber = currentUser.getMemberId();
 
         //2. 회원정보 조회
         MyPageQuery myProfileInfo = memberReadService.getMyProfile(memberNumber);
@@ -118,7 +118,7 @@ public class MemberService {
         validator.validateMemberUpdate(request);
 
         //3 인증된 사용자 조회
-        String memberNumber = currentUser.getMemberNumber();
+        String memberNumber = currentUser.getMemberId();
 
         //4. 정보 수정
         if (request.getName() != null) {
@@ -151,7 +151,7 @@ public class MemberService {
 
     public MemberUpdateResponse changeEmail(EmailUpdateRequest request) {
         //1 인증된 사용자 조회
-        String memberNumber = currentUser.getMemberNumber();
+        String memberNumber = currentUser.getMemberId();
 
         //2. 이메일 검증 완료 확인
         validateEmailVerification(request.getEmail(), request.getToken());

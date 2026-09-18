@@ -39,8 +39,8 @@ import static com.moneymanager.global.exception.code.ErrorCode.UNAUTHORIZED;
 @Component
 public class CurrentUser {
 
-	public String getMemberNumber() {
-		return getCurrentUser().getMemberNumber();
+	public String getMemberId() {
+		return getCurrentUser().getId();
 	}
 
 

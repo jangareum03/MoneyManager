@@ -367,7 +367,6 @@ class AuthApiControllerIT extends IntegrationTest {
         void returns400AndMessage_whenAuthCodeDoesNotMatch() throws Exception {
             //given
             String email = MemberTestData.DEFAULT_EMAIL;
-            String code = "123456";
 
             //when
             mockMvc
@@ -430,7 +429,7 @@ class AuthApiControllerIT extends IntegrationTest {
             Cookie oldToken = accessTokenCookie(member.getMemberNumber());
             AccessToken refreshToken = tokenProvider.generateRefreshToken(
                     new CustomUserDetails(
-                            MemberAuth.builder().build()
+                            MemberAuth.forAuthentication(member.getId(), member.getRole(), member.getStatus())
                     )
             );
         	
@@ -522,13 +521,13 @@ class AuthApiControllerIT extends IntegrationTest {
             //토큰 생성
             AccessToken accessToken = tokenProvider.generateAccessToken(
                     new CustomUserDetails(
-                            MemberAuth.builder().memberNumber(member.getMemberNumber()).role("ROLE_USER").build()
+                            MemberAuth.forAuthentication(member.getId(), member.getRole(), member.getStatus())
                     )
             );
 
             AccessToken refreshToken = tokenProvider.generateRefreshToken(
                     new CustomUserDetails(
-                            MemberAuth.builder().memberNumber(member.getMemberNumber()).role("ROLE_USER").build()
+                            MemberAuth.forAuthentication(member.getId(), member.getRole(), member.getStatus())
                     )
             );
 

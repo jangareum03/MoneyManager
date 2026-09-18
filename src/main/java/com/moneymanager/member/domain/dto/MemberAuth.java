@@ -1,7 +1,6 @@
 package com.moneymanager.member.domain.dto;
 
 import com.moneymanager.member.domain.enums.MemberStatus;
-import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -33,7 +32,6 @@ import java.time.LocalDateTime;
  * 		</tbody>
  * </table>
  */
-@Builder
 @Getter
 public class MemberAuth {
 
@@ -45,5 +43,24 @@ public class MemberAuth {
 	private final MemberStatus status;
 	private final int loginFailCount;
 	private final LocalDateTime deletedDate;
+
+	private MemberAuth(String id, String memberNumber, String username, String password, String role, MemberStatus status, int loginFailCount, LocalDateTime deletedDate) {
+		this.id = id;
+		this.memberNumber = memberNumber;
+		this.username = username;
+		this.password = password;
+		this.role = role;
+		this.status = status;
+		this.loginFailCount = loginFailCount;
+		this.deletedDate = deletedDate;
+	}
+
+	public static MemberAuth forLogin(String memberNumber, String username, String password, String role, MemberStatus status, int loginFailCount, LocalDateTime deletedDate) {
+		return new MemberAuth(null, memberNumber, username, password, role, status, loginFailCount, deletedDate);
+	}
+
+	public static MemberAuth forAuthentication(String id, String role, MemberStatus status) {
+		return new MemberAuth(id, null, null, null, role, status, 0, null);
+	}
 
 }

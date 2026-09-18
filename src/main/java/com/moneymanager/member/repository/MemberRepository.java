@@ -162,10 +162,10 @@ public class MemberRepository {
 
     public boolean updateGender(String memberId, String gender) {
         String query = """
-                UPDATE member_info
-                    SET gender = ?
-                    WHERE member_id = ?
-        """;
+                        UPDATE member_info
+                            SET gender = ?
+                            WHERE member_id = ?
+                """;
 
         return jdbcTemplate.update(
                 query, gender, memberId
@@ -196,44 +196,9 @@ public class MemberRepository {
         return jdbcTemplate.queryForObject(query, memberRowMapper, id);
     }
 
-    public Optional<MemberAuth> findAuthByMemberNumber(String memberNumber) {
-        String query = """
-                SELECT m.id, m.member_number, m.username, m.password, m.role, m.status, m.deleted_at, mi.failure_count
-                    FROM member m
-                        JOIN member_info mi
-                	        ON m.id = mi.member_id
-                    WHERE m.member_number = ?
-                """;
-
-        try {
-            return Optional.ofNullable(
-                    jdbcTemplate.queryForObject(
-                            query,
-                            (rs, rowNum) -> MemberAuth.builder()
-                                    .id(rs.getString("id"))
-                                    .memberNumber(rs.getString("member_number"))
-                                    .username(rs.getString("username"))
-                                    .password(rs.getString("password"))
-                                    .role(rs.getString("role"))
-                                    .status(MemberStatus.fromValue(rs.getString("status")))
-                                    .loginFailCount(rs.getInt("failure_count"))
-                                    .deletedDate(
-                                            rs.getTimestamp("deleted_at") == null
-                                                    ? null
-                                                    : rs.getTimestamp("deleted_at").toLocalDateTime()
-                                    )
-                                    .build(),
-                            memberNumber
-                    )
-            );
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
-    }
-
     public Optional<MemberAuth> findAuthByUsername(String username) {
         String query = """
-                SELECT m.id, m.member_number, m.username, m.password, m.role, m.status, m.deleted_at, mi.failure_count
+                SELECT m.member_number, m.username, m.password, m.role, m.status, mi.failure_count, m.deleted_at
                 FROM member m
                     JOIN member_info mi
                 	    ON m.id = mi.member_id
@@ -244,21 +209,45 @@ public class MemberRepository {
             return Optional.ofNullable(
                     jdbcTemplate.queryForObject(
                             query,
-                            (rs, rowNum) -> MemberAuth.builder()
-                                    .id(rs.getString("id"))
-                                    .memberNumber(rs.getString("member_number"))
-                                    .username(rs.getString("username"))
-                                    .password(rs.getString("password"))
-                                    .role(rs.getString("role"))
-                                    .status(MemberStatus.fromValue(rs.getString("status")))
-                                    .loginFailCount(rs.getInt("failure_count"))
-                                    .deletedDate(
-                                            rs.getTimestamp("deleted_at") == null
-                                                    ? null
-                                                    : rs.getTimestamp("deleted_at").toLocalDateTime()
-                                    )
-                                    .build(),
+                            (rs, rowNum) -> MemberAuth.forLogin(
+                                    rs.getString("member_number"),
+                                    rs.getString("username"),
+                                    rs.getString("password"),
+                                    rs.getString("role"),
+                                    MemberStatus.fromValue(rs.getString("status")),
+                                    rs.getInt("failure_count"),
+                                    rs.getTimestamp("deleted_at") == null
+                                            ? null
+                                            : rs.getTimestamp("deleted_at").toLocalDateTime()
+                            )
+                            ,
                             username
+                    )
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<MemberAuth> findAuthByMemberNumber(String memberNumber) {
+        String query = """
+                SELECT m.id, m.role, m.status
+                    FROM member m
+                        JOIN member_info mi
+                	        ON m.id = mi.member_id
+                    WHERE m.member_number = ?
+                """;
+
+        try {
+            return Optional.ofNullable(
+                    jdbcTemplate.queryForObject(
+                            query,
+                            (rs, rowNum) -> MemberAuth.forAuthentication(
+                                    rs.getString("id"),
+                                    rs.getString("role"),
+                                    MemberStatus.fromValue(rs.getString("status"))
+                            ),
+                            memberNumber
                     )
             );
         } catch (EmptyResultDataAccessException e) {

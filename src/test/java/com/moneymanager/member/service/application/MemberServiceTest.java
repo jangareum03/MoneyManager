@@ -145,7 +145,7 @@ class MemberServiceTest {
         @DisplayName("회원 정보를 반환한다.")
         void returnsDefaultProfile_whenMemberExists() {
             //given
-            when(currentUser.getMemberNumber())
+            when(currentUser.getMemberId())
                     .thenReturn(MemberTestData.DEFAULT_NUMBER);
 
             when(memberReadService.getMyProfile(MemberTestData.DEFAULT_NUMBER))
@@ -172,7 +172,7 @@ class MemberServiceTest {
         @DisplayName("날짜는 지정된 포맷으로 저장한다.")
         void returnsFormattedDate_whenMemberExists() {
             //given
-            when(currentUser.getMemberNumber())
+            when(currentUser.getMemberId())
                     .thenReturn(MemberTestData.DEFAULT_NUMBER);
 
             when(memberReadService.getMyProfile(MemberTestData.DEFAULT_NUMBER))
@@ -193,7 +193,7 @@ class MemberServiceTest {
         @DisplayName("인증된 사용자 조회가 실패하면 예외를 전파한다.")
         void throwsException_whenAuthenticationFails() {
             //given
-            when(currentUser.getMemberNumber())
+            when(currentUser.getMemberId())
                     .thenThrow(ApplicationException.class);
 
             //when
@@ -205,7 +205,7 @@ class MemberServiceTest {
         @DisplayName("회원정보 조회를 실패하면 예외를 전파한다.")
         void throwsException_whenMemberNotFound() {
             //given
-            when(currentUser.getMemberNumber())
+            when(currentUser.getMemberId())
                     .thenReturn(MemberTestData.DEFAULT_NUMBER);
 
             when(memberReadService.getMyProfile(MemberTestData.DEFAULT_NUMBER))
@@ -232,7 +232,7 @@ class MemberServiceTest {
 
             @BeforeEach
             void setUp() {
-                when(currentUser.getMemberNumber())
+                when(currentUser.getMemberId())
                         .thenReturn(MemberTestData.DEFAULT_NUMBER);
             }
 
@@ -325,7 +325,7 @@ class MemberServiceTest {
             	//given
                 request = MemberUpdateRequest.of(null, null, null);
 
-                when(currentUser.getMemberNumber())
+                when(currentUser.getMemberId())
                         .thenReturn(MemberTestData.DEFAULT_NUMBER);
 
                 //when
@@ -344,7 +344,7 @@ class MemberServiceTest {
             @DisplayName("인증된 사용자가 아니면 예외를 전파한다.")
             void throwException_whenMemberIsNotAuthenticated() {
             	//given
-                when(currentUser.getMemberNumber())
+                when(currentUser.getMemberId())
                         .thenThrow(ApplicationException.class);
             	
             	//when
@@ -377,7 +377,7 @@ class MemberServiceTest {
 
         @BeforeEach
         void setUp() {
-            when(currentUser.getMemberNumber())
+            when(currentUser.getMemberId())
                     .thenReturn(MemberTestData.DEFAULT_NUMBER);
         }
 
@@ -413,7 +413,7 @@ class MemberServiceTest {
             @DisplayName("인증된 사용자가 아니면 이메일 검증 메서드를 진행하지 않는다.")
             void doesNotExecuteEmailVerification_whenMemberIsNotAuthenticated() {
             	//given
-                when(currentUser.getMemberNumber())
+                when(currentUser.getMemberId())
                         .thenThrow(ApplicationException.class);
             	
             	//when
@@ -431,7 +431,7 @@ class MemberServiceTest {
                 String email = "change@test.com";
                 String token = "token";
 
-                when(currentUser.getMemberNumber())
+                when(currentUser.getMemberId())
                         .thenReturn(MemberTestData.DEFAULT_NUMBER);
 
                 when(request.getEmail())
@@ -461,7 +461,7 @@ class MemberServiceTest {
                 String email = "change@test.com";
                 String token = "token";
 
-                when(currentUser.getMemberNumber())
+                when(currentUser.getMemberId())
                         .thenReturn(MemberTestData.DEFAULT_NUMBER);
 
                 when(request.getEmail())

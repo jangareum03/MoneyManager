@@ -117,7 +117,7 @@ class LedgerHistoryServiceTest {
 
             @BeforeEach
             void setUp() {
-                when(currentUser.getMemberNumber())
+                when(currentUser.getMemberId())
                         .thenReturn(MemberTestData.DEFAULT_ID);
 
                 when(ledgerPolicy.resolveHistoryPeriod(any(), any()))
@@ -228,7 +228,7 @@ class LedgerHistoryServiceTest {
                 //given
                 clock.set(LocalDate.of(2026, 8, 5));
 
-                when(currentUser.getMemberNumber())
+                when(currentUser.getMemberId())
                         .thenReturn(MemberTestData.DEFAULT_ID);
 
                 doThrow(ApplicationException.class)
@@ -268,7 +268,7 @@ class LedgerHistoryServiceTest {
 
         @BeforeEach
         void setUp() {
-            when(currentUser.getMemberNumber())
+            when(currentUser.getMemberId())
                     .thenReturn(MemberTestData.DEFAULT_ID);
         }
 

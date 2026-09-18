@@ -14,32 +14,28 @@ import java.util.List;
 
 final class WithMockCustomUserSecurityContextFactory implements WithSecurityContextFactory<WithMockCustomUser> {
 
-	@Override
-	public SecurityContext createSecurityContext(WithMockCustomUser withMockCustomUser) {
-		SecurityContext context = SecurityContextHolder.createEmptyContext();
+    @Override
+    public SecurityContext createSecurityContext(WithMockCustomUser withMockCustomUser) {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
 
-		MemberAuth memberAuth = MemberAuth.builder()
-															.memberNumber(withMockCustomUser.memberId())
-															.username(withMockCustomUser.username())
-															.password(withMockCustomUser.password())
-															.role(withMockCustomUser.role())
-															.status(MemberStatus.ACTIVE)
-															.loginFailCount(1)
-															.deletedDate(null)
-															.build();
+        MemberAuth memberAuth = MemberAuth.forAuthentication(
+                withMockCustomUser.memberId(),
+                withMockCustomUser.role(),
+                MemberStatus.ACTIVE
+        );
 
-		CustomUserDetails principal = new CustomUserDetails(memberAuth);
+        CustomUserDetails principal = new CustomUserDetails(memberAuth);
 
-		UsernamePasswordAuthenticationToken authenticationToken =
-				new UsernamePasswordAuthenticationToken(
-						principal,
-						principal.getPassword(),
-						List.of(new SimpleGrantedAuthority(memberAuth.getRole()))
-				);
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(
+                        principal,
+                        principal.getPassword(),
+                        List.of(new SimpleGrantedAuthority(memberAuth.getRole()))
+                );
 
-		context.setAuthentication(authenticationToken);
+        context.setAuthentication(authenticationToken);
 
-		return context;
-	}
+        return context;
+    }
 
 }
