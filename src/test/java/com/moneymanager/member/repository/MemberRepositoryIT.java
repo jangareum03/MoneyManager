@@ -962,4 +962,48 @@ class MemberRepositoryIT extends IntegrationTest {
 
     }
 
+
+    @Nested
+    @DisplayName("프로필 존재여부를 조회할 때")
+    class ExistsProfile {
+        
+        Member member;
+
+        @BeforeEach
+        void setUp() {
+            member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder().profile("test1.png"))
+                    .buildWithEncodePassword((passwordEncoder.encode("password123")));
+            
+            insertMember(member);
+        }
+
+        @Test
+        @DisplayName("동일한 프로필이 있으면 true를 반환한다.")
+        void returnsTrue_whenSameMemberProfileExists() {
+        	//given
+            String profile = member.getInfo().getProfile();
+        	
+        	//when
+            boolean result = target.existsByProfile(profile);
+        	
+        	//then
+        	assertThat(result).isTrue();
+        }
+        
+        @Test
+        @DisplayName("동일한 프로필이 없으면 false를 반환한다.")
+        void returnsFalse_whenSameMemberProfileDoesNotExist() {
+            //given
+            String profile = "no-profile";
+
+            //when
+            boolean result = target.existsByProfile(profile);
+
+            //then
+            assertThat(result).isFalse();
+        }
+
+    }
+
 }

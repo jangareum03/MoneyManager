@@ -1,6 +1,5 @@
 package com.moneymanager.global.file;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -34,11 +33,13 @@ import java.nio.file.Path;
  * </table>
  */
 @Component
-@RequiredArgsConstructor
 public class ImagePathResolver {
 
-    @Value("${file.root}")
     private final Path root;
+
+    public ImagePathResolver(@Value("${file.root}") Path root) {
+        this.root = root;
+    }
 
     public Path profilePath(String memberId) {
         return root.resolve("profile").resolve(memberId);

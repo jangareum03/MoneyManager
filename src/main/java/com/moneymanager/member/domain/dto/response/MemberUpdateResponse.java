@@ -30,7 +30,7 @@ import lombok.Getter;
  * </table>
  */
 @Getter
-public class MemberUpdateResponse {
+public class    MemberUpdateResponse {
 
     private final String type;
     private final String value;

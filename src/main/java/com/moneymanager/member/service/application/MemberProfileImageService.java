@@ -1,17 +1,23 @@
 package com.moneymanager.member.service.application;
 
 import com.moneymanager.global.exception.ApplicationException;
+import com.moneymanager.global.file.FileStorage;
+import com.moneymanager.global.file.ImagePathResolver;
 import com.moneymanager.global.log.LogContent;
-import com.moneymanager.member.domain.query.MemberProfileQuery;
 import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.domain.query.MemberProfileQuery;
 import com.moneymanager.member.repository.MemberRepository;
-import com.moneymanager.member.service.read.ImagePathResolver;
+import com.moneymanager.member.service.generator.UuidGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Optional;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
+import static com.moneymanager.global.exception.code.ErrorCode.FILE_UPLOAD_FAILED;
 
 /**
  * <p>
@@ -46,8 +52,52 @@ public class MemberProfileImageService {
 
     private static final String DEFAULT_PROFILE = "/image/default/profile.png";
 
-    private final ImagePathResolver pathResolver;
     private final MemberRepository memberRepository;
+    private final ImagePathResolver pathResolver;
+    private final FileStorage fileStorage;
+    private final UuidGenerator uuidGenerator;
+
+    public String changeName(String fileName) {
+        return uuidGenerator.generate() + fileStorage.extractFileExtension(fileName);
+    }
+
+    public boolean exists(String fileName) {
+        return memberRepository.existsByProfile(fileName);
+    }
+
+    public Path getRoot(String memberId) {
+        return pathResolver.profilePath(memberId);
+    }
+
+    public String getDefaultProfile() {
+        return DEFAULT_PROFILE;
+    }
+
+    public String getProfileName(String memberId) {
+        Optional<MemberProfileQuery> query = memberRepository.findProfileByMemberNumber(memberId);
+
+        return query.get().getProfile();
+    }
+
+    public void save(String memberId, MultipartFile file, String saveName) {
+        //1. 프로필 절대 경로
+        Path root = getRoot(memberId);
+
+        //2. 폴더 생성 및 파일 저장
+        try{
+            fileStorage.createDirectory(root);
+            fileStorage.saveFile(root, file, saveName);
+        }catch (IOException e) {
+            throw new ApplicationException(
+                    FILE_UPLOAD_FAILED,
+                    LogContent.of(
+                            "프로필 수정",
+                            MultipartFile.class,
+                            "originalName", file.getOriginalFilename()
+                    )
+            ).withMessageKey("member.update.failed");
+        }
+    }
 
     public String get(String memberNumber) {
         //1. 프로필 경로 조회
@@ -69,10 +119,10 @@ public class MemberProfileImageService {
         String profile =  query.get().getProfile();
 
         if(profile == null) {
-            return DEFAULT_PROFILE;
+            return getDefaultProfile();
         }
 
-        return pathResolver.getRootPath().resolve(profile).toString();
+        return pathResolver.profilePath(memberNumber).resolve(profile).toString();
     }
 
 }

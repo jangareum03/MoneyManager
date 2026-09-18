@@ -7,12 +7,14 @@ import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
+import com.moneymanager.support.fixture.file.ImageFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -132,6 +134,7 @@ class MemberApiControllerIT extends IntegrationTest {
 
     }
 
+
     @Nested
     @DisplayName("회원정보 수정 요청할 때")
     class UpdateMember {
@@ -249,6 +252,73 @@ class MemberApiControllerIT extends IntegrationTest {
             Member saved = memberRepository.findById(member.getId());
 
             assertThat(saved.getName()).isNotEqualTo("한성빈");
+        }
+    }
+
+
+    @Nested
+    @DisplayName("프로필 수정 요청할 때")
+    class UpdateProfile {
+
+        Member member;
+
+        @BeforeEach
+        void setUp() {
+            member = MemberTestFixture.builder()
+                    .withMemberInfo(MemberInfoTestFixture.builder().profile("test.png"))
+                    .build();
+        }
+        
+        @Test
+        @DisplayName("프로필 이미지가 없으면 기본 이미지로 변경된다.")
+        void updatesMemberProfileImageToDefault_whenImageIsNull() throws Exception {
+        	//when
+            mockMvc.perform(
+                    put(BASE_URL + "/profile")
+                            .cookie(accessTokenCookie(member.getMemberNumber()))
+            )
+                    .andDo(print())
+                    .andExpect(jsonPath("$.type").value("profile"));
+        }
+        
+        @Test
+        @DisplayName("프로필 이미지로 변경된다.")
+        void updatesMemberProfileImage_whenValidImageProvided() throws Exception {
+        	//given
+            MockMultipartFile multipartFile = ImageFixture.jpg("test");
+        	
+        	//when
+            mockMvc.perform(
+                    multipart(BASE_URL + "/profile")
+                            .file(multipartFile)
+                            .cookie(accessTokenCookie(member.getMemberNumber()))
+                            .with(request -> {
+                                request.setMethod("PUT");
+
+                                return request;
+                            })
+            )
+                    .andExpect(jsonPath("$.type").value("profile"));
+        }
+        
+        @Test
+        @DisplayName("잘못된 프로필 이미지면 변경에 실패한다.")
+        void failsToUpdateMemberProfileImage_whenInvalidImageProvided() throws Exception {
+        	//given
+            MockMultipartFile multipartFile = ImageFixture.empty("test");
+
+            //when
+            mockMvc.perform(
+                            multipart(BASE_URL + "/profile")
+                                    .file(multipartFile)
+                                    .cookie(accessTokenCookie(member.getMemberNumber()))
+                                    .with(request -> {
+                                        request.setMethod("PUT");
+
+                                        return request;
+                                    })
+                    )
+                    .andExpect(jsonPath("$.messageKey").value("member.profile.invalid"));
         }
     }
 

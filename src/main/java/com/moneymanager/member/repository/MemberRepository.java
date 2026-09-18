@@ -476,4 +476,19 @@ public class MemberRepository {
         return exist == 1;
     }
 
+    public boolean existsByProfile(String profile) {
+        String query = """
+                SELECT COUNT(*)
+                    FROM member_info
+                    WHERE profile IS NOT NULL
+                        AND profile = ?
+                """;
+
+        return jdbcTemplate.queryForObject(
+                query,
+                Integer.class,
+                profile
+        ) > 0;
+    }
+
 }

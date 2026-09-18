@@ -15,11 +15,13 @@ import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.query.MyPageQuery;
 import com.moneymanager.member.service.command.MemberCommandService;
 import com.moneymanager.member.service.read.MemberReadService;
+import com.moneymanager.member.service.validation.MemberProfileValidator;
 import com.moneymanager.member.service.validation.MemberValidator;
 import com.moneymanager.redis.service.EmailVerificationService;
 import com.moneymanager.redis.service.SideBarMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -63,6 +65,7 @@ public class MemberService {
     private final MemberProfileImageService profileImageService;
     private final SideBarMemberService sideBarMemberService;
     private final EmailVerificationService emailVerification;
+    private final MemberProfileValidator profileValidator;
     private final MemberValidator validator;
     private final CurrentUser currentUser;
 
@@ -166,6 +169,44 @@ public class MemberService {
         emailVerification.deleteToken(request.getEmail());
 
         return MemberUpdateResponse.of("email", request.getEmail());
+    }
+
+    public MemberUpdateResponse changeProfile(MultipartFile file) {
+        //1. 인증된 사용자 조회
+        String memberId = currentUser.getMemberId();
+
+        //2. 기존회원 정보 조회
+        String profileName = profileImageService.getProfileName(memberId);
+
+        if(file == null) {
+            memberCommandService.updateProfile(memberId, profileName, "");
+            return MemberUpdateResponse.of("profile", profileImageService.getDefaultProfile());
+        }
+
+        //2. 이미지 검증
+        profileValidator.validate(file);
+
+        //3.이미지명 변경
+        String saveName = profileImageService.changeName(file.getOriginalFilename());
+
+        if(profileImageService.exists(saveName)) {
+            throw new ApplicationException(
+                    FILE_UPLOAD_FAILED,
+                    LogContent.of(
+                            "프로필 수정",
+                            MultipartFile.class,
+                            "originalName", file.getOriginalFilename()
+                    )
+            ).withMessageKey("member.update.failed");
+        }
+
+        //4. 파일 저장
+        profileImageService.save(memberId, file, saveName);
+
+        //5. 데이터 저장
+        memberCommandService.updateProfile(memberId, file.getOriginalFilename(), saveName);
+
+        return MemberUpdateResponse.of("profile", profileImageService.getRoot(memberId).resolve(saveName).toString());
     }
 
 

@@ -10,6 +10,7 @@ import com.moneymanager.member.domain.dto.response.MemberUpdateResponse;
 import com.moneymanager.member.service.application.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -62,6 +63,12 @@ public class MemberApiController {
         return ApiBody.data(response);
     }
 
+    @PutMapping("/profile")
+    @Operation(ServiceAction.MEMBER_UPDATE)
+    public ApiBody<MemberUpdateResponse> updateProfile(@RequestBody MultipartFile file) {
+        MemberUpdateResponse response = memberService.changeProfile(file);
 
+        return ApiBody.data(response);
+    }
 
 }
