@@ -3,7 +3,7 @@ package com.moneymanager.global.config;
 import com.moneymanager.global.security.fillter.JwtAuthenticationFilter;
 import com.moneymanager.global.security.fillter.TraceIdFilter;
 import com.moneymanager.global.security.CustomAuthenticationProvider;
-import com.moneymanager.redis.service.SideBarMemberService;
+import com.moneymanager.member.service.redis.SideBarMemberRedisService;
 import com.moneymanager.member.service.application.TokenAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -58,7 +58,7 @@ import java.util.Arrays;
 public class SecurityConfig {
 
 	private final TokenAuthService tokenAuthService;
-	private final SideBarMemberService sideBarMemberService;
+	private final SideBarMemberRedisService sideBarMemberService;
 
 	@Bean
 	public TraceIdFilter traceIdFilter() {
@@ -95,7 +95,13 @@ public class SecurityConfig {
 				.sessionManagement( session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) )
 				.authorizeHttpRequests(auth -> auth
 						.antMatchers("/css/**", "/js/**", "/image/**").permitAll()
-						.antMatchers("/api/auth/**", "/auth/**").permitAll()
+						.antMatchers(
+								"/login",
+								"/signup",
+								"/account/find/id",
+								"/password/reset"
+						).permitAll()
+						.antMatchers("/api/auth/**").permitAll()
 						.anyRequest().hasRole("USER")
 				)
 				.authenticationManager(authenticationManager)

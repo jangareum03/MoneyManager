@@ -23,7 +23,7 @@ import com.moneymanager.ledger.service.read.CategoryReadService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.ledger.service.validation.LedgerRegisterValidator;
 import com.moneymanager.ledger.service.validation.LedgerUpdateValidator;
-import com.moneymanager.member.service.read.MemberReadService;
+import com.moneymanager.member.service.read.MemberReader;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerTestFixture;
 import com.moneymanager.support.fixture.entity.category.IncomeCategoryFixture;
@@ -100,7 +100,7 @@ class LedgerServiceTest {
     private CategoryReadService categoryReadService;
 
     @Mock
-    private MemberReadService memberReadService;
+    private MemberReader memberReader;
 
     @Mock
     private LedgerCommandService ledgerCommandService;
@@ -189,7 +189,7 @@ class LedgerServiceTest {
                 when(categoryReadService.getMiddleCategories(type))
                         .thenReturn(IncomeCategoryFixture.createMiddleAll());
 
-                when(memberReadService.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
+                when(memberReader.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
                         .thenReturn(1);
 
                 when(ledgerPolicy.imageSlots(1))
@@ -241,7 +241,7 @@ class LedgerServiceTest {
                 when(categoryReadService.getMiddleCategories(type))
                         .thenReturn(OutlayCategoryFixture.createMiddleAll());
 
-                when(memberReadService.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
+                when(memberReader.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
                         .thenReturn(1);
 
                 when(ledgerPolicy.imageSlots(1))
@@ -274,7 +274,7 @@ class LedgerServiceTest {
                 when(categoryReadService.getMiddleCategories(eq(LedgerType.INCOME)))
                         .thenReturn(IncomeCategoryFixture.createMiddleAll());
 
-                when(memberReadService.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
+                when(memberReader.getAvailableImageCount(eq(MemberTestData.DEFAULT_ID)))
                         .thenReturn(1);
 
                 when(ledgerPolicy.imageSlots(1))
@@ -362,7 +362,7 @@ class LedgerServiceTest {
                 when(currentUser.getMemberId())
                         .thenReturn("nonExistent");
 
-                when(memberReadService.getAvailableImageCount("nonExistent"))
+                when(memberReader.getAvailableImageCount("nonExistent"))
                         .thenThrow(ApplicationException.class);
 
                 //when & then

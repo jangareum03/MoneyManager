@@ -1,14 +1,11 @@
 package com.moneymanager.member.service.validation;
 
-import com.moneymanager.global.exception.ApplicationException;
-import com.moneymanager.global.log.LogContent;
 import com.moneymanager.member.domain.dto.request.FindIdRequest;
 import com.moneymanager.member.domain.dto.request.FindPwdRequest;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
 import com.moneymanager.member.domain.dto.request.MemberUpdateRequest;
 import org.springframework.stereotype.Component;
-
-import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_NOT_EXIST;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -41,19 +38,10 @@ import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_NOT_EXIS
 public class MemberValidator {
 
     private final MemberFieldValidator fieldValidator = new MemberFieldValidator();
+    private final MemberProfileValidator profileValidator = new MemberProfileValidator();
 
-    public void signUp(MemberSignUpRequest request) {
-        String work = "회원가입 요청 검증";
-
-        if(request == null) {
-            throw new ApplicationException(
-                    REQUIRED_NOT_EXIST,
-                    LogContent.of(
-                            work,
-                            MemberSignUpRequest.class
-                    )
-            ).withMessageKey("member.signup.unavailable");
-        }
+    public void validateSignup(MemberSignUpRequest request) {
+        String work = "회원가입 검증";
 
         fieldValidator.validateUsername(request.getUsername(), work);
         fieldValidator.validatePassword(request.getPassword(), work);
@@ -86,20 +74,23 @@ public class MemberValidator {
     }
 
     public void validateMemberUpdate(MemberUpdateRequest request) {
-        String work = "회원 수정 요청 검증";
+        String work = "회원정보 검증";
 
-        if(request.getName() != null) {
-            fieldValidator.validateName(request.getName(), work);
+        switch (request.determineUpdateType()) {
+            case NAME -> fieldValidator.validateName(request.getName(), work);
+            case GENDER -> fieldValidator.validateGender(request.getGender(), work);
+            case  PASSWORD -> fieldValidator.validatePassword(request.getPassword(), work);
         }
+    }
 
-        if(request.getGender() != null) {
-            fieldValidator.validateGender(request.getGender(), work);
-        }
+    public void validateUsername(String username) {
+        String work = "아이디 검증";
 
-        if(request.getPassword() != null) {
-            fieldValidator.validatePassword(request.getPassword(), work);
-        }
+        fieldValidator.validateUsername(username, work);
+    }
 
+    public void validateProfile(MultipartFile file) {
+        profileValidator.validate(file);
     }
 
     public void validateEmail(String email) {

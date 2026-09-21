@@ -76,7 +76,7 @@ public class JwtTokenProvider {
 		Date expiration = new Date(now.getTime() + ACCESS_TOKEN_EXPIRATION_SECONDS * 1000);
 
 		String token = Jwts.builder()
-				.subject(userDetails.getMemberNumber())										//토큰 제목
+				.subject(userDetails.getId())																//토큰 제목
 				.claim("role", roles)																//클레임 설정
 				.claim("type", "access")
 				.issuedAt(now)																					//토큰 발급시간
@@ -109,7 +109,7 @@ public class JwtTokenProvider {
 		Date expiration = new Date(now.getTime() + REFRESH_TOKEN_EXPIRATION_SECONDS * 1000);
 
 		String token =  Jwts.builder()
-				.subject(userDetails.getMemberNumber())										//토큰 제목
+				.subject(userDetails.getId())																//토큰 제목
 				.claim("type", "refresh")											//클레임 설정
 				.issuedAt(now)																					//토큰 발급시간
 				.expiration(expiration)																		//토큰 만료시간

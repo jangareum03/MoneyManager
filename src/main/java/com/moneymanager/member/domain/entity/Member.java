@@ -1,5 +1,6 @@
 package com.moneymanager.member.domain.entity;
 
+import com.moneymanager.member.domain.enums.MemberGender;
 import com.moneymanager.member.domain.enums.MemberStatus;
 import com.moneymanager.member.domain.enums.MemberType;
 import lombok.Getter;
@@ -39,17 +40,17 @@ public class Member {
 	private String id;											//회원번호(내부용)
 	private String memberNumber;								//회원번호(외부용)
 	private final String username;								//아이디
-	private final String password;								//비밀번호
-	private final String name;										//이름
+	private String password;								//비밀번호
+	private String name;										//이름
 	private final String birthdate;								//생년월일
-	private final LocalDateTime createdAt;				//가입일
 
-	private MemberType type;										//회원유형
+	private final MemberType type;										//회원유형
 	private MemberStatus status;								//회원상태
-	private String role;												//회원권한
+	private final String role;												//회원권한
 	private String nickname;										//닉네임
 	private String email;												//이메일
-	private LocalDateTime deletedAt;						//탈퇴일
+	private final LocalDateTime createdAt;				//가입일
+	private final LocalDateTime deletedAt;						//탈퇴일
 
 	private MemberInfo info;										//상세정보
 
@@ -71,9 +72,10 @@ public class Member {
 		this.info = info;
 	}
 
-	//생성용
-	public static Member of(String id, String memberNumber, String username, String password, String name, String birthdate, String nickname, String email, MemberType type, MemberInfo info) {
-		return new Member(id, memberNumber, username, password, name, birthdate, nickname, email, null, type, null, null, null, info);
+	public static Member createForJoin(String id, String number, String username, String password, String name, String birthdate, String nickname, String email, MemberGender gender) {
+		MemberInfo memberInfo = MemberInfo.create(id, gender);
+
+		return new Member(id, number, username, password, name, birthdate, nickname, email, "ROLE_USER", MemberType.COMMON, MemberStatus.ACTIVE, LocalDateTime.now(), LocalDateTime.now(), memberInfo);
 	}
 
 	//DB용
@@ -87,6 +89,64 @@ public class Member {
 
 	public void changeId(String id) {
 		this.id = id;
+	}
+
+	public void changeName(String newName) {
+		if(status != MemberStatus.ACTIVE) {
+			throw new IllegalStateException(status.name() + "상태에서 수정 불가");
+		}
+
+		if(name.equals(newName)) {
+			throw new IllegalArgumentException("동일값 수정 불가");
+		}
+
+		this.name = newName;
+	}
+
+	public void changePassword(String newPassword) {
+		if(status != MemberStatus.ACTIVE) {
+			throw new IllegalStateException(status.name() + "상태에서 수정 불가");
+		}
+
+		if(password.equals(newPassword)) {
+			throw new IllegalArgumentException("동일값 수정 불가");
+		}
+
+		this.password = newPassword;
+	}
+
+	public void changeGender(String newGender) {
+		if(status !=MemberStatus.ACTIVE) {
+			throw new IllegalStateException(status.name() + "상태에서 수정 불가");
+		}
+
+		MemberGender gender =  MemberGender.fromValue(newGender);
+
+		if(getInfo().getGender() == gender) {
+			throw new IllegalArgumentException("동일값 수정 불가");
+		}
+
+		info.changeGender(gender);
+	}
+
+	public void changeEmail(String newEmail) {
+		if(status != MemberStatus.ACTIVE) {
+			throw new IllegalStateException(status.name() + "상태에서 수정 불가");
+		}
+
+		if(email.equals(newEmail)) {
+			throw new IllegalArgumentException("동일값 수정 불가");
+		}
+
+		this.email = newEmail;
+	}
+
+	public void changeProfile(String newProfile) {
+		if(status != MemberStatus.ACTIVE) {
+			throw new IllegalStateException(status.name() + "상태에서 수정 불가");
+		}
+
+		info.changeProfile(newProfile);
 	}
 
 }

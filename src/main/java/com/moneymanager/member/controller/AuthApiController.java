@@ -4,10 +4,11 @@ import com.moneymanager.global.domain.dto.response.api.ApiBody;
 import com.moneymanager.global.exception.annotation.ApiController;
 import com.moneymanager.global.log.operation.annotation.Operation;
 import com.moneymanager.global.log.operation.enums.ServiceAction;
-import com.moneymanager.member.domain.dto.request.*;
+import com.moneymanager.member.domain.dto.request.FindIdRequest;
+import com.moneymanager.member.domain.dto.request.FindPwdRequest;
 import com.moneymanager.member.domain.dto.response.FindIdResponse;
 import com.moneymanager.member.domain.dto.response.FindPwdResponse;
-import com.moneymanager.member.service.application.AccountService;
+import com.moneymanager.member.service.application.MemberService;
 import com.moneymanager.member.service.application.TokenAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
  * 파일이름       : AuthApiController<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 9. 6<br>
- * 설명              : 회원 인증 관련 요청을 처리하는 클래스
+ * 설명              : 회원 인증 토큰 관련 요청을 처리하는 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -47,42 +48,23 @@ import javax.servlet.http.HttpServletResponse;
 @RequiredArgsConstructor
 public class AuthApiController {
 
-    private final AccountService accountService;
+    private final MemberService memberService;
     private final TokenAuthService tokenAuthService;
 
-    @PostMapping("/account/find-id")
+    @PostMapping("/account/find/id")
     @Operation(ServiceAction.MEMBER_FIND_ID)
     public ApiBody<FindIdResponse> findId(@RequestBody FindIdRequest request) {
-        FindIdResponse response = accountService.findId(request);
+        FindIdResponse response = memberService.findId(request);
 
         return ApiBody.data(response);
     }
 
-    @PostMapping("/account/find-password")
+    @PostMapping("/account/find/password")
     @Operation(ServiceAction.MEMBER_FIND_PWD)
     public ApiBody<FindPwdResponse> findPwd(@RequestBody FindPwdRequest request) {
-        FindPwdResponse response = accountService.findPassword(request);
+        FindPwdResponse response = memberService.findPassword(request);
 
         return ApiBody.data(response);
-    }
-
-    @PostMapping("/email/send-code")
-    @Operation(ServiceAction.MEMBER_EMAIL_CODE)
-    public ApiBody<Void> sendCode(@RequestBody SendVerificationCodeRequest request){
-        accountService.verifyEmail(request.email());
-
-        return ApiBody.message("email.verification.send");
-    }
-
-    @PostMapping("/email/verify-code")
-    @Operation(ServiceAction.MEMBER_EMAIL_CHECK)
-    public ApiBody<String> verifyEmail(@RequestBody EmailVerifyRequest request) {
-        String token = accountService.verifyEmailCode(request.email(), request.code());
-
-        return ApiBody.data(
-                "email.verification.success",
-                token
-        );
     }
 
     @PostMapping("/refresh")
@@ -91,17 +73,6 @@ public class AuthApiController {
         tokenAuthService.reissueToken(refreshToken, response);
 
         return ApiBody.message(null);
-    }
-
-    @PostMapping("/signup")
-    @Operation(ServiceAction.MEMBER_SIGNUP)
-    public ApiBody<Void> signUp(@RequestBody MemberSignUpRequest request) {
-        accountService.processSignUp(request);
-
-        return ApiBody.next(
-                "member.signup.success",
-                "/auth/login"
-        );
     }
 
 }

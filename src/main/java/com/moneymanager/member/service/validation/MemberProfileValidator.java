@@ -45,24 +45,10 @@ public class MemberProfileValidator {
     private final String work = "회원 프로필 파일 검증";
 
     public void validate(MultipartFile file) {
-        validateFile(file);
         validateContentType(file.getContentType());
         validateExtension(file, List.of("jpg", "jpeg", "png"));
         validateHeader(file, List.of("89504E47", "FFD8FFE0"));
         validateSize(file.getSize());
-
-    }
-
-    private void validateFile(MultipartFile file) {
-        if (file == null) {
-            throw new ApplicationException(
-                    FILE_NOT_FOUND,
-                    LogContent.of(
-                            "회원 프로필 파일 검증",
-                            MultipartFile.class
-                    )
-            ).withMessageKey("member.profile.required");
-        }
     }
 
     private void validateContentType(String contentType) {

@@ -12,7 +12,7 @@ import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
 import com.moneymanager.ledger.service.storage.LedgerImageStorage;
-import com.moneymanager.member.service.read.MemberReadService;
+import com.moneymanager.member.service.read.MemberReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -58,7 +58,7 @@ import static com.moneymanager.global.exception.code.ErrorCode.INTERVAL_SERVER_E
 @RequiredArgsConstructor
 public class LedgerImageService {
 
-    private final MemberReadService memberReadService;
+    private final MemberReader memberReader;
     private final LedgerImageRepository imageRepository;
 
     private final LedgerPolicy ledgerPolicy;
@@ -69,7 +69,7 @@ public class LedgerImageService {
     }
 
     void processImageUpload(String memberId, Long ledgerId, List<MultipartFile> images) {
-        int availImgCnt = memberReadService.getAvailableImageCount(memberId);
+        int availImgCnt = memberReader.getAvailableImageCount(memberId);
 
         List<SlotStatus> slots = ledgerPolicy.imageSlots(availImgCnt)
                 .stream()

@@ -1,5 +1,6 @@
 package com.moneymanager.member.domain.dto.request;
 
+import com.moneymanager.member.domain.enums.UpdateType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -46,6 +47,16 @@ public class MemberUpdateRequest {
 
     public static MemberUpdateRequest of(String name, String gender, String password) {
         return new MemberUpdateRequest(name, gender, password);
+    }
+
+    public UpdateType determineUpdateType() {
+        if(name != null) {
+            return UpdateType.NAME;
+        }else if(gender != null) {
+            return UpdateType.GENDER;
+        }else{
+            return UpdateType.PASSWORD;
+        }
     }
 
 }

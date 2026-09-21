@@ -32,9 +32,11 @@ import lombok.Getter;
 @Getter
 public enum ServiceAction {
 	//화면 요청
-	LOGIN("로그인", "/"),
+	LOGIN("로그인 화면", "/"),
+	SIGNUP("회원가입 화면", "/"),
 	MEMBER_FIND_ID_VIEW("아이디 찾기 화면", "/auth/account/find"),
 	MEMBER_RESET_PWD_VIEW("비밀번호 초기화 화면", "/"),
+	MY_PAGE("마이페이지 화면", "/"),
 	LEDGER_REGISTER_STEP1_VIEW("가계부 작성 1단계 화면 조회", "/ledgers"),
 	LEDGER_REGISTER_STEP2_VIEW("가계부 작성 2단계 화면 조회", "/ledgers/new/step1"),
 	LEDGER_REGISTER("가계부 등록", "/ledgers/new/step2"),

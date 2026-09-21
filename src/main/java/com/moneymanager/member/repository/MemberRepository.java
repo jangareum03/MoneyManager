@@ -124,7 +124,7 @@ public class MemberRepository {
         );
     }
 
-    public boolean updatePassword(String memberId, String password) {
+    public boolean updatePassword(Member member) {
         String query = """
                 UPDATE member
                     SET password = ?
@@ -132,11 +132,11 @@ public class MemberRepository {
                 """;
 
         return jdbcTemplate.update(
-                query, password, memberId
+                query, member.getPassword(), member.getId()
         ) == 1;
     }
 
-    public boolean updateEmail(String memberId, String email) {
+    public boolean updateEmail(Member member) {
         String query = """
                 UPDATE member
                     SET email = ?
@@ -144,11 +144,11 @@ public class MemberRepository {
                 """;
 
         return jdbcTemplate.update(
-                query, email, memberId
+                query, member.getEmail(), member.getId()
         ) == 1;
     }
 
-    public boolean updateName(String memberId, String name) {
+    public boolean updateName(Member member) {
         String query = """
                 UPDATE member
                     SET name = ?
@@ -156,11 +156,11 @@ public class MemberRepository {
                 """;
 
         return jdbcTemplate.update(
-                query, name, memberId
+                query, member.getName(), member.getId()
         ) == 1;
     }
 
-    public boolean updateGender(String memberId, String gender) {
+    public boolean updateGender(Member member) {
         String query = """
                         UPDATE member_info
                             SET gender = ?
@@ -168,11 +168,11 @@ public class MemberRepository {
                 """;
 
         return jdbcTemplate.update(
-                query, gender, memberId
+                query, member.getInfo().getGender().getValue(), member.getId()
         ) == 1;
     }
 
-    public boolean updateProfile(String memberId, String profile) {
+    public boolean updateProfile(Member member) {
         String query = """
                 UPDATE member_info
                     SET profile = ?
@@ -180,7 +180,7 @@ public class MemberRepository {
                 """;
 
         return jdbcTemplate.update(
-                query, profile, memberId
+                query, member.getInfo().getProfile(), member.getId()
         ) == 1;
     }
 
@@ -198,7 +198,7 @@ public class MemberRepository {
 
     public Optional<MemberAuth> findAuthByUsername(String username) {
         String query = """
-                SELECT m.member_number, m.username, m.password, m.role, m.status, mi.failure_count, m.deleted_at
+                SELECT m.id, m.username, m.password, m.nickname, m.role, m.status, mi.profile, mi.failure_count, m.deleted_at
                 FROM member m
                     JOIN member_info mi
                 	    ON m.id = mi.member_id
@@ -210,11 +210,13 @@ public class MemberRepository {
                     jdbcTemplate.queryForObject(
                             query,
                             (rs, rowNum) -> MemberAuth.forLogin(
-                                    rs.getString("member_number"),
+                                    rs.getString("id"),
                                     rs.getString("username"),
                                     rs.getString("password"),
+                                    rs.getString("nickname"),
                                     rs.getString("role"),
                                     MemberStatus.fromValue(rs.getString("status")),
+                                    rs.getString("profile"),
                                     rs.getInt("failure_count"),
                                     rs.getTimestamp("deleted_at") == null
                                             ? null
@@ -352,7 +354,7 @@ public class MemberRepository {
         }
     }
 
-    public Optional<MemberProfileQuery> findProfileByMemberNumber(String memberNumber) {
+    public Optional<MemberProfileQuery> findProfileByMemberId(String memberId) {
         String query = """
                 SELECT member_id, profile
                     FROM member m
@@ -370,7 +372,7 @@ public class MemberRepository {
                                             rs.getString("member_id"),
                                             rs.getString("profile")
                                     ),
-                            memberNumber
+                            memberId
                     )
             );
         } catch (EmptyResultDataAccessException e) {
@@ -402,6 +404,20 @@ public class MemberRepository {
                     ).withCause("존재하지 않은 회원")
             );
         }
+    }
+
+    public boolean existsByMemberNumber(String memberNumber) {
+        String query = """
+                SELECT 1
+                    FROM member
+                    WHERE member_number = ?
+                """;
+
+        return jdbcTemplate.queryForObject(
+                query,
+                Integer.class,
+                memberNumber
+        ) == 1;
     }
 
     public boolean existsByUsername(String username) {

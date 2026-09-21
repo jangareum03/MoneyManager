@@ -4,11 +4,13 @@ import com.moneymanager.global.domain.dto.response.api.ApiBody;
 import com.moneymanager.global.exception.annotation.ApiController;
 import com.moneymanager.global.log.operation.annotation.Operation;
 import com.moneymanager.global.log.operation.enums.ServiceAction;
+import com.moneymanager.global.security.CustomUserDetails;
 import com.moneymanager.member.domain.dto.request.EmailUpdateRequest;
 import com.moneymanager.member.domain.dto.request.MemberUpdateRequest;
 import com.moneymanager.member.domain.dto.response.MemberUpdateResponse;
-import com.moneymanager.member.service.application.MemberService;
+import com.moneymanager.member.service.application.MemberUpdateService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,28 +47,28 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/members")
 public class MemberApiController {
 
-    private final MemberService memberService;
+    private final MemberUpdateService updateService;
 
     @PutMapping("/email")
     @Operation(ServiceAction.MEMBER_UPDATE)
-    public ApiBody<MemberUpdateResponse> updateEmail(@RequestBody EmailUpdateRequest request) {
-        MemberUpdateResponse response = memberService.changeEmail(request);
+    public ApiBody<MemberUpdateResponse> updateEmail(@AuthenticationPrincipal CustomUserDetails currentUser, @RequestBody EmailUpdateRequest request) {
+        MemberUpdateResponse response = updateService.update(currentUser.getId(), request);
 
         return ApiBody.data(response);
     }
 
     @PatchMapping("/me")
     @Operation(ServiceAction.MEMBER_UPDATE)
-    public ApiBody<MemberUpdateResponse> updateMember(@RequestBody MemberUpdateRequest request) {
-        MemberUpdateResponse response = memberService.processMemberUpdate(request);
+    public ApiBody<MemberUpdateResponse> updateMember(@AuthenticationPrincipal CustomUserDetails currentUser, @RequestBody MemberUpdateRequest request) {
+        MemberUpdateResponse response = updateService.update(currentUser.getId(), request);
 
         return ApiBody.data(response);
     }
 
     @PutMapping("/profile")
     @Operation(ServiceAction.MEMBER_UPDATE)
-    public ApiBody<MemberUpdateResponse> updateProfile(@RequestBody MultipartFile file) {
-        MemberUpdateResponse response = memberService.changeProfile(file);
+    public ApiBody<MemberUpdateResponse> updateProfile(@AuthenticationPrincipal CustomUserDetails currentUser, @RequestBody MultipartFile file) {
+        MemberUpdateResponse response = updateService.update(currentUser.getId(), file);
 
         return ApiBody.data(response);
     }

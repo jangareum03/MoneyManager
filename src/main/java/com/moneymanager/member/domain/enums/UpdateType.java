@@ -1,16 +1,12 @@
 package com.moneymanager.member.domain.enums;
 
-import lombok.Getter;
-
-import java.util.Arrays;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.member.domain.enums<br>
- * 파일이름       : MemberGender<br>
+ * 파일이름       : UpdateType<br>
  * 작성자          : areum Jang<br>
- * 생성날짜       : 26. 8. 11<br>
- * 설명              : 회원 성별을 정의한 클래스
+ * 생성날짜       : 26. 9. 21<br>
+ * 설명              : 회원 수정 유형을 정의한 클래스
  * </p>
  * <br>
  * <p color='#FFC658'>📢 변경이력</p>
@@ -24,33 +20,15 @@ import java.util.Arrays;
  * 		</thead>
  * 		<tbody>
  * 		 	<tr style="border-bottom: 1px dotted">
- * 		 	  <td>26. 8. 11</td>
+ * 		 	  <td>26. 9. 21</td>
  * 		 	  <td>areum Jang</td>
  * 		 	  <td>최초 생성 (버전 2.0)</td>
  * 		 	</tr>
  * 		</tbody>
  * </table>
  */
-@Getter
-public enum MemberGender {
+public enum UpdateType {
 
-	NORMAL("없음", "N"),
-	MALE("남성", "M"),
-	FEMALE("여성", "F");
-
-	private final String label;
-	private final String value;		//DB 값
-
-	MemberGender(String label, String value) {
-		this.label = label;
-		this.value = value;
-	}
-
-	public static MemberGender fromValue(String value) {
-		return Arrays.stream(values())
-				.filter(g -> g.value.equalsIgnoreCase(value))
-				.findFirst()
-				.orElseThrow();
-	}
+    NAME, GENDER, PASSWORD;
 
 }

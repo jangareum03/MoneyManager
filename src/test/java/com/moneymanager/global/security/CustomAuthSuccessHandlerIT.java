@@ -1,7 +1,7 @@
 package com.moneymanager.global.security;
 
 import com.moneymanager.member.domain.entity.Member;
-import com.moneymanager.redis.service.SideBarMemberService;
+import com.moneymanager.member.service.redis.SideBarMemberRedisService;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CustomAuthSuccessHandlerIT extends IntegrationTest {
 
     @Autowired
-    SideBarMemberService sideBarMemberService;
+    SideBarMemberRedisService sideBarMemberService;
 
     @Test
     @DisplayName("로그인 성공하면 토큰 및 사이드바 저장되고 home화면으로 이동한다.")

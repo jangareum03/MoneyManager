@@ -8,7 +8,7 @@ import com.moneymanager.ledger.domain.enums.SlotStatus;
 import com.moneymanager.ledger.repository.LedgerImageRepository;
 import com.moneymanager.ledger.service.policy.LedgerPolicy;
 import com.moneymanager.ledger.service.storage.LedgerImageStorage;
-import com.moneymanager.member.service.read.MemberReadService;
+import com.moneymanager.member.service.read.MemberReader;
 import com.moneymanager.support.ApplicationExceptionAssert;
 import com.moneymanager.support.data.MemberTestData;
 import com.moneymanager.support.fixture.entity.LedgerImageTestFixture;
@@ -71,7 +71,7 @@ public class LedgerImageServiceTest {
     LedgerImageService target;
 
     @Mock
-    MemberReadService memberReadService;
+    MemberReader memberReader;
 
     @Mock
     LedgerPolicy ledgerPolicy;
@@ -95,7 +95,7 @@ public class LedgerImageServiceTest {
 
         @BeforeEach
         void setUp() {
-            when(memberReadService.getAvailableImageCount(memberId))
+            when(memberReader.getAvailableImageCount(memberId))
                     .thenReturn(2);
 
             when(ledgerPolicy.imageSlots(2))

@@ -128,8 +128,12 @@ public class CustomUserDetails implements UserDetails {
 		return  memberAuth.getId();
 	}
 
-	public String getMemberNumber() {
-		return memberAuth.getMemberNumber();
+	public String getNickname() {
+		return memberAuth.getNickname();
+	}
+
+	public String getProfile() {
+		return memberAuth.getProfile();
 	}
 
 }

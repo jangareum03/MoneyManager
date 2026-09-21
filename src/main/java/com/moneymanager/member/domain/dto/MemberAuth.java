@@ -36,31 +36,33 @@ import java.time.LocalDateTime;
 public class MemberAuth {
 
 	private final String id;
-	private final String memberNumber;
 	private final String username;
 	private final String password;
+	private final String nickname;
 	private final String role;
 	private final MemberStatus status;
+	private final String profile;
 	private final int loginFailCount;
 	private final LocalDateTime deletedDate;
 
-	private MemberAuth(String id, String memberNumber, String username, String password, String role, MemberStatus status, int loginFailCount, LocalDateTime deletedDate) {
+	private MemberAuth(String id, String username, String password, String nickname, String role, MemberStatus status, String profile, int loginFailCount, LocalDateTime deletedDate) {
 		this.id = id;
-		this.memberNumber = memberNumber;
 		this.username = username;
 		this.password = password;
+		this.nickname = nickname;
 		this.role = role;
 		this.status = status;
+		this.profile = profile;
 		this.loginFailCount = loginFailCount;
 		this.deletedDate = deletedDate;
 	}
 
-	public static MemberAuth forLogin(String memberNumber, String username, String password, String role, MemberStatus status, int loginFailCount, LocalDateTime deletedDate) {
-		return new MemberAuth(null, memberNumber, username, password, role, status, loginFailCount, deletedDate);
+	public static MemberAuth forLogin(String id, String username, String password, String nickname, String role, MemberStatus status, String profile, int loginFailCount, LocalDateTime deletedDate) {
+		return new MemberAuth(id, username, password, nickname, role, status, profile, loginFailCount, deletedDate);
 	}
 
 	public static MemberAuth forAuthentication(String id, String role, MemberStatus status) {
-		return new MemberAuth(id, null, null, null, role, status, 0, null);
+		return new MemberAuth(id, null, null, null, role, status, null,0, null);
 	}
 
 }

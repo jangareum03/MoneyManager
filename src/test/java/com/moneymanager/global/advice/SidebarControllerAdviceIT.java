@@ -1,7 +1,7 @@
 package com.moneymanager.global.advice;
 
 import com.moneymanager.member.domain.entity.Member;
-import com.moneymanager.redis.service.SideBarMemberService;
+import com.moneymanager.member.service.redis.SideBarMemberRedisService;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SidebarControllerAdviceIT extends IntegrationTest {
 
     @Autowired
-    SideBarMemberService sideBarMemberService;
+    SideBarMemberRedisService sideBarMemberService;
 
     @Test
     @DisplayName("인증된 사용자의 사이드바 정보를 Model에 추가한다.")

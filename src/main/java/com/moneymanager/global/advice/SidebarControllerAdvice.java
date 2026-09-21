@@ -1,13 +1,19 @@
 package com.moneymanager.global.advice;
 
+import com.moneymanager.global.exception.ApplicationException;
+import com.moneymanager.global.log.LogContent;
 import com.moneymanager.global.security.CustomUserDetails;
+import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
-import com.moneymanager.member.service.read.MemberReadService;
-import com.moneymanager.redis.service.SideBarMemberService;
+import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.repository.MemberRepository;
+import com.moneymanager.member.service.redis.SideBarMemberRedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
+
+import static com.moneymanager.global.exception.code.ErrorCode.UNAUTHORIZED;
 
 /**
  * <p>
@@ -40,25 +46,35 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @RequiredArgsConstructor
 public class SidebarControllerAdvice {
 
-    private final SideBarMemberService sideBarMemberService;
-    private final MemberReadService memberReadService;
+    private final SideBarMemberRedisService redisService;
+    private final MemberRepository memberRepository;
 
     @ModelAttribute("sidebarUser")
     public SideBarUser currentUser(@AuthenticationPrincipal CustomUserDetails user) {
-        //1. 인증 완료된 사용자 여부 확인
+        //인증 완료된 사용자 여부 확인
         if(user == null) {
             return null;
         }
 
-        String memberNumber = user.getMemberNumber();
+        String memberId = user.getId();
 
         //2. Redis 조회
-        String nickname = sideBarMemberService.getNickname(memberNumber);
-        String profile = sideBarMemberService.getProfile(memberNumber);
+        String nickname = redisService.getNickname(memberId);
+        String profile = redisService.getProfile(memberId);
 
         //3. Redis에 없으면 DB 조회
         if(nickname == null && profile == null) {
-            return memberReadService.getSideBarUser(memberNumber);
+            return memberRepository.findByMemberNumberForSideBar(memberId)
+                    .orElseThrow(() ->
+                            new ApplicationException(
+                                    UNAUTHORIZED,
+                                    LogContent.of(
+                                            "인증회원 조회",
+                                            Member.class,
+                                            "id", StringUtil.masking(memberId, 2, memberId.length() - 2)
+                                    )
+                            ).withMessageKey("member.sidebar.failed")
+                            );
         }
 
         return new SideBarUser(nickname, profile);

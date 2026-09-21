@@ -73,7 +73,7 @@ class CustomAuthSuccessHandlerTest {
         when(authentication.getPrincipal())
                 .thenReturn(userDetails);
 
-        when(userDetails.getMemberNumber())
+        when(userDetails.getId())
                 .thenReturn("memberNumber");
 
         //when
@@ -81,7 +81,6 @@ class CustomAuthSuccessHandlerTest {
 
         //then
         verify(tokenAuthService).issueTokens(userDetails, response);
-        verify(memberService).processSaveSideBar("memberNumber");
 
         verify(response).sendRedirect("/home");
     }

@@ -1,7 +1,11 @@
 package com.moneymanager.member.controller;
 
+import com.moneymanager.global.log.operation.annotation.Operation;
+import com.moneymanager.global.log.operation.enums.ServiceAction;
+import com.moneymanager.global.security.CustomUserDetails;
 import com.moneymanager.member.service.application.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,8 +46,9 @@ public class MemberController {
     private final MemberService memberService;
 
     @GetMapping("/mypage")
-    public String showMyPage(Model model) {
-        model.addAttribute("member", memberService.getMemberProfile());
+    @Operation(ServiceAction.MY_PAGE)
+    public String showMyPage(@AuthenticationPrincipal CustomUserDetails currentUser, Model model) {
+        model.addAttribute("member", memberService.getMyPageInfo(currentUser.getId()));
 
         return "member/mypage_info";
     }

@@ -56,12 +56,24 @@ public class MemberInfo {
 		this.loginAt = loginAt;
 	}
 
-	public static MemberInfo of(String id, MemberGender gender) {
+	public static MemberInfo create(String id, MemberGender gender) {
 		return new MemberInfo(id, gender, null, null, null, null, null, null);
 	}
 
 	public static MemberInfo restore(String id, MemberGender gender, String profile, Long point, Long consecutiveDays, Integer imageLimit, Integer failureCount, LocalDateTime loginAt) {
 		return new MemberInfo(id, gender, profile, point, consecutiveDays, imageLimit, failureCount, loginAt);
+	}
+
+	public void changeGender(MemberGender newGender) {
+		this.gender = newGender;
+	}
+
+	public void changeProfile(String newProfile) {
+		if(profile.equals(newProfile)) {
+			throw new IllegalArgumentException("동일값 수정 불가");
+		}
+
+		this.profile = newProfile;
 	}
 
 }

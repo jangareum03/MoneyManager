@@ -47,6 +47,10 @@ public class FileStorage {
         file.transferTo(savePath);
     }
 
+    public void deleteFile(Path path) throws IOException {
+        Files.deleteIfExists(path);
+    }
+
     public String extractFileExtension(String originalFilename) {
         int index = originalFilename.lastIndexOf('.');
 

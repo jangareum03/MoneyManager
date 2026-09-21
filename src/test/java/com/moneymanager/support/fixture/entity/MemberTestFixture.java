@@ -1,6 +1,7 @@
 package com.moneymanager.support.fixture.entity;
 
 import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.domain.enums.MemberStatus;
 import com.moneymanager.member.domain.enums.MemberType;
 
@@ -25,7 +26,7 @@ public final class MemberTestFixture {
 	private LocalDateTime deleteAt;
 
 	//회원 부가정보
-	private MemberInfoTestFixture memberInfo;
+	private MemberInfo memberInfo = MemberInfoTestFixture.builder().build();
 
 	private MemberTestFixture() {}
 
@@ -64,13 +65,13 @@ public final class MemberTestFixture {
 	}
 
 	public MemberTestFixture withMemberInfo(MemberInfoTestFixture info) {
-		this.memberInfo = info;
+		this.memberInfo = info.build();
 
 		return this;
 	}
 
 	public Member build() {
-		return  Member.of(
+		return  Member.createForJoin(
 				id,
 				number,
 				username,
@@ -79,13 +80,12 @@ public final class MemberTestFixture {
 				birthdate,
 				nickname,
 				email,
-				type,
-				memberInfo == null ? null : memberInfo.build()
+				memberInfo.getGender()
 		);
 	}
 
 	public Member buildWithEncodePassword(String encodePassword) {
-		return  Member.of(
+		return  Member.createForJoin(
 				id,
 				number,
 				username,
@@ -94,8 +94,7 @@ public final class MemberTestFixture {
 				birthdate,
 				nickname,
 				email,
-				type,
-				memberInfo == null ? null : memberInfo.build()
+				memberInfo.getGender()
 		);
 	}
 

@@ -2,32 +2,32 @@ package com.moneymanager.member.service.application;
 
 import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.LogContent;
-import com.moneymanager.global.security.CurrentUser;
 import com.moneymanager.global.util.date.DateTimeUtil;
 import com.moneymanager.global.util.string.StringUtil;
-import com.moneymanager.member.domain.dto.request.EmailUpdateRequest;
-import com.moneymanager.member.domain.dto.request.MemberUpdateRequest;
-import com.moneymanager.member.domain.dto.response.MemberUpdateResponse;
+import com.moneymanager.member.domain.dto.request.FindIdRequest;
+import com.moneymanager.member.domain.dto.request.FindPwdRequest;
+import com.moneymanager.member.domain.dto.response.FindIdResponse;
+import com.moneymanager.member.domain.dto.response.FindPwdResponse;
 import com.moneymanager.member.domain.dto.response.MyPageResponse;
-import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
-import com.moneymanager.member.domain.enums.MemberGender;
+import com.moneymanager.member.domain.query.MemberFindIdQuery;
 import com.moneymanager.member.domain.query.MyPageQuery;
-import com.moneymanager.member.service.command.MemberCommandService;
-import com.moneymanager.member.service.read.MemberReadService;
-import com.moneymanager.member.service.validation.MemberProfileValidator;
+import com.moneymanager.member.repository.MemberRepository;
+import com.moneymanager.member.service.email.EmailMasker;
+import com.moneymanager.member.service.email.EmailSender;
+import com.moneymanager.member.service.email.PasswordResetTokenManager;
+import com.moneymanager.member.service.read.MemberReader;
 import com.moneymanager.member.service.validation.MemberValidator;
-import com.moneymanager.redis.service.EmailVerificationService;
-import com.moneymanager.redis.service.SideBarMemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
 import static com.moneymanager.global.domain.enums.DatePatterns.KOREAN_DATE;
 import static com.moneymanager.global.domain.enums.DatePatterns.KOREAN_DATE_WITH_DAY;
-import static com.moneymanager.global.exception.code.ErrorCode.*;
+import static com.moneymanager.global.exception.code.ErrorCode.DATA_NOT_FOUND;
+import static com.moneymanager.global.exception.code.ErrorCode.EXTERNAL_API_ERROR;
 
 /**
  * <p>
@@ -60,32 +60,99 @@ import static com.moneymanager.global.exception.code.ErrorCode.*;
 @RequiredArgsConstructor
 public class MemberService {
 
-    private final MemberReadService memberReadService;
-    private final MemberCommandService memberCommandService;
-    private final MemberProfileImageService profileImageService;
-    private final SideBarMemberService sideBarMemberService;
-    private final EmailVerificationService emailVerification;
-    private final MemberProfileValidator profileValidator;
+    private final PasswordResetTokenManager tokenManager;
+    private final MemberReader memberReader;
+    private final EmailSender emailSender;
+    private final MemberRepository memberRepository;
+
     private final MemberValidator validator;
-    private final CurrentUser currentUser;
 
+    public FindIdResponse findId(FindIdRequest request) {
+        //이름과 이메일 입력 검증
+        validator.validateFindId(request);
 
-    public void processSaveSideBar(String memberNumber) {
-        SideBarUser sideBarUser = memberReadService.getSideBarUser(memberNumber);
+        //아이디 + 회원상태 조회
+        MemberFindIdQuery memberFindIdQuery = memberRepository.findUsernameAndStatusByNameAndEmail(request.getName(), request.getEmail())
+                .orElseThrow(() -> new ApplicationException(
+                        DATA_NOT_FOUND,
+                        LogContent.of(
+                                "아이디 및 상태 조회",
+                                Member.class,
+                                "name",
+                                StringUtil.maskMiddle(request.getName()),
+                                "email",
+                                EmailMasker.mask(request.getEmail())
+                        )
+                ));
 
-        sideBarMemberService.saveNickname(memberNumber, sideBarUser.getNickname());
-        sideBarMemberService.saveProfile(memberNumber, sideBarUser.getProfile());
+        //마스킹 처리
+        String id = memberFindIdQuery.getUsername();
+        String maskingId = StringUtil.masking(id, 1, id.length() / 2);
+
+        return new FindIdResponse(maskingId, memberFindIdQuery.getStatus());
     }
 
-    public MyPageResponse getMemberProfile() {
-        //1. 인증된 사용자 조회
-        String memberNumber = currentUser.getMemberId();
+    public FindPwdResponse findPassword(FindPwdRequest request) {
+        //이름과 아이디 입력 검증
+        validator.validateFindPassword(request);
 
-        //2. 회원정보 조회
-        MyPageQuery myProfileInfo = memberReadService.getMyProfile(memberNumber);
+        //이메일 조회
+        String email = memberRepository.findEmailByNameAndUsername(request.getName(), request.getUsername())
+                .orElseThrow(() ->
+                        new ApplicationException(
+                                DATA_NOT_FOUND,
+                                LogContent.of(
+                                        "이메일 조회",
+                                        Member.class,
+                                        "name", StringUtil.maskMiddle(request.getName()),
+                                        "username", StringUtil.maskMiddle(request.getUsername())
+                                )
+                        )
+                );
 
-        //3. 프로필 상대 경로 조회
-        String profileImagePath = profileImageService.get(memberNumber);
+        //토큰 생성
+        String resetToken = tokenManager.createToken();
+        tokenManager.saveToken(resetToken);
+
+        //이메일 발송
+        try{
+            emailSender.sendPasswordResetLink(email, resetToken);
+        }catch (MailException e) {
+            tokenManager.deleteToken(resetToken);
+
+            throw new ApplicationException(
+                    EXTERNAL_API_ERROR,
+                    LogContent.of(
+                            "이메일 전송",
+                            "email",
+                            EmailMasker.mask(email)
+                    ).withCause("이메일 발송 실패")
+            )
+                    .withMessageKey("email.send.failed")
+                    .withMessageArgs("비밀번호 초기화");
+        }
+
+        //이메일 마스킹
+        String maskedEmail = EmailMasker.mask(email);
+
+        return new FindPwdResponse(maskedEmail);
+    }
+
+    public MyPageResponse getMyPageInfo(String memberId) {
+        //회원정보 조회
+        MyPageQuery myProfileInfo = memberRepository.findMyPageByMemberNumber(memberId)
+                .orElseThrow(() -> new ApplicationException(
+                                DATA_NOT_FOUND,
+                                LogContent.of(
+                                        "회원정보 조회",
+                                        Member.class,
+                                        "id", memberId
+                                )
+                        ).withMessageKey("member.info.failed")
+                );
+
+        //3. 프로필 경로 조회
+        String profileImagePath = memberReader.getProfilePath(memberId);
 
         //4. 접속일 포맷 변경
         String loginDate = DateTimeUtil.formatDate(LocalDate.from(myProfileInfo.getLastLogin()), KOREAN_DATE_WITH_DAY.getPattern());
@@ -103,188 +170,6 @@ public class MemberService {
                 joinDate,
                 myProfileInfo.getAttendanceDays()
         );
-    }
-
-    public MemberUpdateResponse processMemberUpdate(MemberUpdateRequest request) {
-        //1. 요청객체 검증
-        if(request == null) {
-            throw new ApplicationException(
-                    REQUIRED_NOT_EXIST,
-                    LogContent.of(
-                            "회원 정보 수정",
-                            MemberUpdateRequest.class
-                    )
-            ).withMessageKey("member.update.failed");
-        }
-
-        //2. 입력값 검증
-        validator.validateMemberUpdate(request);
-
-        //3 인증된 사용자 조회
-        String memberNumber = currentUser.getMemberId();
-
-        //4. 정보 수정
-        if (request.getName() != null) {
-            changeName(memberNumber, request.getName());
-
-            return MemberUpdateResponse.of("name", request.getName());
-        }
-
-        if(request.getGender() != null) {
-            changeGender(memberNumber, request.getGender());
-
-            return MemberUpdateResponse.of("gender", request.getGender());
-        }
-
-        if(request.getPassword() != null) {
-            changePassword(memberNumber, request.getPassword());
-
-            return MemberUpdateResponse.of("password", "********");
-        }
-
-        throw new ApplicationException(
-                INTERVAL_SERVER_ERROR,
-                LogContent.of(
-                        "회원 정보 수정",
-                        MemberUpdateRequest.class,
-                        "memberNumber", memberNumber
-                )
-        ).withMessageKey("member.update.failed");
-    }
-
-    public MemberUpdateResponse changeEmail(EmailUpdateRequest request) {
-        //1 인증된 사용자 조회
-        String memberNumber = currentUser.getMemberId();
-
-        //2. 이메일 검증 완료 확인
-        validateEmailVerification(request.getEmail(), request.getToken());
-
-        //3. 기존 회원정보 조회
-        MyPageQuery member = memberReadService.getMyProfile(memberNumber);
-
-        //4. 이메일 수정
-        memberCommandService.updateEmail(member.getId(), member.getEmail(), request.getEmail());
-
-        //5. 인증토큰 삭제
-        emailVerification.deleteToken(request.getEmail());
-
-        return MemberUpdateResponse.of("email", request.getEmail());
-    }
-
-    public MemberUpdateResponse changeProfile(MultipartFile file) {
-        //1. 인증된 사용자 조회
-        String memberId = currentUser.getMemberId();
-
-        //2. 기존회원 정보 조회
-        String profileName = profileImageService.getProfileName(memberId);
-
-        if(file == null) {
-            memberCommandService.updateProfile(memberId, profileName, "");
-            return MemberUpdateResponse.of("profile", profileImageService.getDefaultProfile());
-        }
-
-        //2. 이미지 검증
-        profileValidator.validate(file);
-
-        //3.이미지명 변경
-        String saveName = profileImageService.changeName(file.getOriginalFilename());
-
-        if(profileImageService.exists(saveName)) {
-            throw new ApplicationException(
-                    FILE_UPLOAD_FAILED,
-                    LogContent.of(
-                            "프로필 수정",
-                            MultipartFile.class,
-                            "originalName", file.getOriginalFilename()
-                    )
-            ).withMessageKey("member.update.failed");
-        }
-
-        //4. 파일 저장
-        profileImageService.save(memberId, file, saveName);
-
-        //5. 데이터 저장
-        memberCommandService.updateProfile(memberId, file.getOriginalFilename(), saveName);
-
-        return MemberUpdateResponse.of("profile", profileImageService.getRoot(memberId).resolve(saveName).toString());
-    }
-
-
-    //===== processMemberUpdate 보조 메서드 =====
-    private void changeName(String memberNumber, String newName) {
-        //1. 기존 회원정보 조회
-        MyPageQuery member = memberReadService.getMyProfile(memberNumber);
-
-        //2. 기본 이름과 동일한지 확인
-        String name = member.getName();
-
-        if(name.equals(newName)) {
-            throw new ApplicationException(
-                    REQUEST_DUPLICATE,
-                    LogContent.of(
-                            "회원 정보 수정",
-                            Member.class,
-                            "name", StringUtil.maskMiddle(newName)
-                    )
-            ).withMessageKey("member.update.duplicate");
-        }
-
-        //3. 이름 수정
-        memberCommandService.updateName(member.getId(), name, newName);
-    }
-
-    private void changeGender(String memberNumber, String newGender) {
-        //1. 기존 회원정보 조회
-        MyPageQuery member = memberReadService.getMyProfile(memberNumber);
-
-        //2. 기본 성별과 동일한지 확인
-        MemberGender gender = member.getGender();
-
-        if(gender == MemberGender.fromValue(newGender)) {
-            throw new ApplicationException(
-                    REQUEST_DUPLICATE,
-                    LogContent.of(
-                            "회원 정보 수정",
-                            Member.class,
-                            "gender", newGender
-                    )
-            ).withMessageKey("member.update.duplicate");
-        }
-
-        //3. 성별 수정
-        memberCommandService.updateGender(member.getId(), member.getGender(), MemberGender.fromValue(newGender));
-    }
-
-    private void changePassword(String memberNumber, String newPassword) {
-        //1. 기존 회원정보 조회
-        MyPageQuery member = memberReadService.getMyProfile(memberNumber);
-
-        //2. 기본 비밀번호와 동일한지 확인
-        String password = member.getPassword();
-
-        if(memberReadService.isPasswordMatching(password, newPassword)) {
-            throw new ApplicationException(
-                    REQUEST_DUPLICATE,
-                    LogContent.of(
-                            "회원 정보 수정",
-                            Member.class,
-                            "password", StringUtil.maskMiddle(newPassword)
-                    )
-            ).withMessageKey("member.update.duplicate");
-        }
-
-        //2. 비밀번호 수정
-        memberCommandService.updatePassword(member.getId(), newPassword);
-    }
-
-    private void validateEmailVerification(String email, String token) {
-        try{
-            emailVerification.validateEmailToken(email, token);
-        }catch (ApplicationException e) {
-            e.withMessageKey("member.update.failed");
-
-            throw e;
-        };
     }
 
 }

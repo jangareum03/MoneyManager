@@ -25,7 +25,7 @@ import com.moneymanager.ledger.service.read.CategoryReadService;
 import com.moneymanager.ledger.service.read.LedgerReadService;
 import com.moneymanager.ledger.service.validation.LedgerRegisterValidator;
 import com.moneymanager.ledger.service.validation.LedgerUpdateValidator;
-import com.moneymanager.member.service.read.MemberReadService;
+import com.moneymanager.member.service.read.MemberReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,7 +70,7 @@ public class LedgerService {
 
     private final LedgerImageService imageService;
     private final CategoryReadService categoryReadService;
-    private final MemberReadService memberReadService;
+    private final MemberReader memberReader;
     private final LedgerCommandService ledgerCommandService;
     private final LedgerReadService ledgerReadService;
 
@@ -105,7 +105,7 @@ public class LedgerService {
         String title = DateTimeUtil.formatDate(localDate, DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
 
         //4. 이미지 생성
-        int availImgCnt = memberReadService.getAvailableImageCount(currentUser.getMemberId());
+        int availImgCnt = memberReader.getAvailableImageCount(currentUser.getMemberId());
 
         List<ImageSlot> imageSlots = ledgerPolicy.imageSlots(availImgCnt);
 
@@ -156,7 +156,7 @@ public class LedgerService {
 
         String title = DateTimeUtil.formatDate(ledger.getDate(), DatePatterns.KOREAN_DATE_WITH_DAY.getPattern());
 
-        int availImgCnt = memberReadService.getAvailableImageCount(currentUser.getMemberId());
+        int availImgCnt = memberReader.getAvailableImageCount(currentUser.getMemberId());
         List<LedgerImage> images = imageService.getLedgerImages(ledger.getId());
         List<ImageSlot> imageSlots = ledgerPolicy.imageSlots(
                 availImgCnt,

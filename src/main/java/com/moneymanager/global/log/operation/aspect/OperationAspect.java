@@ -87,7 +87,7 @@ public class OperationAspect {
 			return "anonymous";
 		}
 
-		return userDetails.getMemberNumber();
+		return userDetails.getId();
 	}
 
 }
