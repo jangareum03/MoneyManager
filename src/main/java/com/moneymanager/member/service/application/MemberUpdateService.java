@@ -8,6 +8,7 @@ import com.moneymanager.member.domain.enums.UpdateType;
 import com.moneymanager.member.service.command.MemberUpdater;
 import com.moneymanager.member.service.command.ProfileImageStorage;
 import com.moneymanager.member.service.read.MemberReader;
+import com.moneymanager.member.service.redis.SideBarMemberRedisService;
 import com.moneymanager.member.service.validation.MemberValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,7 @@ public class MemberUpdateService {
     private final MemberUpdater updater;
     private final MemberReader memberReader;
     private final ProfileImageStorage profileImageStorage;
+    private final SideBarMemberRedisService redisService;
 
     private final MemberValidator validator;
 
@@ -82,6 +84,8 @@ public class MemberUpdateService {
             MemberUpdateResponse response = updater.updateProfile(memberId, newProfile);
 
             profileImageStorage.delete(memberId, oldProfile);
+
+            redisService.saveProfile(memberId, newProfile);
 
             return response;
         } catch (ApplicationException e) {

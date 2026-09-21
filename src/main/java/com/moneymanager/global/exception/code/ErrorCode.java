@@ -57,6 +57,7 @@ public enum ErrorCode {
 
 	/** 정책 오류 **/
 	POLICY_VIOLATION("400", "정책 위반", HttpStatus.FORBIDDEN),
+	STATUS_NOT_ALLOWED("404", "작업 불가", HttpStatus.CONFLICT),
 
 	/** 파일 오류 **/
 	FILE_NOT_FOUND("500", "파일 없음", HttpStatus.NOT_FOUND),

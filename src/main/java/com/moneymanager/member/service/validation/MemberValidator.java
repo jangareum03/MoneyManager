@@ -60,14 +60,14 @@ public class MemberValidator {
     }
 
     public void validateFindId(FindIdRequest request) {
-        String work = "계정 찾기 검증";
+        String work = "아이디 찾기 검증";
 
         fieldValidator.validateName(request.getName(), work);
         fieldValidator.validateEmail(request.getEmail(), work);
     }
 
     public void validateFindPassword(FindPwdRequest request) {
-        String work = "계정 찾기 검증";
+        String work = "비밀번호 찾기 검증";
 
         fieldValidator.validateName(request.getName(), work);
         fieldValidator.validateUsername(request.getUsername(), work);

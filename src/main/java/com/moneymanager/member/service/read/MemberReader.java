@@ -1,6 +1,7 @@
 package com.moneymanager.member.service.read;
 
 import com.moneymanager.global.file.ImagePathResolver;
+import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.member.domain.query.MemberProfileQuery;
 import com.moneymanager.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +57,17 @@ public class MemberReader {
                 .map(m -> pathResolver.profilePath(memberId)
                         .resolve(m.getProfile())
                         .toString())
-                .orElse("/image/default/profile.png");
+                .orElse(getDefaultPath());
+    }
+
+    public String getProfilePath(String memberId, String profile) {
+        if(StringUtil.isNullOrBlank(profile)) {
+            return getDefaultPath();
+        }
+
+        return pathResolver.profilePath(memberId)
+                .resolve(profile)
+                .toString();
     }
 
 
@@ -64,5 +75,9 @@ public class MemberReader {
     private Optional<String> findProfileName(String memberId) {
         return memberRepository.findProfileByMemberId(memberId)
                 .map(MemberProfileQuery::getProfile);
+    }
+
+    private String getDefaultPath() {
+        return "/image/default/profile.png";
     }
 }

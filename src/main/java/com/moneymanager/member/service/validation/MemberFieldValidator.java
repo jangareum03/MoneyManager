@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.moneymanager.global.exception.code.ErrorCode.INVALID_VALUE;
-import static com.moneymanager.global.exception.code.ErrorCode.REQUIRED_VALUE;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 
 /**
  * <p>
@@ -84,7 +83,7 @@ public class MemberFieldValidator {
 
         if (!password.matches(RegexPattern.MEMBER_PWD.getPattern())) {
             throw new ApplicationException(
-                    INVALID_VALUE,
+                    INVALID_FORMAT,
                     LogContent.of(
                                     work,
                                     "password",
@@ -110,7 +109,7 @@ public class MemberFieldValidator {
 
         if (!name.matches(RegexPattern.MEMBER_NAME.getPattern())) {
             throw new ApplicationException(
-                    INVALID_VALUE,
+                    INVALID_FORMAT,
                     LogContent.of(
                                     work,
                                     "name",
@@ -137,7 +136,7 @@ public class MemberFieldValidator {
 
         if (!birthDate.matches(RegexPattern.MEMBER_BIRTH.getPattern())) {
             throw new ApplicationException(
-                    INVALID_VALUE,
+                    INVALID_FORMAT,
                     LogContent.of(
                                     work,
                                     "birthdate",
@@ -163,7 +162,7 @@ public class MemberFieldValidator {
 
         if (!nickName.matches(RegexPattern.MEMBER_NICKNAME.getPattern())) {
             throw new ApplicationException(
-                    INVALID_VALUE,
+                    INVALID_FORMAT,
                     LogContent.of(
                                     work,
                                     "nickname",
@@ -190,7 +189,7 @@ public class MemberFieldValidator {
 
         if (!email.matches(RegexPattern.MEMBER_EMAIL.getPattern())) {
             throw new ApplicationException(
-                    INVALID_VALUE,
+                    INVALID_FORMAT,
                     LogContent.of(
                                     work,
                                     "email",

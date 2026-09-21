@@ -7,6 +7,7 @@ import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.repository.MemberRepository;
+import com.moneymanager.member.service.read.MemberReader;
 import com.moneymanager.member.service.redis.SideBarMemberRedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -47,6 +48,7 @@ import static com.moneymanager.global.exception.code.ErrorCode.UNAUTHORIZED;
 public class SidebarControllerAdvice {
 
     private final SideBarMemberRedisService redisService;
+    private final MemberReader memberReader;
     private final MemberRepository memberRepository;
 
     @ModelAttribute("sidebarUser")
@@ -63,8 +65,8 @@ public class SidebarControllerAdvice {
         String profile = redisService.getProfile(memberId);
 
         //3. Redis에 없으면 DB 조회
-        if(nickname == null && profile == null) {
-            return memberRepository.findByMemberNumberForSideBar(memberId)
+        if(nickname == null || profile == null) {
+            SideBarUser member = memberRepository.findByMemberNumberForSideBar(memberId)
                     .orElseThrow(() ->
                             new ApplicationException(
                                     UNAUTHORIZED,
@@ -75,9 +77,17 @@ public class SidebarControllerAdvice {
                                     )
                             ).withMessageKey("member.sidebar.failed")
                             );
+
+            if(nickname == null) {
+                nickname = member.getNickname();
+            }
+
+            if(profile == null) {
+                profile = member.getProfile();
+            }
         }
 
-        return new SideBarUser(nickname, profile);
+        return new SideBarUser(nickname, memberReader.getProfilePath(memberId, profile));
     }
 
 }

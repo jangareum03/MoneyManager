@@ -103,16 +103,10 @@ public class Member {
 		this.name = newName;
 	}
 
-	public void changePassword(String newPassword) {
+	public void changePassword() {
 		if(status != MemberStatus.ACTIVE) {
 			throw new IllegalStateException(status.name() + "상태에서 수정 불가");
 		}
-
-		if(password.equals(newPassword)) {
-			throw new IllegalArgumentException("동일값 수정 불가");
-		}
-
-		this.password = newPassword;
 	}
 
 	public void changeGender(String newGender) {

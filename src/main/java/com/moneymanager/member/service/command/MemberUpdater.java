@@ -19,8 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.LocalDateTime;
 
-import static com.moneymanager.global.exception.code.ErrorCode.DATA_PERSISTENCE_FAILED;
-import static com.moneymanager.global.exception.code.ErrorCode.REQUEST_DUPLICATE;
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 
 /**
  * <p>
@@ -71,7 +70,7 @@ public class MemberUpdater {
             member.changeName(newName);
         } catch (IllegalStateException e) {
             throw new ApplicationException(
-                    REQUEST_DUPLICATE,
+                    STATUS_NOT_ALLOWED,
                     LogContent.of(
                             WORK,
                             Member.class,
@@ -117,7 +116,7 @@ public class MemberUpdater {
             member.changeGender(newGender);
         }catch (IllegalStateException e) {
             throw new ApplicationException(
-                    REQUEST_DUPLICATE,
+                    STATUS_NOT_ALLOWED,
                     LogContent.of(
                             WORK,
                             Member.class,
@@ -159,25 +158,27 @@ public class MemberUpdater {
         Member member = memberRepository.findById(memberId);
 
         try{
-            member.changePassword(passwordEncoder.encode(newPassword));
+            member.changePassword();
+
+            if(passwordEncoder.matches(newPassword, member.getPassword())) {
+                throw new ApplicationException(
+                        REQUEST_DUPLICATE,
+                        LogContent.of(
+                                "회원 정보 수정",
+                                Member.class,
+                                "password", StringUtil.maskMiddle(newPassword)
+                        )
+                ).withMessageKey("member.update.duplicate");
+            }
         }catch (IllegalStateException e) {
             throw new ApplicationException(
-                    REQUEST_DUPLICATE,
+                    STATUS_NOT_ALLOWED,
                     LogContent.of(
                             WORK,
                             Member.class,
                             "password", StringUtil.maskMiddle(newPassword)
                     )
             ).withMessageKey("member.update.not-allowed");
-        } catch (IllegalArgumentException e) {
-            throw new ApplicationException(
-                    REQUEST_DUPLICATE,
-                    LogContent.of(
-                            "회원 정보 수정",
-                            Member.class,
-                            "password", StringUtil.maskMiddle(newPassword)
-                    )
-            ).withMessageKey("member.update.duplicate");
         }
 
         //비밀번호 수정
@@ -211,7 +212,7 @@ public class MemberUpdater {
             member.changeEmail(request.getEmail());
         }catch (IllegalStateException e) {
             throw new ApplicationException(
-                    REQUEST_DUPLICATE,
+                    STATUS_NOT_ALLOWED,
                     LogContent.of(
                             WORK,
                             Member.class,
@@ -260,7 +261,7 @@ public class MemberUpdater {
             member.changeProfile(newProfile);
         }catch (IllegalStateException e) {
             throw new ApplicationException(
-                    REQUEST_DUPLICATE,
+                    STATUS_NOT_ALLOWED,
                     LogContent.of(
                             WORK,
                             Member.class,
