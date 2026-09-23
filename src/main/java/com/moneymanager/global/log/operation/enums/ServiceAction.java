@@ -37,6 +37,7 @@ public enum ServiceAction {
 	MEMBER_FIND_ID_VIEW("아이디 찾기 화면", "/auth/account/find"),
 	MEMBER_RESET_PWD_VIEW("비밀번호 초기화 화면", "/"),
 	MY_PAGE("마이페이지 화면", "/"),
+	MY_WITHDRAWAL("회원탈퇴 화면", "/members/mypage"),
 	LEDGER_REGISTER_STEP1_VIEW("가계부 작성 1단계 화면 조회", "/ledgers"),
 	LEDGER_REGISTER_STEP2_VIEW("가계부 작성 2단계 화면 조회", "/ledgers/new/step1"),
 	LEDGER_REGISTER("가계부 등록", "/ledgers/new/step2"),
@@ -53,6 +54,7 @@ public enum ServiceAction {
 	MEMBER_FIND_ID("아이디 찾기 API"),
 	MEMBER_FIND_PWD("비밀번호 찾기 API"),
 	MEMBER_UPDATE("회원정보 수정 API"),
+	MEMBER_WITHDRAWAL("회원탈퇴 API"),
 
 	LEDGER_CATEGORY("하위 카테고리 목록 조회 API"),
 	LEDGER_REGISTER_DATE("작성할 가계부 날짜 목록 조회 API"),

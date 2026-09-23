@@ -51,8 +51,8 @@ public class CustomUserDetailService implements UserDetailsService {
 		return new CustomUserDetails(memberAuth);
 	}
 
-	public UserDetails loadUserByMemberNumber(String memberNumber) {
-		MemberAuth  memberAuth = memberRepository.findAuthByMemberNumber(memberNumber)
+	public UserDetails loadUserByMemberId(String memberId) {
+		MemberAuth  memberAuth = memberRepository.findAuthByMemberId(memberId)
 				.orElseThrow(() -> new UsernameNotFoundException("member.token.failed"));
 
 		return new CustomUserDetails(memberAuth);

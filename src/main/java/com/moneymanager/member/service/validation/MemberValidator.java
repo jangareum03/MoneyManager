@@ -1,11 +1,17 @@
 package com.moneymanager.member.service.validation;
 
-import com.moneymanager.member.domain.dto.request.FindIdRequest;
-import com.moneymanager.member.domain.dto.request.FindPwdRequest;
-import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
-import com.moneymanager.member.domain.dto.request.MemberUpdateRequest;
+import com.moneymanager.global.exception.ApplicationException;
+import com.moneymanager.global.log.LogContent;
+import com.moneymanager.member.domain.dto.request.*;
+import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.domain.enums.WithdrawalReason;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.NoSuchElementException;
+
+import static com.moneymanager.global.exception.code.ErrorCode.INVALID_VALUE;
 
 /**
  * <p>
@@ -35,10 +41,11 @@ import org.springframework.web.multipart.MultipartFile;
  * </table>
  */
 @Component
+@RequiredArgsConstructor
 public class MemberValidator {
 
-    private final MemberFieldValidator fieldValidator = new MemberFieldValidator();
-    private final MemberProfileValidator profileValidator = new MemberProfileValidator();
+    private final MemberFieldValidator fieldValidator;
+    private final MemberProfileValidator profileValidator;
 
     public void validateSignup(MemberSignUpRequest request) {
         String work = "회원가입 검증";
@@ -97,6 +104,25 @@ public class MemberValidator {
         String work = "이메일 검증";
 
         fieldValidator.validateEmail(email, work);
+    }
+
+    public void validateWithdrawal(MemberWithdrawalRequest request) {
+        String work = "회원탈퇴 검증";
+
+        fieldValidator.validatePassword(request.password(), work);
+
+        try{
+            WithdrawalReason.from(request.reason());
+        }catch (NoSuchElementException e) {
+            throw new ApplicationException(
+                    INVALID_VALUE,
+                    LogContent.of(
+                            "WithdrawalReason 변환",
+                            Member.class,
+                            "reason", request.reason()
+                    )
+            ).withMessageKey("member.reason.invalid");
+        }
     }
 
 }

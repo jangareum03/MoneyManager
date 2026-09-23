@@ -1,19 +1,29 @@
 package com.moneymanager.member.service.application;
 
 import com.moneymanager.global.exception.ApplicationException;
-import com.moneymanager.global.security.CustomUserDetailService;
-import com.moneymanager.global.security.CustomUserDetails;
-import com.moneymanager.member.service.read.MemberReader;
-import com.moneymanager.member.service.redis.SideBarMemberRedisService;
+import com.moneymanager.global.log.LogContent;
+import com.moneymanager.global.util.string.StringUtil;
+import com.moneymanager.member.domain.dto.request.FindIdRequest;
+import com.moneymanager.member.domain.dto.request.FindPwdRequest;
+import com.moneymanager.member.domain.dto.request.MemberWithdrawalRequest;
+import com.moneymanager.member.domain.dto.response.FindIdResponse;
+import com.moneymanager.member.domain.dto.response.FindPwdResponse;
+import com.moneymanager.member.domain.entity.Member;
+import com.moneymanager.member.domain.enums.WithdrawalReason;
+import com.moneymanager.member.domain.query.MemberFindIdQuery;
+import com.moneymanager.member.repository.MemberRepository;
+import com.moneymanager.member.service.command.MemberUpdater;
+import com.moneymanager.member.service.email.EmailMasker;
+import com.moneymanager.member.service.email.EmailSender;
+import com.moneymanager.member.service.email.PasswordResetTokenManager;
 import com.moneymanager.member.service.validation.MemberValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.mail.MailException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import static com.moneymanager.global.exception.code.ErrorCode.*;
 
 
 /**
@@ -47,52 +57,120 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AccountService {
 
-    private final CustomUserDetailService userDetailService;
-    private final SideBarMemberRedisService redisService;
-    private final MemberReader memberReader;
+    private final MemberRepository memberRepository;
+    private final MemberUpdater memberUpdater;
+    private final MemberValidator validator;
 
-    private final MemberValidator memberValidator;
+    private final EmailSender emailSender;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordResetTokenManager tokenManager;
 
-    public CustomUserDetails login(String username, String password) {
+    public FindIdResponse findId(FindIdRequest request) {
+        //이름과 이메일 입력 검증
+        validator.validateFindId(request);
+
+        //아이디 + 회원상태 조회
+        MemberFindIdQuery memberFindIdQuery = memberRepository.findUsernameAndStatusByNameAndEmail(request.getName(), request.getEmail())
+                .orElseThrow(() -> new ApplicationException(
+                        DATA_NOT_FOUND,
+                        LogContent.of(
+                                "아이디 및 상태 조회",
+                                Member.class,
+                                "name",
+                                StringUtil.maskMiddle(request.getName()),
+                                "email",
+                                EmailMasker.mask(request.getEmail())
+                        )
+                ));
+
+        //마스킹 처리
+        String id = memberFindIdQuery.getUsername();
+        String maskingId = StringUtil.masking(id, 1, id.length() / 2);
+
+        return new FindIdResponse(maskingId, memberFindIdQuery.getStatus());
+    }
+
+    @Transactional
+    public FindPwdResponse findPassword(FindPwdRequest request) {
+        //이름과 아이디 입력 검증
+        validator.validateFindPassword(request);
+
+        //이메일 조회
+        String email = memberRepository.findEmailByNameAndUsername(request.getName(), request.getUsername())
+                .orElseThrow(() ->
+                        new ApplicationException(
+                                DATA_NOT_FOUND,
+                                LogContent.of(
+                                        "이메일 조회",
+                                        Member.class,
+                                        "name", StringUtil.maskMiddle(request.getName()),
+                                        "username", StringUtil.maskMiddle(request.getUsername())
+                                )
+                        )
+                );
+
+        //토큰 생성
+        String resetToken = tokenManager.createToken();
+        tokenManager.saveToken(resetToken);
+
+        //이메일 발송
         try {
-            //아이디와 비밀번호 검증
-            memberValidator.validateLogin(username, password);
-        } catch (ApplicationException e) {
-            throw new AuthenticationServiceException(e.getMessageKey());
+            emailSender.sendPasswordResetLink(email, resetToken);
+        } catch (MailException e) {
+            tokenManager.deleteToken(resetToken);
+
+            throw new ApplicationException(
+                    EXTERNAL_API_ERROR,
+                    LogContent.of(
+                            "이메일 전송",
+                            "email",
+                            EmailMasker.mask(email)
+                    ).withCause("이메일 발송 실패")
+            )
+                    .withMessageKey("email.send.failed")
+                    .withMessageArgs("비밀번호 초기화");
         }
 
-        //사용자 정보 조회
-        CustomUserDetails userDetails = (CustomUserDetails) userDetailService.loadUserByUsername(username);
-        throwsAuthenticationException(userDetails);
+        //이메일 마스킹
+        String maskedEmail = EmailMasker.mask(email);
 
-        //비밀번호 일치여부 검증
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadCredentialsException("member.login.failed");
-        }
-
-        //사이드바 정보 Redis 저장
-        redisService.saveNickname(userDetails.getId(), userDetails.getNickname());
-        redisService.saveProfile(userDetails.getId(), memberReader.getProfileName(userDetails.getId()));
-
-        return userDetails;
+        return new FindPwdResponse(maskedEmail);
     }
 
+    public void withdrawal(String memberId, MemberWithdrawalRequest request) {
+        //입력값 검증
+        validator.validateWithdrawal(request);
 
-    //===== login 보조 메서드 =====
-    private void throwsAuthenticationException(CustomUserDetails userDetails) throws AuthenticationException {
-        if (!userDetails.isAccountNonExpired()) {
-            throw new DisabledException("member.login.not_found");
+        //탈퇴사유 검증
+        WithdrawalReason reason = WithdrawalReason.from(request.reason());
+        if (reason == WithdrawalReason.OTHER && StringUtil.isNullOrBlank(request.other())) {
+            throw new ApplicationException(
+                    REQUIRED_VALUE,
+                    LogContent.of(
+                            "탈퇴사유 확인",
+                            MemberWithdrawalRequest.class,
+                            "other"
+                    ).withCause("기타 미입력")
+            ).withMessageKey("member.withdrawal.other");
         }
 
-        if (!userDetails.isAccountNonLocked()) {
-            throw new LockedException("member.login.locked");
+        //회원 조회
+        Member member = memberRepository.findById(memberId);
+
+        //비밀번호 일치확인
+        if (!passwordEncoder.matches(request.password(), member.getPassword())) {
+            throw new ApplicationException(
+                    MISMATCH,
+                    LogContent.of(
+                            "비밀번호 일치 확인",
+                            MemberWithdrawalRequest.class,
+                            "password", StringUtil.maskMiddle(request.password())
+                    )
+            ).withMessageKey("member.password.mismatch");
         }
 
-        if (!userDetails.isEnabled()) {
-            throw new DisabledException("member.login.restricted");
-        }
+        //탈퇴
+        memberUpdater.changeToWithdrawn(member);
     }
-
 
 }

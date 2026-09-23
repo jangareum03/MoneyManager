@@ -3,8 +3,8 @@ package com.moneymanager.global.config;
 import com.moneymanager.global.security.fillter.JwtAuthenticationFilter;
 import com.moneymanager.global.security.fillter.TraceIdFilter;
 import com.moneymanager.global.security.CustomAuthenticationProvider;
+import com.moneymanager.member.service.application.MemberAuthService;
 import com.moneymanager.member.service.redis.SideBarMemberRedisService;
-import com.moneymanager.member.service.application.TokenAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,7 +57,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final TokenAuthService tokenAuthService;
+	private final MemberAuthService tokenAuthService;
 	private final SideBarMemberRedisService sideBarMemberService;
 
 	@Bean
@@ -66,7 +66,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public JwtAuthenticationFilter jwtAuthenticationFilter(TokenAuthService tokenAuthService) {
+	public JwtAuthenticationFilter jwtAuthenticationFilter(MemberAuthService tokenAuthService) {
 		return new JwtAuthenticationFilter(tokenAuthService);
 	}
 

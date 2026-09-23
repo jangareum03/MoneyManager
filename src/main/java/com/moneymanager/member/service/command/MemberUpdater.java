@@ -15,9 +15,7 @@ import com.moneymanager.member.service.email.EmailMasker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.Clock;
-import java.time.LocalDateTime;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.moneymanager.global.exception.code.ErrorCode.*;
 
@@ -58,7 +56,6 @@ public class MemberUpdater {
     private final MemberRepository memberRepository;
     private final MemberHistoryRepository historyRepository;
 
-    private final Clock clock;
     private final PasswordEncoder passwordEncoder;
 
     public MemberUpdateResponse updateName(String memberId, String newName) {
@@ -101,7 +98,7 @@ public class MemberUpdater {
         }
 
         historyRepository.insertHistory(
-                MemberHistory.update(memberId, "이름", oldName, member.getName(), LocalDateTime.now(clock))
+                MemberHistory.update(memberId, "이름", oldName, member.getName())
         );
 
         return MemberUpdateResponse.of("name", member.getName());
@@ -147,7 +144,7 @@ public class MemberUpdater {
         }
 
         historyRepository.insertHistory(
-                MemberHistory.update(memberId, "성별", oldGender.getValue(), member.getInfo().getGender().getValue(), LocalDateTime.now(clock))
+                MemberHistory.update(memberId, "성별", oldGender.getValue(), member.getInfo().getGender().getValue())
         );
 
         return MemberUpdateResponse.of("gender", member.getInfo().getGender().getValue());
@@ -194,7 +191,7 @@ public class MemberUpdater {
         }
 
         historyRepository.insertHistory(
-                MemberHistory.update(memberId, "비밀번호", null, null, LocalDateTime.now(clock))
+                MemberHistory.update(memberId, "비밀번호", null, null)
         );
 
         return MemberUpdateResponse.of("password", "********");
@@ -243,7 +240,7 @@ public class MemberUpdater {
         }
 
         historyRepository.insertHistory(
-                MemberHistory.update(memberId, "이메일", EmailMasker.mask(oldEmail), EmailMasker.mask(member.getEmail()), LocalDateTime.now(clock))
+                MemberHistory.update(memberId, "이메일", EmailMasker.mask(oldEmail), EmailMasker.mask(member.getEmail()))
         );
 
         //인증토큰 삭제
@@ -291,10 +288,28 @@ public class MemberUpdater {
         }
 
         historyRepository.insertHistory(
-                MemberHistory.update(memberId, "프로필", oldProfile, member.getInfo().getProfile(), LocalDateTime.now(clock))
+                MemberHistory.update(memberId, "프로필", oldProfile, member.getInfo().getProfile())
         );
 
         return MemberUpdateResponse.of("profile", member.getInfo().getProfile());
+    }
+
+    @Transactional
+    public void changeToWithdrawn(Member member) {
+        if(!member.canWithdraw()) {
+            throw new ApplicationException(
+                    STATUS_NOT_ALLOWED,
+                    LogContent.of(
+                            "회원 탈퇴",
+                            Member.class,
+                            "status",
+                            member.getStatus().getValue()
+                    )
+            ).withMessageKey("member.withdrawal.failed");
+        }
+
+        memberRepository.updateStatusToWithdrawn(member);
+        historyRepository.insertHistory(MemberHistory.delete(member.getId()));
     }
 
 }

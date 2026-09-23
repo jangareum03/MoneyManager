@@ -58,7 +58,11 @@ class LedgerCommandServiceIT extends IntegrationTest {
 
     @BeforeEach
     void setUp() {
-        insertMember(MemberTestFixture.builder().buildWithEncodePassword(passwordEncoder.encode("password123")));
+        insertMember(
+                MemberTestFixture.builder()
+                        .password(passwordEncoder.encode("password123"))
+                        .build()
+        );
     }
 
     @Nested

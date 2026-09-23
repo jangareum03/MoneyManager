@@ -87,7 +87,10 @@ class LedgerServiceIT extends IntegrationTest {
 
     @BeforeEach
     void setUp() {
-        insertMember(MemberTestFixture.builder().buildWithEncodePassword(passwordEncoder.encode("password123")));
+        insertMember(MemberTestFixture.builder()
+                .password(passwordEncoder.encode("password123"))
+                .build()
+        );
     }
 
 
@@ -131,18 +134,18 @@ class LedgerServiceIT extends IntegrationTest {
     @WithMockCustomUser(memberId = "member1")
     @DisplayName("가계부 상세 정보를 조회할 때")
     class GetDetailData {
-        
+
         @Test
         @DisplayName("정상적인 가계부 상세 정보를 조회한다.")
         void returnsLedgerDetail_whenExists() {
             //given
             String code = "code2";
 
-        	//when
+            //when
             LedgerDetailResponse result = target.getDetail(code);
 
-        	//then
-        	assertThat(result).isNotNull();
+            //then
+            assertThat(result).isNotNull();
 
             assertThat(result.getType()).isEqualTo(LedgerType.INCOME);
             assertThat(result.getDate()).isEqualTo("2026. 01. 01 (목)");
@@ -162,7 +165,7 @@ class LedgerServiceIT extends IntegrationTest {
             //when
             LedgerDetailResponse result = target.getDetail(code);
 
-        	//then
+            //then
             List<ImageSlot> imageSlots = result.getImages();
 
             assertThat(imageSlots)
@@ -185,7 +188,7 @@ class LedgerServiceIT extends IntegrationTest {
                     )
                     .isEqualTo("/uploads/ledger/member1/2026/01/test1.jpg");
         }
-        
+
         @Test
         @DisplayName("이미지가 없는 상세 정보를 조회한다.")
         void returnsLedgerDetailWithoutImages_whenImageDoesNotExist() {
@@ -195,7 +198,7 @@ class LedgerServiceIT extends IntegrationTest {
             //when
             LedgerDetailResponse result = target.getDetail(code);
 
-        	//then
+            //then
             assertThat(result.getImages())
                     .hasSize(3)
                     .allSatisfy(image -> {
@@ -203,18 +206,18 @@ class LedgerServiceIT extends IntegrationTest {
                         assertThat(image.getFilePath()).isEqualTo("/image/ledger/image-empty.svg");
                     });
         }
-        
+
         @Test
         @DisplayName("다른 회원의 가계부는 조회할 수 없다.")
         void throwsException_whenUserIsNotOwner() {
-        	//given
+            //given
             String code = "code3";
-        	
-        	//when
+
+            //when
             assertThatThrownBy(() -> target.getDetail(code))
                     .isInstanceOf(ApplicationException.class);
         }
-        
+
         @Test
         @DisplayName("존재하지 않은 가계부는 조회할 수 없다.")
         void throwsException_whenLedgerDoesNotExist() {
@@ -225,7 +228,7 @@ class LedgerServiceIT extends IntegrationTest {
             assertThatThrownBy(() -> target.getDetail(code))
                     .isInstanceOf(ApplicationException.class);
         }
-        
+
     }
 
 
@@ -234,18 +237,18 @@ class LedgerServiceIT extends IntegrationTest {
     @WithMockCustomUser(memberId = "member1")
     @DisplayName("가계부 수정 정보를 조회할 때")
     class GetEditData {
-        
+
         @Test
         @DisplayName("이미지가 없는 가계부 정보를 조회한다.")
         void returnsLedger_whenLedgerHasNoImage() {
-        	//given
+            //given
             String code = "code2";
-        	
-        	//when
+
+            //when
             LedgerEditResponse result = target.getEdit(code);
-        	
-        	//then
-        	assertThat(result).isNotNull();
+
+            //then
+            assertThat(result).isNotNull();
 
             assertThat(result.getType()).isEqualTo(LedgerType.INCOME);
             assertThat(result.getDate()).isEqualTo("2026년 01월 01일 목요일");
@@ -254,7 +257,7 @@ class LedgerServiceIT extends IntegrationTest {
 
             assertThat(result.getMoney())
                     .extracting(Money::getAmount, Money::getPaymentType)
-                            .containsExactly(10000L, PaymentType.NONE);
+                    .containsExactly(10000L, PaymentType.NONE);
 
             assertThat(result.getCategoryOptions().getSelected())
                     .hasSize(2)
@@ -263,7 +266,7 @@ class LedgerServiceIT extends IntegrationTest {
             assertThat(result.getCategoryOptions().getMiddleOptions()).hasSize(3);
             assertThat(result.getCategoryOptions().getLowOptions()).hasSize(3);
         }
-        
+
         @Test
         @DisplayName("이미지가 있는 가계부 정보를 조회한다.")
         void returnsAccountBook_whenAccountBookHasImage() {
@@ -501,9 +504,10 @@ class LedgerServiceIT extends IntegrationTest {
                     MemberTestFixture.builder()
                             .id(memberId)
                             .username("other")
+                            .password(passwordEncoder.encode("password123"))
                             .nickName("other")
                             .email("other@test.com")
-                            .buildWithEncodePassword(passwordEncoder.encode("password123"))
+                            .build()
             );
 
             Member other = memberRepository.findById(memberId);
@@ -533,30 +537,30 @@ class LedgerServiceIT extends IntegrationTest {
     @Sql("/sql/ledger-delete-test.sql")
     @DisplayName("가계부를 삭제할 때")
     class Delete {
-        
+
         @Test
         @DisplayName("이미지가 있는 가계부는 이미지와 함께 삭제한다.")
         void deletesLedgerAndImage_whenImageExists() throws IOException {
-        	//given
+            //given
             List<String> codes = List.of("code-1", "code-2", "code-4");
             LedgerImage image = imageRepository.findByLedgerCode("code-1").get(0);
 
             Path path = tempDir.resolve(image.getImagePath());
             Files.createDirectories(path.getParent());
             Files.createFile(path);
-        	
-        	//when
+
+            //when
             int result = target.processLedgerDelete(codes);
-        	
-        	//then
-        	assertThat(result).isEqualTo(3);
+
+            //then
+            assertThat(result).isEqualTo(3);
             assertThat(ledgerRepository.findByCodeIn(codes)).hasSize(0);
             assertThat(imageRepository.count()).isZero();
 
             //파일 삭제 검증
             assertThat(Files.exists(path)).isFalse();
         }
-        
+
         @Test
         @DisplayName("이미지가 없는 가계부는 정보만 삭제한다.")
         void deletesLedgerOnly_whenImageDoesNotExist() {
@@ -575,18 +579,18 @@ class LedgerServiceIT extends IntegrationTest {
             assertThat(ledgerRepository.count()).isEqualTo(2);
             assertThat(imageRepository.count()).isEqualTo(1);
         }
-        
+
         @Test
         @DisplayName("타인의 가계부는 삭제되지 않는다.")
         void rejectsDeletion_whenUserIsNotOwner() {
-        	//given
+            //given
             List<String> codes = List.of("code-2", "code-3", "code-4");
-        	
-        	//when
+
+            //when
             int result = target.processLedgerDelete(codes);
-        	
-        	//then
-        	assertThat(result).isEqualTo(2);
+
+            //then
+            assertThat(result).isEqualTo(2);
 
             assertThat(ledgerRepository.findByCodeIn(codes)).hasSize(1);
         }
@@ -594,18 +598,18 @@ class LedgerServiceIT extends IntegrationTest {
         @Test
         @DisplayName("이미지 삭제가 실패해도 가계부와 이미지 정보는 삭제한다.")
         void deletesLedgerAndImage_whenImageDeletionFails() throws IOException {
-        	//given
+            //given
             List<String> codes = List.of("code-1");
 
             doThrow(new IOException("파일 삭제 실패"))
                     .when(imageStorage)
                     .deleteOrThrow(any());
-        	
-        	//when
+
+            //when
             int result = target.processLedgerDelete(codes);
-        	
-        	//then
-        	assertThat(result).isEqualTo(1);
+
+            //then
+            assertThat(result).isEqualTo(1);
 
             assertThat(ledgerRepository.findByCodeIn(codes)).hasSize(0);
         }

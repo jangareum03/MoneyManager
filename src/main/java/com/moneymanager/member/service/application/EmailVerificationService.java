@@ -9,8 +9,11 @@ import com.moneymanager.member.service.email.EmailVerificationCodeManager;
 import com.moneymanager.member.service.email.EmailVerificationTokenManager;
 import com.moneymanager.member.service.validation.MemberValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 import static com.moneymanager.global.exception.code.ErrorCode.DUPLICATE_DATA;
 import static com.moneymanager.global.exception.code.ErrorCode.EXTERNAL_API_ERROR;
@@ -45,6 +48,8 @@ import static com.moneymanager.global.exception.code.ErrorCode.EXTERNAL_API_ERRO
 @Service
 @RequiredArgsConstructor
 public class EmailVerificationService {
+
+    private static final Duration COOKIE_MAX_AGE = Duration.ofMinutes(10);
 
     private final EmailVerificationCodeManager codeManager;
     private final EmailVerificationTokenManager tokenManager;
@@ -101,6 +106,15 @@ public class EmailVerificationService {
         tokenManager.saveToken(email, token);
 
         return token;
+    }
+
+    public ResponseCookie saveCookie(String name, String value, String path) {
+        return ResponseCookie.from(name, value)
+                .httpOnly(true)
+                .secure(true)
+                .path(path)
+                .maxAge(COOKIE_MAX_AGE)
+                .build();
     }
 
     public void verifyCode(String email, String code) {

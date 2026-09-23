@@ -75,7 +75,7 @@ public class Member {
 	public static Member createForJoin(String id, String number, String username, String password, String name, String birthdate, String nickname, String email, MemberGender gender) {
 		MemberInfo memberInfo = MemberInfo.create(id, gender);
 
-		return new Member(id, number, username, password, name, birthdate, nickname, email, "ROLE_USER", MemberType.COMMON, MemberStatus.ACTIVE, LocalDateTime.now(), LocalDateTime.now(), memberInfo);
+		return new Member(id, number, username, password, name, birthdate, nickname, email, "ROLE_USER", MemberType.COMMON, MemberStatus.ACTIVE, LocalDateTime.now(), null, memberInfo);
 	}
 
 	//DB용
@@ -142,5 +142,9 @@ public class Member {
 
 		info.changeProfile(newProfile);
 	}
+
+	public boolean canWithdraw() {
+        return status == MemberStatus.ACTIVE;
+    }
 
 }

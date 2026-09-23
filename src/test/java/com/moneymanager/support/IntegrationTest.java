@@ -3,7 +3,6 @@ package com.moneymanager.support;
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.ledger.repository.LedgerRepository;
 import com.moneymanager.member.domain.entity.Member;
-import com.moneymanager.member.domain.entity.MemberInfo;
 import com.moneymanager.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.Cookie;
 import java.io.IOException;
@@ -55,7 +53,6 @@ import java.util.stream.Stream;
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-@Transactional
 public abstract class IntegrationTest {
 
 	@Autowired
@@ -88,8 +85,8 @@ public abstract class IntegrationTest {
 		cleanTempDir();
 	}
 
-	protected Cookie accessTokenCookie(String memberNumber) {
-		String token = jwtTokenProvider.createAccessToken(memberNumber);
+	protected Cookie accessTokenCookie(String memberId) {
+		String token = jwtTokenProvider.createAccessToken(memberId);
 
 		return new Cookie("accessToken", token);
 	}
@@ -122,15 +119,7 @@ public abstract class IntegrationTest {
 	//==== 유틸 메서드 =====
 	protected void insertMember(Member member) {
 		memberRepository.insert(member);
-
-		MemberInfo info = member.getInfo();
-		jdbcTemplate.update(
-				"INSERT INTO member_info VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-				info.getId(), info.getGender().getValue(), info.getProfile(),
-				info.getPoint(), info.getConsecutiveDays(), info.getImageLimit(),
-				info.getLoginAt(), info.getFailureCount()
-		);
-
+		memberRepository.insert(member.getInfo());
 	}
 
 }

@@ -3,7 +3,6 @@ package com.moneymanager.global.security;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,8 +58,8 @@ class CustomAuthenticationProviderIT extends IntegrationTest {
         @BeforeEach
         void setUp() {
             member = MemberTestFixture.builder()
-                    .withMemberInfo(MemberInfoTestFixture.builder())
-                    .buildWithEncodePassword(passwordEncoder.encode(MemberTestData.DEFAULT_PASSWORD));
+                    .password(passwordEncoder.encode(MemberTestData.DEFAULT_PASSWORD))
+                    .build();
 
             insertMember(member);
         }

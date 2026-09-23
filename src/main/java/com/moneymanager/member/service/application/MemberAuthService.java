@@ -9,11 +9,14 @@ import com.moneymanager.global.security.CustomUserDetails;
 import com.moneymanager.global.security.jwt.JwtTokenProvider;
 import com.moneymanager.global.util.string.StringUtil;
 import com.moneymanager.member.repository.MemberTokenRepository;
+import com.moneymanager.member.service.command.MemberAppender;
+import com.moneymanager.member.service.validation.MemberValidator;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,7 +31,7 @@ import static com.moneymanager.global.exception.code.ErrorCode.INVALID_TOKEN;
 /**
  * <p>
  * 패키지이름    : com.moneymanager.member.service.application<br>
- * 파일이름       : TokenAuthService<br>
+ * 파일이름       : MemberAuthService<br>
  * 작성자          : areum Jang<br>
  * 생성날짜       : 26. 9. 9<br>
  * 설명              : 회원 인증 흐름을 관리하는 클래스
@@ -54,13 +57,38 @@ import static com.moneymanager.global.exception.code.ErrorCode.INVALID_TOKEN;
  */
 @Service
 @RequiredArgsConstructor
-public class TokenAuthService {
+public class MemberAuthService {
 
     private final JwtTokenProvider tokenProvider;
     private final CustomUserDetailService userDetailService;
     private final MemberTokenRepository tokenRepository;
+    private final MemberAppender memberAppender;
+    private final MemberValidator validator;
 
     private final PasswordEncoder passwordEncoder;
+
+    public CustomUserDetails login(String username, String password) {
+        try {
+            //아이디와 비밀번호 검증
+            validator.validateLogin(username, password);
+        } catch (ApplicationException e) {
+            throw new AuthenticationServiceException(e.getMessageKey());
+        }
+
+        //사용자 정보 조회
+        CustomUserDetails userDetails = (CustomUserDetails) userDetailService.loadUserByUsername(username);
+        throwsAuthenticationException(userDetails);
+
+        //비밀번호 일치여부 검증
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            throw new BadCredentialsException("member.login.failed");
+        }
+
+        //사이드바 정보 Redis 저장
+        memberAppender.saveSidebar(userDetails.getId());
+
+        return userDetails;
+    }
 
     public boolean authenticate(String accessToken, HttpServletResponse response) throws IOException {
         try{
@@ -145,9 +173,9 @@ public class TokenAuthService {
 
     //===== issueToken 보조 메서드 =====
     private void setAuthentication(String token) {
-        String memberNumber = tokenProvider.parseToken(token).getPayload().getSubject();
+        String memberId = tokenProvider.parseToken(token).getPayload().getSubject();
 
-        CustomUserDetails userDetails = (CustomUserDetails) userDetailService.loadUserByMemberNumber(memberNumber);
+        CustomUserDetails userDetails = (CustomUserDetails) userDetailService.loadUserByMemberId(memberId);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
@@ -203,6 +231,21 @@ public class TokenAuthService {
                             StringUtil.masking(refreshToken, 6, refreshToken.length() - 6)
                     ).withCause("유효하지 않은 refreshToken")
             ).withMessageKey("member.token.failed");
+        }
+    }
+
+    //===== login 보조 메서드 =====
+    private void throwsAuthenticationException(CustomUserDetails userDetails) throws AuthenticationException {
+        if (!userDetails.isAccountNonExpired()) {
+            throw new DisabledException("member.login.not_found");
+        }
+
+        if (!userDetails.isAccountNonLocked()) {
+            throw new LockedException("member.login.locked");
+        }
+
+        if (!userDetails.isEnabled()) {
+            throw new DisabledException("member.login.restricted");
         }
     }
 

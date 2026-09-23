@@ -87,10 +87,13 @@ public class LedgerApiControllerIT extends IntegrationTest {
     private LedgerImageStorage imageStorage;
 
     private final String BASE_URI = "/api/ledgers";
-    
+
     @BeforeEach
     void setUp() {
-        insertMember(MemberTestFixture.builder().buildWithEncodePassword(passwordEncoder.encode("password123")));
+        insertMember(
+                MemberTestFixture.builder()
+                        .password(passwordEncoder.encode("password123"))
+                        .build());
     }
 
 
@@ -98,11 +101,11 @@ public class LedgerApiControllerIT extends IntegrationTest {
     @Sql("/sql/ledger-history-test.sql")
     @DisplayName("가계부 검색할 때")
     class Search {
-        
+
         @Test
         @DisplayName("정상적인 검색 요청이면 내역 목록을 반환한다.")
         void returnsHistoryList_whenSearchRequestIsValid() throws Exception {
-        	//given
+            //given
             clock.set(LocalDate.of(2026, 1, 1));
 
             LedgerSearchRequest request = LedgerSearchRequest.builder()
@@ -110,20 +113,20 @@ public class LedgerApiControllerIT extends IntegrationTest {
                     .menu("memo")
                     .memo("이")
                     .build();
-        	
-        	//when
+
+            //when
             mockMvc.perform(
-                    get(BASE_URI)
-                            .param("type", request.getType())
-                            .param("menu", request.getMenu())
-                            .param("memo", request.getMemo())
-                            .cookie(accessTokenCookie("member1"))
-            )
+                            get(BASE_URI)
+                                    .param("type", request.getType())
+                                    .param("menu", request.getMenu())
+                                    .param("memo", request.getMemo())
+                                    .cookie(accessTokenCookie("member1"))
+                    )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").isEmpty())
                     .andExpect(jsonPath("$.data").isNotEmpty());
         }
-        
+
         @Test
         @DisplayName("내역이 없으면 빈 목록을 반환한다.")
         void returnsEmptyList_whenHistoryDoesNotExist() throws Exception {
@@ -251,11 +254,11 @@ public class LedgerApiControllerIT extends IntegrationTest {
 
                 //when
                 mockMvc.perform(
-                                get(URI)
-                                        .cookie(accessTokenCookie(MemberTestData.DEFAULT_USERNAME))
-                                        .param("unit", unit)
-                                        .param("value", date)
-                        );
+                        get(URI)
+                                .cookie(accessTokenCookie(MemberTestData.DEFAULT_USERNAME))
+                                .param("unit", unit)
+                                .param("value", date)
+                );
             }
 
         }
@@ -567,31 +570,31 @@ public class LedgerApiControllerIT extends IntegrationTest {
     class Delete {
 
         String URI = BASE_URI;
-        
+
         @Test
         @DisplayName("자신의 가계부를 삭제하면 데이터와 이미지가 함께 삭제한다.")
         void returnsSuccessMessage_whenUserDeletesOwnAccountBook() throws Exception {
-        	//given
+            //given
             LedgerImage image = imageRepository.findByLedgerId(1L).get(0);
 
             Path path = tempDir.resolve(image.getImagePath());
             Files.createDirectories(path.getParent());
             Files.createFile(path);
-        	
-        	//when
+
+            //when
             mockMvc.perform(
-                    delete(URI)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("""
-                                    ["code-1", "code-2"]
-                                    """)
-                            .cookie(accessTokenCookie("member1"))
-            )
+                            delete(URI)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content("""
+                                            ["code-1", "code-2"]
+                                            """)
+                                    .cookie(accessTokenCookie("member1"))
+                    )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("2건의 내역이 삭제되었습니다."));
-        	
-        	//then
-        	assertThat(ledgerRepository.findByCodeIn(List.of("code-1", "code-2")).size())
+
+            //then
+            assertThat(ledgerRepository.findByCodeIn(List.of("code-1", "code-2")).size())
                     .isZero();
 
             assertThat(imageRepository.findByLedgerId(1L).size())
@@ -599,7 +602,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
 
             assertThat(Files.exists(path)).isFalse();
         }
-        
+
         @Test
         @DisplayName("이미지 삭제에 실패해도 데이터는 삭제한다.")
         void returnsSuccessMessage_whenImageDeletionFails() throws Exception {
@@ -612,15 +615,15 @@ public class LedgerApiControllerIT extends IntegrationTest {
 
             doThrow(IOException.class)
                     .when(imageStorage)
-                            .deleteOrThrow(any());
+                    .deleteOrThrow(any());
 
             //when
             mockMvc.perform(
                             delete(URI)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("""
-                                    ["code-1", "code-2"]
-                                    """)
+                                            ["code-1", "code-2"]
+                                            """)
                                     .cookie(accessTokenCookie("member1"))
                     )
                     .andDo(print())
@@ -637,7 +640,7 @@ public class LedgerApiControllerIT extends IntegrationTest {
             assertThat(Files.exists(path)).isFalse();
             assertThat(Files.exists(tempDir.resolve("temp").resolve("test.png"))).isTrue();
         }
-        
+
         @Test
         @DisplayName("존재하지 않는 가계부면 아무것도 삭제되지 않는다.")
         void returnsNotFoundMessage_whenAccountBookDoesNotExist() throws Exception {
@@ -646,14 +649,14 @@ public class LedgerApiControllerIT extends IntegrationTest {
                             delete(URI)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("""
-                                    ["no-exist", "code-2"]
-                                    """)
+                                            ["no-exist", "code-2"]
+                                            """)
                                     .cookie(accessTokenCookie("member1"))
                     )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("1건의 내역이 삭제되었습니다."));
         }
-        
+
         @Test
         @DisplayName("타인의 가계부는 아무것도 삭제되지 않는다.")
         void rejectsRequest_whenUserIsNotOwner() throws Exception {
@@ -662,8 +665,8 @@ public class LedgerApiControllerIT extends IntegrationTest {
                             delete(URI)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("""
-                                    ["code-2", "code-3"]
-                                    """)
+                                            ["code-2", "code-3"]
+                                            """)
                                     .cookie(accessTokenCookie("member1"))
                     )
                     .andExpect(status().isOk())

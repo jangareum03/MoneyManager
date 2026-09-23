@@ -4,6 +4,7 @@ import com.moneymanager.global.exception.ApplicationException;
 import com.moneymanager.global.log.AuditLogger;
 import com.moneymanager.global.log.LogContent;
 import com.moneymanager.member.domain.dto.request.MemberSignUpRequest;
+import com.moneymanager.member.domain.dto.response.SideBarUser;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.domain.entity.MemberHistory;
 import com.moneymanager.member.domain.entity.MemberInfo;
@@ -13,6 +14,8 @@ import com.moneymanager.member.repository.MemberHistoryRepository;
 import com.moneymanager.member.repository.MemberRepository;
 import com.moneymanager.member.service.generator.MemberIdGenerator;
 import com.moneymanager.member.service.generator.MemberNumberGenerator;
+import com.moneymanager.member.service.read.MemberReader;
+import com.moneymanager.member.service.redis.SideBarMemberRedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -58,11 +61,13 @@ public class MemberAppender {
 
     private static final int MAX_RETRY_COUNT = 3;
 
+    private final SideBarMemberRedisService redisService;
     private final MemberRepository memberRepository;
     private final MemberHistoryRepository memberHistoryRepository;
-
     private final MemberIdGenerator idGenerator;
     private final MemberNumberGenerator numberGenerator;
+    private final MemberReader memberReader;
+
     private final PasswordEncoder passwordEncoder;
 
     public Member create(MemberSignUpRequest request) {
@@ -104,8 +109,25 @@ public class MemberAppender {
         memberRepository.insert(member.getInfo());
 
         memberHistoryRepository.insertHistory(
-                MemberHistory.create(member.getId(), member.getCreatedAt())
+                MemberHistory.create(member.getId())
         );
+    }
+
+    public void saveSidebar(String memberId) {
+        Optional<SideBarUser> sideBarUser = memberRepository.findByMemberNumberForSideBar(memberId)
+                .stream()
+                .findFirst()
+                .map(user -> {
+                    user.changeProfile(memberReader.getProfilePath(memberId));
+
+                    return user;
+                });
+
+        if(sideBarUser.isPresent()) {
+            redisService.saveNickname(memberId, sideBarUser.get().getNickname());
+            redisService.saveProfile(memberId, sideBarUser.get().getProfile());
+        }
+
     }
 
 

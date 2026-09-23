@@ -68,10 +68,6 @@ public class SignupService {
         }
     }
 
-    public void validateDuplicationEmail(String email) {
-        emailVerificationService.sendVerificationCode(email);
-    }
-
     public String confirmEmail(String email, String code) {
         emailVerificationService.verifyCode(email, code);
 

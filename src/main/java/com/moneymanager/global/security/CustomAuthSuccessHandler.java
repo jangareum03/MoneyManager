@@ -1,6 +1,6 @@
 package com.moneymanager.global.security;
 
-import com.moneymanager.member.service.application.TokenAuthService;
+import com.moneymanager.member.service.application.MemberAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -41,7 +41,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class CustomAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-	private final TokenAuthService tokenAuthService;
+	private final MemberAuthService tokenAuthService;
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {

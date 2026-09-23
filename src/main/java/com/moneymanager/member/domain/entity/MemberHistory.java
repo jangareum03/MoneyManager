@@ -3,8 +3,6 @@ package com.moneymanager.member.domain.entity;
 import com.moneymanager.member.domain.enums.HistoryType;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
-
 /**
  * <p>
  * 패키지이름    : com.moneymanager.member.domain.entity<br>
@@ -41,27 +39,25 @@ public class MemberHistory {
     private final String item;
     private final String beforeInfo;
     private final String afterInfo;
-    private final LocalDateTime updatedAt;
 
-    private MemberHistory(String memberId, HistoryType type, String item, String beforeInfo, String afterInfo, LocalDateTime updatedAt) {
+    private MemberHistory(String memberId, HistoryType type, String item, String beforeInfo, String afterInfo) {
         this.memberId = memberId;
         this.type = type;
         this.item = item;
         this.beforeInfo = beforeInfo;
         this.afterInfo = afterInfo;
-        this.updatedAt = updatedAt;
     }
 
-    public static MemberHistory create(String memberId, LocalDateTime updatedAt) {
-        return new MemberHistory(memberId, HistoryType.CREATE, "회원가입", null, null, updatedAt);
+    public static MemberHistory create(String memberId) {
+        return new MemberHistory(memberId, HistoryType.CREATE, "회원가입", null, null);
     }
 
-    public static  MemberHistory update(String memberId, String item, String beforeInfo, String afterInfo, LocalDateTime updatedAt) {
-        return new MemberHistory(memberId, HistoryType.UPDATE, item, beforeInfo, afterInfo, updatedAt);
+    public static  MemberHistory update(String memberId, String item, String beforeInfo, String afterInfo) {
+        return new MemberHistory(memberId, HistoryType.UPDATE, item, beforeInfo, afterInfo);
     }
 
-    public static MemberHistory delete(String memberId, LocalDateTime updatedAt) {
-        return new MemberHistory(memberId, HistoryType.DELETE, "회원탈퇴",  null, null, updatedAt);
+    public static MemberHistory delete(String memberId) {
+        return new MemberHistory(memberId, HistoryType.DELETE, "회원탈퇴",  null, null);
     }
 
 }

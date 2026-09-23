@@ -124,66 +124,6 @@ public class MemberRepository {
         );
     }
 
-    public boolean updatePassword(Member member) {
-        String query = """
-                UPDATE member
-                    SET password = ?
-                    WHERE id = ?
-                """;
-
-        return jdbcTemplate.update(
-                query, member.getPassword(), member.getId()
-        ) == 1;
-    }
-
-    public boolean updateEmail(Member member) {
-        String query = """
-                UPDATE member
-                    SET email = ?
-                    WHERE id = ?
-                """;
-
-        return jdbcTemplate.update(
-                query, member.getEmail(), member.getId()
-        ) == 1;
-    }
-
-    public boolean updateName(Member member) {
-        String query = """
-                UPDATE member
-                    SET name = ?
-                    WHERE  id = ?
-                """;
-
-        return jdbcTemplate.update(
-                query, member.getName(), member.getId()
-        ) == 1;
-    }
-
-    public boolean updateGender(Member member) {
-        String query = """
-                        UPDATE member_info
-                            SET gender = ?
-                            WHERE member_id = ?
-                """;
-
-        return jdbcTemplate.update(
-                query, member.getInfo().getGender().getValue(), member.getId()
-        ) == 1;
-    }
-
-    public boolean updateProfile(Member member) {
-        String query = """
-                UPDATE member_info
-                    SET profile = ?
-                    WHERE member_id = ?
-                """;
-
-        return jdbcTemplate.update(
-                query, member.getInfo().getProfile(), member.getId()
-        ) == 1;
-    }
-
     public Member findById(String id) {
         String query = """
                 SELECT m.*, mi.gender, mi.profile, mi.point, mi.consecutive_days, mi.image_limit, mi.failure_count, mi.login_at
@@ -231,13 +171,11 @@ public class MemberRepository {
         }
     }
 
-    public Optional<MemberAuth> findAuthByMemberNumber(String memberNumber) {
+    public Optional<MemberAuth> findAuthByMemberId(String memberId) {
         String query = """
-                SELECT m.id, m.role, m.status
-                    FROM member m
-                        JOIN member_info mi
-                	        ON m.id = mi.member_id
-                    WHERE m.member_number = ?
+                SELECT id, role, status
+                    FROM member
+                    WHERE id = ?
                 """;
 
         try {
@@ -249,7 +187,7 @@ public class MemberRepository {
                                     rs.getString("role"),
                                     MemberStatus.fromValue(rs.getString("status"))
                             ),
-                            memberNumber
+                            memberId
                     )
             );
         } catch (EmptyResultDataAccessException e) {
@@ -279,13 +217,13 @@ public class MemberRepository {
         }
     }
 
-    public Optional<SideBarUser> findByMemberNumberForSideBar(String memberNumber) {
+    public Optional<SideBarUser> findByMemberNumberForSideBar(String memberId) {
         String query = """
                 SELECT m.nickname, mi.profile
                     FROM member m
                         JOIN member_info mi
                             ON mi.member_id = m.id
-                    WHERE m.member_number = ?
+                    WHERE m.id = ?
                 """;
 
         return jdbcTemplate.query(
@@ -295,7 +233,7 @@ public class MemberRepository {
                                 rs.getString("nickname"),
                                 rs.getString("profile")
                         ),
-                memberNumber
+                memberId
         ).stream().findFirst();
     }
 
@@ -378,6 +316,34 @@ public class MemberRepository {
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
+    }
+
+    public String findUsernameByMemberId(String memberId) {
+        String query = """
+                SELECT username
+                    FROM member
+                    WHERE id = ?
+                """;
+
+        return jdbcTemplate.queryForObject(
+                query,
+                String.class,
+                memberId
+        );
+    }
+
+    public String findPasswordByMemberId(String memberId) {
+        String query = """
+                SELECT password
+                    FROM member
+                    WHERE id = ?
+                """;
+
+        return jdbcTemplate.queryForObject(
+                query,
+                String.class,
+                memberId
+        );
     }
 
     public Integer findImageUploadLimitByMemberId(String memberId) {
@@ -505,6 +471,79 @@ public class MemberRepository {
                 Integer.class,
                 profile
         ) > 0;
+    }
+
+    public boolean updatePassword(Member member) {
+        String query = """
+                UPDATE member
+                    SET password = ?
+                    WHERE id = ?
+                """;
+
+        return jdbcTemplate.update(
+                query, member.getPassword(), member.getId()
+        ) == 1;
+    }
+
+    public boolean updateEmail(Member member) {
+        String query = """
+                UPDATE member
+                    SET email = ?
+                    WHERE id = ?
+                """;
+
+        return jdbcTemplate.update(
+                query, member.getEmail(), member.getId()
+        ) == 1;
+    }
+
+    public boolean updateName(Member member) {
+        String query = """
+                UPDATE member
+                    SET name = ?
+                    WHERE  id = ?
+                """;
+
+        return jdbcTemplate.update(
+                query, member.getName(), member.getId()
+        ) == 1;
+    }
+
+    public boolean updateGender(Member member) {
+        String query = """
+                        UPDATE member_info
+                            SET gender = ?
+                            WHERE member_id = ?
+                """;
+
+        return jdbcTemplate.update(
+                query, member.getInfo().getGender().getValue(), member.getId()
+        ) == 1;
+    }
+
+    public boolean updateProfile(Member member) {
+        String query = """
+                UPDATE member_info
+                    SET profile = ?
+                    WHERE member_id = ?
+                """;
+
+        return jdbcTemplate.update(
+                query, member.getInfo().getProfile(), member.getId()
+        ) == 1;
+    }
+
+    public void updateStatusToWithdrawn(Member member) {
+        String query = """
+                UPDATE member
+                    SET status = 'D', deleted_at = SYSDATE
+                    WHERE id = ?
+                        AND status = 'A'
+                """;
+
+        jdbcTemplate.update(
+                query, member.getId()
+        );
     }
 
 }

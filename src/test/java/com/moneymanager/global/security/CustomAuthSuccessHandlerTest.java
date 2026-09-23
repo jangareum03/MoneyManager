@@ -1,7 +1,7 @@
 package com.moneymanager.global.security;
 
+import com.moneymanager.member.service.application.MemberAuthService;
 import com.moneymanager.member.service.application.MemberService;
-import com.moneymanager.member.service.application.TokenAuthService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +50,7 @@ class CustomAuthSuccessHandlerTest {
     CustomAuthSuccessHandler target;
 
     @Mock
-    TokenAuthService tokenAuthService;
+    MemberAuthService tokenAuthService;
 
     @Mock
     MemberService memberService;

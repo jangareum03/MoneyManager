@@ -4,7 +4,6 @@ import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.service.redis.SideBarMemberRedisService;
 import com.moneymanager.support.IntegrationTest;
 import com.moneymanager.support.data.MemberTestData;
-import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,8 +52,8 @@ class CustomAuthSuccessHandlerIT extends IntegrationTest {
     void processAuthentication_whenSucceeds() throws Exception {
     	//given: 회원 정보가 저징되어 있다.
         Member member = MemberTestFixture.builder()
-                .withMemberInfo(MemberInfoTestFixture.builder())
-                .buildWithEncodePassword(passwordEncoder.encode(MemberTestData.DEFAULT_PASSWORD));
+                .password(passwordEncoder.encode(MemberTestData.DEFAULT_PASSWORD))
+                .build();
 
         insertMember(member);
 

@@ -1,11 +1,7 @@
 package com.moneymanager.support.fixture.entity;
 
 import com.moneymanager.member.domain.entity.Member;
-import com.moneymanager.member.domain.entity.MemberInfo;
-import com.moneymanager.member.domain.enums.MemberStatus;
-import com.moneymanager.member.domain.enums.MemberType;
-
-import java.time.LocalDateTime;
+import com.moneymanager.member.domain.enums.MemberGender;
 
 import static com.moneymanager.support.data.MemberTestData.*;
 
@@ -19,14 +15,8 @@ public final class MemberTestFixture {
 	private String birthdate =  DEFAULT_BIRTHDATE;
 	private String nickname = DEFAULT_NICKNAME;
 	private String email = DEFAULT_EMAIL;
-	private String role =  DEFAULT_ROLE;
-	private MemberType type = DEFAULT_TYPE;
-	private MemberStatus status = DEFAULT_STATUS;
-	private LocalDateTime createAt = DEFAULT_CREATE_DATE;
-	private LocalDateTime deleteAt;
+	private MemberGender gender = DEFAULT_GENDER;
 
-	//회원 부가정보
-	private MemberInfo memberInfo = MemberInfoTestFixture.builder().build();
 
 	private MemberTestFixture() {}
 
@@ -52,6 +42,12 @@ public final class MemberTestFixture {
 		return this;
 	}
 
+	public MemberTestFixture password(String password) {
+		this.password = password;
+
+		return this;
+	}
+
 	public MemberTestFixture nickName(String nickname) {
 		this.nickname = nickname;
 
@@ -60,12 +56,6 @@ public final class MemberTestFixture {
 
 	public MemberTestFixture email(String email) {
 		this.email = email;
-
-		return this;
-	}
-
-	public MemberTestFixture withMemberInfo(MemberInfoTestFixture info) {
-		this.memberInfo = info.build();
 
 		return this;
 	}
@@ -80,21 +70,7 @@ public final class MemberTestFixture {
 				birthdate,
 				nickname,
 				email,
-				memberInfo.getGender()
-		);
-	}
-
-	public Member buildWithEncodePassword(String encodePassword) {
-		return  Member.createForJoin(
-				id,
-				number,
-				username,
-				encodePassword,
-				name,
-				birthdate,
-				nickname,
-				email,
-				memberInfo.getGender()
+				gender
 		);
 	}
 

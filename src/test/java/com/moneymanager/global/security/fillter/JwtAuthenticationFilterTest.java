@@ -1,6 +1,6 @@
 package com.moneymanager.global.security.fillter;
 
-import com.moneymanager.member.service.application.TokenAuthService;
+import com.moneymanager.member.service.application.MemberAuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ class JwtAuthenticationFilterTest {
     JwtAuthenticationFilter target;
 
     @Mock
-    TokenAuthService tokenAuthService;
+    MemberAuthService tokenAuthService;
 
     @Mock
     FilterChain chain;

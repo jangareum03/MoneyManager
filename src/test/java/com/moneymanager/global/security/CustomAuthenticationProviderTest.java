@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -18,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * <p>
@@ -71,9 +69,6 @@ class CustomAuthenticationProviderTest {
 
             CustomUserDetails userDetails = mock(CustomUserDetails.class);
 
-            when(accountService.login(username, password))
-                    .thenReturn(userDetails);
-
             //when
             Authentication result = target.authenticate(authentication);
 
@@ -92,9 +87,6 @@ class CustomAuthenticationProviderTest {
         void throwsException_whenAccountIsInvalid() {
         	//given
             Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
-
-            when(accountService.login(username, password))
-                    .thenThrow(BadCredentialsException.class);
 
         	//when
             assertThatThrownBy(() -> target.authenticate(authentication))

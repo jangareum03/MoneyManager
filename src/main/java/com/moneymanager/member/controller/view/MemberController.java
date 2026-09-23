@@ -1,4 +1,4 @@
-package com.moneymanager.member.controller;
+package com.moneymanager.member.controller.view;
 
 import com.moneymanager.global.log.operation.annotation.Operation;
 import com.moneymanager.global.log.operation.enums.ServiceAction;
@@ -51,6 +51,14 @@ public class MemberController {
         model.addAttribute("member", memberService.getMyPageInfo(currentUser.getId()));
 
         return "member/mypage_info";
+    }
+
+    @GetMapping("/mypage/withdrawal")
+    @Operation(ServiceAction.MY_WITHDRAWAL)
+    public String showWithdrawalPage(@AuthenticationPrincipal CustomUserDetails currentUser, Model model) {
+        model.addAttribute("username",  memberService.getUsername(currentUser.getId()));
+
+        return "member/mypage_delete";
     }
 
 }

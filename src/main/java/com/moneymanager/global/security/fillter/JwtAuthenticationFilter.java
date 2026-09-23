@@ -1,6 +1,6 @@
 package com.moneymanager.global.security.fillter;
 
-import com.moneymanager.member.service.application.TokenAuthService;
+import com.moneymanager.member.service.application.MemberAuthService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -41,9 +41,9 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final TokenAuthService tokenAuthService;
+    private final MemberAuthService tokenAuthService;
 
-    public JwtAuthenticationFilter(TokenAuthService authService) {
+    public JwtAuthenticationFilter(MemberAuthService authService) {
         this.tokenAuthService = authService;
     }
 

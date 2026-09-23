@@ -59,21 +59,31 @@ public class LedgerApiController {
     public ApiBody<List<LedgerHistoryDisplay>> getLedgerHistory(LedgerSearchRequest request) {
         List<LedgerHistoryDisplay> history = ledgerHistoryService.searchLedgersByCondition(request);
 
-        return ApiBody.data(history);
+        return ApiBody.<List<LedgerHistoryDisplay>>builder()
+                .data(history)
+                .build();
     }
 
     @GetMapping("/category/{code}/children")
     @Operation(ServiceAction.LEDGER_CATEGORY)
-    public List<CategoryItem> getCategories(@PathVariable String code) {
-        return categoryReadService.getChildrenByParentCode(code).stream()
+    public ApiBody<List<CategoryItem>> getCategories(@PathVariable String code) {
+        List<CategoryItem> categoryItemList = categoryReadService.getChildrenByParentCode(code).stream()
                 .map(CategoryItem::from)
                 .toList();
+
+        return ApiBody.<List<CategoryItem>>builder()
+                .data(categoryItemList)
+                .build();
     }
 
     @GetMapping("/dates")
     @Operation(ServiceAction.LEDGER_REGISTER_DATE)
-    public List<Integer> getDateList(@RequestParam String unit, @RequestParam String date) {
-        return ledgerService.fetchDateOptionsByUnit(unit, date);
+    public ApiBody<List<Integer>> getDateList(@RequestParam String unit, @RequestParam String date) {
+        List<Integer> dateList = ledgerService.fetchDateOptionsByUnit(unit, date);
+
+        return ApiBody.<List<Integer>>builder()
+                .data(dateList)
+                .build();
     }
 
     @PutMapping("/{code}")
@@ -83,22 +93,27 @@ public class LedgerApiController {
 
         ledgerService.processLedgerUpdate(code, request);
 
-        return ApiBody.next(
-                "가계부 수정 완료했습니다.",
-                "/ledgers/" + code
-        );
+        return ApiBody.<Void>builder()
+                .messageKey("ledger.update.success")
+                .next("/ledgers/" + code)
+                .build();
     }
 
     @DeleteMapping
     @Operation(ServiceAction.LEDGER_DELETE)
-    public ApiBody<Void> deleteLedger(@RequestBody List<String> codes) {
+    public ApiBody<Integer> deleteLedger(@RequestBody List<String> codes) {
         int delCount = ledgerService.processLedgerDelete(codes);
 
         if (delCount == 0) {
-            return ApiBody.message("삭제된 내역이 없습니다.");
+            return ApiBody.<Integer>builder()
+                    .messageKey("ledger.delete.zero")
+                    .build();
         }
 
-        return ApiBody.message(delCount + "건의 내역이 삭제되었습니다.");
+        return ApiBody.<Integer>builder()
+                .messageKey("ledger.delete.success")
+                .data(delCount)
+                .build();
     }
 
 }

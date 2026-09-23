@@ -2,7 +2,6 @@ package com.moneymanager.global.security.fillter;
 
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.support.IntegrationTest;
-import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,9 +42,7 @@ class JwtAuthenticationFilterIT extends IntegrationTest {
     @DisplayName("정상적인 토큰으로 보호된 API에 접근할 수 있다.")
     void returnsSuccess_whenAccessTokenIsValidAndEndpointIsProtected() throws Exception {
     	//given
-        Member member = MemberTestFixture.builder()
-                        .withMemberInfo(MemberInfoTestFixture.builder())
-                                .build();
+        Member member = MemberTestFixture.builder().build();
 
         insertMember(member);
     	

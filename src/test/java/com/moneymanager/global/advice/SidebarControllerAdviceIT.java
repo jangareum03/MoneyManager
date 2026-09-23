@@ -3,7 +3,6 @@ package com.moneymanager.global.advice;
 import com.moneymanager.member.domain.entity.Member;
 import com.moneymanager.member.service.redis.SideBarMemberRedisService;
 import com.moneymanager.support.IntegrationTest;
-import com.moneymanager.support.fixture.entity.MemberInfoTestFixture;
 import com.moneymanager.support.fixture.entity.MemberTestFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,9 +49,13 @@ class SidebarControllerAdviceIT extends IntegrationTest {
     @DisplayName("인증된 사용자의 사이드바 정보를 Model에 추가한다.")
     void addsSidebarToModel_whenUserIsAuthenticated() throws Exception {
         //given
-        Member member = MemberTestFixture.builder()
-                .withMemberInfo(MemberInfoTestFixture.builder().profile("profile"))
-                .build();
+        Member member = MemberTestFixture.builder().build();
+
+        jdbcTemplate.update(
+                "UPDATE member_info SET profile = ? WHERE member_id = ?",
+                "profile",
+                member.getId()
+        );
 
         insertMember(member);
         sideBarMemberService.saveNickname(member.getMemberNumber(), member.getNickname());

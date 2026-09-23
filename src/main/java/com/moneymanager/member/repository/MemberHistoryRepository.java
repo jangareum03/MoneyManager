@@ -44,14 +44,14 @@ public class MemberHistoryRepository {
 
     public void insertHistory(MemberHistory history) {
         String query = """
-                INSERT INTO member_history
-                    VALUES(member_history_seq.NEXTVAL, ?, ?, ?, ?, ?, ?)
+                INSERT INTO member_history (id, member_id, type, item, before_info, after_info)
+                    VALUES(member_history_seq.NEXTVAL, ?, ?, ?, ?, ?)
                 """;
 
         jdbcTemplate.update(
                 query,
                 history.getMemberId(), history.getType().name(), history.getItem(),
-                history.getBeforeInfo(), history.getAfterInfo(), history.getUpdatedAt()
+                history.getBeforeInfo(), history.getAfterInfo()
         );
     }
 

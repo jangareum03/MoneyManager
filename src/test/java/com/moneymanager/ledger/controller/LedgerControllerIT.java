@@ -67,7 +67,9 @@ public class LedgerControllerIT extends IntegrationTest {
 
     @BeforeEach
     void setUp() {
-        member = MemberTestFixture.builder().buildWithEncodePassword(passwordEncoder.encode("password123"));
+        member = MemberTestFixture.builder()
+                .password(passwordEncoder.encode("password123"))
+                .build();
 
         insertMember(member);
     }

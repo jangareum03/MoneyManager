@@ -4,6 +4,7 @@ import com.moneymanager.global.generator.HashGenerator;
 import com.moneymanager.global.generator.UuidGenerator;
 import com.moneymanager.member.service.redis.PasswordResetRedisService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 /**
  * <p>
@@ -32,6 +33,7 @@ import lombok.RequiredArgsConstructor;
  * 		</tbody>
  * </table>
  */
+@Component
 @RequiredArgsConstructor
 public class PasswordResetTokenManager {
 

@@ -57,7 +57,9 @@ class LedgerImageRepositoryIT extends IntegrationTest {
 
     @BeforeEach
     void setUp() {
-        member = MemberTestFixture.builder().buildWithEncodePassword(passwordEncoder.encode("password123"));
+        member = MemberTestFixture.builder()
+                .password(passwordEncoder.encode("password123"))
+                .build();
 
         insertMember(member);
     }
@@ -65,11 +67,11 @@ class LedgerImageRepositoryIT extends IntegrationTest {
     @Nested
     @DisplayName("가계부 코드로 이미지 조회할 때")
     class FindByCode {
-        
+
         @Test
         @DisplayName("존재하는 코드면 코드에 해당하는 이미지 정보를 조회한다.")
         void findsImages_whenCodeExists() {
-        	//given: 가계부와 해당 이미지가 저장되어 있다.
+            //given: 가계부와 해당 이미지가 저장되어 있다.
             Long id = ledgerRepository.save(
                     LedgerTestFixture.builder().build()
             );
@@ -81,25 +83,25 @@ class LedgerImageRepositoryIT extends IntegrationTest {
                             LedgerImageTestFixture.builder(id, Path.of("root")).build()
                     )
             );
-        	
-        	//when
+
+            //when
             List<LedgerImage> result = target.findByLedgerCode(ledger.getCode());
-        	
-        	//then
+
+            //then
             assertThat(result.size()).isEqualTo(1);
         }
-        
+
         @Test
         @DisplayName("존재하지 않은 코드면 빈 리스트로 조회한다.")
         void findsEmptyList_whenCodeDoesNotExist() {
-        	//given
+            //given
             String code = "no-exist";
-        	
-        	//when
+
+            //when
             List<LedgerImage> result = target.findByLedgerCode(code);
-        	
-        	//then
-        	assertThat(result).isEmpty();
+
+            //then
+            assertThat(result).isEmpty();
         }
 
     }
