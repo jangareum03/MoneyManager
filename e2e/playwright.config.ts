@@ -16,7 +16,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: 'http://localhost:8080',
+    baseURL: 'https://localhost',
     /* 생성된 user.json 사용하려면 활성화, user.json 없다면 비활성화 */
     storageState: 'playwright/.auth/user.json',
 

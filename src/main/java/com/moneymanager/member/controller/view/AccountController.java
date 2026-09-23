@@ -2,6 +2,7 @@ package com.moneymanager.member.controller.view;
 
 import com.moneymanager.global.log.operation.annotation.Operation;
 import com.moneymanager.global.log.operation.enums.ServiceAction;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.SessionAttribute;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.SessionAttribute;
  * 		</tbody>
  * </table>
  */
+@Controller
 public class AccountController {
 
     @GetMapping("/login")
