@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration monitorInterval="5" status="WARN">
+
+    <!-- 공통 설정 -->
+    <Properties>
+        <Property name="LOG_PATH">logs</Property>
+
+        <Property name="CONSOLE_PATTERN">
+            %style{%d{yyyy-MM-dd HH:mm:ss}:%-3relative}{cyan} %highlight{[%-5level]}{FATAL=bg_red, ERROR=red, INFO=green, DEBUG=blue}
+            %style{[%M]}{yellow} %logger{35} - %msg%n
+        </Property>
+
+        <Property name="LOG_PATTERN">
+            %d{yyyy-MM-dd HH:mm:ss.SSS} [%-10X{traceId}] %-5level [%t] %msg%n
+        </Property>
+    </Properties>
+
+    <Appenders>
+
+        <!-- 개발 환경 -->
+        <SpringProfile name="dev">
+
+            <Console name="dev_console" target="SYSTEM_OUT">
+                <ThresholdFilter level="DEBUG"
+                                 onMatch="ACCEPT"
+                                 onMismatch="DENY"/>
+                <PatternLayout pattern="${CONSOLE_PATTERN}"
+                               disableAnsi="false"/>
+            </Console>
+
+            <RollingFile name="dev_file"
+                         fileName="${LOG_PATH}/dev/debug.log"
+                         filePattern="${LOG_PATH}/dev/history/debug-%d{yyyy-MM-dd}-%i.log.gz">
+
+                <ThresholdFilter level="DEBUG"
+                                 onMatch="ACCEPT"
+                                 onMismatch="DENY"/>
+
+                <PatternLayout pattern="${LOG_PATTERN}"/>
+
+                <Policies>
+                    <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                    <SizeBasedTriggeringPolicy size="20MB"/>
+                </Policies>
+
+                <DefaultRolloverStrategy max="30"/>
+            </RollingFile>
+
+        </SpringProfile>
+
+        <!-- 운영 환경 -->
+        <SpringProfile name="prod">
+
+            <Console name="prod_console" target="SYSTEM_OUT">
+                <ThresholdFilter level="INFO"
+                                 onMatch="ACCEPT"
+                                 onMismatch="DENY"/>
+                <PatternLayout pattern="${CONSOLE_PATTERN}"
+                               disableAnsi="false"/>
+            </Console>
+
+            <RollingFile name="prod_file"
+                         fileName="${LOG_PATH}/prod/prod.log"
+                         filePattern="${LOG_PATH}/prod/history/prod-%d{yyyy-MM-dd}-%i.log.gz">
+
+                <ThresholdFilter level="INFO"
+                                 onMatch="ACCEPT"
+                                 onMismatch="DENY"/>
+
+                <PatternLayout pattern="${LOG_PATTERN}"/>
+
+                <Policies>
+                    <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                    <SizeBasedTriggeringPolicy size="20MB"/>
+                </Policies>
+
+                <DefaultRolloverStrategy max="30"/>
+            </RollingFile>
+
+        </SpringProfile>
+
+    </Appenders>
+
+    <Loggers>
+
+        <!-- 개발 환경 -->
+        <SpringProfile name="dev">
+
+            <Logger name="com.moneymanager.global.logging"
+                    level="DEBUG"
+                    additivity="false">
+                <AppenderRef ref="console" />
+                <AppenderRef ref="dev_file" />
+            </Logger>
+
+            <Logger name="org.springframework"
+                    level="INFO"/>
+
+            <Logger name="org.springframework.security"
+                    level="INFO"/>
+
+            <Logger name="org.springframework.jdbc"
+                    level="WARN"/>
+
+            <Root level="INFO">
+                <AppenderRef ref="dev_console"/>
+                <AppenderRef ref="dev_file"/>
+            </Root>
+
+        </SpringProfile>
+
+        <!-- 운영 환경 -->
+        <SpringProfile name="prod">
+
+            <Logger name="com.moneymanager.global.logging"
+                    level="INFO"
+                    additivity="true"/>
+
+            <Root level="INFO">
+                <AppenderRef ref="prod_console"/>
+                <AppenderRef ref="prod_file"/>
+            </Root>
+
+        </SpringProfile>
+
+    </Loggers>
+
+</Configuration>
