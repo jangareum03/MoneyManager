@@ -44,6 +44,7 @@ public class SecurityConfig {
 				.sessionManagement( session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) )
 				.authorizeHttpRequests(auth -> auth
 						.antMatchers("/css/**", "/js/**", "/image/**").permitAll()
+						.antMatchers("/signup").permitAll()
 						.antMatchers("/api/accounts/**").permitAll()
 						.anyRequest().hasRole("USER")
 				);
