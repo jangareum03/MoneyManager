@@ -1,0 +1,210 @@
+@charset "UTF-8";
+/*==============================
+                       페이지 초기화
+==============================*/
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+
+body {
+  line-height: 1;
+}
+
+ol, ul {
+  list-style: none;
+}
+
+blockquote, q {
+  quotes: none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: "";
+  content: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+button {
+  background-color: unset;
+}
+
+/*==============================
+                        폰트 파일
+==============================*/
+@font-face {
+  font-family: "Sebang Gothic";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/SEBANG_Gothic_Bold.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+}
+
+input {
+  height: 4.5vh;
+  border: 2px solid #AEA9A9;
+  outline: none;
+}
+input:focus {
+  border-color: #14918A;
+  box-shadow: 0 0 5px rgba(38, 175, 168, 0.8);
+}
+
+button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  border-radius: 5px;
+  white-space: nowrap;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.auth-layout {
+  display: flex;
+  justify-content: center;
+  min-width: 100vw;
+  min-height: 100vh;
+  background-image: url("../image/auth/auth-background.jpg");
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+
+.signup-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0 20%;
+  padding: 0px 15%;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+.signup-page > * {
+  width: 100%;
+}
+.signup-page__header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  gap: 0.2rem;
+  font-family: "Sebang Gothic", sans-serif;
+  text-align: center;
+}
+.signup-page__title {
+  font-size: clamp(30px, 2.5vw, 45px);
+}
+.signup-page__brand {
+  font-size: clamp(15px, 1.2vw, 35px);
+}
+.signup-page__form {
+  flex: 5;
+}
+.signup-page__form > fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5vh;
+}
+.signup-page__label {
+  font-size: clamp(12px, 0.8vw, 15px);
+  font-weight: bold;
+}
+.signup-page__label--required::after {
+  content: "*";
+  color: #D2180D;
+}
+.signup-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.signup-page__input-group {
+  display: flex;
+}
+.signup-page__input-group > input {
+  flex: 1;
+}
+.signup-page__gender-group {
+  display: flex;
+  justify-content: space-around;
+  height: 3vh;
+}
+.signup-page__gender-option {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: clamp(13px, 1.5vh, 18px);
+}
+.signup-page__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  padding: 0 1rem;
+}
+.signup-page .button {
+  color: #FFFFFF;
+}
+.signup-page .button--action {
+  background-color: #2C2C2C;
+}
+.signup-page .button--secondary {
+  background-color: #757575;
+}
+.signup-page .button--primary {
+  background-color: #14918A;
+}
+.signup-page .button--large {
+  width: clamp(100px, 8vw, 150px);
+  height: clamp(45px, 5.5vh, 90px);
+  font-size: clamp(16px, 1vw, 18px);
+}
+.signup-page .button--medium {
+  width: clamp(30px, 4vw, 70px);
+  font-size: clamp(12px, 0.8vw, 15px);
+}
+
+/*# sourceMappingURL=style.css.map */

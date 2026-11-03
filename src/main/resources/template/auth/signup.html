@@ -1,0 +1,78 @@
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{/layout/auth-layout}">
+<th:block layout:fragment="content">
+    <header class="signup-page__header">
+        <h1 class="signup-page__title">회원가입</h1>
+        <p class="signup-page__brand">돈 매니저</p>
+    </header>
+
+    <form action="/signup" method="post" class="signup-page__form">
+        <fieldset>
+            <!-- 아이디 -->
+            <div class="signup-page__field">
+                <label class="signup-page__label signup-page__label--required" for="username">아이디</label>
+                <input type="text" id="username" name="username" placeholder="아이디를 입력해주세요.">
+            </div>
+
+            <div class="signup-page__field">
+                <label class="signup-page__label signup-page__label--required" for="password">비밀번호</label>
+                <input type="password" id="password" name="password" placeholder="비밀번호를 입력해주세요.">
+            </div>
+
+            <div class="signup-page__field">
+                <label class="signup-page__label" for="re-password">비밀번호 확인</label>
+                <input type="password" id="re-password" placeholder="비밀번호를 재입력해주세요.">
+            </div>
+
+            <div class="signup-page__field">
+                <label class="signup-page__label signup-page__label--required" for="name">이름</label>
+                <input type="text" id="name" name="name" placeholder="이름을 입력해주세요.">
+            </div>
+
+            <div class="signup-page__field">
+                <label class="signup-page__label" for="birth">생년월일</label>
+                <input type="text" id="birth" name="birth" placeholder="생년월일 입력해주세요. (ex. 19950101)">
+            </div>
+
+            <div class="signup-page__field">
+                <label class="signup-page__label signup-page__label--required" for="email">이메일</label>
+                <div class="signup-page__input-group">
+                    <input type="text" id="email" name="email" placeholder="이메일 입력해주세요.">
+                    <button class="button button--action button--medium" type="button">전송</button>
+                </div>
+            </div>
+
+            <fieldset class="signup-page__field">
+                <legend class="signup-page__label">성별</legend>
+
+                <div class="signup-page__gender-group">
+                    <div class="signup-page__gender-option">
+                        <input type="radio" name="gender" id="gender-none" checked>
+                        <label for="gender-none">선택없음</label>
+                    </div>
+
+
+                    <div class="signup-page__gender-option">
+                        <input type="radio" name="gender" id="gender-male">
+                        <label for="gender-male">남자</label>
+                    </div>
+
+                    <div class="signup-page__gender-option">
+                        <input type="radio" name="gender" id="gender-female">
+                        <label for="gender-female">여자</label>
+                    </div>
+                </div>
+            </fieldset>
+
+        </fieldset>
+    </form>
+
+    <footer class="signup-page__footer">
+        <button class="button button--secondary button--large" type="button">취소</button>
+        <button class="button button--primary button--large" type="submit">가입</button>
+    </footer>
+</th:block>
+<th:block layout:fragment="pageScript">
+
+</th:block>

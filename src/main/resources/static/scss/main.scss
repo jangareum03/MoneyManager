@@ -1,0 +1,180 @@
+@use 'base/reset';
+@use 'base/fonts';
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+}
+
+input {
+    height: 4.5vh;
+    border: 2px solid #AEA9A9;
+    outline: none;
+
+    &:focus {
+        border-color: #14918A;
+        box-shadow: 0 0 5px rgba(38, 175, 168, 0.8);
+    }
+}
+
+button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+
+    border: none;
+    border-radius: 5px;
+    white-space: nowrap;
+
+    font-weight: 500;
+
+    cursor: pointer;
+}
+
+.auth-layout {
+    display: flex;
+    justify-content: center;
+    min-width: 100vw;
+    min-height: 100vh;
+    background-image: url('../image/auth/auth-background.jpg');
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+}
+
+.signup-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
+    min-height: 100vh;
+
+    margin: 0 20%;
+    padding: 0px 15%;
+
+   background-color: rgba(255, 255, 255, 0.6);
+
+    > * {
+        width: 100%;
+    }
+
+    &__header {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        flex: 1;
+        gap: 0.2rem;
+
+        font-family: 'Sebang Gothic', sans-serif;
+        text-align: center;
+    }
+
+    &__title {
+        font-size: clamp(30px, 2.5vw, 45px);
+    }
+
+    &__brand {
+        font-size: clamp(15px, 1.2vw, 35px);
+    }
+
+    &__form {
+        flex: 5;
+
+        > fieldset {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5vh;
+        }
+    }
+
+    &__label {
+        font-size: clamp(12px, 0.8vw, 15px);
+        font-weight: bold;
+
+        //필수 라벨
+         &--required::after {
+                content: "*";
+                color: #D2180D;
+         }
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    &__input {
+        &-group {
+            display: flex;
+
+            > input {
+                flex: 1;
+            }
+        }
+    }
+
+    &__gender {
+        &-group {
+            display: flex;
+            justify-content: space-around;
+            height: 3vh;
+        }
+
+        &-option {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: clamp(13px, 1.5vh, 18px);
+        }
+
+    }
+
+    &__footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex: 1;
+
+        padding: 0 1rem;
+    }
+
+    .button {
+        color: #FFFFFF;
+
+        //종류
+        &--action {
+            background-color: #2C2C2C;
+        }
+
+        &--secondary {
+            background-color: #757575;
+        }
+
+        &--primary {
+            background-color: #14918A;
+        }
+
+        &--large {
+            width: clamp(100px, 8vw, 150px);
+            height: clamp(45px, 5.5vh, 90px);
+            font-size: clamp(16px, 1vw, 18px);
+        }
+
+        &--medium {
+            width: clamp(30px, 4vw, 70px);
+            font-size: clamp(12px, 0.8vw, 15px);
+        }
+    }
+}
