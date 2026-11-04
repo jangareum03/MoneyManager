@@ -18,7 +18,6 @@ time, mark, audio, video {
   margin: 0;
   padding: 0;
   border: 0;
-  font-size: 100%;
   font: inherit;
   vertical-align: baseline;
 }
@@ -43,7 +42,6 @@ blockquote, q {
 
 blockquote:before, blockquote:after,
 q:before, q:after {
-  content: "";
   content: none;
 }
 
@@ -119,7 +117,7 @@ button {
   width: 100%;
   min-height: 100vh;
   margin: 0 20%;
-  padding: 0px 15%;
+  padding: 0 15%;
   background-color: rgba(255, 255, 255, 0.6);
 }
 .signup-page > * {
