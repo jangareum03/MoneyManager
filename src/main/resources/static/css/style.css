@@ -18,6 +18,10 @@ time, mark, audio, video {
   margin: 0;
   padding: 0;
   border: 0;
+<<<<<<< HEAD
+=======
+  font-size: 100%;
+>>>>>>> ef09c47a ([MM-142] feat: 회원가입 화면 UI 구현)
   font: inherit;
   vertical-align: baseline;
 }
@@ -42,6 +46,10 @@ blockquote, q {
 
 blockquote:before, blockquote:after,
 q:before, q:after {
+<<<<<<< HEAD
+=======
+  content: "";
+>>>>>>> ef09c47a ([MM-142] feat: 회원가입 화면 UI 구현)
   content: none;
 }
 
@@ -117,7 +125,11 @@ button {
   width: 100%;
   min-height: 100vh;
   margin: 0 20%;
+<<<<<<< HEAD
   padding: 0 15%;
+=======
+  padding: 0px 15%;
+>>>>>>> ef09c47a ([MM-142] feat: 회원가입 화면 UI 구현)
   background-color: rgba(255, 255, 255, 0.6);
 }
 .signup-page > * {
@@ -205,4 +217,8 @@ button {
   font-size: clamp(12px, 0.8vw, 15px);
 }
 
+<<<<<<< HEAD
 /*# sourceMappingURL=style.css.map */
+=======
+/*# sourceMappingURL=style.css.map */
+>>>>>>> ef09c47a ([MM-142] feat: 회원가입 화면 UI 구현)
