@@ -1,5 +1,6 @@
-package com.moneymanager.global.config;
+package com.moneymanager.global.security.config;
 
+import com.moneymanager.global.security.filter.CspNonceFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.HeaderWriterFilter;
 
 
 /**
@@ -31,15 +33,6 @@ public class SecurityConfig {
 				.cors(Customizer.withDefaults())
 				.headers(headers -> headers
 						.xssProtection(Customizer.withDefaults())
-						.contentSecurityPolicy(csp -> csp.policyDirectives(
-								"default-src 'self'; " +
-										"script-src 'self' https://dapi.kakao.com https://t1.daumcdn.net https://www.gstatic.com 'unsafe-eval'; " +
-										"connect-src 'self' https://dapi.kakao.com; " +
-										"font-src 'self' https://cdn.jsdelivr.net; " +
-										"style-src 'self' 'unsafe-inline' https://www.gstatic.com; " +
-										"img-src 'self' blob: https://t1.daumcdn.net https://mts.daumcdn.net; " +
-										"object-src 'none';"
-						))
 				)
 				.sessionManagement( session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) )
 				.authorizeHttpRequests(auth -> auth
@@ -47,7 +40,8 @@ public class SecurityConfig {
 						.antMatchers("/signup").permitAll()
 						.antMatchers("/api/accounts/**").permitAll()
 						.anyRequest().hasRole("USER")
-				);
+				)
+				.addFilterBefore(new CspNonceFilter(), HeaderWriterFilter.class);
 
 		return http.build();
 	}
