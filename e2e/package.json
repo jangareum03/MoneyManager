@@ -1,0 +1,27 @@
+{
+  "name": "moneymanager",
+  "version": "1.0.0",
+  "description": "돈매니저는 개인의 돈의 흐름을 그래프로 쉽게 볼 수 있어 돈 관리를 도와주는 웹 서비스입니다.<br>\r - 개발기간: 2022.10 - 2023.03\r - 리펙토링 기간: 2025.03 - 2025.07\r - 참여인원: 개인 프로젝트",
+  "main": "index.js",
+  "dependencies": {
+    "playwright": "^1.62.1",
+    "playwright-core": "^1.62.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0",
+    "dotenv": "^17.4.2"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jangareum03/MoneyManager.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jangareum03/MoneyManager/issues"
+  },
+  "homepage": "https://github.com/jangareum03/MoneyManager#readme"
+}
