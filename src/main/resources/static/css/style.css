@@ -18,11 +18,7 @@ time, mark, audio, video {
   margin: 0;
   padding: 0;
   border: 0;
-<<<<<<< HEAD
-=======
   font-size: 100%;
->>>>>>> ef09c47a ([MM-142] feat: 회원가입 화면 UI 구현)
-  font: inherit;
   vertical-align: baseline;
 }
 
@@ -46,11 +42,7 @@ blockquote, q {
 
 blockquote:before, blockquote:after,
 q:before, q:after {
-<<<<<<< HEAD
-=======
   content: "";
->>>>>>> ef09c47a ([MM-142] feat: 회원가입 화면 UI 구현)
-  content: none;
 }
 
 table {
@@ -86,16 +78,6 @@ body {
   margin: 0;
 }
 
-input {
-  height: 4.5vh;
-  border: 2px solid #AEA9A9;
-  outline: none;
-}
-input:focus {
-  border-color: #14918A;
-  box-shadow: 0 0 5px rgba(38, 175, 168, 0.8);
-}
-
 button {
   display: inline-flex;
   justify-content: center;
@@ -118,6 +100,17 @@ button {
   background-repeat: no-repeat;
 }
 
+.message {
+  font-size: clamp(12px, 1.3vh, 16px);
+  font-weight: 500;
+}
+.message--error {
+  color: #D2180D;
+}
+.message--success {
+  color: #145329;
+}
+
 .signup-page {
   display: flex;
   flex-direction: column;
@@ -125,15 +118,8 @@ button {
   width: 100%;
   min-height: 100vh;
   margin: 0 20%;
-<<<<<<< HEAD
   padding: 0 15%;
-=======
-  padding: 0px 15%;
->>>>>>> ef09c47a ([MM-142] feat: 회원가입 화면 UI 구현)
   background-color: rgba(255, 255, 255, 0.6);
-}
-.signup-page > * {
-  width: 100%;
 }
 .signup-page__header {
   display: flex;
@@ -141,6 +127,7 @@ button {
   justify-content: center;
   flex: 1;
   gap: 0.2rem;
+  width: 100%;
   font-family: "Sebang Gothic", sans-serif;
   text-align: center;
 }
@@ -152,6 +139,7 @@ button {
 }
 .signup-page__form {
   flex: 5;
+  width: 100%;
 }
 .signup-page__form > fieldset {
   display: flex;
@@ -171,10 +159,27 @@ button {
   flex-direction: column;
   gap: 0.2rem;
 }
-.signup-page__input-group {
+.signup-page__input {
+  height: 4.5vh;
+  border: 2px solid #AEA9A9;
+  outline: none;
+}
+.signup-page__input:focus {
+  border-color: #14918A;
+  box-shadow: 0 0 5px rgba(38, 175, 168, 0.8);
+}
+.signup-page__input--success {
+  border-color: #145329;
+  box-shadow: 0 0 5px rgba(20, 83, 41, 0.8);
+}
+.signup-page__input--error {
+  border-color: #D2180D;
+  box-shadow: 0 0 5px rgba(210, 24, 12, 0.8);
+}
+.signup-page__email-group {
   display: flex;
 }
-.signup-page__input-group > input {
+.signup-page__email-group > input {
   flex: 1;
 }
 .signup-page__gender-group {
@@ -193,6 +198,7 @@ button {
   justify-content: space-between;
   align-items: center;
   flex: 1;
+  width: 100%;
   padding: 0 1rem;
 }
 .signup-page .button {
@@ -217,8 +223,4 @@ button {
   font-size: clamp(12px, 0.8vw, 15px);
 }
 
-<<<<<<< HEAD
 /*# sourceMappingURL=style.css.map */
-=======
-/*# sourceMappingURL=style.css.map */
->>>>>>> ef09c47a ([MM-142] feat: 회원가입 화면 UI 구현)

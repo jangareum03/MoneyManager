@@ -16,17 +16,6 @@ body {
     margin: 0;
 }
 
-input {
-    height: 4.5vh;
-    border: 2px solid #AEA9A9;
-    outline: none;
-
-    &:focus {
-        border-color: #14918A;
-        box-shadow: 0 0 5px rgba(38, 175, 168, 0.8);
-    }
-}
-
 button {
     display: inline-flex;
     justify-content: center;
@@ -52,6 +41,19 @@ button {
     background-repeat: no-repeat;
 }
 
+.message {
+    font-size: clamp(12px, 1.3vh, 16px);
+    font-weight: 500;
+
+    &--error {
+        color: #D2180D;
+    }
+
+    &--success {
+        color: #145329;
+    }
+}
+
 .signup-page {
     display: flex;
     flex-direction: column;
@@ -61,7 +63,7 @@ button {
     min-height: 100vh;
 
     margin: 0 20%;
-    padding: 0px 15%;
+    padding: 0 15%;
 
    background-color: rgba(255, 255, 255, 0.6);
 
@@ -116,6 +118,27 @@ button {
     }
 
     &__input {
+        height: 4.5vh;
+        border: 2px solid #AEA9A9;
+        outline: none;
+
+        &:focus {
+            border-color: #14918A;
+            box-shadow: 0 0 5px rgba(38, 175, 168, 0.8);
+        }
+
+        &--success {
+            border-color: #145329;
+            box-shadow: 0 0 5px rgba(20, 83, 41, 0.8);
+        }
+
+        &--error {
+            border-color: #D2180D;
+            box-shadow: 0 0 5px rgba(210, 24, 12, 0.8);
+        }
+    }
+
+    &__email {
         &-group {
             display: flex;
 
