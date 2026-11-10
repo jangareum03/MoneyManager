@@ -77,6 +77,9 @@
     <script th:nonce="${cspNonce}" th:inline="javascript">
         window.pageMessages = {
             usernameRequired: /*[[#{error.member.username.required}]]*/ '',
+            passwordRequired: /*[[#{error.member.password.required}]]*/ '',
+            passwordLength: /*[[#{error.member.password.length}]]*/ '',
+            passwordFormat: /*[[#{error.member.password.format}]]*/ '',
             networkError:  /*[[#{alert.member.signupNetwork}]]*/ ''
         };
     </script>

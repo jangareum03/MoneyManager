@@ -1,6 +1,7 @@
 //========================================
 // 회원가입
 //========================================
+//회원가입 가능 여부
 const canSignup = {
     id: false,
     pwd: false,
@@ -8,17 +9,27 @@ const canSignup = {
     email: false
 };
 
+//비밀번호 입력 상태
+const passwordState = {
+    valid: false,
+    confirm: false
+};
+
+const passwordRegex = /^(?:(?=.*[A-Za-z])(?=.*[0-9])|(?=.*[A-Za-z])(?=.*[!#%^*]))[A-Za-z0-9!#%^*]{8,20}$/;
+
 let lastUsername = null;
 let usernameController = null;
 
+
+//----------[ ▼ 초기화 및 이벤트를 연결합니다. ]----------
 document.addEventListener("DOMContentLoaded", () => {
     //입력란 이벤트
-    document.addEventListener("focusout", onInputFocusOut);
-    document.addEventListener("input", onInputChange);
+    document.addEventListener("focusout", handleInputFocusOut);
+    document.addEventListener("input", handleInputChange);
 });
 
-//----------[ ▼ 입력란 포커스 아웃 이벤트를 연결합니다. ]----------
-async function onInputFocusOut(event) {
+//----------[ ▼ 공통적인 입력란의 포커스 아웃 이벤트를 연결합니다. ]----------
+async function handleInputFocusOut(event) {
     const input = event.target;
 
     if(!input.matches(".signup-page__input")) {
@@ -29,11 +40,14 @@ async function onInputFocusOut(event) {
         case "username":
             await onUsernameBlur(event);
             break;
+        case "password":
+            onPasswordBlur(event);
+            break;
     }
 }
 
-//----------[ ▼ 입력란 값 변경 이벤트를 연결합니다. ]----------
-function onInputChange(event) {
+//----------[ ▼ 공통적인 입력란의 변경 이벤트를 연결합니다. ]----------
+function handleInputChange(event) {
     const input = event.target;
 
     if(!input.matches(".signup-page__input")) {
@@ -45,6 +59,11 @@ function onInputChange(event) {
             hideFieldMessage(input.closest('.signup-page__field'));
 
             onUsernameChange(event);
+            break;
+        case "password":
+            canSignup.pwd = false;
+
+            hideFieldMessage(input.closest('.signup-page__field'));
             break;
     }
 }
@@ -136,6 +155,49 @@ async function checkDuplicateUsername(username, field, input) {
             usernameController = null;
         }
     }
+}
+
+//----------[ ▼ 비밀번호 입력란 포커스 아웃 이벤트를 연결합니다. ]----------
+function onPasswordBlur(event) {
+    const input = event.target;
+    const value = input.value.trim();
+    const field = input.closest('.signup-page__field');
+
+    passwordState.valid = false;
+
+    //비밀번호 미입력
+    if(value === "") {
+        showFieldMessage(field, Message.page("passwordRequired"));
+
+        return;
+    }
+
+    //비밀번호 길이
+    if(!isValidPasswordLength(value)) {
+        showFieldMessage(field, Message.page("passwordLength"));
+
+        return;
+    }
+
+    //비밀번호 형식
+    if(!isValidPasswordFormat(value)) {
+        showFieldMessage(field, Message.page("passwordFormat"));
+
+        return;
+    }
+
+    passwordState.valid = true;
+    hideFieldMessage(field);
+}
+
+//----------[ ▼ 비밀번호 길이를 검사합니다. ]----------
+function isValidPasswordLength(password) {
+    return password.length >= 8 && password.length <= 20;
+}
+
+//----------[ ▼ 비밀번호 형식을 검사합니다. ]----------
+function isValidPasswordFormat(password) {
+    return passwordRegex.test(password);
 }
 
 //----------[ ▼ 메시지를 보여줍니다. ]----------

@@ -266,3 +266,105 @@ test.describe('아이디 중복 검사', () => {
         await dialog.accept();
     });
 });
+
+test.describe('비밀번호 이중 확인 검사', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/signup');
+    });
+
+    test('비밀번호를 입력하지 않고 포커스 아웃되면 필수 메시지가 표시된다.', async ({ page }) => {
+        const input = page.getByLabel('비밀번호', {exact: true});
+
+        const message = page.getByText('비밀번호를 확인해주세요.');
+
+        await input.focus();
+        await input.blur();
+
+        await expect(message).toBeVisible();
+        await expect(message).toHaveClass(/message--error/);
+    });
+
+    const invalidPasswords = [
+        '123456',
+        '1234567',
+        '123456789012345678901',
+        '1234567890123456789012'
+    ];
+    for(const password of invalidPasswords) {
+        test(`비밀번호를 ${password.length}자로 입력하면 길이 오류 메시지가 표시된다.`, async ({ page }) => {
+            const input = page.getByLabel('비밀번호', {exact: true});
+            const message = page.getByText('비밀번호는 8~20자로 입력해주세요.');
+
+            await input.fill(password);
+            await input.blur();
+
+            await expect(message).toBeVisible();
+            await expect(message).toHaveClass(/message--error/);
+        });
+    }
+
+    const formatPasswords = [
+        ['영어', 'abcdefgH'],
+        ['숫자', '12345678'],
+        ['특수문자', '!#%^*!#%^*'],
+        ['숫자+특수문자', '12345#%^'],
+        ['허용하지 않은 문자', '한글입력??@@']
+    ];
+    for(const [type, password] of formatPasswords) {
+        test(`비밀번호를 ${type}만 입력하면 형식 오류 메시지가 표시된다.`, async ({ page }) => {
+            const input = page.getByLabel('비밀번호', {exact: true});
+            const message = page.getByText('비밀번호는 영어, 숫자, 특수문자(!%#^*)만 조합하여 사용할 수 있습니다.');
+
+            await input.fill(password);
+            await input.blur();
+
+            await expect(message).toBeVisible();
+            await expect(message).toHaveClass(/message--error/);
+        });
+    }
+
+    const validPasswords = [
+        ['영문자 + 숫자', 'apple123'],
+        ['영문자 + 특수문자', 'APPLE!!#'],
+        ['영문자 + 숫자 + 특수문자', 'appLe12#']
+    ];
+    for(const [type, password] of validPasswords) {
+        test(`비밀번호를 ${type} 조합으로 입력하면 메시지가 표시되지 않는다.`, async ({ page }) => {
+            const input = page.getByLabel('비밀번호', {exact: true});
+
+            await input.fill(password);
+            await input.blur();
+
+            await expect(
+                page.locator('.message')
+            ).toBeHidden();
+        });
+    }
+
+    test('검증 후 비밀번호를 변경하면 최신 결과가 표시된다.,', async ({ page }) => {
+        const input = page.getByLabel('비밀번호', {exact: true});
+
+        const firstMessage = page.getByText('비밀번호는 8~20자로 입력해주세요.');
+        const secondMessage = page.getByText('비밀번호는 영어, 숫자, 특수문자(!%#^*)만 조합하여 사용할 수 있습니다.');
+
+        //첫번째 입력
+        await input.fill('test');
+        await input.blur();
+
+        await expect(firstMessage).toBeVisible();
+        await expect(firstMessage).toHaveClass(/message--error/);
+
+        //두번째 입력
+        await input.fill('test123##');
+        await expect(firstMessage).toBeHidden();
+
+        //세번째 입력
+        await input.fill('12345###');
+        await input.blur();
+
+        await expect(firstMessage).toBeHidden();
+
+        await expect(secondMessage).toBeVisible();
+        await expect(secondMessage).toHaveClass(/message--error/);
+    });
+});
