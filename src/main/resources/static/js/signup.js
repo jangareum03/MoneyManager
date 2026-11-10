@@ -1,46 +1,93 @@
 //========================================
 // 회원가입
 //========================================
-let lastUsername, usernameController;
+const canSignup = {
+    id: false,
+    pwd: false,
+    name: false,
+    email: false
+};
+
+let lastUsername = null;
+let usernameController = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-    const usernameInput = document.querySelector('#username');
-
-    usernameInput.addEventListener("focus", () => hideMessage(usernameInput.parentElement));
-    usernameInput.addEventListener("blur", onUsernameInput);
+    //입력란 이벤트
+    document.addEventListener("focusout", onInputFocusOut);
+    document.addEventListener("input", onInputChange);
 });
 
-async function onUsernameInput(event) {
+//----------[ ▼ 입력란 포커스 아웃 이벤트를 연결합니다. ]----------
+async function onInputFocusOut(event) {
+    const input = event.target;
+
+    if(!input.matches(".signup-page__input")) {
+        return;
+    }
+
+    switch (input.id) {
+        case "username":
+            await onUsernameBlur(event);
+            break;
+    }
+}
+
+//----------[ ▼ 입력란 값 변경 이벤트를 연결합니다. ]----------
+function onInputChange(event) {
+    const input = event.target;
+
+    if(!input.matches(".signup-page__input")) {
+        return;
+    }
+
+    switch (input.id) {
+        case "username":
+            hideFieldMessage(input.closest('.signup-page__field'));
+
+            onUsernameChange(event);
+            break;
+    }
+}
+
+//----------[ ▼ 아이디 입력란 포커스 아웃 이벤트를 연결합니다. ]----------
+async function onUsernameBlur(event) {
     const input = event.target;
     const value = input.value.trim();
-    const field = input.closest(".signup-page__field");
+    const field = input.closest('.signup-page__field');
 
     //아이디 미입력
-    if (value === "") {
-        showMessage(field, Message.page('usernameRequired'));
+    if(value === "") {
         lastUsername = null;
 
+        showFieldMessage(field, Message.page("usernameRequired"));
         return;
     }
 
     //기존값과 동일하면 종료
-    if(lastUsername === value) {
+    if(value === lastUsername) {
         return;
     }
-
-    //기존 메시지 제거
-    hideMessage(field);
-
-    //아이디 중복 확인
-    await checkDuplicateUsername(value, field);
+    
+    await checkDuplicateUsername(value, field, input);
 }
 
-//----------[ ▼ 아이디 중복 API를 호출합니다. ]----------
-async function checkDuplicateUsername(username, field) {
-    //이전 요청 취소
+//----------[ ▼ 아이디 입력란 값 변경 이벤트를 연결합니다. ]----------
+function onUsernameChange() {
+    canSignup.id = false;
+    lastUsername = null;
+
+    //진행 중인 중복 확인 요청 취소
+    usernameController?.abort();
+    usernameController = null;
+}
+
+//----------[ ▼ 아이디 중복 확인 API를 호출합니다. ]----------
+async function checkDuplicateUsername(username, field, input) {
     usernameController?.abort();
 
-    usernameController = new AbortController();
+    const controller = new AbortController();
+    usernameController = controller;
+
     const params = new URLSearchParams({username});
 
     try{
@@ -50,21 +97,33 @@ async function checkDuplicateUsername(username, field) {
                 headers: {
                     'Accept': 'application/json'
                 },
-                signal: usernameController.signal
+                signal: controller.signal
             }
         );
 
         const json = await response.json();
 
+        //오래된 요청이면 무시
+        if(usernameController !== controller || input.value.trim() !== username) {
+            return;
+        }
+
         if(response.ok && json.success === true) {
             const type = json.data.available ? "success" : "error";
 
-            showMessage(field, json.message, type);
+            showFieldMessage(field, json.message, type);
+
+            lastUsername = username;
+
+            if(type === "success") {
+                canSignup.id = true;
+            }
+
             return;
         }
 
         if(response.status === 400 && json.success === false) {
-            showMessage(field, json.message);
+            showFieldMessage(field, json.message);
         }
     }catch(error) {
         if(error.name === "AbortError") {
@@ -72,63 +131,55 @@ async function checkDuplicateUsername(username, field) {
         }
 
         showAlert(Message.page('networkError'), field);
+    }finally {
+        if(usernameController === controller) {
+            usernameController = null;
+        }
     }
 }
 
-//----------[ ▼ 메시지를 생성합니다. ]----------
-function createMessage(text, type = "error") {
-    const message = document.createElement("p");
-
-    message.classList.add("message", `message--${type}`);
-    message.textContent = text;
-
-    return message;
-}
-
 //----------[ ▼ 메시지를 보여줍니다. ]----------
-function showMessage(parent, text, type = "error") {
-    hideMessage(parent);
+function showFieldMessage(field, text, type="error") {
+    MessageUI.show(field, text, type);
 
-    const message = createMessage(text, type);
-    parent.appendChild(message);
-
-    showClassName(parent, type);
-    
-    return message;
+    setInputState(field, type);
 }
 
 //----------[ ▼ 메시지를 숨깁니다. ]----------
-function hideMessage(parent) {
-    parent.querySelectorAll(".message").forEach(
-        message => {
-            message.remove();
-        }
-    );
-
-    hideClassName(parent);
+function hideFieldMessage(field) {
+    MessageUI.hide(field);
+    clearInputState(field);
 }
 
 //----------[ ▼ 알럿을 보여줍니다. ]----------
-function showAlert(text, parent) {
+function showAlert(text, field) {
     alert(text);
+    clearInputState(field);
 
-    showClassName(parent);
+    ClassUtil.add(
+        field.querySelector('.signup-page__input'),
+        'signup-page__input--error',
+    );
 }
 
-//----------[ ▼ 상태 클래스를 추가합니다. ]---------
-function showClassName(parent, type = "error") {
-    parent.querySelectorAll('.signup-page__input').forEach(
-        input => {
-            input.classList.add(`signup-page__input--${type}`);
-        }
-    )
+//----------[ ▼ 입력란 상태를 설정합니다. ]----------
+function setInputState(field, type) {
+    const inputs = field.querySelectorAll('.signup-page__input');
+
+    inputs.forEach(input => {
+        ClassUtil.remove(input, 'signup-page__input--error');
+        ClassUtil.remove(input, 'signup-page__input--success');
+
+        ClassUtil.add(input, `signup-page__input--${type}`);
+    });
 }
 
-//----------[ ▼ 상태 클래스를 제거합니다. ]----------
-function hideClassName(parent) {
-    parent.querySelectorAll('.signup-page__input').forEach(
-        input => {
-            input.classList.remove('signup-page__input--error');
-        }
-    )
+//----------[ ▼ 입력란 상태를 초기화합니다. ]----------
+function clearInputState(field) {
+    const inputs = field.querySelectorAll('.signup-page__input');
+
+    inputs.forEach(input => {
+        ClassUtil.remove(input, 'signup-page__input--error');
+        ClassUtil.remove(input, 'signup-page__input--success');
+    });
 }
