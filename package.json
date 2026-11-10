@@ -1,9 +1,15 @@
 {
   "devDependencies": {
-    "sass": "^1.107.1"
+    "@types/node": "^26.6.6",
+    "json": "^11.0.0",
+    "sass": "^1.107.1",
+    "vitest": "^5.1.0"
   },
-
   "scripts": {
-    "sass:watch": "sass --watch src/main/resources/static/scss/main.scss src/main/resources/static/css/style.css"
+    "sass:watch": "sass --watch src/main/resources/static/scss/main.scss src/main/resources/static/css/style.css",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   }
 }

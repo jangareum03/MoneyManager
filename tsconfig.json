@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
-    "types": ["node", "@playwright/test"]
+    "types": ["node", "@playwright/test"],
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
   }
 }
