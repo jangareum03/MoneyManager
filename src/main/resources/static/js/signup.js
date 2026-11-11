@@ -43,6 +43,9 @@ async function handleInputFocusOut(event) {
         case "password":
             onPasswordBlur(event);
             break;
+        case "re-password":
+            onPasswordConfirmBlur(event);
+            break;
     }
 }
 
@@ -61,6 +64,7 @@ function handleInputChange(event) {
             onUsernameChange(event);
             break;
         case "password":
+        case "re-password":
             canSignup.pwd = false;
 
             hideFieldMessage(input.closest('.signup-page__field'));
@@ -160,34 +164,55 @@ async function checkDuplicateUsername(username, field, input) {
 //----------[ ▼ 비밀번호 입력란 포커스 아웃 이벤트를 연결합니다. ]----------
 function onPasswordBlur(event) {
     const input = event.target;
-    const value = input.value.trim();
     const field = input.closest('.signup-page__field');
 
-    passwordState.valid = false;
+    const message = validatePassword(input.value);
 
-    //비밀번호 미입력
-    if(value === "") {
-        showFieldMessage(field, Message.page("passwordRequired"));
+    passwordState.valid = message === null;
 
+    if(message) {
+        showFieldMessage(field, message);
         return;
     }
 
-    //비밀번호 길이
-    if(!isValidPasswordLength(value)) {
-        showFieldMessage(field, Message.page("passwordLength"));
-
-        return;
-    }
-
-    //비밀번호 형식
-    if(!isValidPasswordFormat(value)) {
-        showFieldMessage(field, Message.page("passwordFormat"));
-
-        return;
-    }
-
-    passwordState.valid = true;
     hideFieldMessage(field);
+}
+
+//----------[ ▼ 비밀번호 확인 입력란 포커스 아웃 이벤트를 연결합니다. ]----------
+function onPasswordConfirmBlur(event) {
+    //비밀번호 검증 실패 상태
+    if(!passwordState.valid) {
+        onPasswordBlur({target: document.getElementById('password')});
+        return;
+    }
+
+    const input = event.target;
+    const field = input.closest('.signup-page__field');
+
+    //비밀번호 일치여부
+    const isMatch = validatePasswordConfirm();
+    if(isMatch) {
+        showFieldMessage(field, Message.page('passwordMatch'), 'success');
+    }else {
+        showFieldMessage(field, Message.page('passwordMismatch'));
+    }
+}
+
+//----------[ ▼ 비밀번호 형식을 검사합니다. ]----------
+function validatePassword(password) {
+    if(password === "") {
+        return Message.page("passwordRequired");
+    }
+
+    if(!isValidPasswordLength(password)) {
+        return Message.page("passwordLength");
+    }
+
+    if(!isValidPasswordFormat(password)) {
+        return Message.page("passwordFormat");
+    }
+
+    return null;
 }
 
 //----------[ ▼ 비밀번호 길이를 검사합니다. ]----------
@@ -198,6 +223,16 @@ function isValidPasswordLength(password) {
 //----------[ ▼ 비밀번호 형식을 검사합니다. ]----------
 function isValidPasswordFormat(password) {
     return passwordRegex.test(password);
+}
+
+//----------[ ▼ 비밀번호 일치 여부를 확인합니다. ]----------
+function validatePasswordConfirm() {
+    const password = document.getElementById("password").value;
+    const confirm = document.getElementById("re-password").value;
+
+    canSignup.pwd = password === confirm;
+
+    return canSignup.pwd;
 }
 
 //----------[ ▼ 메시지를 보여줍니다. ]----------

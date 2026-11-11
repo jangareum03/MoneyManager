@@ -367,4 +367,73 @@ test.describe('비밀번호 이중 확인 검사', () => {
         await expect(secondMessage).toBeVisible();
         await expect(secondMessage).toHaveClass(/message--error/);
     });
+
+    test('비밀번호 검증 성공 전에 비밀번호 확인을 입력하면 비밀번호 입력영역에 오류 메시지가 표시된다.', async ({ page }) => {
+        const password = page.getByLabel('비밀번호', {exact: true});
+        const confirm = page.getByLabel('비밀번호 확인', {exact: true});
+
+        //비밀번호 검사 실패
+        await password.fill('test');
+        await password.blur();
+
+        //검사 실패한 비밀번호와 일치
+        await confirm.fill('test');
+        await confirm.blur();
+
+        const passwordField = password.locator('..');
+
+        await expect(password).toHaveClass(/signup-page__input--error/);
+        await expect(confirm).not.toHaveClass(/signup-page__input--error/);
+
+        await expect(
+            passwordField.locator('p.message--error')
+        ).toHaveCount(1);
+    });
+
+    test.only('비밀번호 확인을 미입력하면 필수 메시지가 표시된다.', async ({ page }) => {
+        const password = page.getByLabel('비밀번호', {exact: true});
+        const confirm = page.getByLabel('비밀번호 확인', {exact: true});
+
+        const message = page.getByText('비밀번호가 일치하지 않습니다.');
+
+        await password.fill('test1234!!');
+        await password.blur();
+
+        await confirm.fill('');
+        await confirm.blur();
+
+        await expect(message).toBeVisible();
+        await expect(message).toHaveClass(/message--error/);
+    });
+
+    test('비밀번호와 비밀번호가 일치하지 않으면 오류 메시지가 표시된다.', async ({ page }) => {
+        const password = page.getByLabel('비밀번호', {exact: true});
+        const confirm = page.getByLabel('비밀번호 확인', {exact: true});
+
+        const message = page.getByText('비밀번호가 일치하지 않습니다.');
+
+        await password.fill('test1234!!');
+        await confirm.fill('test');
+
+        await confirm.blur();
+
+        await expect(message).toBeVisible();
+        await expect(message).toHaveClass(/message--error/);
+    });
+
+    test('비밀번호와 비밀번호가 일치하면 성공 메시지가 표시된다.', async ({ page }) => {
+        const password = page.getByLabel('비밀번호', {exact: true});
+        const confirm = page.getByLabel('비밀번호 확인', {exact: true});
+
+        const message = page.getByText('비밀번호가 일치합니다.');
+
+        await password.fill('test1234!!');
+        await confirm.fill('test1234!!');
+
+        await confirm.blur();
+
+        await expect(message).toBeVisible();
+        await expect(message).toHaveClass(/message--success/);
+    });
+
 });
